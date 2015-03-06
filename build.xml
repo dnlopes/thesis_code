@@ -1,0 +1,29 @@
+<project name="TPCW" default="compile" basedir=".">
+
+    <!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
+    <property environment="env"/>
+
+
+    <!-- set properties for this build -->
+    <property name="base.dir" value="."/>
+    <property name="src.dir" value="${base.dir}/src"/>
+    <property name="dist.dir" value="${base.dir}/dist"/>
+    <property name="libs.dir" value="${base.dir}/libs"/>
+    <property name="classes.dir" value="${dist.dir}/classes"/>
+
+    <target name="init" depends="clean">
+        <tstamp/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+    </target>
+
+    <target name="clean" description="Clean disttribution directory">
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="compile" depends="init" description="Compile source code">
+        <javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
+        </javac>
+    </target>
+</project>
+

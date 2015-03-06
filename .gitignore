@@ -1,0 +1,13 @@
+# Directories
+dist/
+
+# MacOS X
+.DS_Store
+
+# Compiled Object files
+*.class
+
+# IDE
+*.iml
+.idea/*
+
