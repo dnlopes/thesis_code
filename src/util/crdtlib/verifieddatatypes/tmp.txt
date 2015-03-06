@@ -1,0 +1,554 @@
+     _       _           _                  _____
+    | | __ _| |__   ___ | |__              /     \
+ _  | |/ _` | '_ \ / _ \| '_ \       x <==|  (J)  |===.
+| |_| | (_| | | | | (_) | |_) |     ======+=======+==="  F
+ \____/\__,_|_| |_|\___/|_.__/             \_____/  
+
+No undeclared modified vars.Post assert for LwwLogicalTimestamp is:
+(((fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)) & ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (t :: int)) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb)))) & (comment ''FrameCondition'' ((ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_ts framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_ts framedObj)))) & (ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_init framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_init framedObj))))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))))
+Patched 1 asserts with formula
+ (((fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)) & ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (t :: int)) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb)))) & (comment ''FrameCondition'' ((ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_ts framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_ts framedObj)))) & (ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_init framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_init framedObj))))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null))))) 
+No undeclared modified vars.Post assert for isSmallerThan is:
+(((((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) <= (lt :: int)) --> ((result :: bool) = True)) & ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))) --> ((result :: bool) = False)) & ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj))) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))))
+Patched 1 asserts with formula
+ (((((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) <= (lt :: int)) --> ((result :: bool) = True)) & ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))) --> ((result :: bool) = False)) & ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj))) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null))))) 
+Syntactically modified variables: [Array.arrayState] are not declared in the body of LwwLogicalTimestamp.update. Jahob will try to prove their objects are new or semantically same.
+Post assert for update is:
+(((((fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj)) <= (lt :: int)) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (lt :: int))) & ((intless (lt :: int) (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj)))) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb)))) & (comment ''FrameCondition'' ((ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_ts framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_ts framedObj)))) & (comment ''Array.arrayState_preserved_'' (ALL (framedArrObj::obj). (ALL (i::int). (((0 <= i) & (intless i (fieldRead Array_length framedArrObj)) & (framedArrObj : old_Array) & (framedArrObj ~: LwwLogicalTimestamp_hidden)) --> ((arrayRead Array_arrayState framedArrObj i) = (arrayRead old_Array_arrayState framedArrObj i))))))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))))
+Did not patch assert called this_NotNullCheck
+Did not patch assert called LwwLogicalTimestamp.isSmallerThan_Precondition
+Patched 1 asserts with formula
+ (((((fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj)) <= (lt :: int)) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (lt :: int))) & ((intless (lt :: int) (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) (old_this :: obj)))) & (ALL nb. (((nb : (Object_alloc :: obj set)) & (nb : (LwwLogicalTimestamp :: obj set)) & (nb ~= null) & (nb ~= (this :: obj))) --> ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) = (fieldRead (old_LwwLogicalTimestamp_lts_ts :: (obj => int)) nb)))) & (comment ''FrameCondition'' ((ALL (framedObj::obj). (((framedObj : old_Object_alloc) & (framedObj : LwwLogicalTimestamp) & (framedObj ~: LwwLogicalTimestamp_hidden) & (framedObj ~= old_this)) --> ((fieldRead LwwLogicalTimestamp_lts_ts framedObj) = (fieldRead old_LwwLogicalTimestamp_lts_ts framedObj)))) & (comment ''Array.arrayState_preserved_'' (ALL (framedArrObj::obj). (ALL (i::int). (((0 <= i) & (intless i (fieldRead Array_length framedArrObj)) & (framedArrObj : old_Array) & (framedArrObj ~: LwwLogicalTimestamp_hidden)) --> ((arrayRead Array_arrayState framedArrObj i) = (arrayRead old_Array_arrayState framedArrObj i))))))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null))))) 
+No undeclared modified vars.Post assert for getValue is:
+(((result :: int) = (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))))
+Patched 1 asserts with formula
+ (((result :: int) = (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null))))) 
+No undeclared modified vars.Post assert for hashCode is:
+((((result :: int) = ((Object_hashFunc :: (obj => int)) (this :: obj))) & ((Object_alloc :: obj set) = (old_Object_alloc :: obj set))) & (comment '': hCInv'' (ALL (this::obj). (((this : Object_alloc) & (this : Object)) --> ((fieldRead (Object_hashCode :: (obj => int)) (this :: obj)) = ((Object_hashFunc :: (obj => int)) (this :: obj)))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null)))))
+Patched 1 asserts with formula
+ ((((result :: int) = ((Object_hashFunc :: (obj => int)) (this :: obj))) & ((Object_alloc :: obj set) = (old_Object_alloc :: obj set))) & (comment '': hCInv'' (ALL (this::obj). (((this : Object_alloc) & (this : Object)) --> ((fieldRead (Object_hashCode :: (obj => int)) (this :: obj)) = ((Object_hashFunc :: (obj => int)) (this :: obj)))))) & (comment '': initInv'' (ALL (this::obj). (((this : Object_alloc) & (this : LwwLogicalTimestamp) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))) --> ((this :: obj) = null))))) 
+
+Now analyzing: ==== Procedure LwwLogicalTimestamp.update ====
+Generating VCs...
+Syntactically modified variables: [Array.arrayState] are not declared in the body of LwwLogicalTimestamp.update. Jahob will try to prove their objects are new or semantically same.
+Using VC generation from simplified Ast.
+Done generating VCs.
+Processing VCs...opening lemma file : update_LwwLogicalTimestamp-lemmas.thy
+No lemma file update_LwwLogicalTimestamp-lemmas.thyRetrieved 0 lemmas from lemma file update_LwwLogicalTimestamp-lemmas.thy.
+Generated 1 proof obligations.
+Trivially true.
+Proved during splitting: ([|(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_14::obj). ((((this_14 :: obj) : (Object_alloc_2 :: obj set)) & ((this_14 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_14 :: obj)))) --> ((this_14 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_13::obj). ((((this_13 :: obj) : (Object_alloc_2 :: obj set)) & ((this_13 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_13 :: obj)))) --> ((this_13 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))))
+Proved during splitting: ([|(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int))))
+Trivially true.
+Proved during splitting: ([|(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_5::obj). ((((this_5 :: obj) : (Object_alloc_2 :: obj set)) & ((this_5 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_5 :: obj)))) --> ((this_5 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_4::obj). ((((this_4 :: obj) : (Object_alloc_2 :: obj set)) & ((this_4 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_4 :: obj)))) --> ((this_4 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_9::obj). ((((this_9 :: obj) : (Object_alloc :: obj set)) & ((this_9 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_9 :: obj)))) --> ((this_9 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment '': initInv'' (ALL (this_8::obj). ((((this_8 :: obj) : (Object_alloc :: obj set)) & ((this_8 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_8 :: obj)))) --> ((this_8 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment ''initInv'' (ALL (this_1::obj). ((((this_1 :: obj) : (Object_alloc :: obj set)) & ((this_1 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_1 :: obj)))) --> ((this_1 :: obj) = (null :: obj))))))
+Trivially true.
+Proved during splitting: ([|(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)))
+Trivially true.
+Proved during splitting: ([|(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+((null :: obj) : (Object_alloc :: obj set));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))))|] ==>
+    (comment ''this_NotNullCheck'' ((this :: obj) ~= (null :: obj))))
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)))|] ==>
+    (comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) (this :: obj)) :: int) = (lt :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 proved formula.
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''ProcedureEndPostcondition'' (intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj))))|] ==>
+    (comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 proved formula.
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''ProcedureEndPostcondition'' ((nb_19 :: obj) : (Object_alloc_2 :: obj set)));
+(comment ''ProcedureEndPostcondition'' ((nb_19 :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''ProcedureEndPostcondition'' ((nb_19 :: obj) ~= (null :: obj)));
+(comment ''ProcedureEndPostcondition'' ((nb_19 :: obj) ~= (this :: obj)))|] ==>
+    (comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) nb_19) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb_19) :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 proved formula.
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_110 :: obj) : (Object_alloc :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_110 :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_110 :: obj) ~: (LwwLogicalTimestamp_hidden_1 :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_110 :: obj) ~= (this :: obj)))|] ==>
+    (comment ''FrameCondition_ProcedureEndPostcondition'' (((fieldRead LwwLogicalTimestamp_lts_ts_2 framedObj_110) :: int) = ((fieldRead LwwLogicalTimestamp_lts_ts framedObj_110) :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 failed to prove formula.
+Running SPASS... o
+the Prover has run for 10.088027 seconds
+!Failed proof obligation in SPASS interface talks about: FrameCondition_ProcedureEndPostcondition
+SPASS failed to prove formula.
+Running CVC3... CVC3 failed to prove formula.
+Running Isabelle... Failed to show proof obligation valid.
+
+Failed proof obligation in Isabelle interface talks about: FrameCondition_ProcedureEndPostcondition
+(See file /tmp/pending_6cf843update_LwwLogicalTimestamp.thy for failed proof obligation.)
+Isabelle failed to prove formula.
+All provers failed on proof obligation: 'FrameCondition_ProcedureEndPostcondition'
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''TrueBranch'' (tmp_1_1 :: bool));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_2 :: (obj => int)) = ((% (this_3::obj). (fieldRead ((fieldWrite (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this :: obj) (lt :: int)) :: (obj => int)) (this_3 :: obj))) :: (obj => int))));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((0 :: int) <= (i_146 :: int)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' (intless i_146 (fieldRead Array_length framedArrObj_74)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((framedArrObj_74 :: obj) : (Array :: obj set)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((framedArrObj_74 :: obj) ~: (LwwLogicalTimestamp_hidden_1 :: obj set)))|] ==>
+    (comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' (((arrayRead Array_arrayState_1 framedArrObj_74 i_146) :: obj) = ((arrayRead Array_arrayState framedArrObj_74 i_146) :: obj))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 failed to prove formula.
+Running SPASS... o
+the Prover has run for 10.421892 seconds
+!Failed proof obligation in SPASS interface talks about: Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition
+SPASS failed to prove formula.
+Running CVC3... CVC3 failed to prove formula.
+Running Isabelle... Failed to show proof obligation valid.
+
+Failed proof obligation in Isabelle interface talks about: Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition
+(See file /tmp/pending_6cf843update_LwwLogicalTimestamp.thy for failed proof obligation.)
+Isabelle failed to prove formula.
+All provers failed on proof obligation: 'Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)))|] ==>
+    (comment ''ProcedureEndPostcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = (lt :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 proved formula.
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_55 :: obj) : (Object_alloc :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_55 :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_55 :: obj) ~: (LwwLogicalTimestamp_hidden_1 :: obj set)));
+(comment ''FrameCondition_ProcedureEndPostcondition'' ((framedObj_55 :: obj) ~= (this :: obj)))|] ==>
+    (comment ''FrameCondition_ProcedureEndPostcondition'' (((fieldRead LwwLogicalTimestamp_lts_ts_3 framedObj_55) :: int) = ((fieldRead LwwLogicalTimestamp_lts_ts framedObj_55) :: int))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 failed to prove formula.
+Running SPASS... o
+the Prover has run for 10.535635 seconds
+!Failed proof obligation in SPASS interface talks about: FrameCondition_ProcedureEndPostcondition
+SPASS failed to prove formula.
+Running CVC3... CVC3 failed to prove formula.
+Running Isabelle... Failed to show proof obligation valid.
+
+Failed proof obligation in Isabelle interface talks about: FrameCondition_ProcedureEndPostcondition
+(See file /tmp/pending_6cf843update_LwwLogicalTimestamp.thy for failed proof obligation.)
+Isabelle failed to prove formula.
+All provers failed on proof obligation: 'FrameCondition_ProcedureEndPostcondition'
+
+Proof obligation: ([|(comment ''LwwLogicalTimestamp.lts_init_def'' ((LwwLogicalTimestamp_lts_init :: (obj => bool)) = ((% (this::obj). ((this :: obj) ~= (null :: obj))) :: (obj => bool))));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts :: (obj => int)) = ((% (this::obj). (fieldRead (LwwLogicalTimestamp_ts :: (obj => int)) (this :: obj))) :: (obj => int))));
+(ALL (xObj::obj). ((xObj :: obj) : (Object :: obj set)));
+(((LwwLogicalTimestamp Int Array) :: obj set) = ({null} :: obj set));
+((null :: obj) : (Object_alloc :: obj set));
+(comment ''unalloc_lonely'' (ALL (x::obj). (((x :: obj) ~: (Object_alloc :: obj set)) --> ((ALL (z::obj) (i::int). (((arrayRead Array_arrayState z i) :: obj) ~= (x :: obj))) & (ALL (j::int). (((arrayRead Array_arrayState x j) :: obj) = (null :: obj)))))));
+(comment ''ProcedurePrecondition'' (fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this :: obj)));
+(comment '': initInvProcedurePrecondition'' (ALL (this_6::obj). ((((this_6 :: obj) : (Object_alloc :: obj set)) & ((this_6 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_6 :: obj)))) --> ((this_6 :: obj) = (null :: obj)))));
+(comment '': initInvProcedurePrecondition'' (ALL (this_7::obj). ((((this_7 :: obj) : (Object_alloc :: obj set)) & ((this_7 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_7 :: obj)))) --> ((this_7 :: obj) = (null :: obj)))));
+(comment ''thisNotNull'' ((this :: obj) ~= (null :: obj)));
+(comment ''thisType'' ((this :: obj) : (LwwLogicalTimestamp :: obj set)));
+(comment ''thisType'' ((this :: obj) : (Object_alloc :: obj set)));
+(comment ''LwwLogicalTimestamp.lts_ts_def'' ((LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) = ((% (this_10::obj). (fieldRead (LwwLogicalTimestamp_ts_2 :: (obj => int)) (this_10 :: obj))) :: (obj => int))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) <= (lt :: int)) --> ((tmp_1_1 :: bool) = (True :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((intless (lt :: int) (fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj))) --> ((tmp_1_1 :: bool) = (False :: bool))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) (this :: obj)) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) (this :: obj)) :: int)));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (nb::obj). ((((nb :: obj) : (Object_alloc_2 :: obj set)) & ((nb :: obj) : (LwwLogicalTimestamp :: obj set)) & ((nb :: obj) ~= (null :: obj)) & ((nb :: obj) ~= (this :: obj))) --> (((fieldRead (LwwLogicalTimestamp_lts_ts_3 :: (obj => int)) nb) :: int) = ((fieldRead (LwwLogicalTimestamp_lts_ts :: (obj => int)) nb) :: int)))));
+(comment ''initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_2::obj). ((((this_2 :: obj) : (Object_alloc_2 :: obj set)) & ((this_2 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_2 :: obj)))) --> ((this_2 :: obj) = (null :: obj)))));
+(comment ''LwwLogicalTimestamp.isSmallerThan_Postcondition'' ((Object_alloc :: obj set) \<subseteq> (Object_alloc_2 :: obj set)));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_11::obj). ((((this_11 :: obj) : (Object_alloc_2 :: obj set)) & ((this_11 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_11 :: obj)))) --> ((this_11 :: obj) = (null :: obj)))));
+(comment '': initInvLwwLogicalTimestamp.isSmallerThan_Postcondition'' (ALL (this_12::obj). ((((this_12 :: obj) : (Object_alloc_2 :: obj set)) & ((this_12 :: obj) : (LwwLogicalTimestamp :: obj set)) & (~(fieldRead (LwwLogicalTimestamp_lts_init :: (obj => bool)) (this_12 :: obj)))) --> ((this_12 :: obj) = (null :: obj)))));
+(comment ''FalseBranch'' (~(tmp_1_1 :: bool)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((0 :: int) <= (i_73 :: int)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' (intless i_73 (fieldRead Array_length framedArrObj_37)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((framedArrObj_37 :: obj) : (Array :: obj set)));
+(comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' ((framedArrObj_37 :: obj) ~: (LwwLogicalTimestamp_hidden_1 :: obj set)))|] ==>
+    (comment ''Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'' (((arrayRead Array_arrayState_1 framedArrObj_37 i_73) :: obj) = ((arrayRead Array_arrayState framedArrObj_37 i_73) :: obj))))
+.Running Built-in validity checker (after splitting)... Built-in validity checker (after splitting) failed to prove formula.
+Running Lemma file... Lemma file failed to prove formula.
+Running Z3... Z3 failed to prove formula.
+Running SPASS... o
+the Prover has run for 10.106069 seconds
+!Failed proof obligation in SPASS interface talks about: Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition
+SPASS failed to prove formula.
+Running CVC3... CVC3 failed to prove formula.
+Running Isabelle... Failed to show proof obligation valid.
+
+Failed proof obligation in Isabelle interface talks about: Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition
+(See file /tmp/pending_6cf843update_LwwLogicalTimestamp.thy for failed proof obligation.)
+Isabelle failed to prove formula.
+All provers failed on proof obligation: 'Array.arrayState_preserved__FrameCondition_ProcedureEndPostcondition'
+
+======================================================================
+Built-in validity checker proved 11 sequents during splitting.
+Z3 proved 4 out of 8 sequents. Total time : 0.4 s
+SPASS (OrderAxioms=:ArithAxioms=) proved 0 out of 4 sequents. Total time : 41.2 s
+CVC3 proved 0 out of 4 sequents. Total time : 0.2 s
+======================================================================
+A total of 15 sequents out of 19 proved.
+
+Done analyzing Procedure LwwLogicalTimestamp.update.
+
+Verified 0 of 1 methods and 15 of 19 sequents.
+-1=== Verification FAILED.
