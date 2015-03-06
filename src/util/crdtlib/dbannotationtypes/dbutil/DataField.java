@@ -2,7 +2,7 @@ package util.crdtlib.dbannotationtypes.dbutil;
 
 import java.sql.ResultSet;
 
-import staticanalysis.templatecreator.JahobSpecsUtil;
+//import staticanalysis.templatecreator.JahobSpecsUtil;
 import util.crdtlib.dbannotationtypes.CrdtFactory;
 
 // TODO: Auto-generated Javadoc
@@ -109,11 +109,14 @@ public abstract class DataField {
 	}
 	
 	public String get_Data_Field_Name_Escape_Jahob() {
+		// MODIFIED BY ME FOR REMOVE COMPILE ERRORS
+		return "";
+		/*
 		if(JahobSpecsUtil.isJahobKeyWord(this.get_Data_Field_Name())) {
 			return this.get_Data_Field_Name()+"1";
 		}else {
 			return this.get_Data_Field_Name();
-		}
+		} */
 	}
 
 	/**

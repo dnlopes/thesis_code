@@ -17,7 +17,7 @@ Contact:
  */
 package util.crdtlib.datatypes.primitivetypes;
 
-import replicationlayer.core.txstore.util.LogicalClock;
+import util.LogicalClock;
 
 // TODO: Auto-generated Javadoc
 /**

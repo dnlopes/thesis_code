@@ -13,7 +13,7 @@ import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
 import util.debug.Debug;
 
-import parser.DataFieldParser;
+import database.parser.DataFieldParser;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.schema.Column;
