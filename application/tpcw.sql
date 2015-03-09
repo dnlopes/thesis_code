@@ -5,7 +5,8 @@
 	@NORMALSTRING addr_city varchar(30), 
 	@NORMALSTRING addr_state varchar(20), 
 	@NORMALSTRING addr_zip varchar(10), 
-	@NORMALINTEGER addr_co_id int, 
+	@NORMALINTEGER addr_co_id int,
+	CHECK(addr_id>0),
 	PRIMARY KEY(addr_id)
 	);
 

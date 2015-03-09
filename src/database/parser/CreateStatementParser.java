@@ -9,6 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
+import database.invariants.Invariant;
+import database.invariants.LesserThanInvariant;
 import util.debug.Debug;
 
 import util.crdtlib.dbannotationtypes.AosetTable;
@@ -169,7 +171,7 @@ public class CreateStatementParser {
 		}
 		return subStrs[subStrs.length - 1];
 	}
-	
+
 	/**
 	 * Checks if is right comma to split.
 	 *
@@ -230,7 +232,7 @@ public class CreateStatementParser {
 		if (declarationList.size() == 0) {
 			throw_Wrong_Format_Exception(bodyStr);
 		}
-		
+
 		String[] subStrs = new String[declarationList.size()];
 		for (int i = 0; i < subStrs.length; i++) {
 			subStrs[i] = declarationList.get(i).trim();
@@ -248,14 +250,15 @@ public class CreateStatementParser {
 		Vector<String> attrStrs = new Vector<String>();
 		for (int i = 0; i < declarationStrs.length; i++) {
 			if (!(declarationStrs[i].toUpperCase().startsWith("CONSTRAINT")
-					|| declarationStrs[i].toUpperCase().startsWith(
-							"PRIMARY KEY")
+					|| declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY")
 					|| declarationStrs[i].toUpperCase().startsWith("INDEX")
 					|| declarationStrs[i].toUpperCase().startsWith("KEY")
-					|| declarationStrs[i].toUpperCase().startsWith("UNIQUE") || declarationStrs[i]
-					.toUpperCase().startsWith("FOREIGN KEY"))) {
-				attrStrs.add(declarationStrs[i]);
-				Debug.println("declaration for attribute: " + declarationStrs[i]);
+					|| declarationStrs[i].toUpperCase().startsWith("UNIQUE")
+					|| declarationStrs[i].toUpperCase().startsWith("FOREIGN KEY")
+					|| declarationStrs[i].toUpperCase().startsWith("CHECK")))
+			{
+					attrStrs.add(declarationStrs[i]);
+					Debug.println("declaration for attribute: " + declarationStrs[i]);
 			}
 		}
 		if (attrStrs.size() == 0) {
@@ -274,7 +277,8 @@ public class CreateStatementParser {
 		Vector<String> constraintStrs = new Vector<String>();
 		for (int i = 0; i < declarationStrs.length; i++) {
 			if (declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY")
-					|| declarationStrs[i].toUpperCase().contains("FOREIGN KEY")) {
+					|| declarationStrs[i].toUpperCase().contains("FOREIGN KEY")
+					|| declarationStrs[i].toUpperCase().contains("CHECK")) {
 				constraintStrs.add(declarationStrs[i]);
 			}
 		}
@@ -383,6 +387,41 @@ public class CreateStatementParser {
 					}
 					dFs.get(fKeys[t]).set_Foreign_Key();
 				}
+			}
+
+			if (constraintStrs.elementAt(i).toUpperCase().contains("CHECK"))
+			{
+				int locationIndex = constraintStrs.elementAt(i).toUpperCase()
+						.indexOf("CHECK");
+				int startIndex = constraintStrs.elementAt(i).indexOf("(",
+						locationIndex);
+				int endIndex = constraintStrs.elementAt(i).indexOf(")",
+						locationIndex);
+				if (startIndex >= endIndex || startIndex == -1
+						|| endIndex == -1) {
+					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
+				}
+
+				String conditionStr = constraintStrs.elementAt(i).substring(
+						startIndex + 1, endIndex);
+
+				if(conditionStr.contains("<"))
+				{
+					String operands[] = conditionStr.split("<");
+					Invariant inv = new LesserThanInvariant(operands[0].trim(), operands[1].trim());
+					DataField df = dFs.get(operands[0]);
+				}
+				else if(conditionStr.contains(">"))
+				{
+					String operands[] = conditionStr.split(">");
+					Invariant inv = new LesserThanInvariant(operands[0].trim(), operands[1].trim());
+				}
+				else
+					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
+
+
+
+
 			}
 		}
 	}
