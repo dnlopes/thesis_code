@@ -1,6 +1,7 @@
 package database.jdbc;
 
 import util.Defaults;
+import util.debug.Debug;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,10 +34,7 @@ public class ConnectionFactory
 
 	public Connection getCRDTConnection(String database) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.CRDT_URL_PREFIX);
-		url.append(database);
-
-		return DriverManager.getConnection(url.toString(), Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
+		return this.getCRDTConnection(database, Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
 	}
 
 	/**
@@ -50,7 +48,7 @@ public class ConnectionFactory
 	 */
 	public Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.CRDT_URL_PREFIX);
+		StringBuilder url = new StringBuilder(Defaults.CRDT_URL);
 		url.append(database);
 
 		return DriverManager.getConnection(url.toString(), user, password);
@@ -58,10 +56,7 @@ public class ConnectionFactory
 
 	public Connection getDefaultConnection(String database) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.DEFAULT_URL_PREFIX);
-		url.append(database);
-
-		return DriverManager.getConnection(url.toString(), Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
+		return this.getDefaultConnection(database, Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
 	}
 
 	/**
@@ -75,9 +70,8 @@ public class ConnectionFactory
 	 */
 	public Connection getDefaultConnection(String database, String user, String password) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.DEFAULT_URL_PREFIX);
+		StringBuilder url = new StringBuilder(Defaults.DEFAULT_URL);
 		url.append(database);
-
 		return DriverManager.getConnection(url.toString(), user, password);
 	}
 

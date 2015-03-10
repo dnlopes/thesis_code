@@ -1,25 +1,25 @@
 package database.invariants;
 
+import util.crdtlib.dbannotationtypes.dbutil.DataField;
 import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 
 
 /**
  * Created by dnlopes on 06/03/15.
  */
-public class LesserThanInvariant implements Invariant
+public class LesserThanInvariant extends Invariant
 {
 
-	private String left, right;
+	private String threshold;
 
-	public LesserThanInvariant(String left, String right)
+	public LesserThanInvariant(DatabaseTable table, DataField field, String threshold)
 	{
-		this.left = left;
-		this.right = right;
+		super(table, field);
+		this.threshold = threshold;
 	}
 
-	@Override
-	public DatabaseTable getTable()
+	public String getThreshold()
 	{
-		return null;
+		return this.threshold;
 	}
 }

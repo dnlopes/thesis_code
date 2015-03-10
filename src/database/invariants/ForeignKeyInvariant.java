@@ -1,17 +1,21 @@
 package database.invariants;
 
+import util.crdtlib.dbannotationtypes.dbutil.DataField;
 import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 
 
 /**
  * Created by dnlopes on 06/03/15.
  */
-public class ForeignKeyInvariant implements Invariant
+public class ForeignKeyInvariant extends Invariant
 {
+	private DataField referenceField;
+	private DatabaseTable referenceTable;
 
-	@Override
-	public DatabaseTable getTable()
+	protected ForeignKeyInvariant(DatabaseTable table, DataField field, DatabaseTable referenceTable, DataField referenceField)
 	{
-		return null;
+		super(table, field);
+		this.referenceField = referenceField;
+		this.referenceTable = referenceTable;
 	}
 }

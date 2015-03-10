@@ -3,6 +3,15 @@
     <!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
     <property environment="env"/>
 
+    <property name="mysql.host" value="localhost"/>
+    <property name="mysql.port" value="53306"/>
+
+    <!-- TPCW OPTIONS -->
+    <property name="TPCW_NUM_EBS" value="50"/>
+    <property name="TPCW_NUM_ITEMS" value="100"/>
+    <property name="gendb-tpcw" value="applications.TPCW_Populate" />
+
+
 
     <!-- set properties for this build -->
     <property name="base.dir" value="."/>
@@ -13,12 +22,17 @@
 
 
     <!-- PATHS DEFINITIONS -->
-    <path id="build.path">
+    <path id="dependencies.path">
         <pathelement location="${libs.dir}/jsqlparser.jar"/>
         <pathelement location="${libs.dir}/mysql-connector-java-5.1.17-bin.jar"/>
         <pathelement location="${libs.dir}/javaparser-1.0.8.jar"/>
         <pathelement location="${libs.dir}/netty-3.2.1.Final.jar"/>
     </path>
+    <path id="runtime.path">
+        <pathelement path="${classes.dir}"/>
+    </path>
+
+    <!-- MAIN TASKS -->
 
     <target name="init" depends="clean">
         <tstamp/>
@@ -26,14 +40,50 @@
         <mkdir dir="${classes.dir}"/>
     </target>
 
-    <target name="clean" description="Clean disttribution directory">
+    <target name="clean" description="Clean distribution directory">
         <delete dir="${dist.dir}"/>
     </target>
 
     <target name="compile" depends="init" description="Compile source code">
         <javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
-            <classpath refid="build.path"/>
+            <classpath refid="dependencies.path"/>
         </javac>
+    </target>
+
+    <target name="tpcw-gendb" depends="start-mysql,compile" description="Generate TPCW database">
+        <java classname="${gendb-tpcw}" fork="true" >
+            <arg value="${TPCW_NUM_EBS}"/>
+            <arg value="${TPCW_NUM_ITEMS}"/>
+            <classpath refid="runtime.path"/>
+            <classpath refid="dependencies.path"/>
+        </java>
+    </target>
+
+    <target name="start-mysql" unless="mysql.running" depends="test-mysql">
+        <exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${base.dir}/scripts">
+            <arg value="start-mysql.sh"/>
+        </exec>
+    </target>
+    <target name="stop-mysql" if="mysql.running" depends="test-mysql">
+        <exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${base.dir}/scripts">
+            <arg value="stop-mysql.sh"/>
+        </exec>
+    </target>
+    <target name="test-mysql">
+        <condition property="mysql.running">
+            <socket server="${mysql.host}" port="${mysql.port}"/>
+        </condition>
+    </target>
+    <target name="check-mysql">
+        <echo message="Checking whether MySQL is running..."/>
+        <fail message="MySQL is not running. :(">
+            <condition>
+                <not>
+                    <socket server="${mysql.host}" port="${mysql.port}"/>
+                </not>
+            </condition>
+        </fail>
+        <echo message="MySQL is running :D"/>
     </target>
 </project>
 

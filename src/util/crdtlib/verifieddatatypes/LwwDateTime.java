@@ -1,4 +1,5 @@
-package util.crdtlib.verifieddatatypes; /********************************************************************
+package util.crdtlib.verifieddatatypes;
+/********************************************************************
 Copyright (c) 2013 chengli.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the GNU Public License v2.0

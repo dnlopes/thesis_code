@@ -13,7 +13,9 @@ public class DatabaseDictionary {
 	final static String[] dataTypeList = { "INT", "FLOAT", "DOUBLE", "BOOL",
 			"BOOLEAN", "DATE", "DATETIME", "TIMESTAMP", "CHAR", "VARCHAR" ,
 			"REAL", "INTEGER", "TEXT"};
-	
+
+	final static String[] constraintsList = {"PRIMARY KEY", "CHECK", "FOREIGN KEY"};
+
 	/** The Constant otherKeyWordList. */
 	final static String[] otherKeyWordList = { "", "" };
 

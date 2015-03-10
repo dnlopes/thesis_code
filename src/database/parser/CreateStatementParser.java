@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
+import database.invariants.GreaterThanInvariant;
 import database.invariants.Invariant;
 import database.invariants.LesserThanInvariant;
 import util.debug.Debug;
@@ -408,13 +409,10 @@ public class CreateStatementParser {
 				if(conditionStr.contains("<"))
 				{
 					String operands[] = conditionStr.split("<");
-					Invariant inv = new LesserThanInvariant(operands[0].trim(), operands[1].trim());
-					DataField df = dFs.get(operands[0]);
 				}
 				else if(conditionStr.contains(">"))
 				{
 					String operands[] = conditionStr.split(">");
-					Invariant inv = new LesserThanInvariant(operands[0].trim(), operands[1].trim());
 				}
 				else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
