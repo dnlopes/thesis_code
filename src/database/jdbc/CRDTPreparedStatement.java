@@ -1,5 +1,7 @@
 package database.jdbc;
 
+import net.sf.jsqlparser.JSQLParserException;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -19,13 +21,13 @@ public class CRDTPreparedStatement implements PreparedStatement
 	int[] argPos;
 	String[] vals;
 
-	CRDTPreparedStatement(String sql)
+	protected CRDTPreparedStatement(String sql)
 	{
 		this.sql = sql;
 		init(0, 0);
 	}
 
-	protected void init(int pos, int count)
+	private void init(int pos, int count)
 	{
 		int npos = sql.indexOf('?', pos);
 		if(npos == - 1)
@@ -38,7 +40,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		argPos[count] = npos;
 	}
 
-	String generateStatement()
+	private String generateStatement()
 	{
 		StringBuffer buffer = new StringBuffer();
 		for(int i = 0; i < vals.length; i++)
@@ -52,279 +54,33 @@ public class CRDTPreparedStatement implements PreparedStatement
 	}
 
 	@Override
-	public void addBatch(String arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void cancel() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void clearBatch() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void clearWarnings() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void close() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean execute(String arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean execute(String arg0, int arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean execute(String arg0, int[] arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean execute(String arg0, String[] arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int[] executeBatch() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public ResultSet executeQuery(String arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int executeUpdate(String arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int executeUpdate(String arg0, int arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int executeUpdate(String arg0, int[] arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int executeUpdate(String arg0, String[] arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public Connection getConnection() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getFetchDirection() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getFetchSize() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public ResultSet getGeneratedKeys() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getMaxFieldSize() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getMaxRows() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean getMoreResults() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean getMoreResults(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getQueryTimeout() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public ResultSet getResultSet() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getResultSetConcurrency() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getResultSetHoldability() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getResultSetType() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int getUpdateCount() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public SQLWarning getWarnings() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean isClosed() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean isPoolable() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setCursorName(String arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setEscapeProcessing(boolean arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setFetchDirection(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setFetchSize(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setMaxFieldSize(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setMaxRows(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setPoolable(boolean arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setQueryTimeout(int arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean isWrapperFor(Class<?> arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public <T> T unwrap(Class<T> arg0) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void addBatch() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void clearParameters() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public boolean execute() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
 	public ResultSet executeQuery() throws SQLException
 	{
+
 		//TODO: implement
+/*
+		//Debug.println("use execute query from TxMudPreparedStatement");
+		String sql;
+		sql = generateStatement();
+		//Debug.println("\nINFO: generated statement: "+sql+"\n\n");
+		if( ! inTx) {
+			txId = proxy.beginTxn();
+			inTx = true;
+			internalAborted = false;
+		}
+		DBSelectResult res;
+		try {
+			Result r = proxy.execute( DBSingleOperation.createOperation( sql), txId); //raw format got from the network
+			res = DBSelectResult.createResult(r);
+			TxMudResultSet txMudRs = new TxMudResultSet( res);
+			shdOpCreator.setCachedResultSetForDelta(txMudRs);
+			return txMudRs;
+		} catch (ScratchpadException e) {
+			e.printStackTrace();
+			System.out.println(sql);
+			throw new SQLException( e);
+		}
+*/
 		return null;
 	}
 
@@ -332,157 +88,55 @@ public class CRDTPreparedStatement implements PreparedStatement
 	public int executeUpdate() throws SQLException
 	{
 		//TODO: implement
+
+/*
+		if( ! inTx) {
+			txId = proxy.beginTxn();
+			inTx = true;
+			internalAborted = false;
+		}
+
+		//make it deterministic
+		String[] updateStatements = null;
+		try {
+			//long makeDeterStartTime = TimeMeasurement.getCurrentTimeInNS();
+			updateStatements = shdOpCreator.makeToDeterministic(this.generateStatement());
+		} catch (JSQLParserException e1) {
+			e1.printStackTrace();
+		}
+		int result = 0;
+		for(String updateStr : updateStatements) {
+			DBUpdateResult res = DBUpdateResult.createResult(proxy.execute( DBSingleOperation.createOperation( updateStr), txId).getResult());
+			result += res.getUpdateResult();
+			if(shdOp == null) {
+				shdOp = shdOpCreator.createEmptyShadowOperation();
+			}
+			try {
+				shdOpCreator.addDBEntryToShadowOperation(shdOp, updateStr);
+			} catch (JSQLParserException e) {
+				e.printStackTrace();
+			}
+		}
+
+		DBUpdateResult finalRes = DBUpdateResult.createResult( result);
+		return finalRes.getUpdateResult();
+*/
 		return 0;
-	}
-
-	@Override
-	public ResultSetMetaData getMetaData() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public ParameterMetaData getParameterMetaData() throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setArray(int arg0, Array arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setAsciiStream(int arg0, InputStream arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setAsciiStream(int arg0, InputStream arg1, int arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setAsciiStream(int arg0, InputStream arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBigDecimal(int arg0, BigDecimal arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBinaryStream(int arg0, InputStream arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBinaryStream(int arg0, InputStream arg1, int arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBinaryStream(int arg0, InputStream arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBlob(int arg0, Blob arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBlob(int arg0, InputStream arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBlob(int arg0, InputStream arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBoolean(int arg0, boolean arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setByte(int arg0, byte arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setBytes(int arg0, byte[] arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setCharacterStream(int arg0, Reader arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setCharacterStream(int arg0, Reader arg1, int arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setCharacterStream(int arg0, Reader arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setClob(int arg0, Clob arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setClob(int arg0, Reader arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setClob(int arg0, Reader arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
 	}
 
 	@Override
 	public void setDate(int pos, Date val) throws SQLException
 	{
+		//already implemented
 		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		vals[pos - 1] = "'" + sdf.format(val) + "'";
 	}
 
-	@Override
-	public void setDate(int arg0, Date arg1, Calendar arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
 
 	@Override
 	public void setDouble(int pos, double val) throws SQLException
 	{
+		//already implemented
 		vals[pos - 1] = "" + val;
 
 	}
@@ -490,145 +144,559 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public void setFloat(int arg0, float arg1) throws SQLException
 	{
+		//already implemented
 		vals[arg0 - 1] = "" + arg1;
 	}
 
 	@Override
 	public void setInt(int pos, int val) throws SQLException
 	{
+		//already implemented
 		vals[pos - 1] = "" + val;
 	}
 
 	@Override
 	public void setLong(int pos, long val) throws SQLException
 	{
+		//already implemented
 		vals[pos - 1] = "" + val;
-	}
-
-	@Override
-	public void setNCharacterStream(int arg0, Reader arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNCharacterStream(int arg0, Reader arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNClob(int arg0, NClob arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNClob(int arg0, Reader arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNClob(int arg0, Reader arg1, long arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNString(int arg0, String arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNull(int arg0, int arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setNull(int arg0, int arg1, String arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setObject(int arg0, Object arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setObject(int arg0, Object arg1, int arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setObject(int arg0, Object arg1, int arg2, int arg3) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setRef(int arg0, Ref arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setRowId(int arg0, RowId arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setSQLXML(int arg0, SQLXML arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setShort(int arg0, short arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
 	}
 
 	@Override
 	public void setString(int pos, String val) throws SQLException
 	{
+		//already implemented
 		vals[pos - 1] = "'" + val + "'";
-	}
-
-	@Override
-	public void setTime(int arg0, Time arg1) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public void setTime(int arg0, Time arg1, Calendar arg2) throws SQLException
-	{
-		throw new RuntimeException("missing method implementation");
 	}
 
 	@Override
 	public void setTimestamp(int pos, Timestamp val) throws SQLException
 	{
+		//already implemented
 		vals[pos - 1] = "'" + val + "'";
+	}
+
+
+	@Override
+	public void addBatch(String arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void cancel() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void clearBatch() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void clearWarnings() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void close() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean execute(String arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean execute(String arg0, int arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean execute(String arg0, int[] arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean execute(String arg0, String[] arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int[] executeBatch() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public ResultSet executeQuery(String arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int executeUpdate(String arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int executeUpdate(String arg0, int arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int executeUpdate(String arg0, int[] arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int executeUpdate(String arg0, String[] arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public Connection getConnection() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getFetchDirection() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getFetchSize() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public ResultSet getGeneratedKeys() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getMaxFieldSize() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getMaxRows() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean getMoreResults() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean getMoreResults(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getQueryTimeout() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public ResultSet getResultSet() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getResultSetConcurrency() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getResultSetHoldability() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getResultSetType() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public int getUpdateCount() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public SQLWarning getWarnings() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean isClosed() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean isPoolable() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setCursorName(String arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setEscapeProcessing(boolean arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setFetchDirection(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setFetchSize(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setMaxFieldSize(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setMaxRows(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setPoolable(boolean arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setQueryTimeout(int arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean isWrapperFor(Class<?> arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public <T> T unwrap(Class<T> arg0) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void addBatch() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void clearParameters() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public boolean execute() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public ResultSetMetaData getMetaData() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public ParameterMetaData getParameterMetaData() throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setArray(int arg0, Array arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setAsciiStream(int arg0, InputStream arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setAsciiStream(int arg0, InputStream arg1, int arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setAsciiStream(int arg0, InputStream arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBigDecimal(int arg0, BigDecimal arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBinaryStream(int arg0, InputStream arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBinaryStream(int arg0, InputStream arg1, int arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBinaryStream(int arg0, InputStream arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBlob(int arg0, Blob arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBlob(int arg0, InputStream arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBlob(int arg0, InputStream arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBoolean(int arg0, boolean arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setByte(int arg0, byte arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setBytes(int arg0, byte[] arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setCharacterStream(int arg0, Reader arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setCharacterStream(int arg0, Reader arg1, int arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setCharacterStream(int arg0, Reader arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setClob(int arg0, Clob arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setClob(int arg0, Reader arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setClob(int arg0, Reader arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setDate(int arg0, Date arg1, Calendar arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNCharacterStream(int arg0, Reader arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNCharacterStream(int arg0, Reader arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNClob(int arg0, NClob arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNClob(int arg0, Reader arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNClob(int arg0, Reader arg1, long arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNString(int arg0, String arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNull(int arg0, int arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setNull(int arg0, int arg1, String arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setObject(int arg0, Object arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setObject(int arg0, Object arg1, int arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setObject(int arg0, Object arg1, int arg2, int arg3) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setRef(int arg0, Ref arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setRowId(int arg0, RowId arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setSQLXML(int arg0, SQLXML arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setShort(int arg0, short arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setTime(int arg0, Time arg1) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
+	}
+
+	@Override
+	public void setTime(int arg0, Time arg1, Calendar arg2) throws SQLException
+	{
+		throw new MissingImplException("missing implementation");
 	}
 
 	@Override
 	public void setTimestamp(int arg0, Timestamp arg1, Calendar arg2) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	@Override
 	public void setURL(int arg0, URL arg1) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	@Override
@@ -637,42 +705,42 @@ public class CRDTPreparedStatement implements PreparedStatement
 	 */
 	public void setUnicodeStream(int arg0, InputStream arg1, int arg2) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public void closeOnCompletion() throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public boolean isCloseOnCompletion() throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public void abort(Executor executor) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public int getNetworkTimeout() throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public String getSchema() throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 	public void setSchema(String schema) throws SQLException
 	{
-		throw new RuntimeException("missing method implementation");
+		throw new MissingImplException("missing implementation");
 	}
 
 }

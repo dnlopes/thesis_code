@@ -1,7 +1,6 @@
-/**
- *
+package database.jdbc;
 
-package jdbc;
+import database.scratchpad.ScratchpadException;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -15,7 +14,7 @@ import java.util.Map;
 /**
  * Created by dnlopes on 04/03/15.
  */
-/**
+
 public class CRDTResultSet implements ResultSet
 {
 
@@ -1388,4 +1387,4 @@ public class CRDTResultSet implements ResultSet
 		return null;
 	}
 
-}     */
+}
