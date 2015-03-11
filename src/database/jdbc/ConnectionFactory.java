@@ -51,9 +51,9 @@ public class ConnectionFactory
 	{
 		StringBuilder url = new StringBuilder(DBDefaults.CRDT_URL);
 		url.append(database);
-
         Connection c = DriverManager.getConnection(url.toString(), user, password);
         c.setAutoCommit(false);
+
         return c;
 	}
 
@@ -77,6 +77,7 @@ public class ConnectionFactory
 		url.append(database);
         Connection c = DriverManager.getConnection(url.toString(), user, password);
         c.setAutoCommit(false);
+
         return c;
 	}
 

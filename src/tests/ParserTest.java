@@ -1,6 +1,7 @@
 package tests;
 
 import database.parser.DDLParser;
+import util.defaults.DBDefaults;
 
 
 /**
@@ -9,11 +10,10 @@ import database.parser.DDLParser;
 public class ParserTest
 {
 
-	private static final String TPCW_FILE = "/Users/dnlopes/devel/thesis/code/framework/application/tpcw.sql";
 
 	public static void main(String args[])
 	{
-		DDLParser parser = new DDLParser(TPCW_FILE);
+		DDLParser parser = new DDLParser(DBDefaults.TPCW_FILE);
 		parser.parseAnnotations();
 	}
 }
