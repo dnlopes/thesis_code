@@ -1,7 +1,6 @@
 package database.jdbc;
 
-import util.Defaults;
-import util.debug.Debug;
+import util.defaults.DBDefaults;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,6 +9,8 @@ import java.sql.SQLException;
 
 /**
  * Created by dnlopes on 05/03/15.
+ * This factory creates new connections to the database.
+ * A connection can either be a default or a customized connection.
  */
 public class ConnectionFactory
 {
@@ -34,7 +35,7 @@ public class ConnectionFactory
 
 	public Connection getCRDTConnection(String database) throws SQLException
 	{
-		return this.getCRDTConnection(database, Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
+		return this.getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
 	/**
@@ -48,15 +49,17 @@ public class ConnectionFactory
 	 */
 	public Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.CRDT_URL);
+		StringBuilder url = new StringBuilder(DBDefaults.CRDT_URL);
 		url.append(database);
 
-		return DriverManager.getConnection(url.toString(), user, password);
+        Connection c = DriverManager.getConnection(url.toString(), user, password);
+        c.setAutoCommit(false);
+        return c;
 	}
 
 	public Connection getDefaultConnection(String database) throws SQLException
 	{
-		return this.getDefaultConnection(database, Defaults.MYSQL_USER, Defaults.MYSQL_PASSWORD);
+		return this.getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
 	/**
@@ -70,9 +73,11 @@ public class ConnectionFactory
 	 */
 	public Connection getDefaultConnection(String database, String user, String password) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(Defaults.DEFAULT_URL);
+		StringBuilder url = new StringBuilder(DBDefaults.DEFAULT_URL);
 		url.append(database);
-		return DriverManager.getConnection(url.toString(), user, password);
+        Connection c = DriverManager.getConnection(url.toString(), user, password);
+        c.setAutoCommit(false);
+        return c;
 	}
 
 

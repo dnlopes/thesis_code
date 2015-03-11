@@ -1,22 +1,24 @@
-package database.scratchpad.factory;
+package database.scratchpad;
 
-import database.scratchpad.DBExecuteScratchpad;
-import database.scratchpad.ExecuteScratchpad;
-import util.Defaults;
-import util.RuntimeExceptions;
-import util.debug.Debug;
+import org.perf4j.LoggingStopWatch;
+import org.perf4j.StopWatch;
+import util.ExitCode;
+import util.defaults.DBDefaults;
 
 import java.sql.SQLException;
 import java.util.Vector;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dnlopes on 10/03/15.
  */
 public class ExecutePadFactory
 {
+	static final Logger LOG = LoggerFactory.getLogger(ExecutePadFactory.class);
 
 	private Vector<ExecuteScratchpad> queue;
 	private ReentrantLock queueLock;
@@ -28,16 +30,19 @@ public class ExecutePadFactory
 	{
 		this.queueLock = new ReentrantLock();
 		this.condition = this.queueLock.newCondition();
-		this.queue = new Vector<>(Defaults.PAD_POOL_SIZE);
+		this.queue = new Vector<>(DBDefaults.PAD_POOL_SIZE);
 		try
 		{
+			StopWatch stopWatch = new LoggingStopWatch(DBDefaults.PAD_POOL_SIZE + " scratchpads initialized");
+			stopWatch.start();
 			this.initialize();
-		} catch(SQLException e)
+			stopWatch.stop();
+
+		} catch(SQLException | ScratchpadException e)
 		{
 			e.printStackTrace();
-			System.exit(RuntimeExceptions.PAD_INIT_FAILED);
+			System.exit(ExitCode.SCRATCHPAD_INIT_FAILED);
 		}
-		Debug.print("Finished initializing ExecuteScratchpads");
 	}
 
 	public static ExecutePadFactory getInstance()
@@ -45,10 +50,10 @@ public class ExecutePadFactory
 		return ourInstance;
 	}
 
-	private void initialize() throws SQLException
+	private void initialize() throws SQLException, ScratchpadException
 	{
 		// create pool of pads
-		for(int i = 0; i < Defaults.PAD_POOL_SIZE; i++)
+		for(int i = 0; i < DBDefaults.PAD_POOL_SIZE; i++)
 		{
 			ExecuteScratchpad pad = new DBExecuteScratchpad(i);
 			this.queue.add(pad);

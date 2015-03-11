@@ -1,6 +1,6 @@
 package database.jdbc;
 
-import util.Defaults;
+import util.defaults.DBDefaults;
 
 import java.sql.*;
 import java.util.Properties;
@@ -39,7 +39,7 @@ public class CRDTDriver implements Driver
 	@Override
 	public boolean acceptsURL(String url) throws SQLException
 	{
-		return url.startsWith(Defaults.CRDT_URL_PREFIX);
+		return url.startsWith(DBDefaults.CRDT_URL_PREFIX);
 	}
 
 

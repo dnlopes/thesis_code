@@ -12,7 +12,6 @@
     <property name="gendb-tpcw" value="applications.TPCW_Populate" />
 
 
-
     <!-- set properties for this build -->
     <property name="base.dir" value="."/>
     <property name="src.dir" value="${base.dir}/src"/>
@@ -23,10 +22,9 @@
 
     <!-- PATHS DEFINITIONS -->
     <path id="dependencies.path">
-        <pathelement location="${libs.dir}/jsqlparser.jar"/>
-        <pathelement location="${libs.dir}/mysql-connector-java-5.1.17-bin.jar"/>
-        <pathelement location="${libs.dir}/javaparser-1.0.8.jar"/>
-        <pathelement location="${libs.dir}/netty-3.2.1.Final.jar"/>
+        <fileset dir="${libs.dir}">
+            <include name="*.jar"/>
+        </fileset>
     </path>
     <path id="runtime.path">
         <pathelement path="${classes.dir}"/>
