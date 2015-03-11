@@ -1,6 +1,7 @@
 package database.jdbc;
 
 import database.scratchpad.ScratchpadException;
+import util.debug.Debug;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -24,6 +25,149 @@ public class CRDTResultSet implements ResultSet
 	{
 		this.res = res;
 	}
+
+
+	@Override
+	public int findColumn(String arg0) throws SQLException
+	{
+		if(res.getColumnAliasToNumbersMap() == null)
+			throw new SQLException("order of the attributes in sql query where not defined");
+		return res.getColumnAliasToNumbersMap().get(arg0);
+
+	}
+
+	@Override
+	public boolean first() throws SQLException
+	{
+		try
+		{
+			return res.first();
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	@Override
+	public Date getDate(int arg0) throws SQLException
+	{
+		try
+		{
+			return new Date(res.getDate(arg0).getTime());
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	@Override
+	public double getDouble(int col) throws SQLException
+	{
+		try
+		{
+			return res.getDouble(col);
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	@Override
+	public void beforeFirst() throws SQLException
+	{
+		Debug.println("Move the cursor of the resultset to the one before first");
+		this.res.reset();
+	}
+
+	@Override
+	public Date getDate(String arg0) throws SQLException
+	{
+		return getDate(findColumn(arg0));
+	}
+
+	@Override
+	public double getDouble(String arg0) throws SQLException
+	{
+		return getDouble(findColumn(arg0));
+	}
+
+	@Override
+	public float getFloat(int arg0) throws SQLException
+	{
+		try
+		{
+			return res.getFloat(arg0);
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	@Override
+	public int getInt(int col) throws SQLException
+	{
+		try
+		{
+			return res.getInt(col);
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+
+	@Override
+	public float getFloat(String arg0) throws SQLException
+	{
+		return getFloat(findColumn(arg0));
+	}
+
+
+	@Override
+	public int getInt(String arg0) throws SQLException
+	{
+		return getInt(findColumn(arg0));
+	}
+
+
+	@Override
+	public String getString(int col) throws SQLException
+	{
+		try
+		{
+			return res.getString(col);
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	@Override
+	public String getString(String arg0) throws SQLException
+	{
+		return getString(findColumn(arg0));
+	}
+
+	@Override
+	public boolean next() throws SQLException
+	{
+		try
+		{
+			return res.next();
+		} catch(ScratchpadException e)
+		{
+			throw new SQLException(e);
+		}
+	}
+
+	public String toString()
+	{
+		return res.toString();
+	}
+
+/*
+	NOT IMPLEMENTED METHODS START HERE
+*/
 
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException
@@ -49,12 +193,6 @@ public class CRDTResultSet implements ResultSet
 		throw new RuntimeException("missing method implementation");
 	}
 
-	@Override
-	public void beforeFirst() throws SQLException
-	{
-		Debug.println("Move the cursor of the resultset to the one before first");
-		this.res.reset();
-	}
 
 	@Override
 	public void cancelRowUpdates() throws SQLException
@@ -78,27 +216,6 @@ public class CRDTResultSet implements ResultSet
 	public void deleteRow() throws SQLException
 	{
 		throw new RuntimeException("missing method implementation");
-	}
-
-	@Override
-	public int findColumn(String arg0) throws SQLException
-	{
-		if(res.getColumnAliasToNumbersMap() == null)
-			throw new SQLException("order of the attributes in sql query where not defined");
-		return res.getColumnAliasToNumbersMap().get(arg0);
-
-	}
-
-	@Override
-	public boolean first() throws SQLException
-	{
-		try
-		{
-			return res.first();
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
 	}
 
 	@Override
@@ -267,23 +384,6 @@ public class CRDTResultSet implements ResultSet
 		return null;
 	}
 
-	@Override
-	public Date getDate(int arg0) throws SQLException
-	{
-		try
-		{
-			return new Date(res.getDate(arg0).getTime());
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
-	}
-
-	@Override
-	public Date getDate(String arg0) throws SQLException
-	{
-		return getDate(findColumn(arg0));
-	}
 
 	@Override
 	public Date getDate(int arg0, Calendar arg1) throws SQLException
@@ -300,24 +400,6 @@ public class CRDTResultSet implements ResultSet
 	}
 
 	@Override
-	public double getDouble(int col) throws SQLException
-	{
-		try
-		{
-			return res.getDouble(col);
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
-	}
-
-	@Override
-	public double getDouble(String arg0) throws SQLException
-	{
-		return getDouble(findColumn(arg0));
-	}
-
-	@Override
 	public int getFetchDirection() throws SQLException
 	{
 		System.out.println(" // TODO Auto-generated method stub 635");
@@ -331,47 +413,12 @@ public class CRDTResultSet implements ResultSet
 		return 0;
 	}
 
-	@Override
-	public float getFloat(int arg0) throws SQLException
-	{
-		try
-		{
-			return res.getFloat(arg0);
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
-	}
-
-	@Override
-	public float getFloat(String arg0) throws SQLException
-	{
-		return getFloat(findColumn(arg0));
-	}
 
 	@Override
 	public int getHoldability() throws SQLException
 	{
 		System.out.println(" // TODO Auto-generated method stub 637");
 		return 0;
-	}
-
-	@Override
-	public int getInt(int col) throws SQLException
-	{
-		try
-		{
-			return res.getInt(col);
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
-	}
-
-	@Override
-	public int getInt(String arg0) throws SQLException
-	{
-		return getInt(findColumn(arg0));
 	}
 
 	@Override
@@ -536,24 +583,6 @@ public class CRDTResultSet implements ResultSet
 	}
 
 	@Override
-	public String getString(int col) throws SQLException
-	{
-		try
-		{
-			return res.getString(col);
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
-	}
-
-	@Override
-	public String getString(String arg0) throws SQLException
-	{
-		return getString(findColumn(arg0));
-	}
-
-	@Override
 	public Time getTime(int arg0) throws SQLException
 	{
 		System.out.println(" // TODO Auto-generated method stub 661");
@@ -712,18 +741,6 @@ public class CRDTResultSet implements ResultSet
 	{
 		System.out.println(" // TODO Auto-generated method stub 681");
 
-	}
-
-	@Override
-	public boolean next() throws SQLException
-	{
-		try
-		{
-			return res.next();
-		} catch(ScratchpadException e)
-		{
-			throw new SQLException(e);
-		}
 	}
 
 	@Override
@@ -1368,11 +1385,6 @@ public class CRDTResultSet implements ResultSet
 	{
 		System.out.println(" // TODO Auto-generated method stub 751");
 		return false;
-	}
-
-	public String toString()
-	{
-		return res.toString();
 	}
 
 	public <T> T getObject(int columnIndex, Class<T> type) throws SQLException

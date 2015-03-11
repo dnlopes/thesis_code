@@ -63,6 +63,10 @@ public class CRDTStatement implements Statement
 */
 	}
 
+/*
+	NOT IMPLEMENTED METHODS START HERE
+*/
+
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException
 	{

@@ -75,9 +75,9 @@ public class CRDTConnection implements Connection
 	}
 
 
-	/*
-	* NOT IMPLEMENTED METHODS START HERE
-	* */
+/*
+	NOT IMPLEMENTED METHODS START HERE
+*/
 
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException

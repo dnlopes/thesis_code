@@ -20,5 +20,9 @@ public class ScratchpadException extends Exception
 	{
 		super(arg0);
 	}
+
+	public ScratchpadException(String arg0, Throwable arg1) {
+		super(arg0, arg1);
+	}
 }
 

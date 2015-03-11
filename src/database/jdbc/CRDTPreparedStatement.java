@@ -177,6 +177,10 @@ public class CRDTPreparedStatement implements PreparedStatement
 	}
 
 
+/*
+	NOT IMPLEMENTED METHODS START HERE
+*/
+
 	@Override
 	public void addBatch(String arg0) throws SQLException
 	{
