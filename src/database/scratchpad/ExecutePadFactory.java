@@ -33,10 +33,8 @@ public class ExecutePadFactory
 		this.queue = new Vector<>(DBDefaults.PAD_POOL_SIZE);
 		try
 		{
-			StopWatch stopWatch = new LoggingStopWatch(DBDefaults.PAD_POOL_SIZE + " scratchpads initialized");
-			stopWatch.start();
 			this.initialize();
-			stopWatch.stop();
+			LOG.info("Scratchpads created");
 
 		} catch(SQLException | ScratchpadException e)
 		{
@@ -71,6 +69,7 @@ public class ExecutePadFactory
 		{
 			this.queueLock.unlock();
 		}
+		LOG.info("Released scratchpad {}", sp.getScratchpadId());
 	}
 
 	public ExecuteScratchpad getScratchpad()
@@ -94,6 +93,7 @@ public class ExecutePadFactory
 		{
 			this.queueLock.unlock();
 		}
+		LOG.info("Using scratchpad {}", sp.getScratchpadId());
 		return sp;
 	}
 }

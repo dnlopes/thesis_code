@@ -4,10 +4,7 @@ import database.jdbc.ConnectionFactory;
 import util.defaults.DBDefaults;
 import util.defaults.ScratchpadDefaults;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -21,13 +18,21 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	private boolean readOnly;
 	private int id;
 	private Connection conn;
+	private Statement stat;
 
 	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
 	{
 		this.id = id;
 		this.readOnly = false;
-		this.conn = ConnectionFactory.getInstance().getDefaultConnection(DBDefaults.TPCW_DB_NAME);
+		this.conn = ConnectionFactory.getInstance().getDefaultConnection("micro");
+		this.stat = this.conn.createStatement();
 		this.initScratchpad();
+	}
+
+	@Override
+	public int getScratchpadId()
+	{
+		return this.id;
 	}
 
 	@Override
@@ -40,26 +45,34 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	public ResultSet executeQuery(String op) throws SQLException
 	{
 		//TODO
-		return null;
+		return this.stat.executeQuery(op);
 	}
 
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
 		//TODO
-		return 0;
+		return this.stat.executeUpdate(op);
 	}
 
 	@Override
 	public void addToBatchUpdate(String op) throws SQLException
 	{
 		//TODO
+		this.stat.addBatch(op);
 	}
 
 	@Override
-	public void executeBatch() throws SQLException
+	public int executeBatch() throws SQLException
 	{
 		//TODO
+		int[] results = this.stat.executeBatch();
+		int finalResult = 0;
+
+		for(int i = 0; i < results.length; i++)
+			finalResult += results[i];
+
+		return finalResult;
 	}
 
 	@Override
@@ -78,7 +91,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		while(tblSet.next())
 		{
 			String tableName = tblSet.getString(3);
-			if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_PREFIX))
+			if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX))
 				continue;
 			tables.add(tableName);
 		}
@@ -96,11 +109,11 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	{
 		try
 		{
-			String tempTableName = tableName + "_" + id;
+			String tempTableName = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + tableName + "_" + id;
 			String tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.id;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.id;
 			StringBuffer buffer2 = new StringBuffer();
-			buffer2.append("DROP TABLE IF EXIST ");
+			buffer2.append("DROP TABLE IF EXISTS ");
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("CREATE TABLE IF NOT EXISTS ");
 			buffer.append(tempTableName);

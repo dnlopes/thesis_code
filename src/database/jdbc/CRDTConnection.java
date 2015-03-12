@@ -1,5 +1,9 @@
 package database.jdbc;
 
+import database.scratchpad.ExecutePadFactory;
+import database.scratchpad.ExecuteScratchpad;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import runtime.Operation;
 import runtime.TransactionInfo;
 import util.ExitCode;
@@ -15,29 +19,36 @@ import java.util.concurrent.Executor;
  */
 public class CRDTConnection implements Connection
 {
+	static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
+
 	private TransactionInfo txnInfo;
 	private Operation shadowOp;
+	private ExecuteScratchpad pad;
+
+	public CRDTConnection()
+	{
+		this.txnInfo = new TransactionInfo();
+		this.pad = ExecutePadFactory.getInstance().getScratchpad();
+	}
 
 	@Override
 	public Statement createStatement() throws SQLException
 	{
 		//TODO
-		return new CRDTStatement();
+		if(!this.txnInfo.hasBegun())
+			this.txnInfo.beginTxn();
+
+		return new CRDTStatement(txnInfo, pad);
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
 		//TODO
-		/*
-		if( ! inTx) {
-			txId = proxy.beginTxn();
-			inTx = true;
-			//startTime = TimeMeasurement.getCurrentTimeInNS();
-		}
-		return new TxMudPreparedStatement( sql);
-		*/
-		return null;
+		if(!this.txnInfo.hasBegun())
+			this.txnInfo.beginTxn();
+
+		return new CRDTPreparedStatement(sql, this.txnInfo, this.pad);
 	}
 
 	@Override
@@ -82,13 +93,13 @@ public class CRDTConnection implements Connection
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public String nativeSQL(String sql) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
@@ -112,19 +123,19 @@ public class CRDTConnection implements Connection
 	@Override
 	public boolean isClosed() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setReadOnly(boolean readOnly) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
@@ -136,67 +147,67 @@ public class CRDTConnection implements Connection
 	@Override
 	public void setCatalog(String catalog) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public String getCatalog() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setTransactionIsolation(int level) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void clearWarnings() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Map<String, Class<?>> getTypeMap() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setTypeMap(Map<String, Class<?>> map) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setHoldability(int holdability) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
@@ -208,91 +219,91 @@ public class CRDTConnection implements Connection
 	@Override
 	public Savepoint setSavepoint() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Savepoint setSavepoint(String name) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void rollback(Savepoint savepoint) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void releaseSavepoint(Savepoint savepoint) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Clob createClob() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Blob createBlob() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public NClob createNClob() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public SQLXML createSQLXML() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public boolean isValid(int timeout) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
@@ -310,66 +321,66 @@ public class CRDTConnection implements Connection
 	@Override
 	public String getClientInfo(String name) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Properties getClientInfo() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Array createArrayOf(String typeName, Object[] elements) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public Struct createStruct(String typeName, Object[] attributes) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setSchema(String schema) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public String getSchema() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void abort(Executor executor) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public int getNetworkTimeout() throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException
 	{
-		throw new MissingImplException("missing implementation");
+		throw new MissingImplementationException("missing implementation");
 	}
 }

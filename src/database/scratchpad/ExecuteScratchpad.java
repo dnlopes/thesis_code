@@ -10,6 +10,8 @@ import java.sql.SQLException;
 public interface ExecuteScratchpad
 {
 
+	public int getScratchpadId();
+
 	/**
 	 * Returns true if current transaction is read-only.
 	 */
@@ -32,7 +34,7 @@ public interface ExecuteScratchpad
 	/**
 	 * Execute operations in the batch so far
 	 */
-	public void executeBatch() throws SQLException;
+	public int executeBatch() throws SQLException;
 
 	/**
 	 * Clears the state of this pad. Should be called before releasing the pad

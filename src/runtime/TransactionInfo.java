@@ -1,6 +1,9 @@
 package runtime;
 
 import org.perf4j.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import runtime.factory.TxnIdFactory;
 import util.LogicalClock;
 import util.TimeStamp;
 
@@ -10,6 +13,8 @@ import util.TimeStamp;
  */
 public class TransactionInfo
 {
+	static final Logger LOG = LoggerFactory.getLogger(TransactionInfo.class);
+
 
 	private long txnId;
 	private TimeStamp timestamp;
@@ -17,12 +22,19 @@ public class TransactionInfo
 	private StopWatch timer;
 	private long latency;
 	private Operation shadowOp;
+	private boolean hasBegun;
+	private boolean hasEnded;
 
-	public TransactionInfo(long txnId)
+	public TransactionInfo()
 	{
-		this.txnId = txnId;
+		this.txnId = 0;
+		this.latency = 0;
+		this.hasBegun = false;
+		this.hasEnded = false;
 		this.shadowOp = null;
-		this.timer = new StopWatch(String.valueOf(this.txnId));
+		this.timestamp = null;
+		this.lc = null;
+		this.timer = new StopWatch();
 	}
 
 	public long getTxnId()
@@ -70,23 +82,41 @@ public class TransactionInfo
 		return this.latency;
 	}
 
-	public void start()
+	public void beginTxn()
 	{
+		this.txnId = TxnIdFactory.getNextId();
+		LOG.info("Beggining txn {}", this.txnId);
+
+		this.hasBegun = true;
 		this.timer.start();
 	}
 
-	public void stop()
+	public void endTxn()
 	{
 		this.timer.stop();
 		this.latency = this.timer.getElapsedTime();
+		this.hasEnded = true;
+		LOG.info("Finished txn {}", this.txnId);
 	}
 
 	public void clear()
 	{
 		this.txnId = 0;
+		this.latency = 0;
+		this.hasBegun = false;
+		this.hasEnded = false;
+		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
-		this.shadowOp = null;
-		this.timer = null;
+	}
+
+	public boolean hasBegun()
+	{
+		return this.hasBegun;
+	}
+
+	public boolean hasEnded()
+	{
+		return this.hasEnded;
 	}
 }
