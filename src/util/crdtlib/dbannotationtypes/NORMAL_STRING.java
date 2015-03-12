@@ -61,7 +61,7 @@ public class NORMAL_STRING extends DataField {
 		if (Value.indexOf("'") == 0
 				&& Value.lastIndexOf("'") == (Value.length() - 1))
 			Value = Value.substring(1, Value.length() - 1);
-		return this.get_Data_Field_Name() + " = '" + Value + "'";
+		return this.getFieldName() + " = '" + Value + "'";
 	}
 
 	/*

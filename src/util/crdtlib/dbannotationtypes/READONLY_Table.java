@@ -25,18 +25,18 @@ public class READONLY_Table extends DatabaseTable {
 	/**
 	 * Instantiates a new rEADONL y_ table.
 	 *
-	 * @param tN the t n
-	 * @param dHM the d hm
+	 * @param tableName the t n
+	 * @param dataFields the d hm
 	 */
-	public READONLY_Table(String tN, LinkedHashMap<String, DataField> dHM) {
-		super(tN, CrdtTableType.NONCRDTTABLE, dHM);
+	public READONLY_Table(String declaration, String tableName, LinkedHashMap<String, DataField> dataFields) {
+		super(declaration, tableName, CrdtTableType.NONCRDTTABLE, dataFields);
 		// TODO Auto-generated constructor stub
-		Iterator<Map.Entry<String, DataField>> it = dHM.entrySet().iterator();
+		Iterator<Map.Entry<String, DataField>> it = dataFields.entrySet().iterator();
 		while (it.hasNext()) {
-			Map.Entry<String, DataField> entry = (Map.Entry<String, DataField>) it
+			Map.Entry<String, DataField> entry = it
 					.next();
 			DataField df = entry.getValue();
-			CrdtDataFieldType crdtType = df.get_Crdt_Data_Type();
+			CrdtDataFieldType crdtType = df.getCrdtType();
 			if (!(crdtType == CrdtDataFieldType.NONCRDTFIELD
 					|| crdtType == CrdtDataFieldType.NORMALBOOLEAN 
 					|| crdtType == CrdtDataFieldType.NORMALDATETIME

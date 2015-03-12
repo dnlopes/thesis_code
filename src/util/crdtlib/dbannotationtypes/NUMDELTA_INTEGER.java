@@ -40,11 +40,11 @@ public class NUMDELTA_INTEGER extends DataField {
 	public String apply_Delta(int delta) {
 		String transformedSql = "";
 		if (delta >= 0)
-			transformedSql = this.get_Data_Field_Name() + " = "
-					+ this.get_Data_Field_Name() + "+" + delta;
+			transformedSql = this.getFieldName() + " = "
+					+ this.getFieldName() + "+" + delta;
 		else
-			transformedSql = this.get_Data_Field_Name() + " = "
-					+ this.get_Data_Field_Name() + delta;
+			transformedSql = this.getFieldName() + " = "
+					+ this.getFieldName() + delta;
 		return transformedSql;
 	}
 
@@ -71,7 +71,7 @@ public class NUMDELTA_INTEGER extends DataField {
 
 		try {
 			rs.next();
-			int originalValue = rs.getInt(this.get_Data_Field_Name());
+			int originalValue = rs.getInt(this.getFieldName());
 			int finalValue = Integer.parseInt(Value);
 			int delta = finalValue - originalValue;
 			rs.beforeFirst();

@@ -9,7 +9,7 @@ public class DBDefaults
 	public static final String TPCW_DB_NAME = "tpcw";
 	public static final String MICROW_DB_NAME = "micro";
 
-	public static final String TPCW_FILE = "/Users/dnlopes/devel/thesis/code/framework/application/tpcw.sql";
+	public static final String TPCW_FILE = "/Users/dnlopes/devel/thesis/code/framework/application/tpcw/database.sql";
 
 	public static final String MYSQL_HOST = "172.16.24.145";
 	public static final String MYSQL_PORT = "53306";

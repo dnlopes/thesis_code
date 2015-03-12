@@ -30,11 +30,11 @@ public class ArsetTable extends DatabaseTable {
 	/**
 	 * Instantiates a new arset table.
 	 *
-	 * @param tN the t n
-	 * @param dHM the d hm
+	 * @param tableName the t n
+	 * @param dataFields the d hm
 	 */
-	public ArsetTable(String tN, LinkedHashMap<String, DataField> dHM) {
-		super(tN, CrdtTableType.ARSETTABLE, dHM);
+	public ArsetTable(String declaration, String tableName, LinkedHashMap<String, DataField> dataFields) {
+		super(declaration, tableName, CrdtTableType.ARSETTABLE, dataFields);
 	}
 	
 	/**
@@ -45,7 +45,7 @@ public class ArsetTable extends DatabaseTable {
 	 */
 	public static void addLwwDeletedFlagDataField(String tableName, LinkedHashMap<String, DataField> dHM){
 		DataField lwwDeletedFlagDf = DataFieldParser.create_LwwDeletedFlag_Data_Field_Instance(tableName, dHM.size());
-		dHM.put(lwwDeletedFlagDf.get_Data_Field_Name(), lwwDeletedFlagDf);
+		dHM.put(lwwDeletedFlagDf.getFieldName(), lwwDeletedFlagDf);
 	}
 
 	/**
@@ -67,8 +67,8 @@ public class ArsetTable extends DatabaseTable {
 			while (it.hasNext()) {
 				buffer.append(it.next() + ",");
 			}
-			buffer.append(lwwDeletedFlag.get_Data_Field_Name() + ",");
-			buffer.append(lwwLogicalTimestamp.get_Data_Field_Name() + ",");
+			buffer.append(lwwDeletedFlag.getFieldName() + ",");
+			buffer.append(lwwLogicalTimestamp.getFieldName() + ",");
 			buffer.append(timestampLWW.get_Data_Field_Name());
 			buffer.append(") ");
 		}
@@ -77,7 +77,7 @@ public class ArsetTable extends DatabaseTable {
 		for (int i = 0; i < valueList.length; i++) {
 			buffer.append(valueList[i] + ",");
 		}
-		buffer.append(lwwDeletedFlag.get_Default_Value() + ",");
+		buffer.append(lwwDeletedFlag.getDefaultValue() + ",");
 		buffer.append("? ,"); // for causality clock
 		buffer.append("?");// for lww timestamp
 		buffer.append(");");
@@ -113,9 +113,9 @@ public class ArsetTable extends DatabaseTable {
 			Debug.println(colList.get(i));
 			DataField dT = dataFieldMap.get(colList.get(i));
 			String dataValue = valueList.elementAt(i);
-			if (dT.get_Crdt_Data_Type().name().contains("LWW")) {
+			if (dT.getCrdtType().name().contains("LWW")) {
 				// apply last writer win
-				switch (dT.get_Crdt_Data_Type()) {
+				switch (dT.getCrdtType()) {
 				case LWWINTEGER:
 					LWWBuffer.append(dT.get_Crdt_Form(dataValue) + ",");
 					break;
@@ -137,7 +137,7 @@ public class ArsetTable extends DatabaseTable {
 				default:
 					try {
 						throw new RuntimeException("No such LWW types"
-								+ dT.get_Crdt_Data_Type().toString());
+								+ dT.getCrdtType().toString());
 					} catch (RuntimeException e) {
 						e.printStackTrace();
 						System.exit(RuntimeExceptionType.UNKNOWNLWWDATATYPE);
@@ -145,7 +145,7 @@ public class ArsetTable extends DatabaseTable {
 				}
 			} else {
 				// apply different strategies
-				switch (dT.get_Crdt_Data_Type()) {
+				switch (dT.getCrdtType()) {
 				case NONCRDTFIELD:
 					nonLWWBuffer.append(dT.get_Crdt_Form(dataValue) + ",");
 					break;
@@ -164,7 +164,7 @@ public class ArsetTable extends DatabaseTable {
 				default:
 					try {
 						throw new RuntimeException("No such NONLWW types"
-								+ dT.get_Crdt_Data_Type().toString());
+								+ dT.getCrdtType().toString());
 					} catch (RuntimeException e) {
 						e.printStackTrace();
 						System.exit(RuntimeExceptionType.UNKNOWNNONLWWDATATYPE);
@@ -239,8 +239,8 @@ public class ArsetTable extends DatabaseTable {
 		Vector<String> newValueList = new Vector<String>();
 		for (int i = 0; i < colList.size(); i++) {
 			DataField dT = dataFieldMap.get(colList.get(i).toString());
-			if (dT.is_Primary_Key() == true) {
-				whereClause.append(dT.get_Data_Field_Name() + " = "
+			if (dT.isPrimaryKey() == true) {
+				whereClause.append(dT.getFieldName() + " = "
 						+ valueList[i] + " and ");
 			} else {
 				newColList.add(colList.get(i).toString());
@@ -320,9 +320,9 @@ public class ArsetTable extends DatabaseTable {
 			Column cL = colIt.next();
 			DataField dT = dataFieldMap.get(cL.getColumnName());
 			String dataValue = valIt.next().toString();
-			if (dT.get_Crdt_Data_Type().name().contains("LWW")) {
+			if (dT.getCrdtType().name().contains("LWW")) {
 				// apply last writer win
-				switch (dT.get_Crdt_Data_Type()) {
+				switch (dT.getCrdtType()) {
 				case LWWINTEGER:
 					LWWBuffer.append(dT.get_Crdt_Form(dataValue) + ",");
 					break;
@@ -344,7 +344,7 @@ public class ArsetTable extends DatabaseTable {
 				default:
 					try {
 						throw new RuntimeException("No such LWW types"
-								+ dT.get_Crdt_Data_Type().toString());
+								+ dT.getCrdtType().toString());
 					} catch (RuntimeException e) {
 						e.printStackTrace();
 						System.exit(RuntimeExceptionType.UNKNOWNLWWDATATYPE);
@@ -354,7 +354,7 @@ public class ArsetTable extends DatabaseTable {
 			} else {
 				// apply different strategies
 
-				switch (dT.get_Crdt_Data_Type()) {
+				switch (dT.getCrdtType()) {
 				case NONCRDTFIELD:
 					nonLWWBuffer.append(dT.get_Crdt_Form(rs, dataValue) + ",");
 					break;
@@ -373,7 +373,7 @@ public class ArsetTable extends DatabaseTable {
 				default:
 					try {
 						throw new RuntimeException("No such NONLWW types"
-								+ dT.get_Crdt_Data_Type().toString());
+								+ dT.getCrdtType().toString());
 					} catch (RuntimeException e) {
 						e.printStackTrace();
 						System.exit(RuntimeExceptionType.UNKNOWNNONLWWDATATYPE);

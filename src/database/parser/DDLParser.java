@@ -163,14 +163,14 @@ public class DDLParser
 			DatabaseTable dT = CreateStatementParser.create_Table_Instance(allTableStrings.elementAt(i));
 			if(dT != null)
 			{
-				this.tableCrdtFormMap.put(dT.get_Table_Name(), dT);
+				this.tableCrdtFormMap.put(dT.getTableName(), dT);
 			} else
 			{
 				throw new RuntimeException("Cannot create a tableinstance for this table " + allTableStrings.elementAt(i));
 			}
 		}
 
-		if(this.tableCrdtFormMap.isEmpty() == true)
+		if(this.tableCrdtFormMap.isEmpty())
 		{
 			try
 			{
@@ -220,7 +220,7 @@ public class DDLParser
 			{
 				try
 				{
-					throw new RuntimeException("The type of CRDT table " + dT.get_CRDT_Table_Type() + "is not supported by our framework!");
+					throw new RuntimeException("The type of CRDT table " + dT.getTableType() + "is not supported by our framework!");
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();

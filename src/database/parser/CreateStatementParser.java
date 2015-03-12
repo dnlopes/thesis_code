@@ -9,9 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
-import database.invariants.GreaterThanInvariant;
-import database.invariants.Invariant;
-import database.invariants.LesserThanInvariant;
 import util.debug.Debug;
 
 import util.crdtlib.dbannotationtypes.AosetTable;
@@ -50,7 +47,7 @@ public class CreateStatementParser {
 	 * @return the database table
 	 */
 	public static DatabaseTable create_Table_Instance(String schemaStr) {
-		if (is_Create_Table_Statement(schemaStr) == false)
+		if (! is_Create_Table_Statement(schemaStr))
 			return null;
 		else {
 			String tableTitleStr = get_Table_Title_String(schemaStr);
@@ -68,20 +65,20 @@ public class CreateStatementParser {
 
 			switch (tableType) {
 			case NONCRDTTABLE:
-				dT = new READONLY_Table(tableName, hMp);
+				dT = new READONLY_Table(schemaStr, tableName, hMp);
 				break;
 			case AOSETTABLE:
-				dT = new AosetTable(tableName, hMp);
+				dT = new AosetTable(schemaStr, tableName, hMp);
 				break;
 			case ARSETTABLE:
 				ArsetTable.addLwwDeletedFlagDataField(tableName, hMp);
-				dT = new ArsetTable(tableName, hMp);
+				dT = new ArsetTable(schemaStr, tableName, hMp);
 				break;
 			case UOSETTABLE:
-				dT = new UosetTable(tableName, hMp);
+				dT = new UosetTable(schemaStr, tableName, hMp);
 				break;
 			case AUSETTABLE:
-				dT = new AusetTable(tableName, hMp);
+				dT = new AusetTable(schemaStr, tableName, hMp);
 				break;
 			default:
 				try {
@@ -317,14 +314,14 @@ public class CreateStatementParser {
 			DataField dF = CreateStatementParser.get_Data_Field(tableName,
 					attributeStrs.elementAt(i), i);
 			// Debug.println(dF.toString());
-			hMpDF.put(dF.get_Data_Field_Name(), dF);
-			if(CrdtFactory.isLwwType(dF.get_Crdt_Data_Type()) && isContainedLwwDataFields == false){
+			hMpDF.put(dF.getFieldName(), dF);
+			if(CrdtFactory.isLwwType(dF.getCrdtType()) && isContainedLwwDataFields == false){
 				isContainedLwwDataFields = true;
 			}
 		}
 		if(isContainedLwwDataFields){
 			DataField lwwLogicalTsDf = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName, attributeStrs.size());
-			hMpDF.put(lwwLogicalTsDf.get_Data_Field_Name(), lwwLogicalTsDf);
+			hMpDF.put(lwwLogicalTsDf.getFieldName(), lwwLogicalTsDf);
 		}
 		return hMpDF;
 	}
@@ -359,7 +356,7 @@ public class CreateStatementParser {
 						throw_Wrong_Format_Exception(constraintStrs
 								.elementAt(i) + " " + pKeys[j]);
 					}
-					dFs.get(pKeys[j]).set_Primary_Key();
+					dFs.get(pKeys[j]).setPrimaryKey();
 				}
 			}
 			if (constraintStrs.elementAt(i).toUpperCase()
@@ -386,7 +383,7 @@ public class CreateStatementParser {
 						throw_Wrong_Format_Exception(constraintStrs
 								.elementAt(i) + " " + fKeys[t]);
 					}
-					dFs.get(fKeys[t]).set_Foreign_Key();
+					dFs.get(fKeys[t]).setForeignKey();
 				}
 			}
 

@@ -63,7 +63,7 @@ public class LWW_LOGICALTIMESTAMP extends DataField {
 		if (Value.indexOf("'") == 0
 				&& Value.lastIndexOf("'") == (Value.length() - 1))
 			Value = Value.substring(1, Value.length() - 1);
-		return this.get_Data_Field_Name() + " = '" + Value + "'";
+		return this.getFieldName() + " = '" + Value + "'";
 	}
 
 	/*
@@ -106,13 +106,13 @@ public class LWW_LOGICALTIMESTAMP extends DataField {
 	}
 
 	/* (non-Javadoc)
-	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#get_Data_Field_Name()
+	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#getFieldName()
 	 */
 	/**
-	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#get_Data_Field_Name()
+	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#getFieldName()
 	 * @return
 	 */
-	public String get_Data_Field_Name() {
+	public String getFieldName() {
 		return logical_Timestamp_Name;
 	}
 }

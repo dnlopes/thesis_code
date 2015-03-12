@@ -183,21 +183,21 @@ public class ShadowOperationCreator {
 			Map.Entry<String, DatabaseTable> entry = (Map.Entry<String, DatabaseTable>) it
 					.next();
 			DatabaseTable dT = entry.getValue();
-			String tableName = dT.get_Table_Name();
+			String tableName = dT.getTableName();
 			Debug.println("We initialize the ID generator for " + tableName);
-			HashMap<String, DataField> pkMap = dT.get_Primary_Key_List();
+			HashMap<String, DataField> pkMap = dT.getPrimaryKeysMap();
 			Iterator<Map.Entry<String, DataField>> pkIt = pkMap.entrySet()
 					.iterator();
 			while (pkIt.hasNext()) {
 				Map.Entry<String, DataField> pkField = (Map.Entry<String, DataField>) pkIt
 						.next();
 				DataField pkDF = pkField.getValue();
-				if (pkDF.is_AutoIncrement()
-						&& pkDF.get_Data_Type().toUpperCase().contains("INT")) {
+				if (pkDF.isAutoIncrement()
+						&& pkDF.getFieldType().toUpperCase().contains("INT")) {
 					Debug.println("We initialize the ID generator for "
-							+ tableName + " key " + pkDF.get_Data_Field_Name());
+							+ tableName + " key " + pkDF.getFieldName());
 					iDFactory.add_ID_Generator(tableName,
-							pkDF.get_Data_Field_Name());
+							pkDF.getFieldName());
 				}
 			}
 		}
@@ -255,9 +255,9 @@ public class ShadowOperationCreator {
 		for (int i = 0; i < valueList.size(); i++) {
 			DataField dF = null;
 			if (colList != null && colList.size() > 0) {
-				dF = dbT.get_Data_Field(colList.get(i));
+				dF = dbT.getField(colList.get(i));
 			} else {
-				dF = dbT.get_Data_Field(i);
+				dF = dbT.getField(i);
 			}
 			String expStr = valueList.get(i).toString().trim();
 			if (expStr.equalsIgnoreCase("NOW()")
@@ -273,9 +273,9 @@ public class ShadowOperationCreator {
 		if (missFields != null) {
 			for (String missingDfName : missFields) {
 				colList.add(missingDfName);
-				DataField dF = dbT.get_Data_Field(missingDfName);
-				if (dF.is_Primary_Key()) {
-					if (dF.is_Foreign_Key()) {
+				DataField dF = dbT.getField(missingDfName);
+				if (dF.isPrimaryKey()) {
+					if (dF.isForeignKey()) {
 						try {
 							throw new RuntimeException(
 									"Foreign primary key must be specified "
@@ -286,18 +286,18 @@ public class ShadowOperationCreator {
 						}
 					} else {
 						/*valueList.add(Integer.toString(iDFactory.getNextId(
-								tableName, dF.get_Data_Field_Name())));*/
+								tableName, dF.getFieldName())));*/
 						throw new RuntimeException("The primary keys' values should not be missing");
 					}
 				} else {
-					if (dF.get_Default_Value() == null) {
+					if (dF.getDefaultValue() == null) {
 						valueList.add(CrdtFactory.getDefaultValueForDataField(this.getDateFormat(), dF));
 					}else {
-						if (dF.get_Default_Value().equalsIgnoreCase(
+						if (dF.getDefaultValue().equalsIgnoreCase(
 								"CURRENT_TIMESTAMP")) {
 							valueList.add("'" + DatabaseFunction.CURRENTTIMESTAMP(this.getDateFormat()) + "'");
 						} else {
-							valueList.add(dF.get_Default_Value());
+							valueList.add(dF.getDefaultValue());
 						}
 					}
 				}
@@ -683,7 +683,7 @@ public class ShadowOperationCreator {
 		//Debug.println("Newly generated update main body is " + updateMainBody);
 
 		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		Set<String> pkSet = dbT.get_Primary_Key_Name_List();
+		Set<String> pkSet = dbT.getPrimaryKeysNamesList();
 		List<String> updateStrList = new ArrayList<String>();
 		try {
 			while (rs.next()) {
@@ -754,7 +754,7 @@ public class ShadowOperationCreator {
 		//Debug.println("Newly generated delete mainbody is " + deleteMainBody);
 
 		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		Set<String> pkSet = dbT.get_Primary_Key_Name_List();
+		Set<String> pkSet = dbT.getPrimaryKeysNamesList();
 		List<String> deleteStrList = new ArrayList<String>();
 		try {
 			while (rs.next()) {
@@ -799,7 +799,7 @@ public class ShadowOperationCreator {
 	public String get_Value_In_Correct_Format(String tableName, int fieldIndex,
 			String Value) {
 		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DataField dF = dbT.get_Data_Field(fieldIndex);
+		DataField dF = dbT.getField(fieldIndex);
 		return dF.get_Value_In_Correct_Format(Value);
 	}
 
@@ -817,7 +817,7 @@ public class ShadowOperationCreator {
 	public String get_Value_In_Correct_Format(String tableName,
 			String dataFileName, String Value) {
 		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DataField dF = dbT.get_Data_Field(dataFileName);
+		DataField dF = dbT.getField(dataFileName);
 		return dF.get_Value_In_Correct_Format(Value);
 	}
 	
@@ -876,7 +876,7 @@ public class ShadowOperationCreator {
 				try {
 					throw new RuntimeException(
 							"The type of CRDT table "
-									+ dTb.get_CRDT_Table_Type()
+									+ dTb.getTableType()
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
@@ -896,7 +896,7 @@ public class ShadowOperationCreator {
 				try {
 					throw new RuntimeException(
 							"The type of CRDT table "
-									+ dTb.get_CRDT_Table_Type()
+									+ dTb.getTableType()
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
@@ -915,7 +915,7 @@ public class ShadowOperationCreator {
 				try {
 					throw new RuntimeException(
 							"The type of CRDT table "
-									+ dTb.get_CRDT_Table_Type()
+									+ dTb.getTableType()
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
@@ -942,7 +942,7 @@ public class ShadowOperationCreator {
 	 * @throws SQLException the sQL exception
 	 */
 	public DBOpEntry createInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException {
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.get_Table_Name());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList)insertStatement.getItemsList()).getExpressions().iterator();
 		if(colIt == null || colIt.hasNext() == false) {
@@ -950,9 +950,9 @@ public class ShadowOperationCreator {
 			int index = 0;
 			while(valueIt.hasNext()) {
 				String value = valueIt.next().toString();
-				DataField df = dbT.get_Data_Field(index);
+				DataField df = dbT.getField(index);
 				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
-				if(df.is_Primary_Key()){
+				if(df.isPrimaryKey()){
 					dbOpEntry.addPrimaryKey(pt);
 				}else{
 					dbOpEntry.addNormalAttribute(pt);
@@ -963,9 +963,9 @@ public class ShadowOperationCreator {
 			while(colIt.hasNext() && valueIt.hasNext()) {
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
-				DataField df = dbT.get_Data_Field(colName);
+				DataField df = dbT.getField(colName);
 				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
-				if(df.is_Primary_Key()){
+				if(df.isPrimaryKey()){
 					dbOpEntry.addPrimaryKey(pt);
 				}else{
 					dbOpEntry.addNormalAttribute(pt);
@@ -984,7 +984,7 @@ public class ShadowOperationCreator {
 	 * @throws SQLException the sQL exception
 	 */
 	public DBOpEntry createUniqueInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException {
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.get_Table_Name());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList)insertStatement.getItemsList()).getExpressions().iterator();
 		if(colIt == null || colIt.hasNext() == false) {
@@ -992,9 +992,9 @@ public class ShadowOperationCreator {
 			int index = 0;
 			while(valueIt.hasNext()) {
 				String value = valueIt.next().toString();
-				DataField df = dbT.get_Data_Field(index);
+				DataField df = dbT.getField(index);
 				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
-				if(df.is_Primary_Key()) {
+				if(df.isPrimaryKey()) {
 					dbOpEntry.addPrimaryKey(pt);
 				}else {
 					dbOpEntry.addNormalAttribute(pt);
@@ -1005,9 +1005,9 @@ public class ShadowOperationCreator {
 			while(colIt.hasNext() && valueIt.hasNext()) {
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
-				DataField df = dbT.get_Data_Field(colName);
+				DataField df = dbT.getField(colName);
 				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
-				if(df.is_Primary_Key()) {
+				if(df.isPrimaryKey()) {
 					dbOpEntry.addPrimaryKey(pt);
 				}else {
 					dbOpEntry.addNormalAttribute(pt);
@@ -1028,13 +1028,13 @@ public class ShadowOperationCreator {
 	 */
 	public DBOpEntry createUpdateDBOpEntry(DatabaseTable dbT, Update updateStatement,
 			ResultSet rs) throws SQLException {
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UPDATE, dbT.get_Table_Name());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UPDATE, dbT.getTableName());
 		Iterator colIt = updateStatement.getColumns().iterator();
 		Iterator valueIt = updateStatement.getExpressions().iterator();
 		while(colIt.hasNext() && valueIt.hasNext()) {
 			String colName = colIt.next().toString();
 			String value = valueIt.next().toString();
-			DataField df = dbT.get_Data_Field(colName);
+			DataField df = dbT.getField(colName);
 			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, rs);
 			dbOpEntry.addNormalAttribute(pt);
 		}
@@ -1052,7 +1052,7 @@ public class ShadowOperationCreator {
 	 * @throws SQLException the sQL exception
 	 */
 	public DBOpEntry createDeleteDBOpEntry(DatabaseTable dbT,Delete deleteStatement) throws SQLException {
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.DELETE, dbT.get_Table_Name());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.DELETE, dbT.getTableName());
 		String whereClause = deleteStatement.getWhere().toString();
 		this.addFieldAndValueInWhereClauseToDBOpEntry(dbT, whereClause, dbOpEntry);
 		return dbOpEntry;
@@ -1070,11 +1070,11 @@ public class ShadowOperationCreator {
 			String whereClause, DBOpEntry dbOpEntry) throws SQLException {
 		//add all primary key to the entry
 		String[] primaryKeyPairs = whereClause.split("AND");
-		assert(primaryKeyPairs.length == dbT.get_Primary_Key_List().size());
+		assert(primaryKeyPairs.length == dbT.getPrimaryKeysMap().size());
 		for(int i = 0; i < primaryKeyPairs.length; i++) {
 			String primaryKeyPair = primaryKeyPairs[i].replaceAll("\\s+", "");
 			String[] fieldAndValue = primaryKeyPair.split("=");
-			DataField df = dbT.get_Data_Field(fieldAndValue[0]);
+			DataField df = dbT.getField(fieldAndValue[0]);
 			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, fieldAndValue[1], null);
 			dbOpEntry.addPrimaryKey(pt);
 		}

@@ -24,11 +24,11 @@ public class AosetTable extends DatabaseTable {
 	/**
 	 * Instantiates a new aoset table.
 	 *
-	 * @param tN the t n
-	 * @param dHM the d hm
+	 * @param tableName the t n
+	 * @param dataFields the d hm
 	 */
-	public AosetTable(String tN, LinkedHashMap<String, DataField> dHM) {
-		super(tN, CrdtTableType.AOSETTABLE, dHM);
+	public AosetTable(String declaration, String tableName, LinkedHashMap<String, DataField> dataFields) {
+		super(declaration, tableName, CrdtTableType.AOSETTABLE, dataFields);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -66,15 +66,15 @@ public class AosetTable extends DatabaseTable {
 			while (it.hasNext()) {
 				buffer.append(it.next() + ",");
 			}
-			buffer.append(((LWW_DELETEDFLAG)lwwDeletedFlag).get_Data_Field_Name() + ",");
-			buffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).get_Data_Field_Name() + ",");
+			buffer.append(((LWW_DELETEDFLAG)lwwDeletedFlag).getFieldName() + ",");
+			buffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).getFieldName() + ",");
 			buffer.append(timestampLWW.get_Data_Field_Name());
 			buffer.append(") ");
 		}
 
 		buffer.append(" values (");
 		buffer.append(valueStr + ",");
-		buffer.append(((LWW_DELETEDFLAG) lwwDeletedFlag).get_Default_Value() + ",");
+		buffer.append(((LWW_DELETEDFLAG) lwwDeletedFlag).getDefaultValue() + ",");
 		buffer.append("? ,"); // for causality clock
 		buffer.append("?");// for lww timestamp
 		buffer.append(");");

@@ -291,11 +291,11 @@ public class DataFieldParser
 			int startIndex = attributeDef.toUpperCase().indexOf("DEFAULT");
 			String defaultValue = attributeDef.substring(startIndex + 8);
 			defaultValue.replaceAll("'", "");
-			dF.set_Default_Value(defaultValue);
+			dF.setDefaultValue(defaultValue);
 		}
 		if(attributeDef.toUpperCase().contains("NULL") && ! attributeDef.toUpperCase().contains("NOT NULL"))
 		{
-			dF.set_Default_Value("NULL");
+			dF.setDefaultValue("NULL");
 		}
 	}
 

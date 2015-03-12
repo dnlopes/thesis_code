@@ -19,9 +19,7 @@ package util.crdtlib.dbannotationtypes;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.DateFormat;
-import java.util.Date;
 
 import util.commonfunc.StringOperations;
 import util.crdtlib.datatypes.primitivetypes.LwwBoolean;
@@ -245,78 +243,78 @@ public class CrdtFactory {
 	 * @throws SQLException the sQL exception
 	 */
 	public static PrimitiveType generateCrdtPrimitiveType(DateFormat dateFormat, DataField df, String value, ResultSet rs) throws SQLException {
-		switch(df.get_Crdt_Data_Type()) {
+		switch(df.getCrdtType()) {
 		case NONCRDTFIELD:
 			throw new RuntimeException("NONCRDT is depreciated");
 		case NORMALINTEGER:
-			return new NormalInteger(df.get_Data_Field_Name(), Integer.parseInt(value));
+			return new NormalInteger(df.getFieldName(), Integer.parseInt(value));
 		case NORMALBOOLEAN:
-			return new NormalBoolean(df.get_Data_Field_Name(), Boolean.parseBoolean(value));
+			return new NormalBoolean(df.getFieldName(), Boolean.parseBoolean(value));
 		case NORMALFLOAT:
-			return new NormalFloat(df.get_Data_Field_Name(), Float.parseFloat(value));
+			return new NormalFloat(df.getFieldName(), Float.parseFloat(value));
 		case NORMALDOUBLE:
-			return new NormalDouble(df.get_Data_Field_Name(), Double.parseDouble(value));
+			return new NormalDouble(df.getFieldName(), Double.parseDouble(value));
 		case NORMALSTRING:
-			return new NormalString(df.get_Data_Field_Name(), StringOperations.removeQuotesFromHeadTail(value));
+			return new NormalString(df.getFieldName(), StringOperations.removeQuotesFromHeadTail(value));
 		case NORMALDATETIME:
-			return new NormalDateTime(df.get_Data_Field_Name(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
+			return new NormalDateTime(df.getFieldName(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
 		case LWWINTEGER:
-			return new LwwInteger(df.get_Data_Field_Name(), Integer.parseInt(value));
+			return new LwwInteger(df.getFieldName(), Integer.parseInt(value));
 		case LWWFLOAT:
-			return new LwwFloat(df.get_Data_Field_Name(), Float.parseFloat(value));
+			return new LwwFloat(df.getFieldName(), Float.parseFloat(value));
 		case LWWDOUBLE:
-			return new LwwDouble(df.get_Data_Field_Name(), Double.parseDouble(value));
+			return new LwwDouble(df.getFieldName(), Double.parseDouble(value));
 		case LWWSTRING:
-			return new LwwString(df.get_Data_Field_Name(), StringOperations.removeQuotesFromHeadTail(value));
+			return new LwwString(df.getFieldName(), StringOperations.removeQuotesFromHeadTail(value));
 		case LWWDATETIME:
-			return new LwwDateTime(df.get_Data_Field_Name(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
+			return new LwwDateTime(df.getFieldName(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
 		case LWWBOOLEAN:
-			return new LwwBoolean(df.get_Data_Field_Name(), Boolean.parseBoolean(value));
+			return new LwwBoolean(df.getFieldName(), Boolean.parseBoolean(value));
 		case NUMDELTAINTEGER:
 			if(rs != null) {
 				Debug.println("result set is not null");
 				rs.beforeFirst();
 				rs.next();
 				int finalIValue =  Integer.parseInt(value);
-				int oldIValue = rs.getInt(df.get_Data_Field_Name());
+				int oldIValue = rs.getInt(df.getFieldName());
 				int iDelta = finalIValue - oldIValue;
-				return new NumberDeltaInteger(df.get_Data_Field_Name(), iDelta);
+				return new NumberDeltaInteger(df.getFieldName(), iDelta);
 			}else {
 				Debug.println("result set is null");
-				return new NumberDeltaInteger(df.get_Data_Field_Name(), Integer.parseInt(value));
+				return new NumberDeltaInteger(df.getFieldName(), Integer.parseInt(value));
 			}
 		case NUMDELTAFLOAT:
 			if(rs != null) {
 				rs.beforeFirst();
 				rs.next();
 				float finalFValue =  Float.parseFloat(value);
-				float oldFValue = rs.getFloat(df.get_Data_Field_Name());
+				float oldFValue = rs.getFloat(df.getFieldName());
 				float fDelta = finalFValue - oldFValue;
-				return new NumberDeltaFloat(df.get_Data_Field_Name(), fDelta);
+				return new NumberDeltaFloat(df.getFieldName(), fDelta);
 			}else {
-				return new NumberDeltaFloat(df.get_Data_Field_Name(), Float.parseFloat(value)); 
+				return new NumberDeltaFloat(df.getFieldName(), Float.parseFloat(value));
 			}
 		case NUMDELTADOUBLE:
 			if(rs != null) {
 				rs.beforeFirst();
 				rs.next();
 				double finalDValue = Double.parseDouble(value);
-				double oldDValue = rs.getDouble(df.get_Data_Field_Name());
+				double oldDValue = rs.getDouble(df.getFieldName());
 				double dDelta = finalDValue - oldDValue;
-				return new NumberDeltaDouble(df.get_Data_Field_Name(), dDelta);
+				return new NumberDeltaDouble(df.getFieldName(), dDelta);
 			}else {
-				return new NumberDeltaDouble(df.get_Data_Field_Name(), Double.parseDouble(value));
+				return new NumberDeltaDouble(df.getFieldName(), Double.parseDouble(value));
 			}
 		case NUMDELTADATETIME:
 			if(rs != null) {
 				rs.beforeFirst();
 				rs.next();
 				long finalTValue = DatabaseFunction.convertDateStrToLong(dateFormat, value);
-				long oldTValue = DatabaseFunction.convertDateStrToLong(dateFormat, rs.getString(df.get_Data_Field_Name())); 
+				long oldTValue = DatabaseFunction.convertDateStrToLong(dateFormat, rs.getString(df.getFieldName()));
 				long tDelta = finalTValue - oldTValue;
-				return new NumberDeltaDateTime(df.get_Data_Field_Name(), tDelta);
+				return new NumberDeltaDateTime(df.getFieldName(), tDelta);
 			}else {
-				return new NumberDeltaDateTime(df.get_Data_Field_Name(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
+				return new NumberDeltaDateTime(df.getFieldName(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
 			}
 			default:
 				System.err.println("cannot create primitive type" + df.toString());
@@ -331,7 +329,7 @@ public class CrdtFactory {
 	 * @return the default value for data field
 	 */
 	public static String getDefaultValueForDataField(DateFormat dateFormat, DataField df) {
-		switch(df.get_Crdt_Data_Type()) {
+		switch(df.getCrdtType()) {
 		case NONCRDTFIELD:
 			throw new RuntimeException("NONCRDT is depreciated");
 		case NORMALINTEGER:

@@ -57,7 +57,7 @@ public class LWW_FLOAT extends DataField {
 	@Override
 	public String get_Crdt_Form(String Value) {
 		// TODO Auto-generated method stub
-		return this.get_Data_Field_Name() + " = " + Value;
+		return this.getFieldName() + " = " + Value;
 	}
 
 	/*
