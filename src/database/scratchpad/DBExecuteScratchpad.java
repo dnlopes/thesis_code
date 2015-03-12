@@ -8,10 +8,8 @@ import database.util.Database;
 import database.util.DatabaseTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.DBDefaults;
 import util.defaults.ScratchpadDefaults;
 
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.*;
 
@@ -21,6 +19,7 @@ import java.util.*;
  */
 public class DBExecuteScratchpad implements ExecuteScratchpad
 {
+
 	static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
 
 	private boolean readOnly;
@@ -34,8 +33,8 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		this.readOnly = false;
 		this.conn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
 		this.stat = this.conn.createStatement();
-		//this.initScratchpad();
-		this.init();
+		this.initScratchpad();
+		//this.init();
 	}
 
 	@Override
@@ -151,7 +150,8 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 			{
 				String originalTableName = ((ForeignKeyInvariant) inv).getReferenceTable();
 				String origDeclaration = inv.getOriginalDeclaration();
-				String transformedDecl = origDeclaration.replace(originalTableName, this.getTransformedTableName(originalTableName));
+				String transformedDecl = origDeclaration.replace(originalTableName,
+						this.getTransformedTableName(originalTableName));
 				createTableStatement.append(transformedDecl);
 				createTableStatement.append(",");
 
@@ -162,10 +162,11 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 			}
 		}
 
-		char last = createTableStatement.charAt(createTableStatement.length()-1);
+		char last = createTableStatement.charAt(createTableStatement.length() - 1);
 
 		if(last == ',')
-			createTableStatement = new StringBuilder(createTableStatement.substring(0,createTableStatement.length()-1));
+			createTableStatement = new StringBuilder(
+					createTableStatement.substring(0, createTableStatement.length() - 1));
 
 		createTableStatement.append(");");
 		Statement statement = this.conn.createStatement();
@@ -262,7 +263,11 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				temp.add(colSet.getString(4));
 				tempAlias.add(tableNameAlias + "." + colSet.getString(4));
 				tempTempAlias.add(tempTableNameAlias + "." + colSet.getString(4));
-				tempIsStr.add(colSet.getInt(5) == java.sql.Types.VARCHAR || colSet.getInt(5) == java.sql.Types.LONGNVARCHAR || colSet.getInt(5) == java.sql.Types.LONGVARCHAR || colSet.getInt(5) == java.sql.Types.CHAR || colSet.getInt(5) == java.sql.Types.DATE || colSet.getInt(5) == java.sql.Types.TIMESTAMP || colSet.getInt(5) == java.sql.Types.TIME);
+				tempIsStr.add(colSet.getInt(5) == java.sql.Types.VARCHAR || colSet.getInt(
+						5) == java.sql.Types.LONGNVARCHAR || colSet.getInt(
+						5) == java.sql.Types.LONGVARCHAR || colSet.getInt(5) == java.sql.Types.CHAR || colSet.getInt(
+						5) == java.sql.Types.DATE || colSet.getInt(5) == java.sql.Types.TIMESTAMP || colSet.getInt(
+						5) == java.sql.Types.TIME);
 			}
 			colSet.close();
 			String[] cols = new String[temp.size()];

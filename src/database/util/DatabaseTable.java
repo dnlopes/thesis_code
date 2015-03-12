@@ -16,8 +16,6 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class DatabaseTable.
@@ -25,52 +23,42 @@ import net.sf.jsqlparser.statement.update.Update;
 public abstract class DatabaseTable
 {
 
-	private String originalStatement;
 	private List<Invariant> invariants;
-
-	/** The table name. */
 	private String tableName;
-	/** The crdt table type. */
 	private CrdtTableType crdtTableType;
-	/** The is contain auto increment field. */
-	boolean isContainAutoIncrementField;
-	/** The lww deleted flag. */
-	protected DataField lwwDeletedFlag = null;
-	/** The lww logical timestamp. */
-	protected DataField lwwLogicalTimestamp = null;
-	/** The num of hidden fields. */
+	private boolean isContainAutoIncrementField;
 	private int numOfHiddenFields;
-	/** The primary key string. It is used to assemble a select to fetch all primary keys for a certain condition */
 	private String primaryKeyString;
 
-	/** The data field map. */
+	protected DataField lwwDeletedFlag;
+	protected DataField lwwLogicalTimestamp;
 	protected LinkedHashMap<String, DataField> dataFieldMap;
-	/** The sorted data field map. */
 	protected HashMap<Integer, DataField> sortedDataFieldMap;
-	/** The primary key map. */
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
-	/** The timestamp lww. */
+
 	protected static Timestamp_LWW timestampLWW = new Timestamp_LWW();
-	/** The c jsql parser. */
 	protected static CCJSqlParserManager cJsqlParser = new CCJSqlParserManager();
 
-
-	protected DatabaseTable(String declaration, String tableName, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
+	protected DatabaseTable(String tableName, CrdtTableType tableType,
+							LinkedHashMap<String, DataField> fieldsMap)
 	{
-		this.originalStatement = declaration;
-		this.tableName = tableName;
-		this.crdtTableType = tableType;
-		this.dataFieldMap = fieldsMap;
+		this.lwwDeletedFlag = null;
+		this.lwwLogicalTimestamp = null;
 		this.isContainAutoIncrementField = false;
+
 		this.primaryKeyMap = new LinkedHashMap<>();
 		this.invariants = new LinkedList<>();
 		this.sortedDataFieldMap = new HashMap<>();
+
+		this.tableName = tableName;
+		this.crdtTableType = tableType;
+		this.dataFieldMap = fieldsMap;
 
 		this.setNumOfHiddenFields(0);
 
 		for(Entry<String, DataField> entry : fieldsMap.entrySet())
 		{
-			if(entry.getValue().isPrimaryKey)
+			if(entry.getValue().isPrimaryKey())
 				this.addPrimaryKey(entry.getValue());
 
 			if(entry.getValue().isAutoIncrement() && ! this.isAutoIncremental())
@@ -84,79 +72,13 @@ public abstract class DatabaseTable
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
 	}
 
-	// abstract methods
-
-	/**
-	 * Transform_ insert.
-	 *
-	 * @param insertStatement the insert statement
-	 * @param insertQuery     the insert query
-	 *
-	 * @return the string[]
-	 *
-	 * @throws JSQLParserException the jSQL parser exception
-	 */
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
 
-	/**
-	 * Transform_ update.
-	 *
-	 * @param rs              the rs
-	 * @param updateStatement the update statement
-	 * @param updateQuery     the update query
-	 *
-	 * @return the string[]
-	 *
-	 * @throws JSQLParserException the jSQL parser exception
-	 */
-	public abstract String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery) throws JSQLParserException;
+	public abstract String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
+			throws JSQLParserException;
 
-	/**
-	 * Transform_ delete.
-	 *
-	 * @param deleteStatement the delete statement
-	 * @param deleteQuery     the delete query
-	 *
-	 * @return the string[]
-	 *
-	 * @throws JSQLParserException the jSQL parser exception
-	 */
 	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
 
-	public void addDataField(DataField field)
-	{
-
-		if(dataFieldMap == null)
-		{
-			try
-			{
-				throw new RuntimeException("data field map has not been initialized!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.NOINITIALIZATION);
-			}
-		}
-		if(dataFieldMap.containsKey(field.getFieldName()))
-		{
-			try
-			{
-				throw new RuntimeException("data field map has duplication!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.HASHMAPDUPLICATE);
-			}
-		}
-
-		dataFieldMap.put(field.getFieldName(), field);
-		this.setLwwLogicalTimestampDataField(field);
-		this.setLwwDeletedFlagDataField(field);
-	}
-
-	/**
-	 * Sets the lww logical timestamp data field.
-	 *
-	 * @param field the new lww logical timestamp data field
-	 */
 	private void setLwwLogicalTimestampDataField(DataField field)
 	{
 		if(CrdtFactory.isLwwLogicalTimestamp(field.getCrdtType()))
@@ -166,11 +88,6 @@ public abstract class DatabaseTable
 		}
 	}
 
-	/**
-	 * Sets the lww deleted flag data field.
-	 *
-	 * @param df the new lww deleted flag data field
-	 */
 	private void setLwwDeletedFlagDataField(DataField df)
 	{
 		if(CrdtFactory.isLwwDeletedFlag(df.getCrdtType()))
@@ -180,11 +97,6 @@ public abstract class DatabaseTable
 		}
 	}
 
-	/**
-	 * Add_ primary_ key.
-	 *
-	 * @param field the p k
-	 */
 	public void addPrimaryKey(DataField field)
 	{
 		if(this.primaryKeyMap == null)
@@ -260,27 +172,6 @@ public abstract class DatabaseTable
 		{
 			return new ArrayList<>(dataFields);
 		}
-	}
-
-	/**
-	 * Gets the modifiable data field list.
-	 *
-	 * @return the modifiable data field list
-	 */
-	public List<DataField> getModifiableFieldList()
-	{
-		List<DataField> modifiableDataFieldList = new ArrayList<>();
-		Iterator<Entry<String, DataField>> it = this.dataFieldMap.entrySet().iterator();
-		while(it.hasNext())
-		{
-			Entry<String, DataField> entry = it.next();
-			DataField field = entry.getValue();
-			if(! field.isPrimaryKey && ! CrdtFactory.isNormalDataType(field.getCrdtType()))
-			{
-				modifiableDataFieldList.add(field);
-			}
-		}
-		return modifiableDataFieldList;
 	}
 
 	/**
@@ -481,19 +372,6 @@ public abstract class DatabaseTable
 	public boolean isAutoIncremental()
 	{
 		return this.isContainAutoIncrementField;
-	}
-
-	/**
-	 * Checks if is _ readonly.
-	 *
-	 * @return true, if is _ readonly
-	 */
-	public boolean isReadOnly()
-	{
-		if(this.crdtTableType == CrdtTableType.NONCRDTTABLE)
-			return true;
-
-		return false;
 	}
 
 	/**

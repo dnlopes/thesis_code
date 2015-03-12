@@ -9,7 +9,7 @@
     <!-- TPCW OPTIONS -->
     <property name="TPCW_NUM_EBS" value="50"/>
     <property name="TPCW_NUM_ITEMS" value="100"/>
-    <property name="gendb-tpcw" value="applications.TPCW_Populate" />
+    <property name="gendb-tpcw" value="applications.tpcw.TPCW_Populate" />
 
 
     <!-- set properties for this build -->
@@ -48,7 +48,7 @@
         </javac>
     </target>
 
-    <target name="tpcw-gendb" depends="start-mysql,compile" description="Generate TPCW database">
+    <target name="tpcw-gendb" depends="compile" description="Generate TPCW database">
         <java classname="${gendb-tpcw}" fork="true" >
             <arg value="${TPCW_NUM_EBS}"/>
             <arg value="${TPCW_NUM_ITEMS}"/>
@@ -57,21 +57,6 @@
         </java>
     </target>
 
-    <target name="start-mysql" unless="mysql.running" depends="test-mysql">
-        <exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${base.dir}/scripts">
-            <arg value="start-mysql.sh"/>
-        </exec>
-    </target>
-    <target name="stop-mysql" if="mysql.running" depends="test-mysql">
-        <exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${base.dir}/scripts">
-            <arg value="stop-mysql.sh"/>
-        </exec>
-    </target>
-    <target name="test-mysql">
-        <condition property="mysql.running">
-            <socket server="${mysql.host}" port="${mysql.port}"/>
-        </condition>
-    </target>
     <target name="check-mysql">
         <echo message="Checking whether MySQL is running..."/>
         <fail message="MySQL is not running. :(">

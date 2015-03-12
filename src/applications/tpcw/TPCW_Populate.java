@@ -71,10 +71,10 @@ class TPCW_Populate
 	private static Random rand;
 
 	//These variables are dependent on the JDBC database driver used.
-	private static final String driverName = "com.mysql.jdbc.Driver";
+	//private static final String driverName = "com.mysql.jdbc.Driver";
 	//private static final String driverName = "org.gjt.mm.mysql.Driver";
 	// private static final String dbName = "jdbc:mysql://localhost/tpcw";
-	private static final String dbName = "jdbc:mysql://localhost:53306/tpcw";
+	//private static final String dbName = "jdbc:mysql://localhost:53306/tpcw";
 
 	//ATTENTION: The NUM_EBS and NUM_ITEMS variables are the only variables
 	//that should be modified in order to rescale the DB.

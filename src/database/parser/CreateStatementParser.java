@@ -74,20 +74,20 @@ public class CreateStatementParser
 			switch(tableType)
 			{
 			case NONCRDTTABLE:
-				dT = new READONLY_Table(schemaStr, tableName, fieldsMap);
+				dT = new READONLY_Table(tableName, fieldsMap);
 				break;
 			case AOSETTABLE:
-				dT = new AosetTable(schemaStr, tableName, fieldsMap);
+				dT = new AosetTable(tableName, fieldsMap);
 				break;
 			case ARSETTABLE:
 				ArsetTable.addLwwDeletedFlagDataField(tableName, fieldsMap);
-				dT = new ArsetTable(schemaStr, tableName, fieldsMap);
+				dT = new ArsetTable(tableName, fieldsMap);
 				break;
 			case UOSETTABLE:
-				dT = new UosetTable(schemaStr, tableName, fieldsMap);
+				dT = new UosetTable(tableName, fieldsMap);
 				break;
 			case AUSETTABLE:
-				dT = new AusetTable(schemaStr, tableName, fieldsMap);
+				dT = new AusetTable(tableName, fieldsMap);
 				break;
 			default:
 				try

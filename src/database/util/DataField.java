@@ -6,8 +6,6 @@ import java.util.List;
 
 import database.invariants.Invariant;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class DataField.
@@ -17,21 +15,25 @@ public abstract class DataField
 
 	private String originalDeclaration;
 	private List<Invariant> invariants;
-	CrdtDataFieldType crdtDataType;
-	String fieldName;
-	String tableName;
-	String dataType;
-	String defaultValue = null;
-	boolean isPrimaryKey;
-	boolean isForeignKey;
-	boolean isAutoIncremental;
-	boolean isAllowedNULL = false;
-	int position = - 1;
+	private CrdtDataFieldType crdtDataType;
+	private String fieldName;
+	private String tableName;
+	private String dataType;
+	private String defaultValue;
+	private boolean isPrimaryKey;
+	private boolean isForeignKey;
+	private boolean isAutoIncremental;
+	private boolean isAllowedNULL;
+	private int position;
 
 
 	protected DataField(CrdtDataFieldType crdtFieldType, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos)
 	{
+		this.defaultValue = null;
+		this.isAllowedNULL = false;
+		this.position = -1;
+
 		this.crdtDataType = crdtFieldType;
 		this.fieldName = name;
 		this.tableName = tableName;

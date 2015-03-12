@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import database.util.field.LWW_DELETEDFLAG;
-import database.util.field.LWW_LOGICALTIMESTAMP;
 import database.util.CrdtTableType;
 import database.util.DataField;
 import database.util.DatabaseTable;
@@ -17,42 +15,42 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class UosetTable.
  */
-public class UosetTable extends DatabaseTable {
+public class UosetTable extends DatabaseTable
+{
 
 	/**
 	 * Instantiates a new uoset table.
 	 *
-	 * @param tableName the t n
+	 * @param tableName  the t n
 	 * @param dataFields the d hm
 	 */
-	public UosetTable(String declaration, String tableName, LinkedHashMap<String, DataField> dataFields) {
-		super(declaration, tableName, CrdtTableType.UOSETTABLE, dataFields);
-		// TODO Auto-generated constructor stub
+	public UosetTable(String tableName, LinkedHashMap<String, DataField> dataFields)
+	{
+		super(tableName, CrdtTableType.UOSETTABLE, dataFields);
 	}
 
-	/* (non-Javadoc)
-	 * @see util.crdtlib.dbannotationtypes.dbutil.DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
-	 */
 	/**
-	 * @see database.util.DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
 	 * @param insertStatement
 	 * @param insertQuery
+	 *
 	 * @return
+	 *
 	 * @throws JSQLParserException
+	 * @see database.util.DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
 	 */
-	public String[] transform_Insert(Insert insertStatement, String insertQuery)
-			throws JSQLParserException {
+	public String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException
+	{
 		// get tableName
 		String tbName = insertStatement.getTable().getName();
 		// get column list, if not empty, please add deletedflag, causality and
 		// lwwts
 		List colList = insertStatement.getColumns();
 		// get value list, append these three into it
-		String valueStr = "";
+		String valueStr;
 
 		int startIndex = insertQuery.toUpperCase().indexOf("VALUE");
 		startIndex = insertQuery.indexOf("(", startIndex);
@@ -63,26 +61,27 @@ public class UosetTable extends DatabaseTable {
 		buffer.append("insert into ");
 		buffer.append(tbName + " ");
 		Iterator it = colList.iterator();
-		if (colList.size() > 0) {
+		if(colList.size() > 0)
+		{
 			buffer.append("(");
-			while (it.hasNext()) {
+			while(it.hasNext())
+			{
 				buffer.append(it.next() + ",");
 			}
-			buffer.append(((LWW_DELETEDFLAG)lwwDeletedFlag).getFieldName() + ",");
-			buffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).getFieldName() + ",");
+			buffer.append(lwwDeletedFlag.getFieldName() + ",");
+			buffer.append(lwwLogicalTimestamp.getFieldName() + ",");
 			buffer.append(timestampLWW.get_Data_Field_Name());
 			buffer.append(") ");
 		}
 
 		buffer.append(" values (");
 		buffer.append(valueStr + ",");
-		buffer.append(((LWW_DELETEDFLAG) lwwDeletedFlag).getDefaultValue() + ",");
+		buffer.append(lwwDeletedFlag.getDefaultValue() + ",");
 		buffer.append("? ,"); // for causality clock
 		buffer.append("?");// for lww timestamp
 		buffer.append(");");
 
-		Debug.println("This is transformed query for AOSET insert: "
-				+ buffer.toString());
+		Debug.println("This is transformed query for AOSET insert: " + buffer.toString());
 		String[] transformedSqls = new String[1];
 		transformedSqls[0] = buffer.toString();
 		return transformedSqls;
@@ -91,11 +90,14 @@ public class UosetTable extends DatabaseTable {
 	/* (non-Javadoc)
 	 * @see util.crdtlib.dbannotationtypes.dbutil.DatabaseTable#toString()
 	 */
+
 	/**
-	 * @see database.util.DatabaseTable#toString()
 	 * @return
+	 *
+	 * @see database.util.DatabaseTable#toString()
 	 */
-	public String toString() {
+	public String toString()
+	{
 		return super.toString();
 	}
 
@@ -105,18 +107,22 @@ public class UosetTable extends DatabaseTable {
 	 * @see crdts.basics.Database_Table#transform_Update(java.sql.ResultSet,
 	 * net.sf.jsqlparser.statement.update.Update, java.lang.String)
 	 */
+
 	/**
-	 * @see database.util.DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update, java.lang.String)
 	 * @param rs
 	 * @param updateStatement
 	 * @param updateQuery
+	 *
 	 * @return
+	 *
 	 * @throws JSQLParserException
+	 * @see database.util.DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update,
+	 * java.lang.String)
 	 */
 	@Override
-	public String[] transform_Update(ResultSet rs, Update updateStatement,
-			String updateQuery) throws JSQLParserException {
-		// TODO Auto-generated method stub
+	public String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
+			throws JSQLParserException
+	{
 		return null;
 	}
 
@@ -127,17 +133,19 @@ public class UosetTable extends DatabaseTable {
 	 * crdts.basics.Database_Table#transform_Delete(net.sf.jsqlparser.statement
 	 * .delete.Delete, java.lang.String)
 	 */
+
 	/**
-	 * @see database.util.DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
 	 * @param deleteStatement
 	 * @param deleteQuery
+	 *
 	 * @return
+	 *
 	 * @throws JSQLParserException
+	 * @see database.util.DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
 	 */
 	@Override
-	public String[] transform_Delete(Delete deleteStatement, String deleteQuery)
-			throws JSQLParserException {
-		// TODO Auto-generated method stub
+	public String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException
+	{
 		return null;
 	}
 }
