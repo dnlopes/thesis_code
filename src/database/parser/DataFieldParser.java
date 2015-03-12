@@ -24,8 +24,6 @@ import database.util.DataField;
 import database.util.DatabaseDictionary;
 import util.ExitCode;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class DataFieldParser.
@@ -58,55 +56,71 @@ public class DataFieldParser
 		switch(crdtType)
 		{
 		case NONCRDTFIELD:
-			dF = new NONCRDT_Data_Field(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NONCRDT_Data_Field(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case LWWINTEGER:
-			dF = new LWW_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new LWW_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case LWWFLOAT:
 			dF = new LWW_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
 			break;
 		case LWWDOUBLE:
-			dF = new LWW_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new LWW_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case LWWSTRING:
-			dF = new LWW_STRING(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new LWW_STRING(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case LWWDATETIME:
-			dF = new LWW_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new LWW_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case LWWBOOLEAN:
-			dF = new LWW_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new LWW_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NUMDELTAINTEGER:
-			dF = new NUMDELTA_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NUMDELTA_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NUMDELTAFLOAT:
-			dF = new NUMDELTA_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NUMDELTA_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NUMDELTADOUBLE:
-			dF = new NUMDELTA_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NUMDELTA_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NUMDELTADATETIME:
-			dF = new NUMDELTA_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NUMDELTA_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALINTEGER:
-			dF = new NORMAL_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALFLOAT:
-			dF = new NORMAL_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALDOUBLE:
-			dF = new NORMAL_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALSTRING:
-			dF = new NORMAL_STRING(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_STRING(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALDATETIME:
-			dF = new NORMAL_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 			break;
 		case NORMALBOOLEAN:
-			dF = new NORMAL_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+			dF = new NORMAL_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+					position);
 		default:
 			try
 			{
@@ -139,7 +153,8 @@ public class DataFieldParser
 		boolean isForeignKey = false;
 		boolean isAutoIncremantal = false;
 
-		DataField dF = new LWW_LOGICALTIMESTAMP(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+		DataField dF = new LWW_LOGICALTIMESTAMP(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+				position);
 		set_Default_Value(dF, "");
 		return dF;
 	}
@@ -159,7 +174,8 @@ public class DataFieldParser
 		boolean isForeignKey = false;
 		boolean isAutoIncremantal = false;
 
-		DataField dF = new LWW_DELETEDFLAG(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal, position);
+		DataField dF = new LWW_DELETEDFLAG(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
+				position);
 		set_Default_Value(dF, "false");
 		return dF;
 	}

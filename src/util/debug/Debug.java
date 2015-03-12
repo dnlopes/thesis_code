@@ -22,6 +22,7 @@ public class Debug {
 
 	/** The debug. */
 	public static boolean debug = false;
+	public static final boolean SANITY_CHECK = true;
 
 	/** The profile. */
 	public static boolean profile = false;
