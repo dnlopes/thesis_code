@@ -3,7 +3,7 @@ package util.IDFactories;
 import java.sql.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
+import util.ExitCode;
 
 import util.debug.Debug;
 
@@ -75,13 +75,13 @@ public class IDGenerator {
 									+ tableName + " key " + dataFieldName);
 				} catch (RuntimeException e) {
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.NORESULT);
+					System.exit(ExitCode.NORESULT);
 				}
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.exit(RuntimeExceptionType.SQLSELECTIONFAIL);
+			System.exit(ExitCode.SQLSELECTIONFAIL);
 		}
 
 	}

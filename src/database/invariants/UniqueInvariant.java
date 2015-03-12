@@ -1,7 +1,6 @@
 package database.invariants;
 
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
+import database.util.DataField;
 
 
 /**
@@ -10,8 +9,8 @@ import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 public class UniqueInvariant extends Invariant
 {
 
-	public UniqueInvariant(DatabaseTable table, DataField field)
+	public UniqueInvariant(DataField field, String declaration)
 	{
-		super(table, field);
+		super(field, declaration);
 	}
 }

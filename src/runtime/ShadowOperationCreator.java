@@ -21,15 +21,15 @@ import java.text.DateFormat;
 import database.jdbc.CRDTConnection;
 import database.jdbc.CRDTResultSet;
 import database.parser.DDLParser;
+import util.ExitCode;
 import util.debug.Debug;
 
 import util.IDFactories.IDFactories;
 import util.IDFactories.IDGenerator;
-import util.crdtlib.datatypes.primitivetypes.PrimitiveType;
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseFunction;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
+import crdtlib.datatypes.primitivetypes.PrimitiveType;
+import database.util.DataField;
+import database.util.DatabaseFunction;
+import database.util.DatabaseTable;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -41,12 +41,12 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 
-import util.crdtlib.dbannotationtypes.AosetTable;
-import util.crdtlib.dbannotationtypes.ArsetTable;
-import util.crdtlib.dbannotationtypes.AusetTable;
-import util.crdtlib.dbannotationtypes.CrdtFactory;
-import util.crdtlib.dbannotationtypes.DatabaseDef;
-import util.crdtlib.dbannotationtypes.UosetTable;
+import database.util.table.AosetTable;
+import database.util.table.ArsetTable;
+import database.util.table.AusetTable;
+import crdtlib.CrdtFactory;
+import database.util.DatabaseDef;
+import database.util.table.UosetTable;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -282,7 +282,7 @@ public class ShadowOperationCreator {
 											+ missingDfName + "!");
 						} catch (RuntimeException e) {
 							e.printStackTrace();
-							System.exit(RuntimeExceptionType.FOREIGNPRIMARYKEYMISSING);
+							System.exit(ExitCode.FOREIGNPRIMARYKEYMISSING);
 						}
 					} else {
 						/*valueList.add(Integer.toString(iDFactory.getNextId(
@@ -837,7 +837,7 @@ public class ShadowOperationCreator {
 								+ tableName);
 			} catch (RuntimeException e) {
 				e.printStackTrace();
-				System.exit(RuntimeExceptionType.UNKNOWTABLENAME);
+				System.exit(ExitCode.UNKNOWTABLENAME);
 			}
 		}
 		return dTb;
@@ -880,7 +880,7 @@ public class ShadowOperationCreator {
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.NOTDEFINEDCRDTTABLE);
+					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
 				}
 			}
 		} else if (sqlStmt instanceof Update) {
@@ -900,7 +900,7 @@ public class ShadowOperationCreator {
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.NOTDEFINEDCRDTTABLE);
+					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
 				}
 			}
 
@@ -919,7 +919,7 @@ public class ShadowOperationCreator {
 									+ "is not supported by our framework or cannot be modified!");
 				} catch (RuntimeException e) {
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.NOTDEFINEDCRDTTABLE);
+					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
 				}
 			}
 		} else {
@@ -928,7 +928,7 @@ public class ShadowOperationCreator {
 						+ sqlQuery);
 			} catch (RuntimeException e) {
 				e.printStackTrace();
-				System.exit(RuntimeExceptionType.UNKNOWSQLQUERY);
+				System.exit(ExitCode.UNKNOWSQLQUERY);
 			}
 		}
 	}

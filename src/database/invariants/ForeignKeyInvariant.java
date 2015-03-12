@@ -1,7 +1,6 @@
 package database.invariants;
 
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
+import database.util.DataField;
 
 
 /**
@@ -9,13 +8,23 @@ import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
  */
 public class ForeignKeyInvariant extends Invariant
 {
-	private DataField referenceField;
-	private DatabaseTable referenceTable;
+	private String referenceField;
+	private String referenceTable;
 
-	protected ForeignKeyInvariant(DatabaseTable table, DataField field, DatabaseTable referenceTable, DataField referenceField)
+	public ForeignKeyInvariant(DataField field, String referenceTable, String referenceField, String declaration)
 	{
-		super(table, field);
+		super(field, declaration);
 		this.referenceField = referenceField;
 		this.referenceTable = referenceTable;
+	}
+
+	public String getReferenceField()
+	{
+		return this.referenceField;
+	}
+
+	public String getReferenceTable()
+	{
+		return this.referenceTable;
 	}
 }

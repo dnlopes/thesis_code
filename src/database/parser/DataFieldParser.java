@@ -1,28 +1,28 @@
 package database.parser;
 
-import util.crdtlib.dbannotationtypes.LWW_BOOLEAN;
-import util.crdtlib.dbannotationtypes.LWW_DATETIME;
-import util.crdtlib.dbannotationtypes.LWW_DELETEDFLAG;
-import util.crdtlib.dbannotationtypes.LWW_DOUBLE;
-import util.crdtlib.dbannotationtypes.LWW_FLOAT;
-import util.crdtlib.dbannotationtypes.LWW_INTEGER;
-import util.crdtlib.dbannotationtypes.LWW_LOGICALTIMESTAMP;
-import util.crdtlib.dbannotationtypes.LWW_STRING;
-import util.crdtlib.dbannotationtypes.NONCRDT_Data_Field;
-import util.crdtlib.dbannotationtypes.NORMAL_BOOLEAN;
-import util.crdtlib.dbannotationtypes.NORMAL_DATETIME;
-import util.crdtlib.dbannotationtypes.NORMAL_DOUBLE;
-import util.crdtlib.dbannotationtypes.NORMAL_FLOAT;
-import util.crdtlib.dbannotationtypes.NORMAL_INTEGER;
-import util.crdtlib.dbannotationtypes.NORMAL_STRING;
-import util.crdtlib.dbannotationtypes.NUMDELTA_DATETIME;
-import util.crdtlib.dbannotationtypes.NUMDELTA_DOUBLE;
-import util.crdtlib.dbannotationtypes.NUMDELTA_FLOAT;
-import util.crdtlib.dbannotationtypes.NUMDELTA_INTEGER;
-import util.crdtlib.dbannotationtypes.dbutil.CrdtDataFieldType;
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseDictionary;
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
+import database.util.field.LWW_BOOLEAN;
+import database.util.field.LWW_DATETIME;
+import database.util.field.LWW_DELETEDFLAG;
+import database.util.field.LWW_DOUBLE;
+import database.util.field.LWW_FLOAT;
+import database.util.field.LWW_INTEGER;
+import database.util.field.LWW_LOGICALTIMESTAMP;
+import database.util.field.LWW_STRING;
+import database.util.field.NONCRDT_Data_Field;
+import database.util.field.NORMAL_BOOLEAN;
+import database.util.field.NORMAL_DATETIME;
+import database.util.field.NORMAL_DOUBLE;
+import database.util.field.NORMAL_FLOAT;
+import database.util.field.NORMAL_INTEGER;
+import database.util.field.NORMAL_STRING;
+import database.util.field.NUMDELTA_DATETIME;
+import database.util.field.NUMDELTA_DOUBLE;
+import database.util.field.NUMDELTA_FLOAT;
+import database.util.field.NUMDELTA_INTEGER;
+import database.util.CrdtDataFieldType;
+import database.util.DataField;
+import database.util.DatabaseDictionary;
+import util.ExitCode;
 
 // TODO: Auto-generated Javadoc
 
@@ -114,10 +114,13 @@ public class DataFieldParser
 			} catch(RuntimeException e)
 			{
 				e.printStackTrace();
-				System.exit(RuntimeExceptionType.UNKNOWNDATAFIELDANNOTYPE);
+				System.exit(ExitCode.UNKNOWNDATAFIELDANNOTYPE);
 			}
 		}
 		set_Default_Value(dF, attributeDef);
+		int startIndex = attributeDef.indexOf(" ");
+		String decl = attributeDef.substring(startIndex, attributeDef.length()).trim();
+		dF.setOriginalDeclaration(decl);
 		return dF;
 	}
 
@@ -312,7 +315,7 @@ public class DataFieldParser
 		} catch(RuntimeException e)
 		{
 			e.printStackTrace();
-			System.exit(RuntimeExceptionType.WRONGCREATTABLEFORMAT);
+			System.exit(ExitCode.WRONGCREATTABLEFORMAT);
 		}
 	}
 }

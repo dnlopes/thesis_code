@@ -2,8 +2,7 @@ package util.IDFactories;
 
 import java.util.HashMap;
 
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
-import util.debug.Debug;
+import util.ExitCode;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -41,7 +40,7 @@ public class IDFactories {
 			try {
 				throw new RuntimeException("GeneratorList is not initilized");
 			} catch (RuntimeException e) {
-				System.exit(RuntimeExceptionType.NOINITIALIZATION);
+				System.exit(ExitCode.NOINITIALIZATION);
 			}
 		}
 
@@ -55,7 +54,7 @@ public class IDFactories {
 					throw new RuntimeException("IDGenerator already exists "
 							+ tableName + " " + dataFieldName);
 				} catch (RuntimeException e) {
-					System.exit(RuntimeExceptionType.HASHMAPDUPLICATE);
+					System.exit(ExitCode.HASHMAPDUPLICATE);
 				}
 			}
 		}
@@ -77,7 +76,7 @@ public class IDFactories {
 			try {
 				throw new RuntimeException("GeneratorList is not initilized");
 			} catch (RuntimeException e) {
-				System.exit(RuntimeExceptionType.NOINITIALIZATION);
+				System.exit(ExitCode.NOINITIALIZATION);
 			}
 		}
 
@@ -86,7 +85,7 @@ public class IDFactories {
 				throw new RuntimeException("IDGenerator table is not found "
 						+ tableName);
 			} catch (RuntimeException e) {
-				System.exit(RuntimeExceptionType.HASHMAPNOEXIST);
+				System.exit(ExitCode.HASHMAPNOEXIST);
 			}
 		}
 
@@ -95,7 +94,7 @@ public class IDFactories {
 				throw new RuntimeException("IDGenerator is not found "
 						+ tableName + " " + dataFieldName);
 			} catch (RuntimeException e) {
-				System.exit(RuntimeExceptionType.HASHMAPNOEXIST);
+				System.exit(ExitCode.HASHMAPNOEXIST);
 			}
 		}
 

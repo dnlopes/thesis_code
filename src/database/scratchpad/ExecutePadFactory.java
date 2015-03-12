@@ -1,7 +1,5 @@
 package database.scratchpad;
 
-import org.perf4j.LoggingStopWatch;
-import org.perf4j.StopWatch;
 import util.ExitCode;
 import util.defaults.DBDefaults;
 

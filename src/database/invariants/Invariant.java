@@ -1,7 +1,7 @@
 package database.invariants;
 
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
+import database.util.DataField;
+import database.util.DatabaseTable;
 
 
 /**
@@ -10,24 +10,24 @@ import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 public abstract class Invariant
 {
 
-	private DatabaseTable table;
 	private DataField field;
+	private String originalDeclaration;
 
 
-	protected Invariant(DatabaseTable table, DataField field)
+	protected Invariant(DataField field, String declaration)
 	{
-		this.table = table;
 		this.field = field;
+		this.originalDeclaration = declaration;
 	}
-
-	public DatabaseTable getTable()
-	{
-		return this.table;
-	}
-
 
 	public DataField getField()
 	{
 		return this.field;
+	}
+
+
+	public String getOriginalDeclaration()
+	{
+		return this.originalDeclaration;
 	}
 }

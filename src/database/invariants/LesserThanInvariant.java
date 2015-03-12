@@ -1,8 +1,6 @@
 package database.invariants;
 
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
-
+import database.util.DataField;
 
 /**
  * Created by dnlopes on 06/03/15.
@@ -10,16 +8,16 @@ import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
 public class LesserThanInvariant extends Invariant
 {
 
-	private String threshold;
+	private String maxValue;
 
-	public LesserThanInvariant(DatabaseTable table, DataField field, String threshold)
+	public LesserThanInvariant(DataField field, String maxValue, String declaration)
 	{
-		super(table, field);
-		this.threshold = threshold;
+		super(field, declaration);
+		this.maxValue = maxValue;
 	}
 
-	public String getThreshold()
+	public String getMaxValue()
 	{
-		return this.threshold;
+		return this.maxValue;
 	}
 }

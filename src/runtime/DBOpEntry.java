@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import util.commonfunc.StringOperations;
-import util.crdtlib.datatypes.CrdtEncodeDecode;
-import util.crdtlib.datatypes.primitivetypes.LwwInteger;
-import util.crdtlib.datatypes.primitivetypes.LwwLogicalTimestamp;
-import util.crdtlib.datatypes.primitivetypes.PrimitiveType;
-import util.crdtlib.dbannotationtypes.DatabaseDef;
+import crdtlib.datatypes.CrdtEncodeDecode;
+import crdtlib.datatypes.primitivetypes.LwwInteger;
+import crdtlib.datatypes.primitivetypes.LwwLogicalTimestamp;
+import crdtlib.datatypes.primitivetypes.PrimitiveType;
+import database.util.DatabaseDef;
 
 // TODO: Auto-generated Javadoc
 /**

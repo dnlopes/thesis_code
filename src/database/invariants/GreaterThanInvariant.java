@@ -1,20 +1,17 @@
 package database.invariants;
 
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
-
+import database.util.DataField;
 
 /**
  * Created by dnlopes on 10/03/15.
  */
 public class GreaterThanInvariant extends Invariant
 {
-
 	private String minValue;
 
-	public GreaterThanInvariant(DatabaseTable table, DataField field, String threshold)
+	public GreaterThanInvariant(DataField field, String threshold, String declaration)
 	{
-		super(table, field);
+		super(field, declaration);
 		this.minValue = threshold;
 	}
 

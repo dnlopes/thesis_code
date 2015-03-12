@@ -9,83 +9,94 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
+import database.invariants.ForeignKeyInvariant;
+import database.invariants.Invariant;
+import database.invariants.UniqueInvariant;
+import util.ExitCode;
 import util.debug.Debug;
 
-import util.crdtlib.dbannotationtypes.AosetTable;
-import util.crdtlib.dbannotationtypes.ArsetTable;
-import util.crdtlib.dbannotationtypes.AusetTable;
-import util.crdtlib.dbannotationtypes.CrdtFactory;
-import util.crdtlib.dbannotationtypes.READONLY_Table;
-import util.crdtlib.dbannotationtypes.UosetTable;
-import util.crdtlib.dbannotationtypes.dbutil.CrdtTableType;
-import util.crdtlib.dbannotationtypes.dbutil.DataField;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
+import database.util.table.AosetTable;
+import database.util.table.ArsetTable;
+import database.util.table.AusetTable;
+import crdtlib.CrdtFactory;
+import database.util.table.READONLY_Table;
+import database.util.table.UosetTable;
+import database.util.CrdtTableType;
+import database.util.DataField;
+import database.util.DatabaseTable;
 
 // TODO: Auto-generated Javadoc
+
+
 /**
  * The Class CreateStatementParser.
  */
-public class CreateStatementParser {
+public class CreateStatementParser
+{
 
 	/**
 	 * Checks if is _ create_ table_ statement.
 	 *
 	 * @param schemaStr the schema str
+	 *
 	 * @return true, if is _ create_ table_ statement
 	 */
-	public static boolean is_Create_Table_Statement(String schemaStr) {
-		if (schemaStr.toLowerCase().contains("create table") == true)
-			return true;
-		return false;
+	public static boolean is_Create_Table_Statement(String schemaStr)
+	{
+		return schemaStr.toLowerCase().contains("create table");
 	}
 
 	/**
 	 * Create_ table_ instance.
 	 *
 	 * @param schemaStr the schema str
+	 *
 	 * @return the database table
 	 */
-	public static DatabaseTable create_Table_Instance(String schemaStr) {
-		if (! is_Create_Table_Statement(schemaStr))
+	public static DatabaseTable create_Table_Instance(String schemaStr)
+	{
+		if(! is_Create_Table_Statement(schemaStr))
 			return null;
-		else {
+		else
+		{
 			String tableTitleStr = get_Table_Title_String(schemaStr);
 			String bodyStr = get_Table_Body_String(schemaStr);
-
 			CrdtTableType tableType = get_Table_Type(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
 
 			Debug.println("Table title " + tableTitleStr);
 			Debug.println("Body str " + bodyStr);
-			LinkedHashMap<String, DataField> hMp = get_Data_Field_HashMap(
-					tableName, bodyStr);
+
+			LinkedHashMap<String, DataField> fieldsMap = get_Data_Field_HashMap(tableName, bodyStr);
 
 			DatabaseTable dT = null;
 
-			switch (tableType) {
+			switch(tableType)
+			{
 			case NONCRDTTABLE:
-				dT = new READONLY_Table(schemaStr, tableName, hMp);
+				dT = new READONLY_Table(schemaStr, tableName, fieldsMap);
 				break;
 			case AOSETTABLE:
-				dT = new AosetTable(schemaStr, tableName, hMp);
+				dT = new AosetTable(schemaStr, tableName, fieldsMap);
 				break;
 			case ARSETTABLE:
-				ArsetTable.addLwwDeletedFlagDataField(tableName, hMp);
-				dT = new ArsetTable(schemaStr, tableName, hMp);
+				ArsetTable.addLwwDeletedFlagDataField(tableName, fieldsMap);
+				dT = new ArsetTable(schemaStr, tableName, fieldsMap);
 				break;
 			case UOSETTABLE:
-				dT = new UosetTable(schemaStr, tableName, hMp);
+				dT = new UosetTable(schemaStr, tableName, fieldsMap);
 				break;
 			case AUSETTABLE:
-				dT = new AusetTable(schemaStr, tableName, hMp);
+				dT = new AusetTable(schemaStr, tableName, fieldsMap);
 				break;
 			default:
-				try {
+				try
+				{
 					throw new RuntimeException("Unknown table annotation type");
-				} catch (RuntimeException e) {
+				} catch(RuntimeException e)
+				{
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.UNKNOWNTABLEANNOTYPE);
+					System.exit(ExitCode.UNKNOWNTABLEANNOTYPE);
 				}
 			}
 			return dT;
@@ -96,9 +107,11 @@ public class CreateStatementParser {
 	 * Gets the _ table_ title_ string.
 	 *
 	 * @param schemaStr the schema str
+	 *
 	 * @return the _ table_ title_ string
 	 */
-	public static String get_Table_Title_String(String schemaStr) {
+	public static String get_Table_Title_String(String schemaStr)
+	{
 		int endIndex = schemaStr.indexOf("(");
 		return schemaStr.substring(0, endIndex).replaceAll("'", "");
 	}
@@ -107,13 +120,16 @@ public class CreateStatementParser {
 	 * Gets the _ table_ body_ string.
 	 *
 	 * @param schemaStr the schema str
+	 *
 	 * @return the _ table_ body_ string
 	 */
-	public static String get_Table_Body_String(String schemaStr) {
+	public static String get_Table_Body_String(String schemaStr)
+	{
 		int startIndex = schemaStr.indexOf("(");
 		int endIndex = schemaStr.lastIndexOf(")");
 
-		if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+		if(startIndex == - 1 || endIndex == - 1 || startIndex >= endIndex)
+		{
 			throw_Wrong_Format_Exception(schemaStr);
 		}
 
@@ -124,11 +140,13 @@ public class CreateStatementParser {
 	 * Gets the _ table_ type_ annotation.
 	 *
 	 * @param titleStr the title str
+	 *
 	 * @return the _ table_ type_ annotation
 	 */
-	private static String get_Table_Type_Annotation(String titleStr) {
+	private static String get_Table_Type_Annotation(String titleStr)
+	{
 		int startIndex = titleStr.indexOf("@");
-		if (startIndex == -1)
+		if(startIndex == - 1)
 			return ""; // there is no annotation
 		int endIndex = titleStr.indexOf(" ", startIndex);
 		String annotationStr = titleStr.substring(startIndex + 1, endIndex);
@@ -139,12 +157,14 @@ public class CreateStatementParser {
 	 * Gets the _ table_ type.
 	 *
 	 * @param titleStr the title str
+	 *
 	 * @return the _ table_ type
 	 */
-	public static CrdtTableType get_Table_Type(String titleStr) {
+	public static CrdtTableType get_Table_Type(String titleStr)
+	{
 
 		String annotStr = get_Table_Type_Annotation(titleStr);
-		if (annotStr == "")
+		if(annotStr.equals(""))
 			return CrdtTableType.NONCRDTTABLE;
 		else
 			return CrdtTableType.valueOf(annotStr);
@@ -155,16 +175,20 @@ public class CreateStatementParser {
 	 * Gets the _ table_ name.
 	 *
 	 * @param titleStr the title str
+	 *
 	 * @return the _ table_ name
 	 */
-	public static String get_Table_Name(String titleStr) {
-		if (titleStr.toLowerCase().indexOf("table") == -1) {
+	public static String get_Table_Name(String titleStr)
+	{
+		if(! titleStr.toLowerCase().contains("table"))
+		{
 			throw_Wrong_Format_Exception(titleStr);
 		}
 		titleStr = titleStr.replaceAll("\\s+", " ");
 		titleStr = titleStr.replaceAll("`", "");
 		String[] subStrs = titleStr.split("\\s"); // \\s is space
-		if (subStrs.length == 0) {
+		if(subStrs.length == 0)
+		{
 			throw_Wrong_Format_Exception(titleStr);
 		}
 		return subStrs[subStrs.length - 1];
@@ -173,52 +197,60 @@ public class CreateStatementParser {
 	/**
 	 * Checks if is right comma to split.
 	 *
-	 * @param str the str
+	 * @param str        the str
 	 * @param beginIndex the begin index
 	 * @param commaIndex the comma index
+	 *
 	 * @return true, if is right comma to split
 	 */
-	private static boolean isRightCommaToSplit(String str, int beginIndex, int commaIndex){
+	private static boolean isRightCommaToSplit(String str, int beginIndex, int commaIndex)
+	{
 		int cursorIndex = commaIndex;
 		int leftBracket = 0;
 		int rightBracket = 0;
-		while(cursorIndex >= beginIndex){
-			if(str.charAt(cursorIndex) == '('){
+		while(cursorIndex >= beginIndex)
+		{
+			if(str.charAt(cursorIndex) == '(')
+			{
 				leftBracket++;
-			}else if(str.charAt(cursorIndex) == ')'){
+			} else if(str.charAt(cursorIndex) == ')')
+			{
 				rightBracket++;
 			}
 			cursorIndex--;
 		}
-		if(leftBracket == rightBracket){
-			return true;
-		}else{
-			return false;
-		}
+		return leftBracket == rightBracket;
 	}
 
 	/**
 	 * Gets the _ declarations.
 	 *
 	 * @param bodyStr the body str
+	 *
 	 * @return the _ declarations
 	 */
-	public static String[] get_Declarations(String bodyStr) {
+	public static String[] getDeclarationsStrs(String bodyStr)
+	{
 		bodyStr = bodyStr.replaceAll("\\s+", " ");
-		List<String> declarationList = new ArrayList<String>();
+		List<String> declarationList = new ArrayList<>();
 		int beginIndex = 0;
 		int declarationBeginIndex = 0;
-		while(beginIndex < bodyStr.length()){
+		while(beginIndex < bodyStr.length())
+		{
 			int commaIndex = bodyStr.indexOf(',', beginIndex);
-			if(commaIndex == -1){
+			if(commaIndex == - 1)
+			{
 				declarationList.add(bodyStr.substring(declarationBeginIndex));
 				break;
-			}else{
-				if(isRightCommaToSplit(bodyStr, declarationBeginIndex, commaIndex)){
+			} else
+			{
+				if(isRightCommaToSplit(bodyStr, declarationBeginIndex, commaIndex))
+				{
 					declarationList.add(bodyStr.substring(declarationBeginIndex, commaIndex));
 					beginIndex = commaIndex + 1;
 					declarationBeginIndex = beginIndex;
-				}else{
+				} else
+				{
 					declarationBeginIndex = beginIndex;
 					beginIndex = commaIndex + 1;
 					continue;
@@ -227,12 +259,14 @@ public class CreateStatementParser {
 		}
 		//search for the comma
 		//String[] subStrs = bodyStr.split(",");
-		if (declarationList.size() == 0) {
+		if(declarationList.size() == 0)
+		{
 			throw_Wrong_Format_Exception(bodyStr);
 		}
 
 		String[] subStrs = new String[declarationList.size()];
-		for (int i = 0; i < subStrs.length; i++) {
+		for(int i = 0; i < subStrs.length; i++)
+		{
 			subStrs[i] = declarationList.get(i).trim();
 		}
 		return subStrs;
@@ -242,24 +276,22 @@ public class CreateStatementParser {
 	 * Gets the _ attribute strs.
 	 *
 	 * @param declarationStrs the declaration strs
+	 *
 	 * @return the _ attribute strs
 	 */
-	public static Vector<String> get_AttributeStrs(String[] declarationStrs) {
-		Vector<String> attrStrs = new Vector<String>();
-		for (int i = 0; i < declarationStrs.length; i++) {
-			if (!(declarationStrs[i].toUpperCase().startsWith("CONSTRAINT")
-					|| declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY")
-					|| declarationStrs[i].toUpperCase().startsWith("INDEX")
-					|| declarationStrs[i].toUpperCase().startsWith("KEY")
-					|| declarationStrs[i].toUpperCase().startsWith("UNIQUE")
-					|| declarationStrs[i].toUpperCase().startsWith("FOREIGN KEY")
-					|| declarationStrs[i].toUpperCase().startsWith("CHECK")))
+	public static Vector<String> getAttributesStrs(String[] declarationStrs)
+	{
+		Vector<String> attrStrs = new Vector<>();
+		for(int i = 0; i < declarationStrs.length; i++)
+		{
+			if(! (declarationStrs[i].toUpperCase().startsWith("CONSTRAINT") || declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().startsWith("INDEX") || declarationStrs[i].toUpperCase().startsWith("KEY") || declarationStrs[i].toUpperCase().startsWith("UNIQUE") || declarationStrs[i].toUpperCase().startsWith("FOREIGN KEY") || declarationStrs[i].toUpperCase().startsWith("CHECK")))
 			{
-					attrStrs.add(declarationStrs[i]);
-					Debug.println("declaration for attribute: " + declarationStrs[i]);
+				attrStrs.add(declarationStrs[i]);
+				Debug.println("declaration for attribute: " + declarationStrs[i]);
 			}
 		}
-		if (attrStrs.size() == 0) {
+		if(attrStrs.size() == 0)
+		{
 			throw_Wrong_Format_Exception("");
 		}
 		return attrStrs;
@@ -269,16 +301,17 @@ public class CreateStatementParser {
 	 * Gets the _ constraint strs.
 	 *
 	 * @param declarationStrs the declaration strs
+	 *
 	 * @return the _ constraint strs
 	 */
-	public static Vector<String> get_ConstraintStrs(String[] declarationStrs) {
-		Vector<String> constraintStrs = new Vector<String>();
-		for (int i = 0; i < declarationStrs.length; i++) {
-			if (declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY")
-					|| declarationStrs[i].toUpperCase().contains("FOREIGN KEY")
-					|| declarationStrs[i].toUpperCase().contains("CHECK")) {
+	public static Vector<String> getConstraintStrs(String[] declarationStrs)
+	{
+		Vector<String> constraintStrs = new Vector<>();
+		for(int i = 0; i < declarationStrs.length; i++)
+		{
+			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains("FOREIGN KEY") || declarationStrs[i].toUpperCase().contains("CHECK"))
 				constraintStrs.add(declarationStrs[i]);
-			}
+
 		}
 		return constraintStrs;
 	}
@@ -287,39 +320,42 @@ public class CreateStatementParser {
 	 * Gets the _ data_ field.
 	 *
 	 * @param tableName the table name
-	 * @param attrStr the attr str
-	 * @param position the position
+	 * @param attrStr   the attr str
+	 * @param position  the position
+	 *
 	 * @return the _ data_ field
 	 */
-	public static DataField get_Data_Field(String tableName, String attrStr,
-			int position) {
+	public static DataField get_Data_Field(String tableName, String attrStr, int position)
+	{
 		Debug.println("tableName: " + tableName + " attrStr " + attrStr + " position " + position);
-		DataField dF = DataFieldParser.create_Data_Field_Instance(tableName,
-				attrStr, position);
+		DataField dF = DataFieldParser.create_Data_Field_Instance(tableName, attrStr, position);
 		return dF;
 	}
 
 	/**
 	 * Gets the _ data_ fields.
 	 *
-	 * @param tableName the table name
+	 * @param tableName     the table name
 	 * @param attributeStrs the attribute strs
+	 *
 	 * @return the _ data_ fields
 	 */
-	public static LinkedHashMap<String, DataField> get_Data_Fields(
-			String tableName, Vector<String> attributeStrs) {
-		LinkedHashMap<String, DataField> hMpDF = new LinkedHashMap<String, DataField>();
+	public static LinkedHashMap<String, DataField> getFieldsForTable(String tableName, Vector<String> attributeStrs)
+	{
+		LinkedHashMap<String, DataField> hMpDF = new LinkedHashMap<>();
 		boolean isContainedLwwDataFields = false;
-		for (int i = 0; i < attributeStrs.size(); i++) {
-			DataField dF = CreateStatementParser.get_Data_Field(tableName,
-					attributeStrs.elementAt(i), i);
+		for(int i = 0; i < attributeStrs.size(); i++)
+		{
+			DataField dF = CreateStatementParser.get_Data_Field(tableName, attributeStrs.elementAt(i), i);
 			// Debug.println(dF.toString());
 			hMpDF.put(dF.getFieldName(), dF);
-			if(CrdtFactory.isLwwType(dF.getCrdtType()) && isContainedLwwDataFields == false){
+			if(CrdtFactory.isLwwType(dF.getCrdtType()) && ! isContainedLwwDataFields)
+			{
 				isContainedLwwDataFields = true;
 			}
 		}
-		if(isContainedLwwDataFields){
+		if(isContainedLwwDataFields)
+		{
 			DataField lwwLogicalTsDf = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName, attributeStrs.size());
 			hMpDF.put(lwwLogicalTsDf.getFieldName(), lwwLogicalTsDf);
 		}
@@ -329,92 +365,105 @@ public class CreateStatementParser {
 	/**
 	 * Update_ data_ fields.
 	 *
-	 * @param dFs the d fs
+	 * @param fieldsMap      the d fs
 	 * @param constraintStrs the constraint strs
 	 */
-	public static void update_Data_Fields(
-			LinkedHashMap<String, DataField> dFs, Vector<String> constraintStrs) {
+	public static void setFieldsConstraints(LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
+	{
 		// primary key, set primary key
 		// foreign key, set foreign key
 
-		for (int i = 0; i < constraintStrs.size(); i++) {
-			if (constraintStrs.elementAt(i).toUpperCase()
-					.contains("PRIMARY KEY")) {
-				int startIndex = constraintStrs.elementAt(i).indexOf("(");
-				int endIndex = constraintStrs.elementAt(i).indexOf(")");
-				if (startIndex >= endIndex || startIndex == -1
-						|| endIndex == -1) {
-					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
-				}
-				String keyStr = constraintStrs.elementAt(i).substring(
-						startIndex + 1, endIndex);
+		for(int i = 0; i < constraintStrs.size(); i++)
+		{
+			String constraint = constraintStrs.elementAt(i);
+
+			if(constraint.toUpperCase().contains("PRIMARY KEY"))
+			{
+
+				int startIndex = constraint.indexOf("(");
+				int endIndex = constraint.indexOf(")");
+				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+					throw_Wrong_Format_Exception(constraint);
+
+				String keyStr = constraint.substring(startIndex + 1, endIndex);
 				keyStr = keyStr.replaceAll("\\s", "");
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
-				for (int j = 0; j < pKeys.length; j++) {
-					if (dFs.containsKey(pKeys[j]) == false) {
-						throw_Wrong_Format_Exception(constraintStrs
-								.elementAt(i) + " " + pKeys[j]);
-					}
-					dFs.get(pKeys[j]).setPrimaryKey();
+
+				for(int j = 0; j < pKeys.length; j++)
+				{
+					if(! fieldsMap.containsKey(pKeys[j]))
+						throw_Wrong_Format_Exception(constraint + " " + pKeys[j]);
+
+					DataField field = fieldsMap.get(pKeys[j]);
+					Invariant inv = new UniqueInvariant(field, constraint);
+					field.setPrimaryKey();
+					field.addInvariant(inv);
 				}
 			}
-			if (constraintStrs.elementAt(i).toUpperCase()
-					.contains("FOREIGN KEY")) {
-				int locationIndex = constraintStrs.elementAt(i).toUpperCase()
-						.indexOf("FOREIGN KEY");
-				int startIndex = constraintStrs.elementAt(i).indexOf("(",
-						locationIndex);
-				int endIndex = constraintStrs.elementAt(i).indexOf(")",
-						locationIndex);
-				if (startIndex >= endIndex || startIndex == -1
-						|| endIndex == -1) {
-					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
-				}
+			if(constraint.toUpperCase().contains("FOREIGN KEY"))
+			{
+				int locationIndex = constraint.toUpperCase().indexOf("FOREIGN KEY");
+				int startIndex = constraint.indexOf("(", locationIndex);
+				int endIndex = constraint.indexOf(")", locationIndex);
 
-				String keyStr = constraintStrs.elementAt(i).substring(
-						startIndex + 1, endIndex);
+				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+					throw_Wrong_Format_Exception(constraint);
+
+				String keyStr = constraint.substring(startIndex + 1, endIndex);
 				keyStr = keyStr.replaceAll("\\s", "");
 				keyStr = keyStr.replaceAll("`", "");
 				String[] fKeys = keyStr.split(",");
 
-				for (int t = 0; t < fKeys.length; t++) {
-					if (dFs.containsKey(fKeys[t]) == false) {
-						throw_Wrong_Format_Exception(constraintStrs
-								.elementAt(i) + " " + fKeys[t]);
+				int locationIndex_2 = constraint.toUpperCase().indexOf("REFERENCES");
+				int startIndex_2 = constraint.indexOf(" ", locationIndex_2);
+				int endIndex_2 = constraint.indexOf("(", startIndex_2);
+				int endIndex_3 = constraint.indexOf(")", endIndex_2);
+
+				String foreignKeyStr = constraint.substring(endIndex_2 + 1, endIndex_3);
+				foreignKeyStr = foreignKeyStr.replaceAll("\\s", "");
+				foreignKeyStr = foreignKeyStr.replaceAll("`", "");
+				String[] foreignAttributes = foreignKeyStr.split(",");
+
+				if(foreignAttributes.length != fKeys.length)
+					throw_Wrong_Format_Exception("foreign attributes size do not match");
+
+				String foreignKeyTable = constraint.substring(startIndex_2 + 1, endIndex_2).trim();
+
+
+				for(int t = 0; t < fKeys.length; t++)
+				{
+					if(! fieldsMap.containsKey(fKeys[t]))
+					{
+						throw_Wrong_Format_Exception(constraint + " " + fKeys[t]);
 					}
-					dFs.get(fKeys[t]).setForeignKey();
+					DataField field = fieldsMap.get(fKeys[t]);
+					field.setForeignKey();
+					Invariant inv = new ForeignKeyInvariant(field, foreignKeyTable, foreignAttributes[t], constraint);
+					field.addInvariant(inv);
 				}
 			}
 
-			if (constraintStrs.elementAt(i).toUpperCase().contains("CHECK"))
+			if(constraint.toUpperCase().contains("CHECK"))
 			{
-				int locationIndex = constraintStrs.elementAt(i).toUpperCase()
-						.indexOf("CHECK");
-				int startIndex = constraintStrs.elementAt(i).indexOf("(",
-						locationIndex);
-				int endIndex = constraintStrs.elementAt(i).indexOf(")",
-						locationIndex);
-				if (startIndex >= endIndex || startIndex == -1
-						|| endIndex == -1) {
+				int locationIndex = constraintStrs.elementAt(i).toUpperCase().indexOf("CHECK");
+				int startIndex = constraintStrs.elementAt(i).indexOf("(", locationIndex);
+				int endIndex = constraintStrs.elementAt(i).indexOf(")", locationIndex);
+				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+				{
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 				}
 
-				String conditionStr = constraintStrs.elementAt(i).substring(
-						startIndex + 1, endIndex);
+				String conditionStr = constraintStrs.elementAt(i).substring(startIndex + 1, endIndex);
 
 				if(conditionStr.contains("<"))
 				{
-					String operands[] = conditionStr.split("<");
-				}
-				else if(conditionStr.contains(">"))
+
+				} else if(conditionStr.contains(">"))
 				{
 					String operands[] = conditionStr.split(">");
-				}
-				else
+				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
-
-
 
 
 			}
@@ -425,32 +474,36 @@ public class CreateStatementParser {
 	 * Gets the _ data_ field_ hash map.
 	 *
 	 * @param tableName the table name
-	 * @param bodyStr the body str
+	 * @param bodyStr   the body str
+	 *
 	 * @return the _ data_ field_ hash map
 	 */
-	public static LinkedHashMap<String, DataField> get_Data_Field_HashMap(
-			String tableName, String bodyStr) {
-		String[] declarationStrs = get_Declarations(bodyStr);
-		Vector<String> attrStrs = get_AttributeStrs(declarationStrs);
-		Vector<String> consStrs = get_ConstraintStrs(declarationStrs);
-		LinkedHashMap<String, DataField> hMp = get_Data_Fields(tableName,
-				attrStrs);
-		update_Data_Fields(hMp, consStrs);
-		return hMp;
+	public static LinkedHashMap<String, DataField> get_Data_Field_HashMap(String tableName, String bodyStr)
+	{
+		String[] declarations = getDeclarationsStrs(bodyStr);
+		Vector<String> attrStrs = getAttributesStrs(declarations);
+		Vector<String> consStrs = getConstraintStrs(declarations);
+
+		LinkedHashMap<String, DataField> fieldsMap = getFieldsForTable(tableName, attrStrs);
+		setFieldsConstraints(fieldsMap, consStrs);
+		return fieldsMap;
 	}
+
 
 	/**
 	 * Throw_ wrong_ format_ exception.
 	 *
 	 * @param schemaStr the schema str
 	 */
-	private static void throw_Wrong_Format_Exception(String schemaStr) {
-		try {
-			throw new RuntimeException("The create table statment " + schemaStr
-					+ " is in a wrong format!");
-		} catch (RuntimeException e) {
+	private static void throw_Wrong_Format_Exception(String schemaStr)
+	{
+		try
+		{
+			throw new RuntimeException("The create table statment " + schemaStr + " is in a wrong format!");
+		} catch(RuntimeException e)
+		{
 			e.printStackTrace();
-			System.exit(RuntimeExceptionType.WRONGCREATTABLEFORMAT);
+			System.exit(ExitCode.WRONGCREATTABLEFORMAT);
 		}
 	}
 }

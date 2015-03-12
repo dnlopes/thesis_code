@@ -1,6 +1,8 @@
 package tests;
 
 import database.parser.DDLParser;
+import database.util.Database;
+import database.util.DatabaseTable;
 import util.defaults.DBDefaults;
 
 
@@ -15,5 +17,7 @@ public class ParserTest
 	{
 		DDLParser parser = new DDLParser(DBDefaults.TPCW_FILE);
 		parser.parseAnnotations();
+		Database db = Database.getInstance();
+		DatabaseTable t = db.getTable("author");
 	}
 }

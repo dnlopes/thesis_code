@@ -7,8 +7,9 @@
 	@NORMALSTRING addr_zip varchar(10), 
 	@NORMALINTEGER addr_co_id int,
 	CHECK(addr_id>=0),
-	PRIMARY KEY(addr_id)
-	);
+	PRIMARY KEY(addr_id),
+	FOREIGN KEY(addr_city) REFERENCES author(a_id)
+);
 
 CREATE TABLE author ( 
 	@NORMALINTEGER a_id int not null, 

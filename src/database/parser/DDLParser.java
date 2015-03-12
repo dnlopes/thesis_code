@@ -6,25 +6,22 @@ package database.parser;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import database.util.Database;
+import util.ExitCode;
 import util.debug.Debug;
 
-import util.crdtlib.dbannotationtypes.AosetTable;
-import util.crdtlib.dbannotationtypes.ArsetTable;
-import util.crdtlib.dbannotationtypes.AusetTable;
-import util.crdtlib.dbannotationtypes.READONLY_Table;
-import util.crdtlib.dbannotationtypes.UosetTable;
-import util.crdtlib.dbannotationtypes.dbutil.DatabaseTable;
-import util.crdtlib.dbannotationtypes.dbutil.RuntimeExceptionType;
+import database.util.table.AosetTable;
+import database.util.table.ArsetTable;
+import database.util.table.AusetTable;
+import database.util.table.READONLY_Table;
+import database.util.table.UosetTable;
+import database.util.DatabaseTable;
 
 // TODO: Auto-generated Javadoc
 
@@ -37,6 +34,7 @@ public class DDLParser
 
 	/** The file name. */
 	private String fileName = "";
+	private Database database;
 
 	/** The table crdt form map. */
 	private HashMap<String, DatabaseTable> tableCrdtFormMap;
@@ -44,31 +42,12 @@ public class DDLParser
 	/**
 	 * Instantiates a new schema parser.
 	 *
-	 * @param fN the f n
+	 * @param fileName the f n
 	 */
-	public DDLParser(String fN)
-	{
-		this.setFileName(fN);
-	}
-
-	/**
-	 * Gets the file name.
-	 *
-	 * @return the file name
-	 */
-	public String getFileName()
-	{
-		return fileName;
-	}
-
-	/**
-	 * Sets the file name.
-	 *
-	 * @param fileName the new file name
-	 */
-	public void setFileName(String fileName)
+	public DDLParser(String fileName)
 	{
 		this.fileName = fileName;
+		this.database = Database.getInstance();
 	}
 
 	/**
@@ -79,21 +58,6 @@ public class DDLParser
 	public HashMap<String, DatabaseTable> getTableCrdtFormMap()
 	{
 		return tableCrdtFormMap;
-	}
-
-	public List<DatabaseTable> getAllTableInstances()
-	{
-		return new ArrayList<DatabaseTable>(this.tableCrdtFormMap.values());
-	}
-
-	/**
-	 * Sets the table crdt form map.
-	 *
-	 * @param tableCrdtFormMap the table crdt form map
-	 */
-	public void setTableCrdtFormMap(HashMap<String, DatabaseTable> tableCrdtFormMap)
-	{
-		this.tableCrdtFormMap = tableCrdtFormMap;
 	}
 
 	/**
@@ -114,55 +78,53 @@ public class DDLParser
 				schemaContentStr = schemaContentStr + line;
 			}
 			br.close();
-		} catch(FileNotFoundException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		} catch(IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(ExitCode.FILENOTFOUND);
 		}
 
 		String[] allStrings = schemaContentStr.split(";");
-		Vector<String> allCreateTableStrings = new Vector<String>();
+		Vector<String> allCreateTableStrings = new Vector<>();
 
 		for(int i = 0; i < allStrings.length; i++)
 		{
-			if(CreateStatementParser.is_Create_Table_Statement(allStrings[i]) == true)
+			if(CreateStatementParser.is_Create_Table_Statement(allStrings[i]))
 			{
 				allCreateTableStrings.add(allStrings[i]);
 			}
 		}
 
-		if(allCreateTableStrings.isEmpty() == true)
+		if(allCreateTableStrings.isEmpty())
 		{
 			try
 			{
 				throw new RuntimeException("This schema doesn't contain any create statement");
 			} catch(RuntimeException e)
 			{
-				System.exit(RuntimeExceptionType.SCHEMANOCREATSTAT);
+				System.exit(ExitCode.SCHEMANOCREATSTAT);
 			}
 		}
 
 		return allCreateTableStrings;
 	}
 
-
 	/**
 	 * Parses the annotations.
 	 */
 	public void parseAnnotations()
 	{
+
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
-		this.tableCrdtFormMap = new HashMap<String, DatabaseTable>();
+		this.tableCrdtFormMap = new HashMap<>();
 
 		for(int i = 0; i < allTableStrings.size(); i++)
 		{
 			DatabaseTable dT = CreateStatementParser.create_Table_Instance(allTableStrings.elementAt(i));
 			if(dT != null)
 			{
+				this.database.addTable(dT);
 				this.tableCrdtFormMap.put(dT.getTableName(), dT);
 			} else
 			{
@@ -178,21 +140,9 @@ public class DDLParser
 			} catch(RuntimeException e)
 			{
 				e.printStackTrace();
-				System.exit(RuntimeExceptionType.SCHEMANOCRDTTABLE);
+				System.exit(ExitCode.SCHEMANOCRDTTABLE);
 			}
 		}
-	}
-
-	/**
-	 * Gets the table by name.
-	 *
-	 * @param tableName the table name
-	 *
-	 * @return the table by name
-	 */
-	public DatabaseTable getTableByName(String tableName)
-	{
-		return this.tableCrdtFormMap.get(tableName);
 	}
 
 	/**
@@ -201,22 +151,25 @@ public class DDLParser
 	public void printOut()
 	{
 		Debug.println("Now Print Out all Table information");
-		Iterator<Map.Entry<String, DatabaseTable>> it = this.tableCrdtFormMap.entrySet().iterator();
-		while(it.hasNext())
+		for(Map.Entry<String, DatabaseTable> entry : this.tableCrdtFormMap.entrySet())
 		{
-			Map.Entry<String, DatabaseTable> entry = (Map.Entry<String, DatabaseTable>) it.next();
 			DatabaseTable dT = entry.getValue();
 			if(dT instanceof AosetTable)
+			{
 				Debug.println(((AosetTable) dT).toString());
-			else if(dT instanceof ArsetTable)
+			} else if(dT instanceof ArsetTable)
+			{
 				Debug.println(((ArsetTable) dT).toString());
-			else if(dT instanceof UosetTable)
+			} else if(dT instanceof UosetTable)
+			{
 				Debug.println(((UosetTable) dT).toString());
-			else if(dT instanceof AusetTable)
+			} else if(dT instanceof AusetTable)
+			{
 				Debug.println(((AusetTable) dT).toString());
-			else if(dT instanceof READONLY_Table)
+			} else if(dT instanceof READONLY_Table)
+			{
 				Debug.println(((READONLY_Table) dT).toString());
-			else
+			} else
 			{
 				try
 				{
@@ -224,7 +177,7 @@ public class DDLParser
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();
-					System.exit(RuntimeExceptionType.NOTDEFINEDCRDTTABLE);
+					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
 				}
 			}
 		}

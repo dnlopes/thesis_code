@@ -4,9 +4,9 @@ import database.scratchpad.ExecutePadFactory;
 import database.scratchpad.ExecuteScratchpad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.ExitCode;
 import runtime.Operation;
 import runtime.TransactionInfo;
-import util.ExitCode;
 
 import java.sql.*;
 import java.util.Map;
