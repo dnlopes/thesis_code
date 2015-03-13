@@ -316,7 +316,8 @@ public class CreateStatementParser
 		for(int i = 0; i < declarationStrs.length; i++)
 		{
 			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains(
-					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains("CHECK"))
+					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains(
+					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE"))
 				constraintStrs.add(declarationStrs[i]);
 
 		}
@@ -397,8 +398,9 @@ public class CreateStatementParser
 		{
 			String constraint = constraintStrs.elementAt(i);
 
-			if(constraint.toUpperCase().contains("PRIMARY KEY"))
+			if(constraint.toUpperCase().contains("PRIMARY KEY") || constraint.toUpperCase().contains("UNIQUE"))
 			{
+				boolean isPrimaryKey = constraint.toUpperCase().contains("PRIMARY KEY");
 
 				int startIndex = constraint.indexOf("(");
 				int endIndex = constraint.indexOf(")");
@@ -419,11 +421,11 @@ public class CreateStatementParser
 
 					DataField field = fieldsMap.get(pKeys[j]);
 					inv.addField(field);
-					field.setPrimaryKey();
+					if(isPrimaryKey)
+						field.setPrimaryKey();
 					field.addInvariant(inv);
 				}
-			}
-			if(constraint.toUpperCase().contains("FOREIGN KEY"))
+			} else if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
 				Invariant inv = new ForeignKeyInvariant();
 
@@ -467,9 +469,7 @@ public class CreateStatementParser
 					originField.setForeignKey();
 					originField.addInvariant(inv);
 				}
-			}
-
-			if(constraint.toUpperCase().contains("CHECK"))
+			} else if(constraint.toUpperCase().contains("CHECK"))
 			{
 				int locationIndex = constraintStrs.elementAt(i).toUpperCase().indexOf("CHECK");
 				int startIndex = constraintStrs.elementAt(i).indexOf("(", locationIndex);
@@ -489,6 +489,9 @@ public class CreateStatementParser
 					String operands[] = conditionStr.split(">");
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
+
+			} else if(constraint.toUpperCase().contains("UNIQUE"))
+			{
 
 			}
 		}
