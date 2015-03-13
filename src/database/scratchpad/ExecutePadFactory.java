@@ -11,11 +11,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Created by dnlopes on 10/03/15.
  */
 public class ExecutePadFactory
 {
+
 	static final Logger LOG = LoggerFactory.getLogger(ExecutePadFactory.class);
 
 	private Vector<ExecuteScratchpad> queue;

@@ -56,7 +56,7 @@ public class Database
 		}
 
 		this.tables.put(table.getTableName(), table);
-		LOG.trace("table {} added", table.getTableName());
+		LOG.debug("table {} added", table.getTableName());
 	}
 
 }

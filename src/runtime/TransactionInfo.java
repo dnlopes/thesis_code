@@ -4,6 +4,7 @@ import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.factory.TxnIdFactory;
+import util.ExitCode;
 import util.LogicalClock;
 import util.TimeStamp;
 
@@ -35,6 +36,8 @@ public class TransactionInfo
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
+		Runtime.throwRunTimeException("asdasds", 1);
+
 	}
 
 	public long getTxnId()

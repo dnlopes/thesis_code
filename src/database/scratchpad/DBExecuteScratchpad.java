@@ -22,6 +22,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 
 	static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
 
+	private static List<String> tables;
 	private boolean readOnly;
 	private int id;
 	private Connection conn;
@@ -31,10 +32,11 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	{
 		this.id = id;
 		this.readOnly = false;
-		this.conn = ConnectionFactory.getInstance().getDefaultConnection("micro");
+		tables = new LinkedList<>();
+		this.conn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
 		this.stat = this.conn.createStatement();
 		this.initScratchpad();
-		//this.init();
+		this.cleanState();
 	}
 
 	@Override
@@ -86,7 +88,39 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	@Override
 	public void cleanState()
 	{
+		LOG.info("cleaning scratchpad {}", this.id);
 
+		try
+		{
+			Statement stat = this.conn.createStatement();
+
+			for(String table : tables)
+			{
+				StringBuilder sql = new StringBuilder();
+				sql.append("TRUNCATE TABLE ");
+				sql.append(this.getTransformedTableName(table));
+				sql.append(";");
+
+				stat.execute(sql.toString());
+			}
+
+			stat.close();
+			this.conn.commit();
+
+		} catch(SQLException e)
+		{
+			LOG.error("failed to clean scratchpad {} ", this.id);
+		} finally
+		{
+			try
+			{
+				stat.close();
+				LOG.info("scratchpad {} cleaned", this.id);
+			} catch(SQLException e)
+			{
+				LOG.warn("failed to close statement after cleanup");
+			}
+		}
 	}
 
 	private void init() throws SQLException
@@ -182,25 +216,28 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		String[] types = {"TABLE"};
 		ResultSet tblSet = metadata.getTables(null, null, "%", types);
 
-		ArrayList<String> tables = new ArrayList<>();
+		ArrayList<String> tempTables = new ArrayList<>();
 		while(tblSet.next())
 		{
 			String tableName = tblSet.getString(3);
 			if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX))
 				continue;
-			tables.add(tableName);
-		}
-		Collections.sort(tables);
 
-		for(int i = 0; i < tables.size(); i++)
+			tempTables.add(tableName);
+		}
+
+		Collections.sort(tempTables);
+		tables = new LinkedList<>(tempTables);
+
+		for(int i = 0; i < tempTables.size(); i++)
 		{
-			String tableName = tables.get(i);
-			this.createTempTable(metadata, tableName, this.id);
+			String tableName = tempTables.get(i);
+			this.createTempTable(metadata, tableName);
 			this.conn.commit();
 		}
 	}
 
-	private void createTempTable(DatabaseMetaData metadata, String tableName, int id) throws ScratchpadException
+	private void createTempTable(DatabaseMetaData metadata, String tableName) throws ScratchpadException
 	{
 		try
 		{
@@ -238,7 +275,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				{
 					tmpStr[0] = colSet.getString(6);
 				}
-				//System.err.println("INFO scratchpad: read column:"+tmpStr[0]+" sql:"+buffer);
+
 				buffer.append(tmpStr[0]);
 				if(! (tmpStr[0].equals("INT") ||
 						tmpStr[0].equals("DOUBLE") ||
@@ -315,37 +352,8 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 			}
 			pkSet.close();
 
-
 			if(temp.size() > 0)
 				buffer.append(")");
-
-
-			// start foreign key now
-			ResultSet foreignSet = metadata.getExportedKeys(null, null, tableName);
-
-			first = true;
-
-			while(foreignSet.next())
-			{
-				if(first)
-				{
-					buffer.append(", FOREIGN KEY (");
-					first = false;
-				}
-				else
-					buffer.append(", ");
-
-				//String PKTABLE_CAT = foreignSet.getString(1);
-				//String PKTABLE_SCHEM = foreignSet.getString(2);
-				String PKTABLE_NAME = foreignSet.getString(3); // references table
-				String PKCOLUMN_NAME = foreignSet.getString(4); //referenced attribute
-				//String FKTABLE_CAT = foreignSet.getString(5);
-				//String FKTABLE_SCHEM = foreignSet.getString(6);
-				String FKTABLE_NAME = foreignSet.getString(7);  // source table
-				String FKCOLUMN_NAME = foreignSet.getString(8); // source attribute
-				String a = "";
-
-			}
 
 			String[] pkPlain = new String[temp.size()];
 			temp.toArray(pkPlain);
@@ -363,9 +371,6 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 			uniqueIndices.toArray(uqIndicesPlain);
 			uniqueIndices.clear();
 
-			//			if( temp.size() != 1)
-			//				throw new RuntimeException( "Does not support table with more than one primary key column : " + tableName + ":" + temp);
-
 			buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
 
 			this.executeUpdate(buffer2.toString());
@@ -380,9 +385,9 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	private String getTransformedTableName(String tableName)
 	{
 		StringBuilder transformed = new StringBuilder(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX);
-		transformed.append(this.id);
-		transformed.append("_");
 		transformed.append(tableName);
+		transformed.append("_");
+		transformed.append(this.id);
 
 		return transformed.toString();
 	}
