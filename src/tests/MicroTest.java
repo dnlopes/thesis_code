@@ -2,6 +2,7 @@ package tests;
 
 import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
+import util.defaults.DBDefaults;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -18,10 +19,10 @@ public class MicroTest
 	{
 		Micro_Populate db = new Micro_Populate();
 
-		Connection conn = ConnectionFactory.getInstance().getCRDTConnection("micro");
-		Statement stat = conn.createStatement();
+		//Connection conn = ConnectionFactory.getInstance().getCRDTConnection(DBDefaults.MICRO_DB_NAME);
+		//Statement stat = conn.createStatement();
 
-		ResultSet res = stat.executeQuery("select * from t2");
+		//ResultSet res = stat.executeQuery("select * from t2");
 
 	}
 

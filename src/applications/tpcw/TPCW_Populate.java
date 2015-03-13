@@ -48,8 +48,11 @@ package applications.tpcw;/*
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
-
 
 //CAVEAT:
 //These TPCW DB Population routines stray from the TPCW Spec in the 
@@ -59,9 +62,12 @@ package applications.tpcw;/*
 //2. Ditto for the I_TITLE field of the ITEM table.
 
 import database.jdbc.ConnectionFactory;
+import util.defaults.DBDefaults;
 
+import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.lang.Math.*;
 
 
 class TPCW_Populate
@@ -71,20 +77,21 @@ class TPCW_Populate
 	private static Random rand;
 
 	//These variables are dependent on the JDBC database driver used.
-	//private static final String driverName = "com.mysql.jdbc.Driver";
-	//private static final String driverName = "org.gjt.mm.mysql.Driver";
-	// private static final String dbName = "jdbc:mysql://localhost/tpcw";
-	//private static final String dbName = "jdbc:mysql://localhost:53306/tpcw";
+	private static final String driverName = "@jdbc.driver@";
+	private static final String dbName = "@jdbc.path@";
 
 	//ATTENTION: The NUM_EBS and NUM_ITEMS variables are the only variables
 	//that should be modified in order to rescale the DB.
-	private static /*final*/ int NUM_EBS = 100;
-	private static /*final*/ int NUM_ITEMS = 10000;
+	//private static /* final */ int NUM_EBS = Integer.parseInt("@num.eb@");
+	//private static /* final */ int NUM_ITEMS = Integer.parseInt("@num.item@");
 
-	private static final int NUM_CUSTOMERS = NUM_EBS * 2880;
-	private static final int NUM_ADDRESSES = 2 * NUM_CUSTOMERS;
-	private static final int NUM_AUTHORS = (int) (.25 * NUM_ITEMS);
-	private static final int NUM_ORDERS = (int) (.9 * NUM_CUSTOMERS);
+	private static /* final */ int NUM_EBS = Integer.parseInt("50");
+	private static /* final */ int NUM_ITEMS = Integer.parseInt("100");
+
+	private static /* final */ int NUM_CUSTOMERS = NUM_EBS * 2880;
+	private static /* final */ int NUM_ADDRESSES = 2 * NUM_CUSTOMERS;
+	private static /* final */ int NUM_AUTHORS = (int) (.25 * NUM_ITEMS);
+	private static /* final */ int NUM_ORDERS = (int) (.9 * NUM_CUSTOMERS);
 
 	//    private static final int NUM_ADDRESSES = 10;
 	public static void main(String[] args)
@@ -94,6 +101,12 @@ class TPCW_Populate
 
 		System.out.println("NUM_EBS = " + NUM_EBS);
 		System.out.println("NUM_ITEMS = " + NUM_ITEMS);
+
+		NUM_CUSTOMERS = NUM_EBS * 2880;
+		NUM_ADDRESSES = 2 * NUM_CUSTOMERS;
+		NUM_AUTHORS = (int) (.25 * NUM_ITEMS);
+		NUM_ORDERS = (int) (.9 * NUM_CUSTOMERS);
+
 		System.out.println("Beginning TPCW Database population.");
 		rand = new Random();
 		getConnection();
@@ -118,11 +131,13 @@ class TPCW_Populate
 		{
 			PreparedStatement statement1 = con.prepareStatement("create index author_a_lname on author(a_lname)");
 			statement1.executeUpdate();
-			PreparedStatement statement2 = con.prepareStatement("create index address_addr_co_id on address(addr_co_id)");
+			PreparedStatement statement2 = con.prepareStatement(
+					"create index address_addr_co_id on address(addr_co_id)");
 			statement2.executeUpdate();
 			PreparedStatement statement3 = con.prepareStatement("create index addr_zip on address(addr_zip)");
 			statement3.executeUpdate();
-			PreparedStatement statement4 = con.prepareStatement("create index customer_c_addr_id on customer(c_addr_id)");
+			PreparedStatement statement4 = con.prepareStatement(
+					"create index customer_c_addr_id on customer(c_addr_id)");
 			statement4.executeUpdate();
 			PreparedStatement statement5 = con.prepareStatement("create index customer_c_uname on customer(c_uname)");
 			statement5.executeUpdate();
@@ -132,15 +147,18 @@ class TPCW_Populate
 			statement7.executeUpdate();
 			PreparedStatement statement8 = con.prepareStatement("create index item_i_a_id on item(i_a_id)");
 			statement8.executeUpdate();
-			PreparedStatement statement9 = con.prepareStatement("create index order_line_ol_i_id on order_line(ol_i_id)");
+			PreparedStatement statement9 = con.prepareStatement(
+					"create index order_line_ol_i_id on order_line(ol_i_id)");
 			statement9.executeUpdate();
-			PreparedStatement statement10 = con.prepareStatement("create index order_line_ol_o_id on order_line(ol_o_id)");
+			PreparedStatement statement10 = con.prepareStatement(
+					"create index order_line_ol_o_id on order_line(ol_o_id)");
 			statement10.executeUpdate();
 			PreparedStatement statement11 = con.prepareStatement("create index country_co_name on country(co_name)");
 			statement11.executeUpdate();
 			PreparedStatement statement12 = con.prepareStatement("create index orders_o_c_id on orders(o_c_id)");
 			statement12.executeUpdate();
-			PreparedStatement statement13 = con.prepareStatement("create index scl_i_id on shopping_cart_line(scl_i_id)");
+			PreparedStatement statement13 = con.prepareStatement(
+					"create index scl_i_id on shopping_cart_line(scl_i_id)");
 			statement13.executeUpdate();
 
 			con.commit();
@@ -168,7 +186,8 @@ class TPCW_Populate
 		System.out.print("Complete (in 10,000's): ");
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO customer (C_ID,C_UNAME,C_PASSWD,C_FNAME,C_LNAME,C_ADDR_ID,C_PHONE,C_EMAIL,C_SINCE,C_LAST_LOGIN,C_LOGIN,C_EXPIRATION,C_DISCOUNT,C_BALANCE,C_YTD_PMT,C_BIRTHDATE,C_DATA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO customer (c_id,c_uname,c_passwd,c_fname,c_lname,c_addr_id,c_phone,c_email,c_since,c_last_login,c_login,c_expiration,c_discount,c_balance,c_ytd_pmt,c_birthdate,c_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)");
 			for(i = 1; i <= NUM_CUSTOMERS; i++)
 			{
 				if(i % 10000 == 0)
@@ -264,7 +283,8 @@ class TPCW_Populate
 		int ADDR_CO_ID;
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO address(ADDR_ID,ADDR_STREET1,ADDR_STREET2,ADDR_CITY,ADDR_STATE,ADDR_ZIP,ADDR_CO_ID) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO address(addr_id,addr_street1,addr_street2,addr_city,addr_state,addr_zip,addr_co_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			for(int i = 1; i <= NUM_ADDRESSES; i++)
 			{
 				if(i % 10000 == 0)
@@ -309,7 +329,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO author(A_ID,A_FNAME,A_LNAME,A_MNAME,A_DOB,A_BIO) VALUES (?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO author(a_id,a_fname,a_lname,a_mname,a_dob,a_bio) VALUES (?, ?, ?, ?, ?, ?)");
 			for(int i = 1; i <= NUM_AUTHORS; i++)
 			{
 				int month, day, year, maxday;
@@ -363,7 +384,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO country(CO_ID,CO_NAME,CO_EXCHANGE,CO_CURRENCY) VALUES (?,?,?,?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO country(co_id,co_name,co_exchange,co_currency) VALUES (?,?,?,?)");
 			for(int i = 1; i <= NUM_COUNTRIES; i++)
 			{
 				// Set parameter
@@ -409,7 +431,8 @@ class TPCW_Populate
 				" items");
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO item ( I_ID, I_TITLE , I_A_ID, I_PUB_DATE, I_PUBLISHER, I_SUBJECT, I_DESC, I_RELATED1, I_RELATED2, I_RELATED3, I_RELATED4, I_RELATED5, I_THUMBNAIL, I_IMAGE, I_SRP, I_COST, I_AVAIL, I_STOCK, I_ISBN, I_PAGE, I_BACKING, I_DIMENSIONS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO item ( i_id, i_title , i_a_id, i_pub_date, i_publisher, i_subject, i_desc, i_related1, i_related2, i_related3, i_related4, i_related5, i_thumbnail, i_image, i_srp, i_cost, i_avail, i_stock, i_isbn, i_page, i_backing, i_dimensions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			for(int i = 1; i <= NUM_ITEMS; i++)
 			{
 				int month, day, year, maxday;
@@ -542,9 +565,12 @@ class TPCW_Populate
 		System.out.print("Complete (in 10,000's): ");
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("INSERT INTO orders(O_ID, O_C_ID, O_DATE, O_SUB_TOTAL, O_TAX, O_TOTAL, O_SHIP_TYPE, O_SHIP_DATE, O_BILL_ADDR_ID, O_SHIP_ADDR_ID, O_STATUS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			PreparedStatement statement2 = con.prepareStatement("INSERT INTO order_line (OL_ID, OL_O_ID, OL_I_ID, OL_QTY, OL_DISCOUNT, OL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?)");
-			PreparedStatement statement3 = con.prepareStatement("INSERT INTO cc_xacts(CX_O_ID,CX_TYPE,CX_NUM,CX_NAME,CX_EXPIRE,CX_AUTH_ID,CX_XACT_AMT,CX_XACT_DATE,CX_CO_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement = con.prepareStatement(
+					"INSERT INTO orders(o_id, o_c_id, o_date, o_sub_total, o_tax, o_total, o_ship_type, o_ship_date, o_bill_addr_id, o_ship_addr_id, o_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement2 = con.prepareStatement(
+					"INSERT INTO order_line (ol_id, ol_o_id, ol_i_id, ol_qty, ol_discount, ol_comments) VALUES (?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement3 = con.prepareStatement(
+					"INSERT INTO cc_xacts(cx_o_id,cx_type,cx_num,cx_name,cx_expire,cx_auth_id,cx_xact_amt,cx_xact_date,cx_co_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 			for(int i = 1; i <= NUM_ORDERS; i++)
 			{
@@ -634,8 +660,8 @@ class TPCW_Populate
 		try
 		{
 			//Class.forName(driverName);
-			//con = DriverManager.getConnection(dbName, "tpcw_user1", "tpcw_user1");
-			con = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
+			//con = DriverManager.getConnection(dbName);
+			con = ConnectionFactory.getInstance().getDefaultConnection(DBDefaults.TPCW_DB_NAME);
 			con.setAutoCommit(false);
 		} catch(java.lang.Exception ex)
 		{
@@ -684,7 +710,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE address ( ADDR_ID int not null, ADDR_STREET1 varchar(40), ADDR_STREET2 varchar(40), ADDR_CITY varchar(30), ADDR_STATE varchar(20), ADDR_ZIP varchar(10), ADDR_CO_ID int, PRIMARY KEY(ADDR_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE address ( addr_id int not null, addr_street1 varchar(40), addr_street2 varchar(40), addr_city varchar(30), addr_state varchar(20), addr_zip varchar(10), addr_co_id int, PRIMARY KEY(addr_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ADDRESS");
@@ -697,7 +724,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE author ( A_ID int not null, A_FNAME varchar(20), A_LNAME varchar(20), A_MNAME varchar(20), A_DOB date, A_BIO text, PRIMARY KEY(A_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE author ( a_id int not null, a_fname varchar(20), a_lname varchar(20), a_mname varchar(20), a_dob date, a_bio varchar(500), PRIMARY KEY(a_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table AUTHOR");
@@ -710,7 +738,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE cc_xacts ( CX_O_ID int not null, CX_TYPE varchar(10), CX_NUM varchar(20), CX_NAME varchar(30), CX_EXPIRE date, CX_AUTH_ID char(15), CX_XACT_AMT double, CX_XACT_DATE date, CX_CO_ID int, PRIMARY KEY(CX_O_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE cc_xacts ( cx_o_id int not null, cx_type varchar(10), cx_num varchar(20), cx_name varchar(30), cx_expire date, cx_auth_id char(15), cx_xact_amt double, cx_xact_date date, cx_co_id int, PRIMARY KEY(cx_o_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table CC_XACTS");
@@ -723,7 +752,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE country ( CO_ID int not null, CO_NAME varchar(50), CO_EXCHANGE double, CO_CURRENCY varchar(18), PRIMARY KEY(CO_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE country ( co_id int not null, co_name varchar(50), co_exchange double, co_currency varchar(18), PRIMARY KEY(co_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table COUNTRY");
@@ -735,7 +765,8 @@ class TPCW_Populate
 		}
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE customer ( C_ID int not null, C_UNAME varchar(20), C_PASSWD varchar(20), C_FNAME varchar(17), C_LNAME varchar(17), C_ADDR_ID int, C_PHONE varchar(18), C_EMAIL varchar(50), C_SINCE date, C_LAST_LOGIN date, C_LOGIN timestamp, C_EXPIRATION timestamp, C_DISCOUNT real, C_BALANCE double, C_YTD_PMT double, C_BIRTHDATE date, C_DATA varchar(510), PRIMARY KEY(C_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE customer ( c_id int not null, c_uname varchar(20), c_passwd varchar(20), c_fname varchar(17), c_lname varchar(17), c_addr_id int, c_phone varchar(18), c_email varchar(50), c_since date, c_last_login date, c_login timestamp, c_expiration timestamp, c_discount real, c_balance double, c_ytd_pmt double, c_birthdate date, c_data varchar(500), PRIMARY KEY(c_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table CUSTOMER");
@@ -748,7 +779,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE item ( I_ID int not null, I_TITLE varchar(60), I_A_ID int, I_PUB_DATE date, I_PUBLISHER varchar(60), I_SUBJECT varchar(60), I_DESC text, I_RELATED1 int, I_RELATED2 int, I_RELATED3 int, I_RELATED4 int, I_RELATED5 int, I_THUMBNAIL varchar(40), I_IMAGE varchar(40), I_SRP double, I_COST double, I_AVAIL date, I_STOCK int, I_ISBN char(13), I_PAGE int, I_BACKING varchar(15), I_DIMENSIONS varchar(25), PRIMARY KEY(I_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE item ( i_id int not null, i_title varchar(60), i_a_id int, i_pub_date date, i_publisher varchar(60), i_subject varchar(60), i_desc varchar(500), i_related1 int, i_related2 int, i_related3 int, i_related4 int, i_related5 int, i_thumbnail varchar(40), i_image varchar(40), i_srp double, i_cost double, i_avail date, i_stock int, i_isbn char(13), i_page int, i_backing varchar(15), i_dimensions varchar(25), PRIMARY KEY(i_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ITEM");
@@ -761,7 +793,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE order_line ( OL_ID int not null, OL_O_ID int not null, OL_I_ID int, OL_QTY int, OL_DISCOUNT double, OL_COMMENTS varchar(110), PRIMARY KEY(OL_ID, OL_O_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE order_line ( ol_id int not null, ol_o_id int not null, ol_i_id int, ol_qty int, ol_discount double, ol_comments varchar(110), PRIMARY KEY(ol_id, ol_o_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ORDER_LINE");
@@ -774,7 +807,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE orders ( O_ID int not null, O_C_ID int, O_DATE date, O_SUB_TOTAL double, O_TAX double, O_TOTAL double, O_SHIP_TYPE varchar(10), O_SHIP_DATE date, O_BILL_ADDR_ID int, O_SHIP_ADDR_ID int, O_STATUS varchar(15), PRIMARY KEY(O_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE orders ( o_id int not null, o_c_id int, o_date date, o_sub_total double, o_tax double, o_total double, o_ship_type varchar(10), o_ship_date date, o_bill_addr_id int, o_ship_addr_id int, o_status varchar(15), PRIMARY KEY(o_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ORDERS");
@@ -787,7 +821,8 @@ class TPCW_Populate
 
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE shopping_cart ( SC_ID int not null, SC_TIME timestamp, PRIMARY KEY(SC_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE shopping_cart ( sc_id int not null, sc_time timestamp, PRIMARY KEY(sc_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table SHOPPING_CART");
@@ -799,7 +834,8 @@ class TPCW_Populate
 		}
 		try
 		{
-			PreparedStatement statement = con.prepareStatement("CREATE TABLE shopping_cart_line ( SCL_SC_ID int not null, SCL_QTY int, SCL_I_ID int not null, PRIMARY KEY(SCL_SC_ID, SCL_I_ID))");
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE shopping_cart_line ( scl_sc_id int not null, scl_qty int, scl_i_id int not null, PRIMARY KEY(scl_sc_id, scl_i_id))");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table SHOPPING_CART_LINE");

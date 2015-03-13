@@ -31,7 +31,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	{
 		this.id = id;
 		this.readOnly = false;
-		this.conn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
+		this.conn = ConnectionFactory.getInstance().getDefaultConnection("micro");
 		this.stat = this.conn.createStatement();
 		this.initScratchpad();
 		//this.init();
@@ -314,8 +314,39 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				uniqueIndices.remove(pkSet.getString(4));
 			}
 			pkSet.close();
+
+
 			if(temp.size() > 0)
 				buffer.append(")");
+
+
+			// start foreign key now
+			ResultSet foreignSet = metadata.getExportedKeys(null, null, tableName);
+
+			first = true;
+
+			while(foreignSet.next())
+			{
+				if(first)
+				{
+					buffer.append(", FOREIGN KEY (");
+					first = false;
+				}
+				else
+					buffer.append(", ");
+
+				//String PKTABLE_CAT = foreignSet.getString(1);
+				//String PKTABLE_SCHEM = foreignSet.getString(2);
+				String PKTABLE_NAME = foreignSet.getString(3); // references table
+				String PKCOLUMN_NAME = foreignSet.getString(4); //referenced attribute
+				//String FKTABLE_CAT = foreignSet.getString(5);
+				//String FKTABLE_SCHEM = foreignSet.getString(6);
+				String FKTABLE_NAME = foreignSet.getString(7);  // source table
+				String FKCOLUMN_NAME = foreignSet.getString(8); // source attribute
+				String a = "";
+
+			}
+
 			String[] pkPlain = new String[temp.size()];
 			temp.toArray(pkPlain);
 			temp.clear();
