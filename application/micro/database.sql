@@ -24,11 +24,11 @@ CREATE TABLE `t2` (
 `lc` varchar(50) default '1#2#3#4',
 `del` bool default false,
 `ts` int default 0,
-PRIMARY KEY  (`a`)
+PRIMARY KEY  (a,b)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t3`;
-CREATE TABLE `t1` (
+CREATE TABLE `t3` (
 `a` int(10) unsigned NOT NULL,
 `b` int(10) unsigned,
 `c` int(10) unsigned,
@@ -40,7 +40,7 @@ PRIMARY KEY  (`a`)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t4`;
-CREATE TABLE `t2` (
+CREATE TABLE `t4` (
 `a` int(10) unsigned NOT NULL,
 `b` int(10) unsigned,
 `c` int(10) unsigned,

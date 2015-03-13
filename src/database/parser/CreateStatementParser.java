@@ -12,8 +12,12 @@ import java.util.Vector;
 import database.invariants.ForeignKeyInvariant;
 import database.invariants.Invariant;
 import database.invariants.UniqueInvariant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ExitCode;
 import util.debug.Debug;
+
+import runtime.Runtime;
 
 import database.util.table.AosetTable;
 import database.util.table.ArsetTable;
@@ -31,6 +35,8 @@ import database.util.DatabaseTable;
  */
 public class CreateStatementParser
 {
+
+	static final Logger LOG = LoggerFactory.getLogger(CreateStatementParser.class);
 
 	/**
 	 * Checks if is _ create_ table_ statement.
@@ -278,7 +284,13 @@ public class CreateStatementParser
 		Vector<String> attrStrs = new Vector<>();
 		for(int i = 0; i < declarationStrs.length; i++)
 		{
-			if(! (declarationStrs[i].toUpperCase().startsWith("CONSTRAINT") || declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().startsWith("INDEX") || declarationStrs[i].toUpperCase().startsWith("KEY") || declarationStrs[i].toUpperCase().startsWith("UNIQUE") || declarationStrs[i].toUpperCase().startsWith("FOREIGN KEY") || declarationStrs[i].toUpperCase().startsWith("CHECK")))
+			if(! (declarationStrs[i].toUpperCase().startsWith(
+					"CONSTRAINT") || declarationStrs[i].toUpperCase().startsWith(
+					"PRIMARY KEY") || declarationStrs[i].toUpperCase().startsWith(
+					"INDEX") || declarationStrs[i].toUpperCase().startsWith(
+					"KEY") || declarationStrs[i].toUpperCase().startsWith(
+					"UNIQUE") || declarationStrs[i].toUpperCase().startsWith(
+					"FOREIGN KEY") || declarationStrs[i].toUpperCase().startsWith("CHECK")))
 			{
 				attrStrs.add(declarationStrs[i]);
 				Debug.println("declaration for attribute: " + declarationStrs[i]);
@@ -303,7 +315,8 @@ public class CreateStatementParser
 		Vector<String> constraintStrs = new Vector<>();
 		for(int i = 0; i < declarationStrs.length; i++)
 		{
-			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains("FOREIGN KEY") || declarationStrs[i].toUpperCase().contains("CHECK"))
+			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains(
+					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains("CHECK"))
 				constraintStrs.add(declarationStrs[i]);
 
 		}
@@ -336,24 +349,39 @@ public class CreateStatementParser
 	 */
 	public static LinkedHashMap<String, DataField> getFieldsForTable(String tableName, Vector<String> attributeStrs)
 	{
-		LinkedHashMap<String, DataField> hMpDF = new LinkedHashMap<>();
+		LinkedHashMap<String, DataField> fieldsMap = new LinkedHashMap<>();
 		boolean isContainedLwwDataFields = false;
 		for(int i = 0; i < attributeStrs.size(); i++)
 		{
-			DataField dF = CreateStatementParser.get_Data_Field(tableName, attributeStrs.elementAt(i), i);
-			// Debug.println(dF.toString());
-			hMpDF.put(dF.getFieldName(), dF);
-			if(CrdtFactory.isLwwType(dF.getCrdtType()) && ! isContainedLwwDataFields)
+			DataField field = CreateStatementParser.get_Data_Field(tableName, attributeStrs.elementAt(i), i);
+
+			if(fieldsMap.containsKey(field.getFieldName()))
 			{
-				isContainedLwwDataFields = true;
+				String message = "field " + field.getFieldName() + "is duplicated";
+				Runtime.throwRunTimeException(message,ExitCode.HASHMAPDUPLICATE);
 			}
-		}
-		if(isContainedLwwDataFields)
+
+			fieldsMap.put(field.getFieldName(), field);
+			LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
+
+			if(CrdtFactory.isLwwType(field.getCrdtType()) && ! isContainedLwwDataFields)
+				isContainedLwwDataFields = true;
+
+		} if(isContainedLwwDataFields)
+	{
+		DataField lwwField = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName,
+				attributeStrs.size());
+
+		if(fieldsMap.containsKey(lwwField.getFieldName()))
 		{
-			DataField lwwLogicalTsDf = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName, attributeStrs.size());
-			hMpDF.put(lwwLogicalTsDf.getFieldName(), lwwLogicalTsDf);
+			String message = "field " + lwwField.getFieldName() + "is duplicated";
+			Runtime.throwRunTimeException(message,ExitCode.HASHMAPDUPLICATE);
 		}
-		return hMpDF;
+
+		fieldsMap.put(lwwField.getFieldName(), lwwField);
+		LOG.trace("field {} from table {} added", lwwField.getFieldName(), lwwField.getTableName());
+	}
+		return fieldsMap;
 	}
 
 	/**
@@ -364,9 +392,6 @@ public class CreateStatementParser
 	 */
 	public static void setFieldsConstraints(LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
 	{
-		// primary key, set primary key
-		// foreign key, set foreign key
-
 		for(int i = 0; i < constraintStrs.size(); i++)
 		{
 			String constraint = constraintStrs.elementAt(i);
@@ -424,7 +449,6 @@ public class CreateStatementParser
 
 				String foreignKeyTable = constraint.substring(startIndex_2 + 1, endIndex_2).trim();
 
-
 				for(int t = 0; t < fKeys.length; t++)
 				{
 					if(! fieldsMap.containsKey(fKeys[t]))
@@ -459,7 +483,6 @@ public class CreateStatementParser
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 
-
 			}
 		}
 	}
@@ -482,7 +505,6 @@ public class CreateStatementParser
 		setFieldsConstraints(fieldsMap, consStrs);
 		return fieldsMap;
 	}
-
 
 	/**
 	 * Throw_ wrong_ format_ exception.

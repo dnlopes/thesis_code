@@ -7,8 +7,9 @@
 	@NORMALSTRING addr_zip varchar(10), 
 	@NORMALINTEGER addr_co_id int,
 	CHECK(addr_id>=0),
-	PRIMARY KEY(addr_id),
-	FOREIGN KEY(addr_city) REFERENCES author(a_id)
+	FOREIGN KEY(addr_city,addr_street2) REFERENCES author(a_id,a_mname),
+	FOREIGN KEY(addr_city,addr_state) REFERENCES author(a_fname,a_id),	
+	PRIMARY KEY(addr_id,addr_street2)
 );
 
 CREATE TABLE author ( 
@@ -18,6 +19,9 @@ CREATE TABLE author (
 	@NORMALSTRING a_mname varchar(20), 
 	@NORMALDATETIME a_dob date, 
 	@NORMALSTRING a_bio varchar(1500), 
+	FOREIGN KEY(a_lname,a_fname) REFERENCES address(addr_zip,addr_state),
+	FOREIGN KEY(a_fname,a_dob) REFERENCES address(addr_street1,addr_street2),
+	FOREIGN KEY(a_mname,a_lname) REFERENCES address(addr_city,addr_city),	
 	PRIMARY KEY(a_id)
 	);
 	    

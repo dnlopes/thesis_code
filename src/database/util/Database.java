@@ -1,5 +1,7 @@
 package database.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ExitCode;
 
 import java.util.Collection;
@@ -13,9 +15,10 @@ import java.util.Map;
 public class Database
 {
 
+	static final Logger LOG = LoggerFactory.getLogger(Database.class);
+
 	private static Database ourInstance = new Database();
 	private Map<String, DatabaseTable> tables;
-
 
 	public static Database getInstance()
 	{
@@ -43,7 +46,8 @@ public class Database
 		{
 			try
 			{
-				throw new RuntimeException("this table already exists");
+				LOG.error("table {} already exists", table.getTableName());
+				throw new RuntimeException("duplicated table");
 			} catch(RuntimeException e)
 			{
 				e.printStackTrace();
@@ -52,5 +56,7 @@ public class Database
 		}
 
 		this.tables.put(table.getTableName(), table);
+		LOG.trace("table {} added", table.getTableName());
 	}
+
 }

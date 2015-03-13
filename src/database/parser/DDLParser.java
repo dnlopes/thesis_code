@@ -23,8 +23,6 @@ import database.util.table.READONLY_Table;
 import database.util.table.UosetTable;
 import database.util.DatabaseTable;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class SchemaParser.
@@ -113,7 +111,7 @@ public class DDLParser
 	/**
 	 * Parses the annotations.
 	 */
-	public void parseAnnotations()
+	public Database parseAnnotations()
 	{
 
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
@@ -121,14 +119,15 @@ public class DDLParser
 
 		for(int i = 0; i < allTableStrings.size(); i++)
 		{
-			DatabaseTable dT = CreateStatementParser.createTable(allTableStrings.elementAt(i));
-			if(dT != null)
+			DatabaseTable table = CreateStatementParser.createTable(allTableStrings.elementAt(i));
+			if(table != null)
 			{
-				this.database.addTable(dT);
-				this.tableCrdtFormMap.put(dT.getTableName(), dT);
+				this.database.addTable(table);
+				this.tableCrdtFormMap.put(table.getTableName(), table);
 			} else
 			{
-				throw new RuntimeException("Cannot create a tableinstance for this table " + allTableStrings.elementAt(i));
+				throw new RuntimeException(
+						"Cannot create a tableinstance for this table " + allTableStrings.elementAt(i));
 			}
 		}
 
@@ -143,6 +142,8 @@ public class DDLParser
 				System.exit(ExitCode.SCHEMANOCRDTTABLE);
 			}
 		}
+
+		return database;
 	}
 
 	/**
@@ -156,24 +157,25 @@ public class DDLParser
 			DatabaseTable dT = entry.getValue();
 			if(dT instanceof AosetTable)
 			{
-				Debug.println(((AosetTable) dT).toString());
+				Debug.println(dT.toString());
 			} else if(dT instanceof ArsetTable)
 			{
-				Debug.println(((ArsetTable) dT).toString());
+				Debug.println(dT.toString());
 			} else if(dT instanceof UosetTable)
 			{
-				Debug.println(((UosetTable) dT).toString());
+				Debug.println(dT.toString());
 			} else if(dT instanceof AusetTable)
 			{
-				Debug.println(((AusetTable) dT).toString());
+				Debug.println(dT.toString());
 			} else if(dT instanceof READONLY_Table)
 			{
-				Debug.println(((READONLY_Table) dT).toString());
+				Debug.println(dT.toString());
 			} else
 			{
 				try
 				{
-					throw new RuntimeException("The type of CRDT table " + dT.getTableType() + "is not supported by our framework!");
+					throw new RuntimeException(
+							"The type of CRDT table " + dT.getTableType() + "is not supported by our framework!");
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();
