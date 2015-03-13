@@ -40,17 +40,17 @@ public class DataFieldParser
 	 *
 	 * @return the data field
 	 */
-	public static DataField create_Data_Field_Instance(String tableName, String attributeDef, int position)
+	public static DataField createField(String tableName, String attributeDef, int position)
 	{
 		attributeDef = attributeDef.trim();// remove the empty space at the
 		// beginning and the end
 
-		CrdtDataFieldType crdtType = get_Data_Field_Type(attributeDef);
-		String fieldName = get_Data_Field_Name(attributeDef);
-		String dataType = get_Data_Type(attributeDef);
-		boolean isPrimaryKey = is_Primary_Key(attributeDef);
+		CrdtDataFieldType crdtType = getFieldType(attributeDef);
+		String fieldName = getFieldName(attributeDef);
+		String dataType = getFieldDataType(attributeDef);
+		boolean isPrimaryKey = isPrimaryKey(attributeDef);
 		boolean isForeignKey = false;
-		boolean isAutoIncremantal = is_AutoIncremental(attributeDef);
+		boolean isAutoIncremantal = isAutoIncremental(attributeDef);
 
 		DataField dF = null;
 		switch(crdtType)
@@ -131,7 +131,7 @@ public class DataFieldParser
 				System.exit(ExitCode.UNKNOWNDATAFIELDANNOTYPE);
 			}
 		}
-		set_Default_Value(dF, attributeDef);
+		setDefaultValue(dF, attributeDef);
 		int startIndex = attributeDef.indexOf(" ");
 		String decl = attributeDef.substring(startIndex, attributeDef.length()).trim();
 		dF.setOriginalDeclaration(decl);
@@ -155,7 +155,7 @@ public class DataFieldParser
 
 		DataField dF = new LWW_LOGICALTIMESTAMP(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
 				position);
-		set_Default_Value(dF, "");
+		setDefaultValue(dF, "");
 		return dF;
 	}
 
@@ -176,7 +176,7 @@ public class DataFieldParser
 
 		DataField dF = new LWW_DELETEDFLAG(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
 				position);
-		set_Default_Value(dF, "false");
+		setDefaultValue(dF, "false");
 		return dF;
 	}
 
@@ -187,7 +187,7 @@ public class DataFieldParser
 	 *
 	 * @return the _ annotation_ type
 	 */
-	public static String get_Annotation_Type(String attributeDef)
+	public static String getAnnotationType(String attributeDef)
 	{
 
 		int startIndex = attributeDef.indexOf("@");
@@ -209,7 +209,7 @@ public class DataFieldParser
 	 *
 	 * @return true, if is _ annotated
 	 */
-	private static boolean is_Annotated(String attributeDef)
+	private static boolean isAnnotated(String attributeDef)
 	{
 		int startIndex = attributeDef.indexOf("@");
 		if(startIndex == - 1)
@@ -224,10 +224,10 @@ public class DataFieldParser
 	 *
 	 * @return the _ data_ field_ type
 	 */
-	public static CrdtDataFieldType get_Data_Field_Type(String attributeDef)
+	public static CrdtDataFieldType getFieldType(String attributeDef)
 	{
-		String annotationStr = DataFieldParser.get_Annotation_Type(attributeDef);
-		if(annotationStr == "")
+		String annotationStr = DataFieldParser.getAnnotationType(attributeDef);
+		if(annotationStr.equals(""))
 		{
 			return CrdtDataFieldType.NONCRDTFIELD;
 		}
@@ -241,10 +241,10 @@ public class DataFieldParser
 	 *
 	 * @return the _ data_ field_ name
 	 */
-	public static String get_Data_Field_Name(String attributeDef)
+	public static String getFieldName(String attributeDef)
 	{
 		String[] subStrs = attributeDef.split("\\s");
-		if(is_Annotated(attributeDef) == true)
+		if(isAnnotated(attributeDef))
 		{
 			return subStrs[1].replaceAll("`", "");
 		}
@@ -258,9 +258,9 @@ public class DataFieldParser
 	 *
 	 * @return the _ data_ type
 	 */
-	public static String get_Data_Type(String attributeDef)
+	public static String getFieldDataType(String attributeDef)
 	{
-		String dataType = DatabaseDictionary.get_Data_Type(attributeDef);
+		String dataType = DatabaseDictionary.getDataType(attributeDef);
 		if(dataType.equals(""))
 		{
 			throw_Wrong_Format_Exception(attributeDef);
@@ -275,11 +275,9 @@ public class DataFieldParser
 	 *
 	 * @return true, if is _ primary_ key
 	 */
-	public static boolean is_Primary_Key(String attributeDef)
+	public static boolean isPrimaryKey(String attributeDef)
 	{
-		if(attributeDef.toUpperCase().contains("PRIMARY KEY"))
-			return true;
-		return false;
+		return attributeDef.toUpperCase().contains("PRIMARY KEY");
 	}
 
 	/**
@@ -289,11 +287,9 @@ public class DataFieldParser
 	 *
 	 * @return true, if is _ auto incremental
 	 */
-	public static boolean is_AutoIncremental(String attributeDef)
+	public static boolean isAutoIncremental(String attributeDef)
 	{
-		if(attributeDef.toUpperCase().contains("AUTO_INCREMENT"))
-			return true;
-		return false;
+		return attributeDef.toUpperCase().contains("AUTO_INCREMENT");
 	}
 
 	/**
@@ -302,7 +298,7 @@ public class DataFieldParser
 	 * @param dF           the d f
 	 * @param attributeDef the attribute def
 	 */
-	public static void set_Default_Value(DataField dF, String attributeDef)
+	public static void setDefaultValue(DataField dF, String attributeDef)
 	{
 
 		if(attributeDef.toUpperCase().contains("DEFAULT"))

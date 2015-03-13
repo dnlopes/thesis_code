@@ -1,7 +1,6 @@
 package database.invariants;
 
 import database.util.DataField;
-import java.sql.SQLException;
 
 
 /**
@@ -9,11 +8,11 @@ import java.sql.SQLException;
  */
 public class ForeignKeyInvariant extends Invariant
 {
+
 	private String referenceField;
 	private String referenceTable;
 
 	public ForeignKeyInvariant(DataField field, String referenceTable, String referenceField, String declaration)
-			throws SQLException
 	{
 		super(field, declaration);
 		this.referenceField = referenceField;

@@ -25,8 +25,6 @@ import database.util.CrdtTableType;
 import database.util.DataField;
 import database.util.DatabaseTable;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class CreateStatementParser.
@@ -53,7 +51,7 @@ public class CreateStatementParser
 	 *
 	 * @return the database table
 	 */
-	public static DatabaseTable create_Table_Instance(String schemaStr)
+	public static DatabaseTable createTable(String schemaStr)
 	{
 		if(! is_Create_Table_Statement(schemaStr))
 			return null;
@@ -63,11 +61,7 @@ public class CreateStatementParser
 			String bodyStr = get_Table_Body_String(schemaStr);
 			CrdtTableType tableType = get_Table_Type(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
-
-			Debug.println("Table title " + tableTitleStr);
-			Debug.println("Body str " + bodyStr);
-
-			LinkedHashMap<String, DataField> fieldsMap = get_Data_Field_HashMap(tableName, bodyStr);
+			LinkedHashMap<String, DataField> fieldsMap = createFields(tableName, bodyStr);
 
 			DatabaseTable dT = null;
 
@@ -251,7 +245,7 @@ public class CreateStatementParser
 					declarationBeginIndex = beginIndex;
 				} else
 				{
-					declarationBeginIndex = beginIndex;
+					//declarationBeginIndex = beginIndex;
 					beginIndex = commaIndex + 1;
 					continue;
 				}
@@ -328,7 +322,7 @@ public class CreateStatementParser
 	public static DataField get_Data_Field(String tableName, String attrStr, int position)
 	{
 		Debug.println("tableName: " + tableName + " attrStr " + attrStr + " position " + position);
-		DataField dF = DataFieldParser.create_Data_Field_Instance(tableName, attrStr, position);
+		DataField dF = DataFieldParser.createField(tableName, attrStr, position);
 		return dF;
 	}
 
@@ -478,7 +472,7 @@ public class CreateStatementParser
 	 *
 	 * @return the _ data_ field_ hash map
 	 */
-	public static LinkedHashMap<String, DataField> get_Data_Field_HashMap(String tableName, String bodyStr)
+	public static LinkedHashMap<String, DataField> createFields(String tableName, String bodyStr)
 	{
 		String[] declarations = getDeclarationsStrs(bodyStr);
 		Vector<String> attrStrs = getAttributesStrs(declarations);

@@ -25,7 +25,7 @@ public class DatabaseDictionary {
 	 * @param defStr the def str
 	 * @return the _ data_ type
 	 */
-	public static String get_Data_Type(String defStr) {
+	public static String getDataType(String defStr) {
 		String[] subStrs = defStr.split(" ");
 		for (int i = 0; i < subStrs.length; i++) {
 			String typeStr = subStrs[i];

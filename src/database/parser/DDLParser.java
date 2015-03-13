@@ -121,7 +121,7 @@ public class DDLParser
 
 		for(int i = 0; i < allTableStrings.size(); i++)
 		{
-			DatabaseTable dT = CreateStatementParser.create_Table_Instance(allTableStrings.elementAt(i));
+			DatabaseTable dT = CreateStatementParser.createTable(allTableStrings.elementAt(i));
 			if(dT != null)
 			{
 				this.database.addTable(dT);
