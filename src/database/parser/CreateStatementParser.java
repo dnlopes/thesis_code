@@ -358,7 +358,7 @@ public class CreateStatementParser
 			if(fieldsMap.containsKey(field.getFieldName()))
 			{
 				String message = "field " + field.getFieldName() + "is duplicated";
-				Runtime.throwRunTimeException(message,ExitCode.HASHMAPDUPLICATE);
+				Runtime.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
@@ -367,20 +367,21 @@ public class CreateStatementParser
 			if(CrdtFactory.isLwwType(field.getCrdtType()) && ! isContainedLwwDataFields)
 				isContainedLwwDataFields = true;
 
-		} if(isContainedLwwDataFields)
-	{
-		DataField lwwField = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName,
-				attributeStrs.size());
-
-		if(fieldsMap.containsKey(lwwField.getFieldName()))
-		{
-			String message = "field " + lwwField.getFieldName() + "is duplicated";
-			Runtime.throwRunTimeException(message,ExitCode.HASHMAPDUPLICATE);
 		}
+		if(isContainedLwwDataFields)
+		{
+			DataField lwwField = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName,
+					attributeStrs.size());
 
-		fieldsMap.put(lwwField.getFieldName(), lwwField);
-		LOG.trace("field {} from table {} added", lwwField.getFieldName(), lwwField.getTableName());
-	}
+			if(fieldsMap.containsKey(lwwField.getFieldName()))
+			{
+				String message = "field " + lwwField.getFieldName() + "is duplicated";
+				Runtime.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
+			}
+
+			fieldsMap.put(lwwField.getFieldName(), lwwField);
+			LOG.trace("field {} from table {} added", lwwField.getFieldName(), lwwField.getTableName());
+		}
 		return fieldsMap;
 	}
 
@@ -409,19 +410,23 @@ public class CreateStatementParser
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
 
+				Invariant inv = new UniqueInvariant();
+
 				for(int j = 0; j < pKeys.length; j++)
 				{
 					if(! fieldsMap.containsKey(pKeys[j]))
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[j]);
 
 					DataField field = fieldsMap.get(pKeys[j]);
-					Invariant inv = new UniqueInvariant(field, constraint);
+					inv.addField(field);
 					field.setPrimaryKey();
 					field.addInvariant(inv);
 				}
 			}
 			if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
+				Invariant inv = new ForeignKeyInvariant();
+
 				int locationIndex = constraint.toUpperCase().indexOf("FOREIGN KEY");
 				int startIndex = constraint.indexOf("(", locationIndex);
 				int endIndex = constraint.indexOf(")", locationIndex);
@@ -445,20 +450,22 @@ public class CreateStatementParser
 				String[] foreignAttributes = foreignKeyStr.split(",");
 
 				if(foreignAttributes.length != fKeys.length)
-					throw_Wrong_Format_Exception("foreign attributes size do not match");
+					Runtime.throwRunTimeException("foreign attributes size do not match",
+							ExitCode.WRONGCREATTABLEFORMAT);
 
 				String foreignKeyTable = constraint.substring(startIndex_2 + 1, endIndex_2).trim();
 
 				for(int t = 0; t < fKeys.length; t++)
 				{
 					if(! fieldsMap.containsKey(fKeys[t]))
-					{
-						throw_Wrong_Format_Exception(constraint + " " + fKeys[t]);
-					}
-					DataField field = fieldsMap.get(fKeys[t]);
-					field.setForeignKey();
-					Invariant inv = new ForeignKeyInvariant(field, foreignKeyTable, foreignAttributes[t], constraint);
-					field.addInvariant(inv);
+						Runtime.throwRunTimeException("foreign attributes size do not match",
+								ExitCode.WRONGCREATTABLEFORMAT);
+
+					DataField originField = fieldsMap.get(fKeys[t]);
+					inv.addPair(originField, foreignAttributes[t]);
+					inv.setRemoteTable(foreignKeyTable);
+					originField.setForeignKey();
+					originField.addInvariant(inv);
 				}
 			}
 

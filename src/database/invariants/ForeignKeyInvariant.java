@@ -1,6 +1,11 @@
 package database.invariants;
 
 import database.util.DataField;
+import runtime.Runtime;
+import util.ExitCode;
+
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -9,23 +14,35 @@ import database.util.DataField;
 public class ForeignKeyInvariant extends Invariant
 {
 
-	private String referenceField;
-	private String referenceTable;
+	private List<String> remoteFields;
+	private String remoteTable;
 
-	public ForeignKeyInvariant(DataField field, String referenceTable, String referenceField, String declaration)
+	public ForeignKeyInvariant()
 	{
-		super(field, declaration);
-		this.referenceField = referenceField;
-		this.referenceTable = referenceTable;
+		super();
+		this.remoteFields = new LinkedList<>();
 	}
 
-	public String getReferenceField()
+	@Override
+	public void addField(DataField field)
 	{
-		return this.referenceField;
+		Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
-	public String getReferenceTable()
+	public void addPair(DataField origin, String remote)
 	{
-		return this.referenceTable;
+		this.fields.add(fields.size(), origin);
+		this.remoteFields.add(this.remoteFields.size(), remote);
+	}
+
+	public void setRemoteTable(String table)
+	{
+		if(this.remoteTable == null)
+			this.remoteTable = table;
+	}
+
+	public String getRemoteTable()
+	{
+		return this.remoteTable;
 	}
 }

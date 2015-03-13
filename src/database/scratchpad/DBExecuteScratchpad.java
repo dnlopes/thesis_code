@@ -1,11 +1,6 @@
 package database.scratchpad;
 
-import database.invariants.ForeignKeyInvariant;
-import database.invariants.Invariant;
 import database.jdbc.ConnectionFactory;
-import database.util.DataField;
-import database.util.Database;
-import database.util.DatabaseTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.ScratchpadDefaults;
@@ -121,93 +116,6 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				LOG.warn("failed to close statement after cleanup");
 			}
 		}
-	}
-
-	private void init() throws SQLException
-	{
-		Database db = Database.getInstance();
-		Collection<DatabaseTable> allTables = db.getTables();
-
-		for(DatabaseTable table : allTables)
-		{
-			this.deleteTable(table.getTableName());
-			this.conn.commit();
-			this.createTable(table);
-			this.conn.commit();
-		}
-	}
-
-	private void deleteTable(String name) throws SQLException
-	{
-		Statement statement = this.conn.createStatement();
-		StringBuilder sql = new StringBuilder("DROP TABLE IF EXISTS ");
-
-		sql.append(this.getTransformedTableName(name));
-		sql.append(";");
-
-		LOG.info("deleteTable(): executing sql: {}", sql);
-		statement.execute(sql.toString());
-	}
-
-	private void createTable(DatabaseTable table) throws SQLException
-	{
-		StringBuilder createTableStatement = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
-		createTableStatement.append(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX);
-		createTableStatement.append(this.id);
-		createTableStatement.append("_");
-		createTableStatement.append(table.getTableName());
-		createTableStatement.append("(");
-
-		// we scan all fields and get all invariants at the same time
-		List<Invariant> invariants = new LinkedList<>();
-
-		// create fields now
-		HashMap<Integer, DataField> map = table.getSortedFieldsMap();
-
-		for(DataField field : map.values())
-		{
-			createTableStatement.append(field.getOriginalDeclaration());
-			createTableStatement.append(",");
-
-			if(field.hasInvariants())
-			{
-				List<Invariant> fieldInvariants = field.getInvariants();
-				for(Invariant inv : fieldInvariants)
-					invariants.add(inv);
-			}
-		}
-
-		// create constraints now
-		for(Invariant inv : invariants)
-		{
-			if(inv instanceof ForeignKeyInvariant)
-			{
-				String originalTableName = ((ForeignKeyInvariant) inv).getReferenceTable();
-				String origDeclaration = inv.getOriginalDeclaration();
-				String transformedDecl = origDeclaration.replace(originalTableName,
-						this.getTransformedTableName(originalTableName));
-				createTableStatement.append(transformedDecl);
-				createTableStatement.append(",");
-
-			} else
-			{
-				createTableStatement.append(inv.getOriginalDeclaration());
-				createTableStatement.append(",");
-			}
-		}
-
-		char last = createTableStatement.charAt(createTableStatement.length() - 1);
-
-		if(last == ',')
-			createTableStatement = new StringBuilder(
-					createTableStatement.substring(0, createTableStatement.length() - 1));
-
-		createTableStatement.append(");");
-		Statement statement = this.conn.createStatement();
-		String sql = createTableStatement.toString();
-
-		LOG.info("createTable(): executing sql: {}", sql);
-		statement.execute(sql);
 	}
 
 	private void initScratchpad() throws SQLException, ScratchpadException

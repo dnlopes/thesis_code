@@ -1,7 +1,9 @@
 package database.invariants;
 
 import database.util.DataField;
-import database.util.DatabaseTable;
+
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -10,24 +12,21 @@ import database.util.DatabaseTable;
 public abstract class Invariant
 {
 
-	private DataField field;
-	private String originalDeclaration;
+	protected List<DataField> fields;
 
-
-	protected Invariant(DataField field, String declaration)
+	protected Invariant()
 	{
-		this.field = field;
-		this.originalDeclaration = declaration;
+		this.fields = new LinkedList<>();
 	}
 
-	public DataField getField()
+	public List<DataField> getFields()
 	{
-		return this.field;
+		return this.fields;
 	}
 
+	public abstract void addField(DataField field);
+	public abstract void addPair(DataField field, String remoteField);
+	public abstract void setRemoteTable(String table);
+	public abstract String getRemoteTable();
 
-	public String getOriginalDeclaration()
-	{
-		return this.originalDeclaration;
-	}
 }
