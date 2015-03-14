@@ -1,4 +1,4 @@
-package database.parser;
+package util.parser;
 
 import database.util.field.LWW_BOOLEAN;
 import database.util.field.LWW_DATETIME;

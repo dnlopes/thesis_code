@@ -1,6 +1,6 @@
 package tests;
 
-import database.parser.DDLParser;
+import util.parser.DDLParser;
 import database.util.Database;
 import database.util.DatabaseTable;
 import util.defaults.DBDefaults;

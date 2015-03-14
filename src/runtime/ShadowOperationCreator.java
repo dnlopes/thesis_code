@@ -17,10 +17,9 @@ import java.util.Map;
 import java.util.Set;
 import java.text.DateFormat;
 
-import database.jdbc.CRDTConnection;
 import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
-import database.parser.DDLParser;
+import util.parser.DDLParser;
 import util.ExitCode;
 import util.debug.Debug;
 

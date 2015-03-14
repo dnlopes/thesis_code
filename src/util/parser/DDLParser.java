@@ -2,7 +2,7 @@
  * This class defines methods to parse sql schema to create all table and field
  * crdts.
  */
-package database.parser;
+package util.parser;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

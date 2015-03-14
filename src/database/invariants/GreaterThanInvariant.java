@@ -28,25 +28,25 @@ public class GreaterThanInvariant extends Invariant
 	@Override
 	public void addField(DataField field)
 	{
-		runtime.Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
+		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public void addPair(DataField field, String remoteField)
 	{
-		Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
+		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public void setRemoteTable(String table)
 	{
-		Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
+		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public String getRemoteTable()
 	{
-		Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
+		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 }

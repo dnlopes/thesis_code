@@ -1,12 +1,11 @@
 package tests;
 
 import database.jdbc.ConnectionFactory;
-import database.parser.DDLParser;
+import util.parser.DDLParser;
 import database.scratchpad.ExecuteScratchpad;
 import database.scratchpad.ExecutePadFactory;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
-import util.defaults.DBDefaults;
 
 import java.sql.Connection;
 import java.sql.SQLException;

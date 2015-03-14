@@ -2,7 +2,7 @@
  * This class defines methods to parse a create table statement, for example
  * it will return the table name, and return attributes list.
  */
-package database.parser;
+package util.parser;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

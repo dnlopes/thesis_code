@@ -11,7 +11,7 @@ import database.util.DatabaseTable;
 import util.ExitCode;
 import util.debug.Debug;
 
-import database.parser.DataFieldParser;
+import util.parser.DataFieldParser;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.schema.Column;

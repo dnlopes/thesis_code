@@ -26,7 +26,7 @@ public class ForeignKeyInvariant extends Invariant
 	@Override
 	public void addField(DataField field)
 	{
-		Runtime.throwRunTimeException("should not be calling this method", ExitCode.MISSING_IMPLEMENTATION);
+		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	public void addPair(DataField origin, String remote)

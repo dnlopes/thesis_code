@@ -9,7 +9,7 @@ public class ScratchpadDefaults
 	public static final int RDBMS_H2 = 1;
 	public static final int RDBMS_MYSQL = 2;
 	public static final int RDBMS_MIMER = 3;
-	public static int SQL_ENGINE = RDBMS_MYSQL;
+	public static final int SQL_ENGINE = RDBMS_MYSQL;
 
 	public static final String SCRATCHPAD_NULL = "@$NULL";
 	public static final String SCRATCHPAD_PREFIX = "SCRATCHPAD";

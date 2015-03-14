@@ -18,7 +18,7 @@ import java.text.DateFormat;
 
 import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
-import database.parser.DDLParser;
+import util.parser.DDLParser;
 import database.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
