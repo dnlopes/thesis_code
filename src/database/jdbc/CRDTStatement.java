@@ -4,6 +4,7 @@ import database.scratchpad.ExecuteScratchpad;
 import net.sf.jsqlparser.JSQLParserException;
 import runtime.MyShadowOpCreator;
 import runtime.TransactionInfo;
+import util.MissingImplementationException;
 
 import java.sql.*;
 

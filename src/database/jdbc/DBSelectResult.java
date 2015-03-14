@@ -1,6 +1,5 @@
 package database.jdbc;
 
-
 import database.scratchpad.ScratchpadException;
 import util.debug.Debug;
 import util.defaults.ScratchpadDefaults;
@@ -48,7 +47,8 @@ public class DBSelectResult extends Result
 		}
 	}
 
-	public static DBSelectResult createResult(List<String[]> result, HashMap<String, Integer> columnNamesToNumbersMap) throws ScratchpadException
+	public static DBSelectResult createResult(List<String[]> result, HashMap<String, Integer> columnNamesToNumbersMap)
+			throws ScratchpadException
 	{
 		//		try {
 		//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -116,7 +116,8 @@ public class DBSelectResult extends Result
 		return new DBSelectResult(arr);
 	}
 
-	public static DBSelectResult createResult(byte[] arr, HashMap<String, Integer> columnNamesToNumbersMap) throws ScratchpadException
+	public static DBSelectResult createResult(byte[] arr, HashMap<String, Integer> columnNamesToNumbersMap)
+			throws ScratchpadException
 	{
 		return new DBSelectResult(arr, columnNamesToNumbersMap);
 	}
@@ -194,7 +195,6 @@ public class DBSelectResult extends Result
 				result.add(row);
 			}
 
-
 			//now decode the column map
 			sqlAttributeIndex = new HashMap<String, Integer>();
 			if(super.getColumnIndexesResult() != null)
@@ -223,14 +223,12 @@ public class DBSelectResult extends Result
 		Debug.println(toString());
 	}
 
-
 	public List<String[]> getSelectResult() throws ScratchpadException
 	{
 		if(! hasDecoded)
 			decode();
 		return result;
 	}
-
 
 	/**
 	 * Emulate next method in ResultSet
@@ -248,7 +246,6 @@ public class DBSelectResult extends Result
 			nextLine++;
 		return r;
 	}
-
 
 	/**
 	 * Emulate first method in ResultSet
@@ -392,7 +389,6 @@ public class DBSelectResult extends Result
 			e.printStackTrace();
 		}
 		return d;
-
 
 	}
 }

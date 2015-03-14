@@ -3,6 +3,7 @@ package database.jdbc;
 import database.scratchpad.ExecuteScratchpad;
 import runtime.MyShadowOpCreator;
 import runtime.TransactionInfo;
+import util.MissingImplementationException;
 
 import java.io.InputStream;
 import java.io.Reader;

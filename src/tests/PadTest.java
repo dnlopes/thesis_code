@@ -1,7 +1,7 @@
 package tests;
 
 import database.jdbc.ConnectionFactory;
-import util.parser.DDLParser;
+import runtime.Configuration;
 import database.scratchpad.ExecuteScratchpad;
 import database.scratchpad.ExecutePadFactory;
 import org.perf4j.LoggingStopWatch;
@@ -23,7 +23,7 @@ public class PadTest
 		//DDLParser parser = new DDLParser(DBDefaults.TPCW_FILE);
 		//parser.parseAnnotations();
 
-		Connection con = ConnectionFactory.getInstance().getCRDTConnection("tpcw");
+		Connection con = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
 
 		Statement stat = con.createStatement();
 		stat.executeUpdate("update address set addr_state='ola' where addr_state='cenas';");
