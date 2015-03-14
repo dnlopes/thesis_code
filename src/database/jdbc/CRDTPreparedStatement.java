@@ -1,6 +1,6 @@
 package database.jdbc;
 
-import database.scratchpad.ExecuteScratchpad;
+import database.occ.scratchpad.IDBScratchpad;
 import runtime.MyShadowOpCreator;
 import runtime.TransactionInfo;
 import util.MissingImplementationException;
@@ -24,10 +24,10 @@ public class CRDTPreparedStatement implements PreparedStatement
 	int[] argPos;
 	String[] vals;
 	private TransactionInfo txnInfo;
-	private ExecuteScratchpad pad;
+	private IDBScratchpad pad;
 	private MyShadowOpCreator shdOpCreator;
 
-	protected CRDTPreparedStatement(String sql, TransactionInfo txnInfo, ExecuteScratchpad pad,
+	protected CRDTPreparedStatement(String sql, TransactionInfo txnInfo, IDBScratchpad pad,
 									MyShadowOpCreator creator)
 	{
 		this.txnInfo = txnInfo;

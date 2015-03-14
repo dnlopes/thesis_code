@@ -1,6 +1,6 @@
 package database.jdbc;
 
-import database.scratchpad.ExecuteScratchpad;
+import database.occ.scratchpad.IDBScratchpad;
 import net.sf.jsqlparser.JSQLParserException;
 import runtime.MyShadowOpCreator;
 import runtime.TransactionInfo;
@@ -16,10 +16,10 @@ public class CRDTStatement implements Statement
 {
 
 	private TransactionInfo txnInfo;
-	private ExecuteScratchpad pad;
+	private IDBScratchpad pad;
 	private MyShadowOpCreator shdOpCreator;
 
-	public CRDTStatement(TransactionInfo txnInfo, ExecuteScratchpad pad, MyShadowOpCreator creator)
+	public CRDTStatement(TransactionInfo txnInfo, IDBScratchpad pad, MyShadowOpCreator creator)
 	{
 		this.txnInfo = txnInfo;
 		this.pad = pad;
@@ -29,7 +29,7 @@ public class CRDTStatement implements Statement
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		if(! this.txnInfo.hasBegun())
+		if(!this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
 
 		return pad.executeQuery(arg0);
@@ -50,7 +50,7 @@ public class CRDTStatement implements Statement
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-		if(! this.txnInfo.hasBegun())
+		if(!this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
 
 		String[] deter = null;
@@ -64,7 +64,7 @@ public class CRDTStatement implements Statement
 
 		int result = 0;
 
-		for(String sql: deter)
+		for(String sql : deter)
 		{
 			result += pad.executeUpdate(sql);
 		}

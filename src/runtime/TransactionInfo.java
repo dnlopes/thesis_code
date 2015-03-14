@@ -85,9 +85,8 @@ public class TransactionInfo
 	public void beginTxn()
 	{
 		this.txnId = TxnIdFactory.getNextId();
-		LOG.info("Beggining txn {}", this.txnId);
-
 		this.hasBegun = true;
+		LOG.info("Beggining txn {}", this.txnId);
 		this.timer.start();
 	}
 

@@ -3,32 +3,15 @@
  */
 package runtime;
 
-import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.text.DateFormat;
-
+import crdtlib.CrdtFactory;
+import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
-import util.parser.DDLParser;
 import database.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import util.ExitCode;
-import util.debug.Debug;
-
-import util.IDFactories.IDFactories;
-import util.IDFactories.IDGenerator;
-import crdtlib.datatypes.primitivetypes.PrimitiveType;
-
+import database.util.table.AosetTable;
+import database.util.table.ArsetTable;
+import database.util.table.AusetTable;
+import database.util.table.UosetTable;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -38,12 +21,21 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import util.ExitCode;
+import util.IDFactories.IDFactories;
+import util.IDFactories.IDGenerator;
+import util.debug.Debug;
+import util.parser.DDLParser;
 
-import database.util.table.AosetTable;
-import database.util.table.ArsetTable;
-import database.util.table.AusetTable;
-import crdtlib.CrdtFactory;
-import database.util.table.UosetTable;
+import java.io.StringReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.util.*;
 
 
 /**
@@ -64,9 +56,6 @@ public class MyShadowOpCreator
 
 	/** The con for fetching subselection data. */
 	Connection con;
-
-	/** The fp generator. */
-	RuntimeFingerPrintGenerator fpGenerator;
 
 	/** The cached result set for delta. */
 	private CRDTResultSet cachedResultSetForDelta;
@@ -103,7 +92,6 @@ public class MyShadowOpCreator
 		}
 		this.con = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.cachedResultSetForDelta = null;
-		fpGenerator = new RuntimeFingerPrintGenerator();
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
 	}
 
@@ -114,7 +102,7 @@ public class MyShadowOpCreator
 	 */
 	private void closeRealConnection(Connection originalConn)
 	{
-		Debug.println("We have initialized the id factory, now close the real connection");
+		LOG.trace("We have initialized the id factory, now close the real connection");
 		try
 		{
 			originalConn.close();
@@ -136,24 +124,24 @@ public class MyShadowOpCreator
 	 */
 	public void initIDFactories(int gPI, int pId, Connection conn)
 	{
-		Debug.println("We initialize the ID factories!");
+		LOG.trace("We initialize the ID factories!");
 		IDGenerator.initialized(gPI, pId, conn);
 		Iterator<Map.Entry<String, DatabaseTable>> it = annotatedTableSchema.entrySet().iterator();
 		while(it.hasNext())
 		{
-			Map.Entry<String, DatabaseTable> entry = (Map.Entry<String, DatabaseTable>) it.next();
+			Map.Entry<String, DatabaseTable> entry = it.next();
 			DatabaseTable dT = entry.getValue();
 			String tableName = dT.getTableName();
-			Debug.println("We initialize the ID generator for " + tableName);
+			LOG.trace("We initialize the ID generator for " + tableName);
 			HashMap<String, DataField> pkMap = dT.getPrimaryKeysMap();
 			Iterator<Map.Entry<String, DataField>> pkIt = pkMap.entrySet().iterator();
 			while(pkIt.hasNext())
 			{
-				Map.Entry<String, DataField> pkField = (Map.Entry<String, DataField>) pkIt.next();
+				Map.Entry<String, DataField> pkField = pkIt.next();
 				DataField pkDF = pkField.getValue();
 				if(pkDF.isAutoIncrement() && pkDF.getFieldType().toUpperCase().contains("INT"))
 				{
-					Debug.println("We initialize the ID generator for " + tableName + " key " + pkDF.getFieldName());
+					LOG.trace("We initialize the ID generator for " + tableName + " key " + pkDF.getFieldName());
 					iDFactory.add_ID_Generator(tableName, pkDF.getFieldName());
 				}
 			}
@@ -1204,16 +1192,6 @@ public class MyShadowOpCreator
 	public CRDTResultSet getCachedResultSetForDelta()
 	{
 		return cachedResultSetForDelta;
-	}
-
-	/**
-	 * Gets the fp generator.
-	 *
-	 * @return the fp generator
-	 */
-	public RuntimeFingerPrintGenerator getFpGenerator()
-	{
-		return this.fpGenerator;
 	}
 
 	/**

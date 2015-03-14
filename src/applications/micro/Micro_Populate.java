@@ -83,6 +83,7 @@ public class Micro_Populate
 		try
 		{
 			stat.execute("DROP DATABASE IF EXISTS micro");
+			conn.commit();
 		} catch(SQLException e)
 		{
 			e.printStackTrace();

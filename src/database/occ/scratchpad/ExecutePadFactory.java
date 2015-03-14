@@ -1,4 +1,4 @@
-package database.scratchpad;
+package database.occ.scratchpad;
 
 import util.ExitCode;
 import util.defaults.DBDefaults;
@@ -20,7 +20,7 @@ public class ExecutePadFactory
 
 	static final Logger LOG = LoggerFactory.getLogger(ExecutePadFactory.class);
 
-	private Vector<ExecuteScratchpad> queue;
+	private Vector<IDBScratchpad> queue;
 	private ReentrantLock queueLock;
 	private Condition condition;
 
@@ -33,8 +33,8 @@ public class ExecutePadFactory
 		this.queue = new Vector<>(DBDefaults.PAD_POOL_SIZE);
 		try
 		{
-			this.initialize();
-			LOG.trace("Scratchpads created");
+			this.setupScratchpads();
+			LOG.info("{} scratchpads created", this.queue.size());
 
 		} catch(SQLException | ScratchpadException e)
 		{
@@ -48,17 +48,17 @@ public class ExecutePadFactory
 		return ourInstance;
 	}
 
-	private void initialize() throws SQLException, ScratchpadException
+	private void setupScratchpads() throws SQLException, ScratchpadException
 	{
-		// create pool of pads
+		// create pool of scratchpads
 		for(int i = 0; i < DBDefaults.PAD_POOL_SIZE; i++)
 		{
-			ExecuteScratchpad pad = new DBExecuteScratchpad(i);
-			this.queue.add(pad);
+			IDBScratchpad scratchpad = new DBExecuteScratchpad(i);
+			this.queue.add(scratchpad);
 		}
 	}
 
-	public void releaseScratchpad(ExecuteScratchpad sp)
+	public void releaseScratchpad(IDBScratchpad sp)
 	{
 		this.queueLock.lock();
 		try
@@ -72,9 +72,9 @@ public class ExecutePadFactory
 		LOG.trace("Released scratchpad {}", sp.getScratchpadId());
 	}
 
-	public ExecuteScratchpad getScratchpad()
+	public IDBScratchpad getScratchpad()
 	{
-		ExecuteScratchpad sp = null;
+		IDBScratchpad sp = null;
 		this.queueLock.lock();
 		try
 		{

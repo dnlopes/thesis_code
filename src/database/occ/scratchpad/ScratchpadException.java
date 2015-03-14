@@ -1,4 +1,4 @@
-package database.scratchpad;
+package database.occ.scratchpad;
 
 /**
  * Created by dnlopes on 10/03/15.

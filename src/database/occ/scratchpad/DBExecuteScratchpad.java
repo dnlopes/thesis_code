@@ -1,6 +1,10 @@
-package database.scratchpad;
+package database.occ.scratchpad;
 
 import database.jdbc.ConnectionFactory;
+import database.occ.OCCExecuter;
+import database.occ.IExecutor;
+import database.jdbc.util.DBReadSetEntry;
+import database.jdbc.util.DBWriteSetEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Configuration;
@@ -13,12 +17,13 @@ import java.util.*;
 /**
  * Created by dnlopes on 10/03/15.
  */
-public class DBExecuteScratchpad implements ExecuteScratchpad
+public class DBExecuteScratchpad implements IDBScratchpad
 {
 
 	static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
 
 	private static List<String> tables;
+	private Map<String, IExecutor> executors;
 	private boolean readOnly;
 	private int id;
 	private Connection conn;
@@ -27,11 +32,12 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
 	{
 		this.id = id;
+		this.executors = new HashMap<>();
 		this.readOnly = false;
 		tables = new LinkedList<>();
 		this.conn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.stat = this.conn.createStatement();
-		this.initScratchpad();
+		this.createExecutors();
 		this.cleanState();
 	}
 
@@ -90,6 +96,8 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		{
 			Statement stat = this.conn.createStatement();
 
+			//TODO
+			// call executor.clean now
 			for(String table : tables)
 			{
 				StringBuilder sql = new StringBuilder();
@@ -97,6 +105,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				sql.append(this.getTransformedTableName(table));
 				sql.append(";");
 
+				LOG.trace("exec {}", sql.toString());
 				stat.execute(sql.toString());
 			}
 
@@ -109,7 +118,21 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		}
 	}
 
-	private void initScratchpad() throws SQLException, ScratchpadException
+	@Override
+	public boolean addToWriteSet(DBWriteSetEntry entry)
+	{
+		//TODO
+		return false;
+	}
+
+	@Override
+	public boolean addToReadSet(DBReadSetEntry readSetEntry)
+	{
+		//TODO
+		return false;
+	}
+
+	private void createExecutors() throws SQLException, ScratchpadException
 	{
 		DatabaseMetaData metadata = this.conn.getMetaData();
 		String[] types = {"TABLE"};
@@ -119,7 +142,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		while(tblSet.next())
 		{
 			String tableName = tblSet.getString(3);
-			if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX))
+			if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX))
 				continue;
 
 			tempTables.add(tableName);
@@ -131,7 +154,11 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		for(int i = 0; i < tempTables.size(); i++)
 		{
 			String tableName = tempTables.get(i);
-			this.createTempTable(metadata, tableName);
+			IExecutor executor = new OCCExecuter(true);
+			executor.setup(metadata, tableName, i, this);
+			this.executors.put(tableName.toUpperCase(), executor);
+
+			//this.createTempTable(metadata, tableName);
 			this.conn.commit();
 		}
 	}
@@ -283,7 +310,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 
 	private String getTransformedTableName(String tableName)
 	{
-		StringBuilder transformed = new StringBuilder(ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX);
+		StringBuilder transformed = new StringBuilder(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX);
 		transformed.append(tableName);
 		transformed.append("_");
 		transformed.append(this.id);

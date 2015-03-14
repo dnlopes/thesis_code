@@ -1,7 +1,9 @@
 package database.jdbc;
 
-import database.scratchpad.ExecutePadFactory;
-import database.scratchpad.ExecuteScratchpad;
+import database.occ.IExecutor;
+import database.occ.OCCExecuter;
+import database.occ.scratchpad.ExecutePadFactory;
+import database.occ.scratchpad.IDBScratchpad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
@@ -24,14 +26,16 @@ public class CRDTConnection implements Connection
 
 	private TransactionInfo txnInfo;
 	private Operation shadowOp;
-	private ExecuteScratchpad pad;
+	private IDBScratchpad pad;
 	private MyShadowOpCreator shdOpCreator;
+	private IExecutor executor;
 
 	public CRDTConnection() throws SQLException
 	{
 		this.txnInfo = new TransactionInfo();
 		this.pad = ExecutePadFactory.getInstance().getScratchpad();
 		this.shdOpCreator = new MyShadowOpCreator(Configuration.SCHEMA_FILE, 1, 1);
+		this.executor = new OCCExecuter(true);
 	}
 
 	@Override

@@ -10,8 +10,8 @@ public class Configuration
 {
 
 	private static final Configuration ourInstance = new Configuration();
-	public static String DB_NAME;
-	public static String SCHEMA_FILE;
+	public static final String DB_NAME = "micro";
+	public static final String SCHEMA_FILE = DBDefaults.MICRO_FILE;
 
 	public static Configuration getInstance()
 	{
@@ -20,7 +20,5 @@ public class Configuration
 
 	private Configuration()
 	{
-		DB_NAME = "micro";
-		SCHEMA_FILE = DBDefaults.MICRO_FILE;
 	}
 }
