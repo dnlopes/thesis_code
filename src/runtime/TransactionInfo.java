@@ -4,7 +4,6 @@ import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.factory.TxnIdFactory;
-import util.ExitCode;
 import util.LogicalClock;
 import util.TimeStamp;
 
@@ -14,17 +13,17 @@ import util.TimeStamp;
  */
 public class TransactionInfo
 {
+
 	static final Logger LOG = LoggerFactory.getLogger(TransactionInfo.class);
 
-
 	private long txnId;
+	private long latency;
+	private boolean hasBegun;
+	private boolean hasEnded;
 	private TimeStamp timestamp;
 	private LogicalClock lc;
 	private StopWatch timer;
-	private long latency;
 	private Operation shadowOp;
-	private boolean hasBegun;
-	private boolean hasEnded;
 
 	public TransactionInfo()
 	{
@@ -36,8 +35,6 @@ public class TransactionInfo
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
-		Runtime.throwRunTimeException("asdasds", 1);
-
 	}
 
 	public long getTxnId()

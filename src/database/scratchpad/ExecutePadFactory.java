@@ -34,7 +34,7 @@ public class ExecutePadFactory
 		try
 		{
 			this.initialize();
-			LOG.info("Scratchpads created");
+			LOG.trace("Scratchpads created");
 
 		} catch(SQLException | ScratchpadException e)
 		{
@@ -69,7 +69,7 @@ public class ExecutePadFactory
 		{
 			this.queueLock.unlock();
 		}
-		LOG.info("Released scratchpad {}", sp.getScratchpadId());
+		LOG.trace("Released scratchpad {}", sp.getScratchpadId());
 	}
 
 	public ExecuteScratchpad getScratchpad()
@@ -93,7 +93,7 @@ public class ExecutePadFactory
 		{
 			this.queueLock.unlock();
 		}
-		LOG.info("Using scratchpad {}", sp.getScratchpadId());
+		LOG.trace("Using scratchpad {}", sp.getScratchpadId());
 		return sp;
 	}
 }

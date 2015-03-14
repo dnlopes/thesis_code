@@ -1,5 +1,8 @@
 package runtime.factory;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+
 /**
  * Created by dnlopes on 11/03/15.
  */
@@ -7,7 +10,7 @@ public class TxnIdFactory
 {
 
 	private static TxnIdFactory ourInstance = new TxnIdFactory();
-	private static long txnID = 0;
+	private static final AtomicLong txnID = new AtomicLong();
 
 	public static TxnIdFactory getInstance()
 	{
@@ -18,8 +21,8 @@ public class TxnIdFactory
 	{
 	}
 
-	public synchronized static long getNextId()
+	public static long getNextId()
 	{
-		return ++ txnID;
+		return txnID.incrementAndGet();
 	}
 }

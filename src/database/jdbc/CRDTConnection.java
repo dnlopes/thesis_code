@@ -4,9 +4,9 @@ import database.scratchpad.ExecutePadFactory;
 import database.scratchpad.ExecuteScratchpad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.*;
 import util.ExitCode;
-import runtime.Operation;
-import runtime.TransactionInfo;
+import util.defaults.DBDefaults;
 
 import java.sql.*;
 import java.util.Map;
@@ -19,36 +19,39 @@ import java.util.concurrent.Executor;
  */
 public class CRDTConnection implements Connection
 {
+
 	static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
 
 	private TransactionInfo txnInfo;
 	private Operation shadowOp;
 	private ExecuteScratchpad pad;
+	private MyShadowOpCreator shdOpCreator;
 
-	public CRDTConnection()
+	public CRDTConnection() throws SQLException
 	{
 		this.txnInfo = new TransactionInfo();
 		this.pad = ExecutePadFactory.getInstance().getScratchpad();
+		this.shdOpCreator = new MyShadowOpCreator(Configuration.SCHEMA_FILE, 1, 1);
 	}
 
 	@Override
 	public Statement createStatement() throws SQLException
 	{
 		//TODO
-		if(!this.txnInfo.hasBegun())
+		if(! this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
 
-		return new CRDTStatement(txnInfo, pad);
+		return new CRDTStatement(this.txnInfo, this.pad, this.shdOpCreator);
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
 		//TODO
-		if(!this.txnInfo.hasBegun())
+		if(! this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
 
-		return new CRDTPreparedStatement(sql, this.txnInfo, this.pad);
+		return new CRDTPreparedStatement(sql, this.txnInfo, this.pad, this.shdOpCreator);
 	}
 
 	@Override
@@ -181,7 +184,8 @@ public class CRDTConnection implements Connection
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
+	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
+			throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}
@@ -241,19 +245,22 @@ public class CRDTConnection implements Connection
 	}
 
 	@Override
-	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
+			throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
+											  int resultSetHoldability) throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
-	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
+										 int resultSetHoldability) throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}

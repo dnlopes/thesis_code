@@ -1,6 +1,7 @@
 package database.jdbc;
 
 import database.scratchpad.ExecuteScratchpad;
+import runtime.MyShadowOpCreator;
 import runtime.TransactionInfo;
 
 import java.io.InputStream;
@@ -23,13 +24,15 @@ public class CRDTPreparedStatement implements PreparedStatement
 	String[] vals;
 	private TransactionInfo txnInfo;
 	private ExecuteScratchpad pad;
+	private MyShadowOpCreator shdOpCreator;
 
-
-	protected CRDTPreparedStatement(String sql, TransactionInfo txnInfo, ExecuteScratchpad pad)
+	protected CRDTPreparedStatement(String sql, TransactionInfo txnInfo, ExecuteScratchpad pad,
+									MyShadowOpCreator creator)
 	{
 		this.txnInfo = txnInfo;
 		this.pad = pad;
 		this.sql = sql;
+		this.shdOpCreator = creator;
 		init(0, 0);
 	}
 
@@ -62,9 +65,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public ResultSet executeQuery() throws SQLException
 	{
-		if(!this.txnInfo.hasBegun())
+		if(! this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
-
 
 		//TODO: implement
 /*
@@ -96,7 +98,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public int executeUpdate() throws SQLException
 	{
-		if(!this.txnInfo.hasBegun())
+		if(! this.txnInfo.hasBegun())
 			this.txnInfo.beginTxn();
 
 		//TODO: implement
@@ -143,7 +145,6 @@ public class CRDTPreparedStatement implements PreparedStatement
 		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		vals[pos - 1] = "'" + sdf.format(val) + "'";
 	}
-
 
 	@Override
 	public void setDouble(int pos, double val) throws SQLException

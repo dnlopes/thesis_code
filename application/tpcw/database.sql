@@ -9,7 +9,8 @@
 	CHECK(addr_id>=0),
 	FOREIGN KEY(addr_city,addr_street2) REFERENCES author(a_id,a_mname),
 	FOREIGN KEY(addr_city,addr_state) REFERENCES author(a_fname,a_id),	
-	PRIMARY KEY(addr_id,addr_street2)
+	PRIMARY KEY(addr_id,addr_street2),
+	UNIQUE(addr_co_id)
 );
 
 CREATE TABLE author ( 

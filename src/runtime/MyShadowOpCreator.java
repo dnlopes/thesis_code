@@ -5,7 +5,6 @@ package runtime;
 
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,19 +16,18 @@ import java.util.Map;
 import java.util.Set;
 import java.text.DateFormat;
 
-import database.jdbc.CRDTConnection;
 import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
 import database.parser.DDLParser;
+import database.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ExitCode;
 import util.debug.Debug;
 
 import util.IDFactories.IDFactories;
 import util.IDFactories.IDGenerator;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
-import database.util.DataField;
-import database.util.DatabaseFunction;
-import database.util.DatabaseTable;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -45,34 +43,23 @@ import database.util.table.AosetTable;
 import database.util.table.ArsetTable;
 import database.util.table.AusetTable;
 import crdtlib.CrdtFactory;
-import database.util.DatabaseDef;
 import database.util.table.UosetTable;
-
-// TODO: Auto-generated Javadoc
 
 
 /**
- * The Class CrdtTransformer.
+ * Created by dnlopes on 13/03/15.
  */
-public class ShadowOperationCreator
+public class MyShadowOpCreator
 {
 
-	/** The annotated table schema. */
+	static final Logger LOG = LoggerFactory.getLogger(MyShadowOpCreator.class);
+
 	static HashMap<String, DatabaseTable> annotatedTableSchema;
-
-	/** The c jsql parser. */
+	private static Database database;
 	static CCJSqlParserManager cJsqlParser;
-
-	/** The i d factory. */
 	static IDFactories iDFactory;
-
-	/** The is initialized. */
 	static boolean isInitialized = false;
-
-	/** The global proxy id. */
 	public static int globalProxyId;
-
-	/** The total proxy num. */
 	public static int totalProxyNum;
 
 	/** The con for fetching subselection data. */
@@ -87,31 +74,25 @@ public class ShadowOperationCreator
 	/** The date format instance, it is thread-local since it is not thread-safe. */
 	DateFormat dateFormat;
 
-	private long creatingLatency;
-
 	/**
 	 * Instantiates a new crdt transformer.
 	 *
-	 * @param sqlSchema     the sql schema
-	 * @param propertiesStr the properties str
-	 * @param userName      the user name
-	 * @param password      the password
-	 * @param gPId          the g p id
-	 * @param numOfProxies  the num of proxies
-	 * @param txMudConn     the tx mud conn
+	 * @param schemaFilePath the sql schema
+	 * @param propertiesStr  the properties str
+	 * @param userName       the user name
+	 * @param password       the password
+	 * @param gPId           the g p id
+	 * @param numOfProxies   the num of proxies
+	 * @param txMudConn      the tx mud conn
 	 */
-	public ShadowOperationCreator(String sqlSchema, int gPId, int numOfProxies)
-			throws SQLException
+	public MyShadowOpCreator(String schemaFilePath, int gPId, int numOfProxies) throws SQLException
 	{
 		if(! isInitialized)
 		{
-			//Connection originalConn = this.createRealConnection(propertiesStr, userName, password);
-			Connection originalConn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
-			DDLParser sP = new DDLParser(sqlSchema);
-			sP.parseAnnotations();
-			HashMap<String, DatabaseTable> hMp = sP.getTableCrdtFormMap();
-			sP.printOut();
-			annotatedTableSchema = hMp;
+			Connection originalConn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
+			DDLParser sP = new DDLParser(schemaFilePath);
+			database = sP.parseAnnotations();
+			annotatedTableSchema = sP.getTableCrdtFormMap();
 			cJsqlParser = new CCJSqlParserManager();
 			iDFactory = new IDFactories();
 			globalProxyId = gPId;
@@ -120,46 +101,10 @@ public class ShadowOperationCreator
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
-		//this.closeRealConnection(); should not be called since the connection is used to fetch subselect in an insertion or update sql statement
-		this.con = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
+		this.con = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.cachedResultSetForDelta = null;
 		fpGenerator = new RuntimeFingerPrintGenerator();
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
-		this.setCreatingLatency(0);
-	}
-
-	/**
-	 * Creates the real connection.
-	 *
-	 * @param propertiesStr the properties str
-	 * @param userName      the user name
-	 * @param password      the password
-	 *
-	 * @return the connection
-	 */
-	public Connection createRealConnection(String propertiesStr, String userName, String password)
-	{
-		Debug.println("Create real connection for initialized id factory, propertiesStr: " + propertiesStr);
-		Connection originalConn = null;
-		try
-		{
-			Class.forName("com.mysql.jdbc.Driver");
-		} catch(ClassNotFoundException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Setup the connection with the DB
-		try
-		{
-			originalConn = DriverManager.getConnection(propertiesStr, userName, password);
-		} catch(SQLException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Debug.println("Successfully create real connection for initializing id factory");
-		return originalConn;
 	}
 
 	/**
@@ -400,7 +345,7 @@ public class ShadowOperationCreator
 	 *
 	 * @return the string[]
 	 *
-	 * @throws JSQLParserException the jSQL parser exception
+	 * @throws net.sf.jsqlparser.JSQLParserException the jSQL parser exception
 	 */
 	public String[] makeToDeterministic(String sqlQuery) throws JSQLParserException
 	{
@@ -452,22 +397,22 @@ public class ShadowOperationCreator
 			//replace database functions like now or current time stamp
 			replaceValueForDatabaseFunctions(updateStmt.getTable().getName(), valList);
 			//where clause figure out whether this is specify by primary key or not, if yes, go ahead,
-			//it not, please first query 
+			//it not, please first query
 			deterQueries = fillInMissingPrimaryKeysForUpdate(updateStmt, colList, valList);
 
 		} else if(sqlStmt instanceof Delete)
 		{
 			Delete deleteStmt = (Delete) sqlStmt;
 			//where clause figure out whether this is specify by primary key or not, if yes, go ahead,
-			//it not, please first query 
+			//it not, please first query
 			deterQueries = fillInMissingPrimaryKeysForDelete(deleteStmt);
 		}
 
 		return deterQueries;
 	}
-	
+
 	/*
-	 * These two following functions are to fetch primary key sets for an update/delete which doesn't 
+	 * These two following functions are to fetch primary key sets for an update/delete which doesn't
 	 * specify the full primary keys in its where clause.
 	 * Example: update t1 set a = f where condition, condition doesn't contain all
 	 * primary keys. The problem with this update is that it will introduce different
@@ -494,13 +439,13 @@ public class ShadowOperationCreator
 			//execute the primaryKeySelectStr
 			try
 			{
+				LOG.trace("fetching rows from main database");
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
 				newUpdates = assembleUpdates(updateStmt.getTable().getName(), colList, valList, rs);
 				rs.close();
 			} catch(SQLException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				Debug.println("Selection is wrong");
 			}
@@ -549,7 +494,7 @@ public class ShadowOperationCreator
 		}
 		return newDeletes;
 	}
-	
+
 	/*
 	 * The following two functions are used to replace the values for selection, encode their results
 	 */
@@ -570,7 +515,7 @@ public class ShadowOperationCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection 
+				//execute the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{
@@ -625,7 +570,7 @@ public class ShadowOperationCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection 
+				//execute the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{
@@ -751,11 +696,14 @@ public class ShadowOperationCreator
 	 */
 	public String[] assembleUpdates(String tableName, List<String> colList, List<String> valList, ResultSet rs)
 	{
+		LOG.trace("assembling update for table {}", tableName);
+
 		StringBuilder buffer = new StringBuilder();
-		String updateMainBody = "";
+		String updateMainBody;
 		buffer.append("update ");
 		buffer.append(tableName);
 		buffer.append(" set ");
+
 		for(int i = 0; i < colList.size(); i++)
 		{
 			buffer.append(colList.get(i) + " = ");
@@ -799,14 +747,12 @@ public class ShadowOperationCreator
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			Debug.println("The result should not be empty!");
+			LOG.error("failed to assemble update query");
 		}
+
+		LOG.trace("update query assembled correctly");
 		return updateStrList.toArray(new String[updateStrList.size()]);
 	}
-
-	/*
-	 * This function is to assemble a delete query
-	 */
 
 	/**
 	 * Assemble delete.
@@ -826,10 +772,6 @@ public class ShadowOperationCreator
 		return buffer.toString();
 	}
 
-	/*
-	 * This function is to assemble a set of delete queries
-	 */
-
 	/**
 	 * Assemble deletes.
 	 *
@@ -840,24 +782,27 @@ public class ShadowOperationCreator
 	 */
 	public String[] assembleDeletes(String tableName, ResultSet rs)
 	{
+		LOG.trace("assembling deletes for table {}", tableName);
+
 		StringBuilder buffer = new StringBuilder();
-		String deleteMainBody = "";
+		String deleteMainBody;
 		buffer.append("delete from ");
 		buffer.append(tableName);
 		buffer.append(" where ");
 		deleteMainBody = buffer.toString();
 		//Debug.println("Newly generated delete mainbody is " + deleteMainBody);
 
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		Set<String> pkSet = dbT.getPrimaryKeysNamesList();
-		List<String> deleteStrList = new ArrayList<String>();
+		DatabaseTable dbTable = annotatedTableSchema.get(tableName);
+
+		Set<String> primaryKeySet = dbTable.getPrimaryKeysNamesList();
+		List<String> deleteStrList = new ArrayList<>();
 		try
 		{
 			while(rs.next())
 			{
 				StringBuilder singleDeleteStrBuilder = new StringBuilder(deleteMainBody);
 				int pkStrIndex = 0;
-				for(String pk : pkSet)
+				for(String pk : primaryKeySet)
 				{
 					if(pkStrIndex == 0)
 					{
@@ -881,14 +826,11 @@ public class ShadowOperationCreator
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			Debug.println("The result should not be empty!");
+			LOG.error("failed to assemble delete query");
 		}
+		LOG.trace("delete query assembled correctly");
 		return deleteStrList.toArray(new String[deleteStrList.size()]);
 	}
-
-	/*
-	 * Return a value within the correct format
-	 */
 
 	/**
 	 * Gets the _ value_ in_ correct_ format.
@@ -905,10 +847,6 @@ public class ShadowOperationCreator
 		DataField dF = dbT.getField(fieldIndex);
 		return dF.get_Value_In_Correct_Format(Value);
 	}
-
-	/*
-	 * Return a value within the correct format
-	 */
 
 	/**
 	 * Gets the _ value_ in_ correct_ format.
@@ -952,7 +890,7 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Adds the db entry to shadow operation.
+	 * Adds the database entry to shadow operation.
 	 *
 	 * @param shdOp    the shd op
 	 * @param sqlQuery the sql query
@@ -977,6 +915,7 @@ public class ShadowOperationCreator
 			Insert insertStatement = (Insert) sqlStmt;
 			String tableName = insertStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
+			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof AosetTable || dTb instanceof AusetTable)
 			{
@@ -1001,6 +940,7 @@ public class ShadowOperationCreator
 			Update updateStatement = (Update) sqlStmt;
 			String tableName = updateStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
+			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof ArsetTable ||
 					dTb instanceof AusetTable ||
@@ -1025,6 +965,7 @@ public class ShadowOperationCreator
 			Delete deleteStatement = (Delete) sqlStmt;
 			String tableName = deleteStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
+			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof ArsetTable)
 			{
@@ -1055,9 +996,9 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Creates the insert db op entry.
+	 * Creates the insert database op entry.
 	 *
-	 * @param dbT             the db t
+	 * @param dbT             the database t
 	 * @param insertStatement the insert statement
 	 *
 	 * @return the dB op entry
@@ -1069,7 +1010,7 @@ public class ShadowOperationCreator
 		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || colIt.hasNext() == false)
+		if(colIt == null || ! colIt.hasNext())
 		{
 			//added in the sorted manner
 			int index = 0;
@@ -1108,9 +1049,9 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Creates the unique insert db op entry.
+	 * Creates the unique insert database op entry.
 	 *
-	 * @param dbT             the db t
+	 * @param dbT             the database t
 	 * @param insertStatement the insert statement
 	 *
 	 * @return the dB op entry
@@ -1122,7 +1063,7 @@ public class ShadowOperationCreator
 		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || colIt.hasNext() == false)
+		if(colIt == null || ! colIt.hasNext())
 		{
 			//added in the sorted manner
 			int index = 0;
@@ -1161,9 +1102,9 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Creates the update db op entry.
+	 * Creates the update database op entry.
 	 *
-	 * @param dbT             the db t
+	 * @param dbT             the database t
 	 * @param updateStatement the update statement
 	 * @param rs              the rs
 	 *
@@ -1190,9 +1131,9 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Creates the delete db op entry.
+	 * Creates the delete database op entry.
 	 *
-	 * @param dbT             the db t
+	 * @param dbT             the database t
 	 * @param deleteStatement the delete statement
 	 *
 	 * @return the dB op entry
@@ -1208,11 +1149,11 @@ public class ShadowOperationCreator
 	}
 
 	/**
-	 * Adds the field and value in where clause to db op entry.
+	 * Adds the field and value in where clause to database op entry.
 	 *
-	 * @param dbT         the db t
+	 * @param dbT         the database t
 	 * @param whereClause the where clause
-	 * @param dbOpEntry   the db op entry
+	 * @param dbOpEntry   the database op entry
 	 *
 	 * @throws SQLException the sQL exception
 	 */
@@ -1294,20 +1235,5 @@ public class ShadowOperationCreator
 	{
 		this.dateFormat = dateFormat;
 	}
-
-	/**
-	 * @param creatingLatency the creatingLatency to set
-	 */
-	public void setCreatingLatency(long creatingLatency)
-	{
-		this.creatingLatency = creatingLatency;
-	}
-
-	/**
-	 * @return the creatingLatency
-	 */
-	public long getCreatingLatency()
-	{
-		return creatingLatency;
-	}
 }
+

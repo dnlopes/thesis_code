@@ -3,6 +3,7 @@ package database.scratchpad;
 import database.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.Configuration;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.*;
@@ -28,7 +29,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 		this.id = id;
 		this.readOnly = false;
 		tables = new LinkedList<>();
-		this.conn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");
+		this.conn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.stat = this.conn.createStatement();
 		this.initScratchpad();
 		this.cleanState();
@@ -83,7 +84,7 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 	@Override
 	public void cleanState()
 	{
-		LOG.info("cleaning scratchpad {}", this.id);
+		LOG.trace("cleaning scratchpad {}", this.id);
 
 		try
 		{
@@ -99,22 +100,12 @@ public class DBExecuteScratchpad implements ExecuteScratchpad
 				stat.execute(sql.toString());
 			}
 
-			stat.close();
 			this.conn.commit();
+			LOG.trace("scratchpad {} cleaned", this.id);
 
 		} catch(SQLException e)
 		{
 			LOG.error("failed to clean scratchpad {} ", this.id);
-		} finally
-		{
-			try
-			{
-				stat.close();
-				LOG.info("scratchpad {} cleaned", this.id);
-			} catch(SQLException e)
-			{
-				LOG.warn("failed to close statement after cleanup");
-			}
 		}
 	}
 

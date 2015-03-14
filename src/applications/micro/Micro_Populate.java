@@ -74,7 +74,6 @@ public class Micro_Populate
 		stat = conn.createStatement();
 		this.setLogicalClock(dcNum);
 		this.createDB();
-		//this.createScratchpadTable();
 		this.createTables();
 		this.insertIntoTables();
 	}
@@ -137,32 +136,17 @@ public class Micro_Populate
 			{
 				// do nothing
 			}
-			if(i == 3)
-			{
-				stat.execute("CREATE TABLE t" + i + " (" +
-						"a int(10) UNIQUE NOT NULL," +
-						"b int(10) UNIQUE NOT NULL," +
-						"c int(10) UNIQUE NOT NULL," +
-						"d int(10) unsigned," +
-						"e varchar(50)," +
-						"_SP_del BIT(1) default false," +
-						"_SP_ts int default 0," +
-						"_SP_clock varchar(100), PRIMARY KEY (a,b), foreign key (a,b) references t1(a,b), " +
-						"foreign key (c) references t1(c)" +
-						");");
-			} else
-			{
-				stat.execute("CREATE TABLE t" + i + " (" +
-						"a int(10) UNIQUE NOT NULL," +
-						"b int(10) UNIQUE NOT NULL," +
-						"c int(10) UNIQUE NOT NULL," +
-						"d int(10) unsigned," +
-						"e varchar(50)," +
-						"_SP_del BIT(1) default false," +
-						"_SP_ts int default 0," +
-						"_SP_clock varchar(100), PRIMARY KEY (a,b)" +
-						");");
-			}
+			stat.execute("CREATE TABLE t" + i + " (" +
+					"a int(10) NOT NULL," +
+					"b int(10) NOT NULL," +
+					"c int(10) NOT NULL," +
+					"d int(10) unsigned," +
+					"e varchar(50)," +
+					"_SP_del BIT(1) default false," +
+					"_SP_ts int default 0," +
+					"_SP_clock varchar(100)" +
+					");");
+
 		}
 		conn.commit();
 
@@ -181,9 +165,11 @@ public class Micro_Populate
 			{
 				try
 				{
-					stat.execute("insert into t" + j + " values (" + Integer.toString(a) + "," + Integer.toString(b) + "," +
-							Integer.toString(c) + "," + Integer.toString(d) + ",'" + e + "'," + Integer.toString(
-							0) + "," + Integer.toString(0) + ",'" + logicalClockStr + "')");
+					stat.execute(
+							"insert into t" + j + " values (" + Integer.toString(a) + "," + Integer.toString(b) + "," +
+									Integer.toString(c) + "," + Integer.toString(
+									d) + ",'" + e + "'," + Integer.toString(0) + "," + Integer.toString(
+									0) + ",'" + logicalClockStr + "')");
 				} catch(SQLException e1)
 				{
 
