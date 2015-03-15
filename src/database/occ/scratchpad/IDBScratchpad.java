@@ -1,7 +1,10 @@
 package database.occ.scratchpad;
 
+import database.jdbc.Result;
 import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
+import net.sf.jsqlparser.JSQLParserException;
+import runtime.DBSingleOperation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +22,9 @@ public interface IDBScratchpad
 	 * Returns true if current transaction is read-only.
 	 */
 	public boolean isReadOnly();
+
+	public Result execute(DBSingleOperation op, long txnId)
+			throws JSQLParserException, ScratchpadException, SQLException;
 
 	/**
 	 * Executes a query in the scratchpad state.

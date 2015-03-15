@@ -1,13 +1,18 @@
 package database.occ.scratchpad;
 
 import database.jdbc.ConnectionFactory;
+import database.jdbc.Result;
 import database.occ.OCCExecuter;
 import database.occ.IExecutor;
 import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Configuration;
+import runtime.*;
+import runtime.Runtime;
+import util.ExitCode;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.*;
@@ -27,16 +32,25 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	private boolean readOnly;
 	private int id;
 	private Connection conn;
-	private Statement stat;
+	private Statement statQ;
+	private Statement statU;
+	private Statement statBU;
+	private boolean batchEmpty;
+
+	private CCJSqlParserManager parser;
 
 	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
 	{
 		this.id = id;
-		this.executors = new HashMap<>();
-		this.readOnly = false;
+		this.parser = new CCJSqlParserManager();
 		tables = new LinkedList<>();
 		this.conn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
-		this.stat = this.conn.createStatement();
+		this.executors = new HashMap<>();
+		this.readOnly = false;
+		this.batchEmpty = true;
+		this.statQ = this.conn.createStatement();
+		this.statU = this.conn.createStatement();
+		this.statBU = this.conn.createStatement();
 		this.createExecutors();
 		this.cleanState();
 	}
@@ -54,36 +68,82 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
+	public Result execute(DBSingleOperation op, long txnId)
+			throws JSQLParserException, ScratchpadException, SQLException
+	{
+		op.parseSQL(parser);
+
+		String[][] tableName = op.targetTable();
+		if(tableName.length == 1)
+		{
+			IExecutor executor = this.executors.get(tableName[0][2]);
+			if(executor == null)
+			{
+				LOG.error("executor for table {} not found", tableName[0][2]);
+				Runtime.throwRunTimeException("could not find a proper executor for this operation",
+						ExitCode.EXECUTOR_NOT_FOUND);
+			}
+			if(op.isQuery())
+				return executor.executeTemporaryQuery(op, this, tableName[0]);
+			else
+				return executor.executeTemporaryUpdate(op, this);
+		} else
+		{
+			if(!op.isQuery())
+				throw new ScratchpadException("Multi-table operation not expected " + op.sql);
+			IExecutor[] policy = new OCCExecuter[tableName.length];
+			for(int i = 0; i < tableName.length; i++)
+			{
+				policy[i] = this.executors.get(tableName[i][2]);
+				if(tableName[i][1] == null)
+					tableName[i][1] = policy[i].getAliasTable();
+				if(policy[i] == null)
+					throw new ScratchpadException("No config for table " + tableName[i][0]);
+			}
+			return policy[0].executeTemporaryQuery(op, this, policy, tableName);
+		}
+		//TODO
+	}
+
+	@Override
 	public ResultSet executeQuery(String op) throws SQLException
 	{
 		//TODO
-		return this.stat.executeQuery(op);
+		return this.statQ.executeQuery(op);
 	}
 
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
 		//TODO
-		return this.stat.executeUpdate(op);
+		return this.statU.executeUpdate(op);
 	}
 
 	@Override
 	public void addToBatchUpdate(String op) throws SQLException
 	{
-		//TODO
-		this.stat.addBatch(op);
+		this.statBU.addBatch(op);
+		this.batchEmpty = false;
 	}
 
 	@Override
 	public int executeBatch() throws SQLException
 	{
-		//TODO
-		int[] results = this.stat.executeBatch();
+		if(this.batchEmpty)
+		{
+			LOG.warn("trying to execute an empty batch for pad {}", this.getScratchpadId());
+			// -1 is the default error
+			return -1;
+		}
+
+		int[] res = statBU.executeBatch();
 		int finalResult = 0;
 
-		for(int i = 0; i < results.length; i++)
-			finalResult += results[i];
+		for(int i = 0; i < res.length; i++)
+			finalResult += res[i];
 
+		statBU.clearBatch();
+		batchEmpty = true;
 		return finalResult;
 	}
 
@@ -187,7 +247,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			boolean first = true;
 			while(colSet.next())
 			{
-				if(! first)
+				if(!first)
 					buffer.append(",");
 				else
 					first = false;
@@ -203,7 +263,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 				}
 
 				buffer.append(tmpStr[0]);
-				if(! (tmpStr[0].equals("INT") ||
+				if(!(tmpStr[0].equals("INT") ||
 						tmpStr[0].equals("DOUBLE") ||
 						tmpStr[0].equals("BIT") ||
 						tmpStr[0].equals("DATE") ||

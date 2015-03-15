@@ -1,23 +1,73 @@
 package runtime;
 
-import java.util.Objects;
+import util.ExitCode;
+import util.UnsignedTypes;
 
 
-/**
- * Created by dnlopes on 10/03/15.
- */
-public abstract class Operation
-{
-	public Operation op;
+public class Operation implements java.io.Serializable {
+
+	public byte[] op;
 	public String[] pk;
+
+	public Operation(byte[] b) {
+		op = b;
+	}
+
+	public Operation(byte b[], int offset) {
+
+		long length = UnsignedTypes.bytesToLong(b, offset);
+		offset += UnsignedTypes.uint32Size;
+		op = new byte[(int) length];
+		for (int i = 0; i < op.length; i++)
+			op[i] = b[i + offset];
+	}
+
+	public void getBytes(byte[] b, int offset) {
+		UnsignedTypes.longToBytes(op.length, b, offset);
+		offset += UnsignedTypes.uint32Size;
+		for (int i = 0; i < op.length; i++)
+			b[i + offset] = op[i];
+	}
+
+	public final int getByteSize() {
+		return op.length + UnsignedTypes.uint32Size;
+	}
+
+	public byte[] getOperation() {
+		return op;
+	}
+
+
 
 	//public void clear();
 	//public void addOperationEntry(/*OpEntry entry*/);
 	//public boolean executeOperation();
-	public abstract Object getStatementObj();
-	public abstract Object getStatement();
-	public abstract Object executeDefOpUpdate();
-	public abstract Object executeDefOpDelete();
-	public abstract Objects executeDefOpInsert();
+	/*
+	public Object getStatementObj()
+	{
+		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		return null;
+	}
+	public Object getStatement()
+	{
+		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		return null;
+	}
+	public Object executeDefOpUpdate()
+	{
+		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		return null;
+	}
+	public Object executeDefOpDelete()
+	{
+		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		return null;
+	}
+	public Object executeDefOpInsert()
+	{
+		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		return null;
+	}
+                                 */
 
 }

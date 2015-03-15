@@ -5,6 +5,7 @@ import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import runtime.DBSingleOpPair;
 import runtime.Operation;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -33,7 +34,7 @@ public class OCCExecuter extends AbstractExecutor
 	}
 
 	@Override
-	protected void executeDefOpInsert1(Operation op, Insert dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
+	protected void executeDefOpInsert(DBSingleOpPair op, Insert dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
 									   boolean b) throws SQLException
 	{
 		//Debug.println( "DEF-LWW>>>>" + op.op);
@@ -168,7 +169,7 @@ public class OCCExecuter extends AbstractExecutor
 	}
 
 	@Override
-	protected void executeDefOpDelete1(Operation op, Delete dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
+	protected void executeDefOpDelete(DBSingleOpPair op, Delete dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
 									   boolean b) throws SQLException
 	{
 		//Debug.println( "DEF-LWW>>>>" + op.op);
@@ -239,7 +240,7 @@ public class OCCExecuter extends AbstractExecutor
 	 *
 	 * @throws java.sql.SQLException
 	 */
-	protected void executeDefOpUpdate1(Operation op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
+	protected void executeDefOpUpdate(DBSingleOpPair op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
 									   boolean b) throws SQLException
 	{
 		//Debug.println( "DEF-LWW>>>>" + op.op);

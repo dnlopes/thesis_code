@@ -23,7 +23,7 @@ public class MicroTest
 		Connection conn = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
 		Statement stat = conn.createStatement();
 
-		int res = stat.executeUpdate("update t1 set c=15 where d=10");
+		int res = stat.executeUpdate("update t1 set c=15 where d=1");
 		conn.commit();
 
 	}

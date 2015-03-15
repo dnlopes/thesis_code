@@ -110,6 +110,7 @@ class TPCW_Populate
 		System.out.println("Beginning TPCW Database population.");
 		rand = new Random();
 		getConnection();
+		//createDB();
 		deleteTables();
 		createTables();
 		populateAddressTable();
@@ -201,7 +202,7 @@ class TPCW_Populate
 				C_EMAIL = C_UNAME + "@" + getRandomAString(2, 9) + ".com";
 
 				GregorianCalendar cal = new GregorianCalendar();
-				cal.add(Calendar.DAY_OF_YEAR, - 1 * getRandomInt(1, 730));
+				cal.add(Calendar.DAY_OF_YEAR, -1 * getRandomInt(1, 730));
 				C_SINCE = new java.sql.Date(cal.getTime().getTime());
 				cal.add(Calendar.DAY_OF_YEAR, getRandomInt(0, 60));
 				if(cal.after(new GregorianCalendar()))
@@ -579,7 +580,7 @@ class TPCW_Populate
 				int num_items = getRandomInt(1, 5);
 				O_C_ID = getRandomInt(1, NUM_CUSTOMERS);
 				cal = new GregorianCalendar();
-				cal.add(Calendar.DAY_OF_YEAR, - 1 * getRandomInt(1, 60));
+				cal.add(Calendar.DAY_OF_YEAR, -1 * getRandomInt(1, 60));
 				O_DATE = new java.sql.Timestamp(cal.getTime().getTime());
 				O_SUB_TOTAL = (double) getRandomInt(1000, 999999) / 100;
 				O_TAX = O_SUB_TOTAL * 0.0825;
@@ -945,6 +946,26 @@ class TPCW_Populate
 		}
 
 		return resultString;
+	}
+
+	private static void createDB()
+	{
+		try
+		{
+			Statement stat = con.createStatement();
+			stat.execute("DROP DATABASE IF EXISTS tpcw");
+			con.commit();
+			stat.execute("CREATE DATABASE tpcw");
+			stat.execute("use tpcw;");
+			con.commit();
+			stat.close();
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+			System.exit(-1);
+		}
+
+
 	}
 }
 

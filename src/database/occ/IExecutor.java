@@ -3,6 +3,8 @@ package database.occ;
 import database.jdbc.Result;
 import database.occ.scratchpad.IDBScratchpad;
 import database.occ.scratchpad.ScratchpadException;
+import runtime.DBSingleOpPair;
+import runtime.DBSingleOperation;
 import runtime.Operation;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -70,66 +72,55 @@ public interface IExecutor
 	/**
 	 * Executes a query in the scratchpad temporary state.
 	 *
-	 * @throws database.occ.scratchpad.ScratchpadException
+	 * @throws ScratchpadException
 	 */
-	Result executeTemporaryQuery(Operation dbOp, IDBScratchpad db, String[] table)
+	Result executeTemporaryQuery(DBSingleOperation dbOp, IDBScratchpad db, String[] table)
 			throws SQLException, ScratchpadException;
 
 	/**
 	 * Executes a query in the scratchpad temporary state for a query that combines multiple ExecutionPolicies.
 	 *
-	 * @throws database.occ.scratchpad.ScratchpadException
+	 * @throws ScratchpadException
 	 */
-	Result executeTemporaryQuery(Operation dbOp, IDBScratchpad db, IExecutor[] policies, String[][] table)
+	Result executeTemporaryQuery(DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies, String[][] table)
 			throws SQLException, ScratchpadException;
 
 	/**
 	 * Executes a query against database with temporary state for a single table
 	 */
-	ResultSet executeTemporaryQueryOrig(Operation dbOp, IDBScratchpad db, String[] table) throws SQLException;
+	ResultSet executeTemporaryQueryOrig(DBSingleOperation dbOp, IDBScratchpad db, String[] table) throws SQLException;
 	/**
 	 * Executes a query against database with temporary state for multiple table policies
 	 *
-	 * @throws java.sql.SQLException
+	 * @throws SQLException
 	 */
 
-	ResultSet executeTemporaryQueryOrig(Operation dbOp, IDBScratchpad db, IExecutor[] policies, String[][] table)
-			throws SQLException;
+	ResultSet executeTemporaryQueryOrig(DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies,
+										String[][] table) throws SQLException;
 
 	/**
 	 * Executes an update in the scratchpad temporary state.
 	 *
-	 * @throws database.occ.scratchpad.ScratchpadException
+	 * @throws ScratchpadException
 	 */
-	Result executeTemporaryUpdate(Operation dbOp, IDBScratchpad db) throws SQLException, ScratchpadException;
+	Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db) throws SQLException, ScratchpadException;
 
 	/**
 	 * Executes an update in the scratchpad final state.
 	 *
 	 * @param b
 	 */
-	void executeDefiniteUpdate(Operation dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
+	void executeDefiniteUpdate(DBSingleOpPair dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
 			throws SQLException;
 	/**
 	 * Executes an update in the scratchpad final state for generic operation.
 	 *
 	 * @param b
 	 */
-	Result executeDefiniteUpdate1(Operation dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
+	Result executeDefiniteUpdate(DBSingleOperation dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
 			throws SQLException;
 
 	//update timestamp only
-	Result executeOnlyOp(Operation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException;
-	/**
-	 * not create temporary table, but set table meta data
-	 *
-	 * @param dm
-	 * @param tableName
-	 * @param id
-	 * @param tableId
-	 *
-	 * @throws database.occ.scratchpad.ScratchpadException
-	 */
-	void init(DatabaseMetaData dm, String tableName, int id, int tableId) throws ScratchpadException;
-
+	Result executeOnlyOp(DBSingleOperation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
+			throws SQLException;
 }

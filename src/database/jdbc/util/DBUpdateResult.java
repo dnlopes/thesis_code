@@ -16,16 +16,7 @@ public class DBUpdateResult
 	public static DBUpdateResult createResult( byte[] arr) {
 		return new DBUpdateResult( arr);
 	}
-	
-//	protected DBUpdateResult( int result) {
-//		super( new byte[] {
-//                (byte)(result >>> 24),
-//                (byte)(result >>> 16),
-//                (byte)(result >>> 8),
-//                (byte)result});
-//		this.result = result;
-//		this.hasDecoded = true;
-//	}
+
 	protected DBUpdateResult( int result) {
 		super( new byte[] {
                 (byte)(result >>> 24),

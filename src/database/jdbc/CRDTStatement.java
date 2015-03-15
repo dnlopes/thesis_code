@@ -1,8 +1,12 @@
 package database.jdbc;
 
+import database.jdbc.util.DBUpdateResult;
 import database.occ.scratchpad.IDBScratchpad;
+import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
+import runtime.DBSingleOperation;
 import runtime.MyShadowOpCreator;
+import runtime.ShadowOperation;
 import runtime.TransactionInfo;
 import util.MissingImplementationException;
 
@@ -69,6 +73,36 @@ public class CRDTStatement implements Statement
 			result += pad.executeUpdate(sql);
 		}
 
+		for(String updateStr : deter)
+		{
+			DBUpdateResult res = null;
+			try
+			{
+				res = DBUpdateResult.createResult(
+						pad.execute(DBSingleOperation.createOperation(updateStr), this.txnInfo.getTxnId()).getResult());
+			} catch(JSQLParserException e)
+			{
+				e.printStackTrace();
+			} catch(ScratchpadException e)
+			{
+				e.printStackTrace();
+			}
+			result += res.getUpdateResult();
+
+			if(this.txnInfo.getShadowOp() == null)
+			{
+				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
+				this.txnInfo.setShadowOp(shdOp);
+			}
+			try
+			{
+				shdOpCreator.addDBEntryToShadowOperation(this.txnInfo.getShadowOp(), updateStr);
+			} catch(JSQLParserException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return result;
 
 		//TODO: implement

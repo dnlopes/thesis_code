@@ -23,7 +23,7 @@ public class TransactionInfo
 	private TimeStamp timestamp;
 	private LogicalClock lc;
 	private StopWatch timer;
-	private Operation shadowOp;
+	private ShadowOperation shadowOp;
 
 	public TransactionInfo()
 	{
@@ -67,12 +67,12 @@ public class TransactionInfo
 		this.lc = lc;
 	}
 
-	public Operation getShadowOp()
+	public ShadowOperation getShadowOp()
 	{
 		return this.shadowOp;
 	}
 
-	public void setShadowOp(Operation op)
+	public void setShadowOp(ShadowOperation op)
 	{
 		this.shadowOp = op;
 	}

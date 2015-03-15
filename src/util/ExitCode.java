@@ -106,6 +106,9 @@ public class ExitCode
 
 	public static final int UNEXPECTED_TABLE = 32;
 
+	public static final int EXECUTOR_NOT_FOUND = 33;
+
+
 
 
 }
