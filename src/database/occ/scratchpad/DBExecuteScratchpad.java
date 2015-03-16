@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
 import runtime.Runtime;
+import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 import util.defaults.ScratchpadDefaults;
 
@@ -25,13 +26,12 @@ import java.util.*;
 public class DBExecuteScratchpad implements IDBScratchpad
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
 
-	private static List<String> tables;
 	private Map<String, IExecutor> executors;
 	private boolean readOnly;
 	private int id;
-	private Connection conn;
+	private Connection defaultConnection;
 	private Statement statQ;
 	private Statement statU;
 	private Statement statBU;
@@ -43,16 +43,14 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	{
 		this.id = id;
 		this.parser = new CCJSqlParserManager();
-		tables = new LinkedList<>();
-		this.conn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
+		this.defaultConnection = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.executors = new HashMap<>();
 		this.readOnly = false;
 		this.batchEmpty = true;
-		this.statQ = this.conn.createStatement();
-		this.statU = this.conn.createStatement();
-		this.statBU = this.conn.createStatement();
+		this.statQ = this.defaultConnection.createStatement();
+		this.statU = this.defaultConnection.createStatement();
+		this.statBU = this.defaultConnection.createStatement();
 		this.createExecutors();
-		this.cleanState();
 	}
 
 	@Override
@@ -148,34 +146,11 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
-	public void cleanState()
+	public void abort() throws SQLException
 	{
 		LOG.trace("cleaning scratchpad {}", this.id);
-
-		try
-		{
-			Statement stat = this.conn.createStatement();
-
-			//TODO
-			// call executor.clean now
-			for(String table : tables)
-			{
-				StringBuilder sql = new StringBuilder();
-				sql.append("TRUNCATE TABLE ");
-				sql.append(this.getTransformedTableName(table));
-				sql.append(";");
-
-				LOG.trace("exec {}", sql.toString());
-				stat.execute(sql.toString());
-			}
-
-			this.conn.commit();
-			LOG.trace("scratchpad {} cleaned", this.id);
-
-		} catch(SQLException e)
-		{
-			LOG.error("failed to clean scratchpad {} ", this.id);
-		}
+		this.defaultConnection.rollback();
+		LOG.trace("scratchpad {} cleaned", this.id);
 	}
 
 	@Override
@@ -194,7 +169,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 	private void createExecutors() throws SQLException, ScratchpadException
 	{
-		DatabaseMetaData metadata = this.conn.getMetaData();
+		DatabaseMetaData metadata = this.defaultConnection.getMetaData();
 		String[] types = {"TABLE"};
 		ResultSet tblSet = metadata.getTables(null, null, "%", types);
 
@@ -209,7 +184,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		}
 
 		Collections.sort(tempTables);
-		tables = new LinkedList<>(tempTables);
 
 		for(int i = 0; i < tempTables.size(); i++)
 		{
@@ -219,7 +193,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			this.executors.put(tableName.toUpperCase(), executor);
 
 			//this.createTempTable(metadata, tableName);
-			this.conn.commit();
+			this.defaultConnection.commit();
 		}
 	}
 

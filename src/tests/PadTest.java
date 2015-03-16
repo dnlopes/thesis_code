@@ -25,11 +25,11 @@ public class PadTest
 
 		StopWatch watch = new LoggingStopWatch("firstPad");
 		watch.start();
-		IDBScratchpad pad = ExecutePadFactory.getInstance().getScratchpad();
+		IDBScratchpad pad = ExecutePadFactory.getScratchpad();
 		watch.stop();
 		watch.setTag("secondPad");
 		watch.start();
-		IDBScratchpad pad2 = ExecutePadFactory.getInstance().getScratchpad();
+		IDBScratchpad pad2 = ExecutePadFactory.getScratchpad();
 		watch.stop();
 
 		Connection con = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);

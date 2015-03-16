@@ -1,7 +1,8 @@
-package runtime;
+package runtime.operation;
 
 import database.occ.IDatabase;
 import database.occ.IDefDatabase;
+import runtime.Runtime;
 import util.ExitCode;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -109,7 +110,7 @@ public abstract class DBShadowOperation extends DBOperation
 
 	public static DBOperation decodeShadow(DataInputStream dis) throws IOException
 	{
-		Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+		runtime.Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 		/*
 		byte b = dis.readByte();

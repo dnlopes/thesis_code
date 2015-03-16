@@ -19,6 +19,8 @@ import java.text.DateFormat;
 
 import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
+import runtime.operation.DBOpEntry;
+import runtime.operation.ShadowOperation;
 import util.parser.DDLParser;
 import util.ExitCode;
 import util.debug.Debug;
@@ -99,10 +101,9 @@ public class ShadowOperationCreator
 	 * @param numOfProxies  the num of proxies
 	 * @param txMudConn     the tx mud conn
 	 */
-	public ShadowOperationCreator(String sqlSchema, int gPId, int numOfProxies)
-			throws SQLException
+	public ShadowOperationCreator(String sqlSchema, int gPId, int numOfProxies) throws SQLException
 	{
-		if(! isInitialized)
+		if(!isInitialized)
 		{
 			//Connection originalConn = this.createRealConnection(propertiesStr, userName, password);
 			Connection originalConn = ConnectionFactory.getInstance().getDefaultConnection("tpcw");

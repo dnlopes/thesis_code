@@ -1,8 +1,7 @@
 package database.jdbc;
 
-import database.occ.scratchpad.IDBScratchpad;
+import network.Proxy;
 import runtime.MyShadowOpCreator;
-import runtime.TransactionInfo;
 import util.MissingImplementationException;
 
 import java.io.InputStream;
@@ -23,15 +22,12 @@ public class CRDTPreparedStatement implements PreparedStatement
 	String sql;
 	int[] argPos;
 	String[] vals;
-	private TransactionInfo txnInfo;
-	private IDBScratchpad pad;
 	private MyShadowOpCreator shdOpCreator;
+	private Proxy proxy;
 
-	protected CRDTPreparedStatement(String sql, TransactionInfo txnInfo, IDBScratchpad pad,
-									MyShadowOpCreator creator)
+	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator)
 	{
-		this.txnInfo = txnInfo;
-		this.pad = pad;
+		this.proxy = proxy;
 		this.sql = sql;
 		this.shdOpCreator = creator;
 		init(0, 0);
@@ -40,7 +36,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	private void init(int pos, int count)
 	{
 		int npos = sql.indexOf('?', pos);
-		if(npos == - 1)
+		if(npos == -1)
 		{
 			argPos = new int[count];
 			vals = new String[count];
@@ -66,8 +62,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public ResultSet executeQuery() throws SQLException
 	{
-		if(! this.txnInfo.hasBegun())
-			this.txnInfo.beginTxn();
+		if(!this.proxy.txnHasBegun())
+			this.proxy.beginTxn();
 
 		//TODO: implement
 /*
@@ -99,8 +95,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public int executeUpdate() throws SQLException
 	{
-		if(! this.txnInfo.hasBegun())
-			this.txnInfo.beginTxn();
+		if(!this.proxy.txnHasBegun())
+			this.proxy.beginTxn();
 
 		//TODO: implement
 

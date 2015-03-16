@@ -21,7 +21,7 @@ package util.debug;
 public class Debug {
 
 	/** The debug. */
-	public static boolean debug = true;
+	public static boolean debug = false;
 	public static final boolean SANITY_CHECK = true;
 
 	/** The profile. */

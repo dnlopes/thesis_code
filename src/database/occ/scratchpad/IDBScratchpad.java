@@ -4,7 +4,7 @@ import database.jdbc.Result;
 import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
-import runtime.DBSingleOperation;
+import runtime.operation.DBSingleOperation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,9 +46,9 @@ public interface IDBScratchpad
 	public int executeBatch() throws SQLException;
 
 	/**
-	 * Clears the state of this pad. Should be called before releasing the pad
+	 * Clears the state of this pad.
 	 */
-	public void cleanState();
+	public void abort() throws SQLException;
 
 	/**
 	 * Add the given entry to the write set

@@ -1,12 +1,10 @@
 package database.jdbc;
 
-import database.occ.IExecutor;
-import database.occ.OCCExecuter;
-import database.occ.scratchpad.ExecutePadFactory;
-import database.occ.scratchpad.IDBScratchpad;
+import network.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
+import runtime.Runtime;
 import util.ExitCode;
 import util.MissingImplementationException;
 
@@ -24,72 +22,59 @@ public class CRDTConnection implements Connection
 
 	static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
 
-	private TransactionInfo txnInfo;
-	private Operation shadowOp;
-	private IDBScratchpad pad;
+	private Proxy proxy;
 	private MyShadowOpCreator shdOpCreator;
-	private IExecutor executor;
 
 	public CRDTConnection() throws SQLException
 	{
-		this.txnInfo = new TransactionInfo();
-		this.pad = ExecutePadFactory.getInstance().getScratchpad();
 		this.shdOpCreator = new MyShadowOpCreator(Configuration.SCHEMA_FILE, 1, 1);
-		this.executor = new OCCExecuter(true);
+		this.proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID);
 	}
 
 	@Override
 	public Statement createStatement() throws SQLException
 	{
 		//TODO
-		if(! this.txnInfo.hasBegun())
-			this.txnInfo.beginTxn();
+		if(!this.proxy.txnHasBegun())
+			this.proxy.beginTxn();
 
-		return new CRDTStatement(this.txnInfo, this.pad, this.shdOpCreator);
+		return new CRDTStatement(this.proxy, this.shdOpCreator);
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
 		//TODO
-		if(! this.txnInfo.hasBegun())
-			this.txnInfo.beginTxn();
+		if(!this.proxy.txnHasBegun())
+			this.proxy.beginTxn();
 
-		return new CRDTPreparedStatement(sql, this.txnInfo, this.pad, this.shdOpCreator);
+		return new CRDTPreparedStatement(sql, this.proxy, this.shdOpCreator);
 	}
 
 	@Override
 	public void commit() throws SQLException
 	{
-		//TODO
-		/*
-		System.out.println("Should not come here in Sifter");
-		inTx = false;
-		if( ! proxy.commit(txId, op, color)){
-			internalAborted = true;
-			throw new SQLException( "commit failed");
-		}*/
+		LOG.trace("committing txn {} ", this.proxy.getTransaction().getTxnId());
 
+		if(!this.proxy.commit())
+			throw new SQLException("txn commit failed");
+
+		LOG.info("txn {} committed ({} ms)", this.proxy.getTransaction().getTxnId(),this.proxy.getTransaction().getLatency());
 	}
 
 	@Override
 	public void rollback() throws SQLException
 	{
-		//TODO
-		   /*
-		inTx = false;
-		if(internalAborted == false)
-			proxy.abort( txId);
-		if(shdOp != null && !shdOp.isEmpty()) {
-			shdOp.clear();
-		}*/
+		//TODO review
+		LOG.info("txn {} aborted by user request", this.proxy.getTransaction().getTxnId());
+		this.proxy.abortTransaction();
 	}
 
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws SQLException
 	{
 		if(autoCommit)
-			throw new SQLException("autocommit not supported");
+			Runtime.throwRunTimeException("autocommit not supported", ExitCode.AUTO_COMMIT_NOT_SUPPORTED);
 	}
 
 

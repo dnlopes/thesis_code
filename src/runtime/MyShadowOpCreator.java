@@ -23,6 +23,8 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.operation.DBOpEntry;
+import runtime.operation.ShadowOperation;
 import util.ExitCode;
 import util.IDFactories.IDFactories;
 import util.IDFactories.IDGenerator;
@@ -76,7 +78,7 @@ public class MyShadowOpCreator
 	 */
 	public MyShadowOpCreator(String schemaFilePath, int gPId, int numOfProxies) throws SQLException
 	{
-		if(! isInitialized)
+		if(!isInitialized)
 		{
 			Connection originalConn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 			DDLParser sP = new DDLParser(schemaFilePath);
@@ -108,7 +110,7 @@ public class MyShadowOpCreator
 			originalConn.close();
 		} catch(SQLException e)
 		{
-			e.printStackTrace();
+			LOG.warn("failed to close original connection");
 		}
 	}
 
@@ -998,7 +1000,7 @@ public class MyShadowOpCreator
 		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || ! colIt.hasNext())
+		if(colIt == null || !colIt.hasNext())
 		{
 			//added in the sorted manner
 			int index = 0;
@@ -1051,7 +1053,7 @@ public class MyShadowOpCreator
 		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getTableName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || ! colIt.hasNext())
+		if(colIt == null || !colIt.hasNext())
 		{
 			//added in the sorted manner
 			int index = 0;

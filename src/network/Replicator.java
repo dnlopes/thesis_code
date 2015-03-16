@@ -1,0 +1,37 @@
+package network;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import runtime.operation.Operation;
+
+import java.util.LinkedList;
+import java.util.List;
+
+
+/**
+ * Created by dnlopes on 15/03/15.
+ */
+public class Replicator extends Node
+{
+
+	static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
+
+	private List<Replicator> otherReplicas;
+
+	public Replicator(String hostName, int id, int port)
+	{
+		super(hostName, id, port, Role.REPLICATOR);
+		this.otherReplicas = new LinkedList<>();
+	}
+
+	public boolean commit(Operation op)
+	{
+		boolean success = false;
+
+		LOG.trace("received commit signal");
+		//TODO
+		// 1- commit locally (we need a connection instance)
+		// 2- send to other replicas in a background thread?
+		return success;
+	}
+}

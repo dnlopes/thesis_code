@@ -3,10 +3,8 @@ package tests;
 import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
 import runtime.Configuration;
-import util.defaults.DBDefaults;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -21,11 +19,18 @@ public class MicroTest
 		//Micro_Populate db = new Micro_Populate();
 
 		Connection conn = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
+
 		Statement stat = conn.createStatement();
 
 		int res = stat.executeUpdate("update t1 set c=15 where d=1");
-		conn.commit();
 
+
+//		TcpCompleteLayer layer = new TcpCompleteLayer();
+
+//		TcpCompleteSession session = new TcpCompleteSession(layer);
+
+
+		conn.commit();
 	}
 
 

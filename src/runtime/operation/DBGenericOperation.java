@@ -1,8 +1,9 @@
-package runtime;
+package runtime.operation;
 
 import database.occ.IDatabase;
 import database.occ.IDefDatabase;
 import database.occ.IPrimaryExec;
+import runtime.Runtime;
 import util.ExitCode;
 
 import java.io.DataInputStream;
@@ -56,7 +57,7 @@ public abstract class DBGenericOperation extends DBOperation
 
 	public static DBOperation decodeGeneric(DataInputStream dis) throws IOException
 	{
-		Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+		runtime.Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 		/*
 		byte b = dis.readByte();

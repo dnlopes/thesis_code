@@ -107,6 +107,11 @@ public class ExitCode
 	public static final int UNEXPECTED_TABLE = 32;
 
 	public static final int EXECUTOR_NOT_FOUND = 33;
+	public static final int AUTO_COMMIT_NOT_SUPPORTED = 33;
+	public static final int QOS_ERROR = 34;
+	public static final int CHANNEL_ERROR = 35;
+
+
 
 
 

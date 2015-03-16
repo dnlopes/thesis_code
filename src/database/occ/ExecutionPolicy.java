@@ -3,9 +3,8 @@ package database.occ;
 import database.jdbc.Result;
 import database.occ.scratchpad.IDBScratchpad;
 import database.occ.scratchpad.ScratchpadException;
-import runtime.DBSingleOpPair;
-import runtime.DBSingleOperation;
-import runtime.Operation;
+import runtime.operation.DBSingleOpPair;
+import runtime.operation.DBSingleOperation;
 import util.LogicalClock;
 import util.TimeStamp;
 

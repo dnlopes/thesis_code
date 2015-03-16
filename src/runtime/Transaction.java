@@ -3,7 +3,7 @@ package runtime;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.factory.TxnIdFactory;
+import runtime.operation.ShadowOperation;
 import util.LogicalClock;
 import util.TimeStamp;
 
@@ -11,10 +11,10 @@ import util.TimeStamp;
 /**
  * accumulates information on a transaction as it is processed
  */
-public class TransactionInfo
+public class Transaction
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(TransactionInfo.class);
+	static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
 
 	private long txnId;
 	private long latency;
@@ -25,7 +25,7 @@ public class TransactionInfo
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
 
-	public TransactionInfo()
+	public Transaction()
 	{
 		this.txnId = 0;
 		this.latency = 0;
@@ -40,11 +40,6 @@ public class TransactionInfo
 	public long getTxnId()
 	{
 		return this.txnId;
-	}
-
-	public void setTxnId(long id)
-	{
-		this.txnId = id;
 	}
 
 	public TimeStamp getTimestamp()
@@ -82,11 +77,10 @@ public class TransactionInfo
 		return this.latency;
 	}
 
-	public void beginTxn()
+	public void beginTxn(long txnId)
 	{
-		this.txnId = TxnIdFactory.getNextId();
+		this.txnId = txnId;
 		this.hasBegun = true;
-		LOG.info("Beggining txn {}", this.txnId);
 		this.timer.start();
 	}
 
@@ -95,7 +89,6 @@ public class TransactionInfo
 		this.timer.stop();
 		this.latency = this.timer.getElapsedTime();
 		this.hasEnded = true;
-		LOG.info("Finished txn {}", this.txnId);
 	}
 
 	public void clear()

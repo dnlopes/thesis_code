@@ -15,7 +15,7 @@
 /**
  *
  */
-package runtime;
+package runtime.operation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -42,6 +42,7 @@ import crdtlib.datatypes.primitivetypes.NumberDeltaDouble;
 import crdtlib.datatypes.primitivetypes.NumberDeltaFloat;
 import crdtlib.datatypes.primitivetypes.NumberDeltaInteger;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
+import runtime.operation.DBOpEntry;
 
 
 /**

@@ -17,8 +17,10 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.*;
 import runtime.Runtime;
+import runtime.operation.DBOperation;
+import runtime.operation.DBSingleOpPair;
+import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -185,7 +187,7 @@ public abstract class AbstractExecutor implements IExecutor
 								if(this.isInteger(valuePart))
 								{
 									LOG.debug("We identified an integer");
-									if(! isFirst)
+									if(!isFirst)
 									{
 										pkValueStrBuilder.append("AND");
 									} else
@@ -204,14 +206,14 @@ public abstract class AbstractExecutor implements IExecutor
 
 			buffer.append("(select * from ");
 			buffer.append(tableNames[0]);
-			if(! pkValueStrBuilder.toString().equals(""))
+			if(!pkValueStrBuilder.toString().equals(""))
 			{
 				buffer.append(" where ");
 				buffer.append(pkValueStrBuilder.toString());
 			}
 			buffer.append(" union select * from ");
 			buffer.append(tempTableName);
-			if(! pkValueStrBuilder.toString().equals(""))
+			if(!pkValueStrBuilder.toString().equals(""))
 			{
 				buffer.append(" where ");
 				buffer.append(pkValueStrBuilder.toString());
@@ -258,15 +260,15 @@ public abstract class AbstractExecutor implements IExecutor
 		ResultSetMetaData rsmd = rs.getMetaData();
 		int numberOfColumns = rsmd.getColumnCount();
 		int nPks = def.getPksPlain().length;
-		if(! addToReadSet)
-			nPks = - 1;
+		if(!addToReadSet)
+			nPks = -1;
 		while(rs.next())
 		{
 			String[] row = new String[numberOfColumns - 1 - nPks];
 			for(int i = 0; i < row.length; i++)
 				row[i] = rs.getString(i + 1);
 			result.add(row);
-			if(! addToReadSet)
+			if(!addToReadSet)
 				continue;
 			if(nPks > 0)
 			{
@@ -293,7 +295,7 @@ public abstract class AbstractExecutor implements IExecutor
 		int numMetadata = policies.length;
 		for(int i = 0; i < policies.length; i++)
 			numMetadata = numMetadata + policies[i].getTableDefinition().getPksPlain().length;
-		if(! addToReadSet)
+		if(!addToReadSet)
 			numMetadata = 0;
 		ResultSetMetaData rsmd = rs.getMetaData();
 		int numberOfColumns = rsmd.getColumnCount();
@@ -303,7 +305,7 @@ public abstract class AbstractExecutor implements IExecutor
 			for(int i = 0; i < numberOfColumns - numMetadata; i++)
 				row[i] = rs.getString(i + 1);
 			result.add(row);
-			if(! addToReadSet)
+			if(!addToReadSet)
 				continue;
 			for(int i = numberOfColumns - numMetadata, j = 0; j < policies.length; j++)
 			{
@@ -313,7 +315,7 @@ public abstract class AbstractExecutor implements IExecutor
 					String[] pk = new String[nPks];
 					for(int n = 0; n < pk.length; n++, i++)
 						pk[n] = rs.getString(i + 1);
-					LogicalClock lc = new LogicalClock(rs.getString(++ i));
+					LogicalClock lc = new LogicalClock(rs.getString(++i));
 					db.addToReadSet(DBReadSetEntry.createEntry(policies[j].getTableDefinition().getName(), pk,
 							policies[j].isBlue(), lc));
 				}
@@ -580,8 +582,7 @@ public abstract class AbstractExecutor implements IExecutor
 		try
 		{
 			this.tableId = tableId;
-			tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX +  tableName + "_" + scratchpad
-					.getScratchpadId();
+			tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + tableName + "_" + scratchpad.getScratchpadId();
 			tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + tableId;
 			StringBuffer buffer2 = new StringBuffer();
@@ -605,7 +606,7 @@ public abstract class AbstractExecutor implements IExecutor
 			LOG.debug("INFO scratchpad: read table:" + tableName);
 			while(colSet.next())
 			{
-				if(! first)
+				if(!first)
 					buffer.append(",");
 				else
 					first = false;
@@ -621,7 +622,7 @@ public abstract class AbstractExecutor implements IExecutor
 				}
 				//System.err.println("INFO scratchpad: read column:"+tmpStr[0]+" sql:"+buffer);
 				buffer.append(tmpStr[0]);
-				if(! (tmpStr[0].equals("INT") ||
+				if(!(tmpStr[0].equals("INT") ||
 						tmpStr[0].equals("DOUBLE") ||
 						tmpStr[0].equals("BIT") ||
 						tmpStr[0].equals("DATE") ||
@@ -742,82 +743,101 @@ public abstract class AbstractExecutor implements IExecutor
 
 	/**
 	 * Execute select operation in the temporary table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param tables
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 * @throws ScratchpadException
 	 */
-	public Result executeTempOpSelect( DBOperation op, Select dbOp, IDBScratchpad db, IExecutor[] policies, String[][] tables) throws SQLException, ScratchpadException {
-		Debug.println( "multi table select >>" + dbOp);
-		HashMap<String,Integer> columnNamesToNumbersMap = new HashMap<String,Integer>();
+	public Result executeTempOpSelect(DBOperation op, Select dbOp, IDBScratchpad db, IExecutor[] policies,
+									  String[][] tables) throws SQLException, ScratchpadException
+	{
+		Debug.println("multi table select >>" + dbOp);
+		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<String, Integer>();
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("select ");						// select in base table
-		PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+		buffer.append("select ");                        // select in base table
+		PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 		List what = select.getSelectItems();
-		int colIndex=1;
+		int colIndex = 1;
 		TableDefinition tabdef;
 		boolean needComma = true;
 		boolean aggregateQuery = false;
-		if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
+		if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+		{
 			//			buffer.append( "*");
-			for( int i = 0; i < policies.length; i++) {
+			for(int i = 0; i < policies.length; i++)
+			{
 				tabdef = policies[i].getTableDefinition();
 				tabdef.addAliasColumnList(buffer, tables[i][1]);
-				for(int j=0;j<tabdef.colsPlain.length-3;j++){ //columns doesnt include scratchpad tables
+				for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
+				{ //columns doesnt include scratchpad tables
 					columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-					columnNamesToNumbersMap.put(tabdef.name+"."+tabdef.colsPlain[j], colIndex++);
+					columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
 				}
 			}
 			needComma = false;
-		} else {
+		} else
+		{
 			Iterator it = what.iterator();
 			String str;
 			boolean f = true;
-			while( it.hasNext()) {
-				if( f)
+			while(it.hasNext())
+			{
+				if(f)
 					f = false;
 				else
-					buffer.append( ",");
+					buffer.append(",");
 				str = it.next().toString();
-				if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max("))
+				if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+						"max("))
 					aggregateQuery = true;
 				int starPos = str.indexOf(".*");
-				if( starPos != -1) {
+				if(starPos != -1)
+				{
 					String itTable = str.substring(0, starPos).trim();
-					for( int i = 0; i < tables.length; ) {
-						if( itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1])) {
+					for(int i = 0; i < tables.length; )
+					{
+						if(itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1]))
+						{
 							tabdef = policies[i].getTableDefinition();
 							tabdef.addAliasColumnList(buffer, tables[i][1]);
-							for(int j=0;j<tabdef.colsPlain.length-3;j++){ //columns doesnt include scratchpad tables
+							for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
+							{ //columns doesnt include scratchpad tables
 								columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-								columnNamesToNumbersMap.put(tabdef.name+"."+tabdef.colsPlain[j], colIndex++);
+								columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
 							}
 							break;
 						}
 						i++;
-						if( i == tables.length) {
-							Debug.println( "not expected " + str + " in select");
+						if(i == tables.length)
+						{
+							Debug.println("not expected " + str + " in select");
 							buffer.append(str);
 						}
 					}
 					f = true;
 					needComma = false;
-				} else {
+				} else
+				{
 					buffer.append(str);
-					int aliasindex=str.toUpperCase().indexOf(" AS ");
-					if(aliasindex!=-1){
-						columnNamesToNumbersMap.put(str.substring(aliasindex+4), colIndex++);
-					}
-					else{
+					int aliasindex = str.toUpperCase().indexOf(" AS ");
+					if(aliasindex != -1)
+					{
+						columnNamesToNumbersMap.put(str.substring(aliasindex + 4), colIndex++);
+					} else
+					{
 						int dotindex;
-						dotindex=str.indexOf(".");
-						if(dotindex!=-1){
-							columnNamesToNumbersMap.put(str.substring(dotindex+1), colIndex++);
-						}
-						else{
+						dotindex = str.indexOf(".");
+						if(dotindex != -1)
+						{
+							columnNamesToNumbersMap.put(str.substring(dotindex + 1), colIndex++);
+						} else
+						{
 							columnNamesToNumbersMap.put(str, colIndex++);
 
 						}//else
@@ -827,23 +847,27 @@ public abstract class AbstractExecutor implements IExecutor
 
 			}
 		}
-		if( ! aggregateQuery) {
-			for( int i = 0; i < policies.length; i++) {
-				if( needComma)
-					buffer.append( ",");
+		if(!aggregateQuery)
+		{
+			for(int i = 0; i < policies.length; i++)
+			{
+				if(needComma)
+					buffer.append(",");
 				else
 					needComma = true;
-				policies[i].addKeyVVBothTable( buffer, tables[i][1]);
+				policies[i].addKeyVVBothTable(buffer, tables[i][1]);
 			}
 		}
-		buffer.append( " from ");
+		buffer.append(" from ");
 		//get all joins:
-		if(select.getJoins()!=null){
+		if(select.getJoins() != null)
+		{
 			String whereConditionStr = select.getWhere().toString();
-			for(int i = 0; i < policies.length; i++) {
+			for(int i = 0; i < policies.length; i++)
+			{
 				if(i > 0)
 					buffer.append(",");
-				policies[i].addFromTablePlusPrimaryKeyValues( buffer, ! db.isReadOnly(), tables[i], whereConditionStr);
+				policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i], whereConditionStr);
 				//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
 			}
 			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
@@ -864,461 +888,540 @@ public abstract class AbstractExecutor implements IExecutor
 		//				policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
 		//			}
 		//		}
-		addWhere( buffer, select.getWhere(), policies, tables, false);
-		addGroupBy( buffer, select.getGroupByColumnReferences(), policies, tables, false);
-		addOrderBy( buffer, select.getOrderByElements(), policies, tables, false);
-		addLimit( buffer, select.getLimit());
-		buffer.append( ";");
+		addWhere(buffer, select.getWhere(), policies, tables, false);
+		addGroupBy(buffer, select.getGroupByColumnReferences(), policies, tables, false);
+		addOrderBy(buffer, select.getOrderByElements(), policies, tables, false);
+		addLimit(buffer, select.getLimit());
+		buffer.append(";");
 
 		//Debug.println( "---->" + buffer.toString());
 		//Debug.println( "---->" + columnNamesToNumbersMap.toString().toString());
 		//System.err.println( "---->" + buffer.toString());
 		List<String[]> result = new ArrayList<String[]>();
-		ResultSet rs = db.executeQuery( buffer.toString());
-		addToResultList(rs, result, db, policies, ! aggregateQuery);
+		ResultSet rs = db.executeQuery(buffer.toString());
+		addToResultList(rs, result, db, policies, !aggregateQuery);
 		rs.close();
-		return DBSelectResult.createResult( result,columnNamesToNumbersMap);
+		return DBSelectResult.createResult(result, columnNamesToNumbersMap);
 
 	}
 
-
 	/**
 	 * Execute select operation in the temporary table without parsing it with multiple policies
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param tables
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTempOpSelectOrig( DBOperation op, Select dbOp, IDBScratchpad db, IExecutor[] policies, String[][] tables) throws SQLException {
+	public ResultSet executeTempOpSelectOrig(DBOperation op, Select dbOp, IDBScratchpad db, IExecutor[] policies,
+											 String[][] tables) throws SQLException
+	{
 		//Debug.println( "multiple policies >>" + dbOp);
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("select ");						// select in base table
-		PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+		buffer.append("select ");                        // select in base table
+		PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 		List what = select.getSelectItems();
-		int colIndex=1;
+		int colIndex = 1;
 		TableDefinition tabdef;
 		boolean needComma = true;
 		boolean aggregateQuery = false;
-		if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
+		if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+		{
 			//			buffer.append( "*");
 			needComma = false;
-		} else {
+		} else
+		{
 			Iterator it = what.iterator();
 			String str;
 			boolean f = true;
-			while( it.hasNext()) {
-				if( f)
+			while(it.hasNext())
+			{
+				if(f)
 					f = false;
 				else
-					buffer.append( ",");
+					buffer.append(",");
 				str = it.next().toString();
-				if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max("))
+				if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+						"max("))
 					aggregateQuery = true;
 				int starPos = str.indexOf(".*");
-				if( starPos != -1) {
+				if(starPos != -1)
+				{
 					String itTable = str.substring(0, starPos).trim();
-					for( int i = 0; i < tables.length; ) {
-						if( itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1])) {
+					for(int i = 0; i < tables.length; )
+					{
+						if(itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1]))
+						{
 							break;
 						}
 						i++;
-						if( i == tables.length) {
-							Debug.println( "not expected " + str + " in select");
+						if(i == tables.length)
+						{
+							Debug.println("not expected " + str + " in select");
 							buffer.append(str);
 						}
 					}
 					f = true;
 					needComma = false;
-				} else {
+				} else
+				{
 					buffer.append(str);
 					needComma = true;
 				}//else
 
 			}
 		}
-		if( ! aggregateQuery) {
-			for( int i = 0; i < policies.length; i++) {
-				if( needComma)
-					buffer.append( ",");
+		if(!aggregateQuery)
+		{
+			for(int i = 0; i < policies.length; i++)
+			{
+				if(needComma)
+					buffer.append(",");
 				else
 					needComma = true;
-				policies[i].addKeyVVBothTable( buffer, tables[i][1]);
+				policies[i].addKeyVVBothTable(buffer, tables[i][1]);
 			}
 		}
-		buffer.append( " from ");
-		for( int i = 0; i < policies.length; i++) {
-			if( i > 0)
-				buffer.append( ",");
-			policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
+		buffer.append(" from ");
+		for(int i = 0; i < policies.length; i++)
+		{
+			if(i > 0)
+				buffer.append(",");
+			policies[i].addFromTable(buffer, !db.isReadOnly(), tables[i]);
 		}
-		addWhere( buffer, select.getWhere(), policies, tables, false);
-		addGroupBy( buffer, select.getGroupByColumnReferences(), policies, tables, false);
-		addOrderBy( buffer, select.getOrderByElements(), policies, tables, false);
-		addLimit( buffer, select.getLimit());
-		buffer.append( ";");
+		addWhere(buffer, select.getWhere(), policies, tables, false);
+		addGroupBy(buffer, select.getGroupByColumnReferences(), policies, tables, false);
+		addOrderBy(buffer, select.getOrderByElements(), policies, tables, false);
+		addLimit(buffer, select.getLimit());
+		buffer.append(";");
 
 		//Debug.println( "---->" + buffer.toString());
 		//System.err.println( "---->" + buffer.toString());
 		List<String[]> result = new ArrayList<String[]>();
-		ResultSet rs = db.executeQuery( buffer.toString());
-		addToResultList(rs, result, db, policies, ! aggregateQuery);
+		ResultSet rs = db.executeQuery(buffer.toString());
+		addToResultList(rs, result, db, policies, !aggregateQuery);
 		return rs;
 
 	}
 
 	/**
 	 * Execute select operation in the temporary table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 * @throws ScratchpadException
 	 */
-	public Result executeTempOpSelect( DBOperation op, Select dbOp, IDBScratchpad db, String[] table) throws SQLException, ScratchpadException {
+	public Result executeTempOpSelect(DBOperation op, Select dbOp, IDBScratchpad db, String[] table)
+			throws SQLException, ScratchpadException
+	{
 		//Debug.println( "single table select>>" + dbOp);
-		HashMap<String,Integer> columnNamesToNumbersMap = new HashMap<String,Integer>();
+		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<String, Integer>();
 
 		boolean aggregateQuery = false;
-		if( db.isReadOnly()) {
+		if(db.isReadOnly())
+		{
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("select ");
-			PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+			PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 			List what = select.getSelectItems();
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
 				//				buffer.append( "*");
-				for(int i = 0; i< def.colsPlain.length;i++){
+				for(int i = 0; i < def.colsPlain.length; i++)
+				{
 					String columnName = def.colsPlain[i];
-					columnNamesToNumbersMap.put(columnName, i+1);
+					columnNamesToNumbersMap.put(columnName, i + 1);
 				}
-			} else {
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
-					if( starPos != -1) {
-						buffer.append( def.getPlainColumnList());
+					if(starPos != -1)
+					{
+						buffer.append(def.getPlainColumnList());
 					} else
 						buffer.append(str);
-					int aliasindex=str.toUpperCase().indexOf(" AS ");
-					if(aliasindex!=-1){
-						columnNamesToNumbersMap.put(str.substring(aliasindex+4), colNumber++);
-					}
-					else{
-						int dotindex=str.indexOf(".");
-						if(dotindex!=-1){
-							columnNamesToNumbersMap.put(str.substring(dotindex+1), colNumber++);
-						}
-						else
+					int aliasindex = str.toUpperCase().indexOf(" AS ");
+					if(aliasindex != -1)
+					{
+						columnNamesToNumbersMap.put(str.substring(aliasindex + 4), colNumber++);
+					} else
+					{
+						int dotindex = str.indexOf(".");
+						if(dotindex != -1)
+						{
+							columnNamesToNumbersMap.put(str.substring(dotindex + 1), colNumber++);
+						} else
 							columnNamesToNumbersMap.put(str, colNumber++);
 					}
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				if(def.getPkListPlain().length()>0){
-					buffer.append( def.getPkListPlain());
-					buffer.append( ",");
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				if(def.getPkListPlain().length() > 0)
+				{
+					buffer.append(def.getPkListPlain());
+					buffer.append(",");
 				}
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( table[0]);
-			addWhere( buffer, select.getWhere(), this, table, false);
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, false);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, false);
-			addLimit( buffer, select.getLimit());
+			buffer.append(" from ");
+			buffer.append(table[0]);
+			addWhere(buffer, select.getWhere(), this, table, false);
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, false);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, false);
+			addLimit(buffer, select.getLimit());
 
 			//Debug.println( "---->" + buffer.toString());
 			List<String[]> result = new ArrayList<String[]>();
-			ResultSet rs = db.executeQuery( buffer.toString());
-			addToResultList(rs, result, db, ! aggregateQuery);
+			ResultSet rs = db.executeQuery(buffer.toString());
+			addToResultList(rs, result, db, !aggregateQuery);
 			rs.close();
-			return DBSelectResult.createResult(result,columnNamesToNumbersMap);
-		} else {
+			return DBSelectResult.createResult(result, columnNamesToNumbersMap);
+		} else
+		{
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("(select ");
-			PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+			PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 			List what = select.getSelectItems();
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
-				for(int i = 0; i< def.colsPlain.length;i++){
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
+				for(int i = 0; i < def.colsPlain.length; i++)
+				{
 					String columnName = def.colsPlain[i];
-					columnNamesToNumbersMap.put(columnName, i+1);
+					columnNamesToNumbersMap.put(columnName, i + 1);
 				}
-			} else {
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max(")){
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
+					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
-					}else
+					} else
 						buffer.append(str);
-					int dotindex=str.indexOf(".");
-					if(dotindex!=-1){
-						columnNamesToNumbersMap.put(str.substring(dotindex+1), colNumber++);
-					}
-					else
+					int dotindex = str.indexOf(".");
+					if(dotindex != -1)
+					{
+						columnNamesToNumbersMap.put(str.substring(dotindex + 1), colNumber++);
+					} else
 						columnNamesToNumbersMap.put(str, colNumber++);
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				if(def.getPkListPlain().length()>0){
-					buffer.append( def.getPkListPlain());
-					buffer.append( ",");
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				if(def.getPkListPlain().length() > 0)
+				{
+					buffer.append(def.getPkListPlain());
+					buffer.append(",");
 				}
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( table[0]);
-			addWhere( buffer, select.getWhere(), this, table, false);
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, false);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, false);
+			buffer.append(" from ");
+			buffer.append(table[0]);
+			addWhere(buffer, select.getWhere(), this, table, false);
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, false);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, false);
 			buffer.append(") union (select ");
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
-			} else {
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max(")){
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
+					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
-					}else
+					} else
 						buffer.append(str);
 					columnNamesToNumbersMap.put(str, colNumber++);
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				if(def.getPkListPlain().length()>0){
-					buffer.append( def.getPkListPlain());
-					buffer.append( ",");
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				if(def.getPkListPlain().length() > 0)
+				{
+					buffer.append(def.getPkListPlain());
+					buffer.append(",");
 				}
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( this.tempTableName);
-			addWhere( buffer, select.getWhere(), this, table, true);
+			buffer.append(" from ");
+			buffer.append(this.tempTableName);
+			addWhere(buffer, select.getWhere(), this, table, true);
 			buffer.append(") ");
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, true);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, true);
-			addLimit( buffer, select.getLimit());
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, true);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, true);
+			addLimit(buffer, select.getLimit());
 
-			if(aggregateQuery){
+			if(aggregateQuery)
+			{
 				buffer.insert(0, "select sum(a) as 'COUNT(*)' from (");
 				buffer.append(") c");
 			}
 
-			buffer.append( ";");
+			buffer.append(";");
 
 			//Debug.println( "---->" + buffer.toString());
 			List<String[]> result = new ArrayList<String[]>();
-			ResultSet rs = db.executeQuery( buffer.toString());
-			addToResultList(rs, result, db, ! aggregateQuery);
+			ResultSet rs = db.executeQuery(buffer.toString());
+			addToResultList(rs, result, db, !aggregateQuery);
 			rs.close();
-			return DBSelectResult.createResult(result,columnNamesToNumbersMap);
+			return DBSelectResult.createResult(result, columnNamesToNumbersMap);
 
 		}
 	}
 
-
 	/**
 	 * Execute select operation in the temporary table without parsing it
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTempOpSelectOrig( DBOperation op, Select dbOp, IDBScratchpad db, String[] table) throws SQLException {
+	public ResultSet executeTempOpSelectOrig(DBOperation op, Select dbOp, IDBScratchpad db, String[] table)
+			throws SQLException
+	{
 		//Debug.println( "single table >>" + dbOp);
 
 		boolean aggregateQuery = false;
-		if( db.isReadOnly()) {
+		if(db.isReadOnly())
+		{
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("select ");
-			PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+			PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 			List what = select.getSelectItems();
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
 				//				buffer.append( "*");
-			} else {
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
-					if( starPos != -1) {
-						buffer.append( def.getPlainColumnList());
+					if(starPos != -1)
+					{
+						buffer.append(def.getPlainColumnList());
 					} else
 						buffer.append(str);
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				buffer.append( def.getPkListPlain());
-				buffer.append( ",");
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				buffer.append(def.getPkListPlain());
+				buffer.append(",");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( table[0]);
-			addWhere( buffer, select.getWhere(), this, table, false);
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, false);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, false);
-			addLimit( buffer, select.getLimit());
+			buffer.append(" from ");
+			buffer.append(table[0]);
+			addWhere(buffer, select.getWhere(), this, table, false);
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, false);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, false);
+			addLimit(buffer, select.getLimit());
 
 			//Debug.println( "---->" + buffer.toString());
 			List<String[]> result = new ArrayList<String[]>();
-			ResultSet rs = db.executeQuery( buffer.toString());
-			addToResultList(rs, result, db, ! aggregateQuery);
+			ResultSet rs = db.executeQuery(buffer.toString());
+			addToResultList(rs, result, db, !aggregateQuery);
 			return rs;
-		} else {
+		} else
+		{
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("(select ");
-			PlainSelect select = (PlainSelect)dbOp.getSelectBody();
+			PlainSelect select = (PlainSelect) dbOp.getSelectBody();
 			List what = select.getSelectItems();
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
-			} else {
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max(")){
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
+					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
-					}else
+					} else
 						buffer.append(str);
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				buffer.append( def.getPkListPlain());
-				buffer.append( ",");
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				buffer.append(def.getPkListPlain());
+				buffer.append(",");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( table[0]);
-			addWhere( buffer, select.getWhere(), this, table, false);
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, false);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, false);
+			buffer.append(" from ");
+			buffer.append(table[0]);
+			addWhere(buffer, select.getWhere(), this, table, false);
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, false);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, false);
 			buffer.append(") union (select ");
-			if( what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*")) {
-				buffer.append( def.getPlainColumnList());
-			} else {
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+			{
+				buffer.append(def.getPlainColumnList());
+			} else
+			{
 				Iterator it = what.iterator();
-				int colNumber=1;
+				int colNumber = 1;
 				String str;
 				boolean f = true;
-				while( it.hasNext()) {
-					if( f)
+				while(it.hasNext())
+				{
+					if(f)
 						f = false;
 					else
-						buffer.append( ",");
+						buffer.append(",");
 					str = it.next().toString();
-					if( str.startsWith( "COUNT(") || str.startsWith( "count(") || str.startsWith( "MAX(") || str.startsWith( "max(")){
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+							"max("))
+					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
-					}else
+					} else
 						buffer.append(str);
 				}
 			}
-			if( ! aggregateQuery) {
-				buffer.append( ",");
-				buffer.append( def.getPkListPlain());
-				buffer.append( ",");
-				buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
+			if(!aggregateQuery)
+			{
+				buffer.append(",");
+				buffer.append(def.getPkListPlain());
+				buffer.append(",");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
 			}
-			buffer.append( " from ");
-			buffer.append( this.tempTableName);
-			addWhere( buffer, select.getWhere(), this, table, true);
+			buffer.append(" from ");
+			buffer.append(this.tempTableName);
+			addWhere(buffer, select.getWhere(), this, table, true);
 			buffer.append(") ");
-			addGroupBy( buffer, select.getGroupByColumnReferences(), this, table, true);
-			addOrderBy( buffer, select.getOrderByElements(), this, table, true);
-			addLimit( buffer, select.getLimit());
+			addGroupBy(buffer, select.getGroupByColumnReferences(), this, table, true);
+			addOrderBy(buffer, select.getOrderByElements(), this, table, true);
+			addLimit(buffer, select.getLimit());
 
-			if(aggregateQuery){
+			if(aggregateQuery)
+			{
 				buffer.insert(0, "select sum(a) as 'COUNT(*)' from (");
 				buffer.append(") c");
 			}
 
-			buffer.append( ";");
+			buffer.append(";");
 
 			//Debug.println( "---->" + buffer.toString());
 			List<String[]> result = new ArrayList<String[]>();
-			ResultSet rs = db.executeQuery( buffer.toString());
-			addToResultList(rs, result, db, ! aggregateQuery);
+			ResultSet rs = db.executeQuery(buffer.toString());
+			addToResultList(rs, result, db, !aggregateQuery);
 			return rs;
 
 		}
 	}
 
-	public Result executeTemporaryQuery(DBSingleOperation dbOp, IDBScratchpad db, String[] table) throws SQLException, ScratchpadException {
-		if( dbOp.getStatementObj() instanceof Select)
-			return executeTempOpSelect( dbOp, (Select)dbOp.getStatementObj(), db, table);
-		throw new ScratchpadException( "Unknown update operation : " + dbOp.toString());
+	public Result executeTemporaryQuery(DBSingleOperation dbOp, IDBScratchpad db, String[] table)
+			throws SQLException, ScratchpadException
+	{
+		if(dbOp.getStatementObj() instanceof Select)
+			return executeTempOpSelect(dbOp, (Select) dbOp.getStatementObj(), db, table);
+		throw new ScratchpadException("Unknown update operation : " + dbOp.toString());
 	}
 
 	@Override
-	public Result executeTemporaryQuery( DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies, String[][] tables) throws SQLException, ScratchpadException {
-		if( dbOp.getStatementObj() instanceof Select)
-			return executeTempOpSelect( dbOp, (Select)dbOp.getStatementObj(), db, policies, tables);
-		throw new ScratchpadException( "Unknown update operation : " + dbOp.toString());
+	public Result executeTemporaryQuery(DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies,
+										String[][] tables) throws SQLException, ScratchpadException
+	{
+		if(dbOp.getStatementObj() instanceof Select)
+			return executeTempOpSelect(dbOp, (Select) dbOp.getStatementObj(), db, policies, tables);
+		throw new ScratchpadException("Unknown update operation : " + dbOp.toString());
 	}
 
 	/**
 	 * Return the resultset from database, instead of re-assemble it (multi policies)
 	 */
 	@Override
-	public ResultSet executeTemporaryQueryOrig( DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies, String[][] tables) throws SQLException{
-		if( dbOp.getStatementObj() instanceof Select)
-			return executeTempOpSelectOrig( dbOp, (Select)dbOp.getStatementObj(), db, policies, tables);
-		throw new SQLException( "Unknown update operation : " + dbOp.toString());
+	public ResultSet executeTemporaryQueryOrig(DBSingleOperation dbOp, IDBScratchpad db, IExecutor[] policies,
+											   String[][] tables) throws SQLException
+	{
+		if(dbOp.getStatementObj() instanceof Select)
+			return executeTempOpSelectOrig(dbOp, (Select) dbOp.getStatementObj(), db, policies, tables);
+		throw new SQLException("Unknown update operation : " + dbOp.toString());
 
 	}
 
@@ -1326,63 +1429,75 @@ public abstract class AbstractExecutor implements IExecutor
 	 * Return the resultset from database, instead of re-assemble it (single table)
 	 */
 	@Override
-	public ResultSet executeTemporaryQueryOrig( DBSingleOperation dbOp, IDBScratchpad db, String[] table) throws SQLException{
-		if( dbOp.getStatementObj() instanceof Select)
-			return executeTempOpSelectOrig( dbOp, (Select)dbOp.getStatementObj(), db, table);
-		throw new SQLException( "Unknown update operation : " + dbOp.toString());
+	public ResultSet executeTemporaryQueryOrig(DBSingleOperation dbOp, IDBScratchpad db, String[] table)
+			throws SQLException
+	{
+		if(dbOp.getStatementObj() instanceof Select)
+			return executeTempOpSelectOrig(dbOp, (Select) dbOp.getStatementObj(), db, table);
+		throw new SQLException("Unknown update operation : " + dbOp.toString());
 
 	}
 
 	/**
 	 * Execute insert operation in the temporary table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpInsert(DBSingleOperation op, Insert dbOp, IDBScratchpad db) throws SQLException {
+	protected DBUpdateResult executeTempOpInsert(DBSingleOperation op, Insert dbOp, IDBScratchpad db)
+			throws SQLException
+	{
 		//Debug.println( ">>" + dbOp);
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "insert into ");
-		buffer.append( tempTableName);
+		buffer.append("insert into ");
+		buffer.append(tempTableName);
 		List s = dbOp.getColumns();
-		if( s == null) {
-			buffer.append( "(");
+		if(s == null)
+		{
+			buffer.append("(");
 			buffer.append(def.getPlainColumnList());
-			buffer.append( ")");
-		} else {
-			buffer.append( "(");
+			buffer.append(")");
+		} else
+		{
+			buffer.append("(");
 			Iterator it = s.iterator();
 			boolean first = true;
-			while( it.hasNext()) {
-				if( ! first)
+			while(it.hasNext())
+			{
+				if(!first)
 					buffer.append(",");
 				first = false;
 				buffer.append(it.next());
 			}
-			buffer.append( ")");
+			buffer.append(")");
 		}
-		buffer.append( " values ");
-		buffer.append( dbOp.getItemsList());
-		buffer.append( ";");
+		buffer.append(" values ");
+		buffer.append(dbOp.getItemsList());
+		buffer.append(";");
 
 		// TODO: blue transactions need to fail here when the value inserted already exists
 		//Debug.println( buffer.toString());
-		int result = db.executeUpdate( buffer.toString());
-		String[] pkVal = def.getPlainPKValue( dbOp.getColumns(), dbOp.getItemsList());
-		if(pkVal.length > 0){
-			db.addToWriteSet( DBWriteSetEntry.createEntry( dbOp.getTable().toString(), pkVal, this.blue,false));
+		int result = db.executeUpdate(buffer.toString());
+		String[] pkVal = def.getPlainPKValue(dbOp.getColumns(), dbOp.getItemsList());
+		if(pkVal.length > 0)
+		{
+			db.addToWriteSet(DBWriteSetEntry.createEntry(dbOp.getTable().toString(), pkVal, this.blue, false));
 		}
 
 		//add unique index to write set as well
 		//get unique indices
 		String[] uniqueIndicesValue = def.getPlainUniqueIndexValue(dbOp.getColumns(), dbOp.getItemsList());
-		for(int i = 0 ; i < uniqueIndicesValue.length; i++){
+		for(int i = 0; i < uniqueIndicesValue.length; i++)
+		{
 			String[] uiqStr = new String[1];
 			uiqStr[0] = uniqueIndicesValue[i];
-			db.addToWriteSet(DBWriteSetEntry.createEntry( dbOp.getTable().toString(), uiqStr, this.blue,false));
+			db.addToWriteSet(DBWriteSetEntry.createEntry(dbOp.getTable().toString(), uiqStr, this.blue, false));
 		}
 
 		//db.addToOpLog( new DBSingleOpPair( op, pkVal));
@@ -1391,203 +1506,242 @@ public abstract class AbstractExecutor implements IExecutor
 
 	/**
 	 * Execute delete operation in the temporary table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpDelete(DBSingleOperation op, Delete dbOp, IDBScratchpad db) throws SQLException {
+	protected DBUpdateResult executeTempOpDelete(DBSingleOperation op, Delete dbOp, IDBScratchpad db)
+			throws SQLException
+	{
 		//Debug.println( ">>" + dbOp);
 
 		// GET PRIMERY KEY VALUE
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "(select ");
-		if(def.getPkListPlain().length()>0)
-			buffer.append( def.getPkListPlain());
+		buffer.append("(select ");
+		if(def.getPkListPlain().length() > 0)
+			buffer.append(def.getPkListPlain());
 		else
 			buffer.append("*");
-		buffer.append( " from ");
-		buffer.append( dbOp.getTable().toString());
-		addWhere( buffer, dbOp.getWhere());
-		buffer.append( ") union (select ");
-		if(def.getPkListPlain().length()>0)
-			buffer.append( def.getPkListPlain());
+		buffer.append(" from ");
+		buffer.append(dbOp.getTable().toString());
+		addWhere(buffer, dbOp.getWhere());
+		buffer.append(") union (select ");
+		if(def.getPkListPlain().length() > 0)
+			buffer.append(def.getPkListPlain());
 		else
 			buffer.append("*");
-		buffer.append( " from ");
-		buffer.append( this.tempTableName);
-		addWhere( buffer, dbOp.getWhere());
-		buffer.append( ")");
-		buffer.append( ";");
+		buffer.append(" from ");
+		buffer.append(this.tempTableName);
+		addWhere(buffer, dbOp.getWhere());
+		buffer.append(")");
+		buffer.append(";");
 
 		//Debug.println( ":" + buffer.toString());
-		ResultSet res = db.executeQuery( buffer.toString());
-		while( res.next()) {
+		ResultSet res = db.executeQuery(buffer.toString());
+		while(res.next())
+		{
 			int nPks = def.getPksPlain().length;
-			if(nPks > 0){
+			if(nPks > 0)
+			{
 				String[] pkVal = new String[nPks];
-				for( int i = 0; i < pkVal.length; i++)
-					pkVal[i] = res.getObject(i+1).toString();
-				db.addToWriteSet( DBWriteSetEntry.createEntry( dbOp.getTable().toString(), pkVal, this.blue, true));
+				for(int i = 0; i < pkVal.length; i++)
+					pkVal[i] = res.getObject(i + 1).toString();
+				db.addToWriteSet(DBWriteSetEntry.createEntry(dbOp.getTable().toString(), pkVal, this.blue, true));
 				//db.addToOpLog( new DBSingleOpPair( op, pkVal));
 				deletedPks.add(pkVal);
 			}
 
 			String[] uniqueIndexStrs = def.getUqIndicesPlain();
-			for(int k = 0; k < uniqueIndexStrs.length; k++){
+			for(int k = 0; k < uniqueIndexStrs.length; k++)
+			{
 				String[] uqStr = new String[1];
 				uqStr[0] = res.getString(uniqueIndexStrs[k]);
-				db.addToWriteSet( DBWriteSetEntry.createEntry( def.name, uqStr, blue, true));
+				db.addToWriteSet(DBWriteSetEntry.createEntry(def.name, uqStr, blue, true));
 			}
 		}
 		res.close();
 		buffer = new StringBuffer();
-		buffer.append( "delete from ");
-		buffer.append( this.tempTableName);
-		buffer.append( " where ");
-		buffer.append( dbOp.getWhere().toString());
-		buffer.append( ";");
+		buffer.append("delete from ");
+		buffer.append(this.tempTableName);
+		buffer.append(" where ");
+		buffer.append(dbOp.getWhere().toString());
+		buffer.append(";");
 
 		//Debug.println( ":" + buffer.toString());
-		int result = db.executeUpdate( buffer.toString());
-		return DBUpdateResult.createResult( result);
+		int result = db.executeUpdate(buffer.toString());
+		return DBUpdateResult.createResult(result);
 	}
 
 	/**
 	 * Execute update operation in the temporary table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpUpdate(DBSingleOperation op, Update dbOp, IDBScratchpad db) throws SQLException {
+	protected DBUpdateResult executeTempOpUpdate(DBSingleOperation op, Update dbOp, IDBScratchpad db)
+			throws SQLException
+	{
 		//Debug.println( ">>" + dbOp.toString());
 
 		// COPY ROWS TO MODIFY TO SCRATCHPAD
 		//Debug.println("check whether exist in the temporary table");
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "(select *, '"+dbOp.getTable().toString()+"' as tname from ");
-		buffer.append( dbOp.getTable().toString());
-		addWhere( buffer, dbOp.getWhere());
-		buffer.append( ") union (select *, '"+this.tempTableName+"' as tname from ");
-		buffer.append( this.tempTableName);
-		addWhere( buffer, dbOp.getWhere());
-		buffer.append( ")");
-		buffer.append( ";");
+		buffer.append("(select *, '" + dbOp.getTable().toString() + "' as tname from ");
+		buffer.append(dbOp.getTable().toString());
+		addWhere(buffer, dbOp.getWhere());
+		buffer.append(") union (select *, '" + this.tempTableName + "' as tname from ");
+		buffer.append(this.tempTableName);
+		addWhere(buffer, dbOp.getWhere());
+		buffer.append(")");
+		buffer.append(";");
 		//Debug.println( ":" + buffer.toString());
-		ResultSet res = db.executeQuery( buffer.toString());
-		while( res.next()) {
-			if(res.getString("tname").equals(this.tempTableName) == false){
-				if(res.next() == false){
+		ResultSet res = db.executeQuery(buffer.toString());
+		while(res.next())
+		{
+			if(!res.getString("tname").equals(this.tempTableName))
+			{
+				if(!res.next())
+				{
 					//Debug.println("record exists in real table but not temp table");
 					res.previous();
-				}else{
-					if(res.getString("tname").equals(this.tempTableName) == false){
+				} else
+				{
+					if(!res.getString("tname").equals(this.tempTableName))
+					{
 						//Debug.println("record exists in real table but not temp table");
 						res.previous();
-					}
-					else{
+					} else
+					{
 						//Debug.println("record exists in both real and temp table");
 						continue;
 					}
 				}
-			}else{
+			} else
+			{
 				//Debug.println("record exist in temporary table but not real table");
 				continue;
 			}
 			buffer.setLength(0);
 			buffer.append("insert into ");
-			buffer.append( this.tempTableName);
+			buffer.append(this.tempTableName);
 			buffer.append(" values (");
-			for( int i = 0 ; i < def.colsPlain.length; i++) {
-				if( i > 0)
-					buffer.append( ",");
-				if( def.colsStr[i]) {
-					buffer.append(res.getObject(i+1) == null ? "NULL" : "\"" + res.getObject(i+1).toString() + "\"");
-				} else{
+			for(int i = 0; i < def.colsPlain.length; i++)
+			{
+				if(i > 0)
+					buffer.append(",");
+				if(def.colsStr[i])
+				{
+					buffer.append(
+							res.getObject(i + 1) == null ? "NULL" : "\"" + res.getObject(i + 1).toString() + "\"");
+				} else
+				{
 					if(def.colsPlain[i].equals(ScratchpadDefaults.SCRATCHPAD_COL_DELETED))
-						buffer.append(res.getObject(i+1) == null ? "NULL" : Integer.toString(res.getInt(i+1)));
+						buffer.append(res.getObject(i + 1) == null ? "NULL" : Integer.toString(res.getInt(i + 1)));
 					else
-						buffer.append(res.getObject(i+1) == null ? "NULL" : res.getObject(i+1).toString());
+						buffer.append(res.getObject(i + 1) == null ? "NULL" : res.getObject(i + 1).toString());
 				}
 			}
-			buffer.append( ");");
+			buffer.append(");");
 			//Debug.println( ":" + buffer.toString());
 			db.addToBatchUpdate(buffer.toString());
 			int nPks = def.getPksPlain().length;
-			if(nPks>0){
+			if(nPks > 0)
+			{
 				String[] pkVal = new String[nPks];
-				for( int i = 0; i < pkVal.length; i++)
-					pkVal[i] = res.getObject(i+1).toString();
-				db.addToWriteSet( DBWriteSetEntry.createEntry( dbOp.getTable().toString(), pkVal, this.blue,false));
+				for(int i = 0; i < pkVal.length; i++)
+					pkVal[i] = res.getObject(i + 1).toString();
+				db.addToWriteSet(DBWriteSetEntry.createEntry(dbOp.getTable().toString(), pkVal, this.blue, false));
 			}
 
 			String[] uniqueIndexStrs = def.getUqIndicesPlain();
-			for(int k = 0; k < uniqueIndexStrs.length; k++){
+			for(int k = 0; k < uniqueIndexStrs.length; k++)
+			{
 				String[] uqStr = new String[1];
 				uqStr[0] = res.getString(uniqueIndexStrs[k]);
-				db.addToWriteSet( DBWriteSetEntry.createEntry( def.name, uqStr, blue, true));
+				db.addToWriteSet(DBWriteSetEntry.createEntry(def.name, uqStr, blue, true));
 			}
 		}
 		res.close();
 
 		// DO THE UPDATE
 		buffer.setLength(0);
-		buffer.append( "update ");
-		buffer.append( this.tempTableName);
-		buffer.append( " set ");
+		buffer.append("update ");
+		buffer.append(this.tempTableName);
+		buffer.append(" set ");
 		Iterator colIt = dbOp.getColumns().iterator();
 		Iterator expIt = dbOp.getExpressions().iterator();
-		while( colIt.hasNext()) {
-			buffer.append( colIt.next());
-			buffer.append( " = ");
-			buffer.append( expIt.next());
-			if( colIt.hasNext())
-				buffer.append( " , ");
+		while(colIt.hasNext())
+		{
+			buffer.append(colIt.next());
+			buffer.append(" = ");
+			buffer.append(expIt.next());
+			if(colIt.hasNext())
+				buffer.append(" , ");
 		}
-		buffer.append( " where ");
-		buffer.append( dbOp.getWhere().toString());
-		buffer.append( ";");
+		buffer.append(" where ");
+		buffer.append(dbOp.getWhere().toString());
+		buffer.append(";");
 
 		//Debug.println( ":" + buffer.toString());
 		db.addToBatchUpdate(buffer.toString());
 		db.executeBatch();
-		return DBUpdateResult.createResult( 1);
+		return DBUpdateResult.createResult(1);
 	}
 
 	@Override
-	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db) throws SQLException, ScratchpadException {
+	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db)
+			throws SQLException, ScratchpadException
+	{
 		modified = true;
-		if( dbOp.getStatementObj() instanceof Insert)
-			return executeTempOpInsert( dbOp, (Insert)dbOp.getStatementObj(), db);
-		if( dbOp.getStatementObj() instanceof Delete)
-			return executeTempOpDelete( dbOp, (Delete)dbOp.getStatementObj(), db);
-		if( dbOp.getStatementObj() instanceof Update)
-			return executeTempOpUpdate( dbOp, (Update)dbOp.getStatementObj(), db);
-		throw new ScratchpadException( "Unknown update operation : " + dbOp.toString());
+		if(dbOp.getStatementObj() instanceof Insert)
+			return executeTempOpInsert(dbOp, (Insert) dbOp.getStatementObj(), db);
+		if(dbOp.getStatementObj() instanceof Delete)
+			return executeTempOpDelete(dbOp, (Delete) dbOp.getStatementObj(), db);
+		if(dbOp.getStatementObj() instanceof Update)
+			return executeTempOpUpdate(dbOp, (Update) dbOp.getStatementObj(), db);
+		throw new ScratchpadException("Unknown update operation : " + dbOp.toString());
 	}
+
 	/**
 	 * Execute insert operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected abstract void executeDefOpInsert(DBSingleOpPair op, Insert dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException;
+	protected abstract void executeDefOpInsert(DBSingleOpPair op, Insert dbOp, IDBScratchpad db, LogicalClock lc,
+											   TimeStamp ts, boolean b) throws SQLException;
+
 	/**
 	 * Execute insert operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected Result executeDefOpInsert(DBSingleOperation op, Insert dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
+	protected Result executeDefOpInsert(DBSingleOperation op, Insert dbOp, IDBScratchpad db, LogicalClock lc,
+										TimeStamp ts, boolean b) throws SQLException
+	{
 		//Debug.println( "DEF-ALL>>>>" + op.sql);
 
 		/*if( modified && b && ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_MYSQL) {
@@ -1596,64 +1750,79 @@ public abstract class AbstractExecutor implements IExecutor
 		}*/
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "insert into ");
-		buffer.append( def.name);
+		buffer.append("insert into ");
+		buffer.append(def.name);
 		List s = dbOp.getColumns();
-		if( s == null) {
-			buffer.append( "(");
+		if(s == null)
+		{
+			buffer.append("(");
 			buffer.append(def.getPlainFullColumnList());
-			buffer.append( ")");
-		} else {
-			buffer.append( "(");
+			buffer.append(")");
+		} else
+		{
+			buffer.append("(");
 			Iterator it = s.iterator();
-			while( it.hasNext()) {
+			while(it.hasNext())
+			{
 				buffer.append(it.next());
 				buffer.append(",");
 			}
-			buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
+			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 			buffer.append(",");
-			buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
+			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
 			buffer.append(",");
-			buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
-			buffer.append( ")");
+			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+			buffer.append(")");
 		}
-		buffer.append( " values (");
-		Iterator it = ((ExpressionList)dbOp.getItemsList()).getExpressions().iterator();
-		while( it.hasNext()) {
-			buffer.append( it.next());
+		buffer.append(" values (");
+		Iterator it = ((ExpressionList) dbOp.getItemsList()).getExpressions().iterator();
+		while(it.hasNext())
+		{
+			buffer.append(it.next());
 			buffer.append(",");
 		}
 		buffer.append(" FALSE, ");
-		buffer.append( ts.toIntString());
+		buffer.append(ts.toIntString());
 		buffer.append(",'");
-		buffer.append( lc.toString());
-		buffer.append( "');");
+		buffer.append(lc.toString());
+		buffer.append("');");
 
 		//Debug.println( "DEF GEN:" + buffer.toString());
 		//int res = db.executeUpdate( buffer.toString());
-		db.addToBatchUpdate( buffer.toString());
-		return DBUpdateResult.createResult( 1);
+		db.addToBatchUpdate(buffer.toString());
+		return DBUpdateResult.createResult(1);
 	}
+
 	/**
 	 * Execute delete operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected abstract void executeDefOpDelete(DBSingleOpPair op, Delete dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException;
+	protected abstract void executeDefOpDelete(DBSingleOpPair op, Delete dbOp, IDBScratchpad db, LogicalClock lc,
+											   TimeStamp ts, boolean b) throws SQLException;
+
 	/**
 	 * Execute delete operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected Result executeDefOpDelete(DBSingleOperation op, Delete dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
+	protected Result executeDefOpDelete(DBSingleOperation op, Delete dbOp, IDBScratchpad db, LogicalClock lc,
+										TimeStamp ts, boolean b) throws SQLException
+	{
 		//Debug.println( "DEF-ALL>>>>" + op.sql);
 
 		/*if( modified && b && ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_MYSQL) {
@@ -1661,51 +1830,62 @@ public abstract class AbstractExecutor implements IExecutor
 			modified = false;
 		}*/
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "update ");
-		buffer.append( def.name);
-		buffer.append( " set ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		buffer.append( "  = TRUE, ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " = ");
-		buffer.append( ts.toIntString());
-		buffer.append( " , ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
-		buffer.append( " = '");
-		buffer.append( lc.toString());
-		buffer.append( "' ");
+		buffer.append("update ");
+		buffer.append(def.name);
+		buffer.append(" set ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
+		buffer.append("  = TRUE, ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" = ");
+		buffer.append(ts.toIntString());
+		buffer.append(" , ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+		buffer.append(" = '");
+		buffer.append(lc.toString());
+		buffer.append("' ");
 		addWhereNoDelete(buffer, dbOp.getWhere());
 		buffer.append(" AND ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " <= ");
-		buffer.append( ts.toIntString());
-		buffer.append( ";");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" <= ");
+		buffer.append(ts.toIntString());
+		buffer.append(";");
 
 		//Debug.println( "DEF GEN:" + buffer.toString());
 		//int res = db.executeUpdate( buffer.toString());
-		db.addToBatchUpdate( buffer.toString());
-		return DBUpdateResult.createResult( 1);
+		db.addToBatchUpdate(buffer.toString());
+		return DBUpdateResult.createResult(1);
 	}
+
 	/**
 	 * Execute update operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected abstract void executeDefOpUpdate(DBSingleOpPair op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException;
+	protected abstract void executeDefOpUpdate(DBSingleOpPair op, Update dbOp, IDBScratchpad db, LogicalClock lc,
+											   TimeStamp ts, boolean b) throws SQLException;
+
 	/**
 	 * Execute update operation in the final table
+	 *
 	 * @param op
 	 * @param dbOp
 	 * @param db
 	 * @param b
+	 *
 	 * @return
+	 *
 	 * @throws SQLException
 	 */
-	protected Result executeDefOpUpdate(DBSingleOperation op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
+	protected Result executeDefOpUpdate(DBSingleOperation op, Update dbOp, IDBScratchpad db, LogicalClock lc,
+										TimeStamp ts, boolean b) throws SQLException
+	{
 		//Debug.println( "DEF-ALL>>>>" + op.sql);
 
 		/*if( modified && b && ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_MYSQL) {
@@ -1713,45 +1893,48 @@ public abstract class AbstractExecutor implements IExecutor
 			modified = false;
 		}*/
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "update ");
-		buffer.append( def.name);
-		buffer.append( " set ");
+		buffer.append("update ");
+		buffer.append(def.name);
+		buffer.append(" set ");
 		//Debug.println(buffer);
 		Iterator colIt = dbOp.getColumns().iterator();
 		Iterator expIt = dbOp.getExpressions().iterator();
-		while( colIt.hasNext()) {
-			buffer.append( colIt.next());
-			buffer.append( " = ");
-			buffer.append( expIt.next());
-			buffer.append( " , ");
+		while(colIt.hasNext())
+		{
+			buffer.append(colIt.next());
+			buffer.append(" = ");
+			buffer.append(expIt.next());
+			buffer.append(" , ");
 		}
 		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 		buffer.append(" = ");
 		buffer.append(" FALSE ");
-		buffer.append( " , ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " = ");
-		buffer.append( ts.toIntString());
-		buffer.append( " , ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
-		buffer.append( " = '");
-		buffer.append( lc.toString());
-		buffer.append( "' ");
+		buffer.append(" , ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" = ");
+		buffer.append(ts.toIntString());
+		buffer.append(" , ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+		buffer.append(" = '");
+		buffer.append(lc.toString());
+		buffer.append("' ");
 		addWhereNoDelete(buffer, dbOp.getWhere());
 		buffer.append(" AND ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " <= ");
-		buffer.append( ts.toIntString());
-		buffer.append( ";");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" <= ");
+		buffer.append(ts.toIntString());
+		buffer.append(";");
 
 		//Debug.println( "DEF GEN:" + buffer.toString());
 		//int res = db.executeUpdate( buffer.toString());
-		db.addToBatchUpdate( buffer.toString());
-		return DBUpdateResult.createResult( 1);
+		db.addToBatchUpdate(buffer.toString());
+		return DBUpdateResult.createResult(1);
 	}
 
 	//only update timestamp
-	protected Result executeDefOpTS(DBSingleOperation op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
+	protected Result executeDefOpTS(DBSingleOperation op, Update dbOp, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
+									boolean b) throws SQLException
+	{
 		//Debug.println( "DEF-ALL>>>>" + op.sql);
 
 		/*if( modified && b && ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_MYSQL) {
@@ -1759,92 +1942,103 @@ public abstract class AbstractExecutor implements IExecutor
 			modified = false;
 		}*/
 		StringBuffer buffer = new StringBuffer();
-		buffer.append( "update ");
-		buffer.append( def.name);
-		buffer.append( " set ");
+		buffer.append("update ");
+		buffer.append(def.name);
+		buffer.append(" set ");
 		//Debug.println(buffer);
 		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 		buffer.append(" = ");
 		buffer.append(" FALSE ");
-		buffer.append( " , ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " = ");
-		buffer.append( ts.toIntString());
-		buffer.append( " , ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_VV);
-		buffer.append( " = '");
-		buffer.append( lc.toString());
-		buffer.append( "' ");
+		buffer.append(" , ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" = ");
+		buffer.append(ts.toIntString());
+		buffer.append(" , ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+		buffer.append(" = '");
+		buffer.append(lc.toString());
+		buffer.append("' ");
 		addWhereNoDelete(buffer, dbOp.getWhere());
 		buffer.append(" AND ");
-		buffer.append( ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		buffer.append( " <= ");
-		buffer.append( ts.toIntString());
-		buffer.append( ";");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		buffer.append(" <= ");
+		buffer.append(ts.toIntString());
+		buffer.append(";");
 
 		//Debug.println( "DEF GEN:" + buffer.toString());
 		//int res = db.executeUpdate( buffer.toString());
-		db.addToBatchUpdate( buffer.toString());
-		return DBUpdateResult.createResult( 1);
+		db.addToBatchUpdate(buffer.toString());
+		return DBUpdateResult.createResult(1);
 	}
 
 	@Override
-	public void executeDefiniteUpdate(DBSingleOpPair op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
-		if( op.op.getStatementObj() instanceof Insert)
-			executeDefOpInsert( op, (Insert)op.op.getStatementObj(), db, lc, ts, b);
-		else if( op.op.getStatementObj() instanceof Delete)
-			executeDefOpDelete( op, (Delete)op.op.getStatementObj(), db, lc, ts, b);
-		else if( op.op.getStatementObj() instanceof Update)
-			executeDefOpUpdate( op, (Update)op.op.getStatementObj(), db, lc, ts, b);
+	public void executeDefiniteUpdate(DBSingleOpPair op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
+			throws SQLException
+	{
+		if(op.op.getStatementObj() instanceof Insert)
+			executeDefOpInsert(op, (Insert) op.op.getStatementObj(), db, lc, ts, b);
+		else if(op.op.getStatementObj() instanceof Delete)
+			executeDefOpDelete(op, (Delete) op.op.getStatementObj(), db, lc, ts, b);
+		else if(op.op.getStatementObj() instanceof Update)
+			executeDefOpUpdate(op, (Update) op.op.getStatementObj(), db, lc, ts, b);
 		else
-			throw new RuntimeException( "Not expected:" + op.op.getStatement());
+			throw new RuntimeException("Not expected:" + op.op.getStatement());
 	}
 
 	@Override
-	public Result executeDefiniteUpdate(DBSingleOperation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
-		if( op.getStatementObj() instanceof Insert)
-			return executeDefOpInsert( op, (Insert)op.getStatementObj(), db, lc, ts, b);
-		else if( op.getStatementObj() instanceof Delete)
-			return executeDefOpDelete( op, (Delete)op.getStatementObj(), db, lc, ts, b);
-		else if( op.getStatementObj() instanceof Update)
-			return executeDefOpUpdate( op, (Update)op.getStatementObj(), db, lc, ts, b);
+	public Result executeDefiniteUpdate(DBSingleOperation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts,
+										boolean b) throws SQLException
+	{
+		if(op.getStatementObj() instanceof Insert)
+			return executeDefOpInsert(op, (Insert) op.getStatementObj(), db, lc, ts, b);
+		else if(op.getStatementObj() instanceof Delete)
+			return executeDefOpDelete(op, (Delete) op.getStatementObj(), db, lc, ts, b);
+		else if(op.getStatementObj() instanceof Update)
+			return executeDefOpUpdate(op, (Update) op.getStatementObj(), db, lc, ts, b);
 		else
-			throw new RuntimeException( "Not expected:" + op.getStatement());
+			throw new RuntimeException("Not expected:" + op.getStatement());
 	}
 
-	public Result executeOnlyOp(DBSingleOperation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b) throws SQLException {
-		if( op.getStatementObj() instanceof Update)
-			return executeDefOpTS( op, (Update)op.getStatementObj(), db, lc, ts, b);
+	public Result executeOnlyOp(DBSingleOperation op, IDBScratchpad db, LogicalClock lc, TimeStamp ts, boolean b)
+			throws SQLException
+	{
+		if(op.getStatementObj() instanceof Update)
+			return executeDefOpTS(op, (Update) op.getStatementObj(), db, lc, ts, b);
 		else
-			throw new RuntimeException( "Not expected:" + op.getStatement());
+			throw new RuntimeException("Not expected:" + op.getStatement());
 	}
 
 	//temporarily put there, need to file into other java files
 
 	public boolean isInteger(String str)
 	{
-		if (str == null) {
+		if(str == null)
+		{
 			return false;
 		}
 		int length = str.length();
-		if (length == 0) {
+		if(length == 0)
+		{
 			return false;
 		}
 		int i = 0;
-		if (str.charAt(0) == '-') {
-			if (length == 1) {
+		if(str.charAt(0) == '-')
+		{
+			if(length == 1)
+			{
 				return false;
 			}
 			i = 1;
 		}
-		for (; i < length; i++) {
+		for(; i < length; i++)
+		{
 			char c = str.charAt(i);
-			if (c <= '/' || c >= ':') {
+			if(c <= '/' || c >= ':')
+			{
 				return false;
 			}
 		}
 		return true;
 	}
-
 
 }

@@ -1,12 +1,10 @@
 package database.occ.scratchpad;
 
-import util.ExitCode;
+import org.perf4j.StopWatch;
+import util.ObjectPool;
 import util.defaults.DBDefaults;
 
 import java.sql.SQLException;
-import java.util.Vector;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,82 +16,50 @@ import org.slf4j.LoggerFactory;
 public class ExecutePadFactory
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(ExecutePadFactory.class);
+	private static boolean initialized = false;
 
-	private Vector<IDBScratchpad> queue;
-	private ReentrantLock queueLock;
-	private Condition condition;
+	private static final Logger LOG = LoggerFactory.getLogger(ExecutePadFactory.class);
+	private static ObjectPool<IDBScratchpad> padPool;
 
-	private static ExecutePadFactory ourInstance = new ExecutePadFactory();
-
-	private ExecutePadFactory()
+	public static void releaseScratchpad(IDBScratchpad sp)
 	{
-		this.queueLock = new ReentrantLock();
-		this.condition = this.queueLock.newCondition();
-		this.queue = new Vector<>(DBDefaults.PAD_POOL_SIZE);
-		try
-		{
-			this.setupScratchpads();
-			LOG.info("{} scratchpads created", this.queue.size());
+		if(!initialized)
+			init();
 
-		} catch(SQLException | ScratchpadException e)
-		{
-			e.printStackTrace();
-			System.exit(ExitCode.SCRATCHPAD_INIT_FAILED);
-		}
-	}
-
-	public static ExecutePadFactory getInstance()
-	{
-		return ourInstance;
-	}
-
-	private void setupScratchpads() throws SQLException, ScratchpadException
-	{
-		// create pool of scratchpads
-		for(int i = 0; i < DBDefaults.PAD_POOL_SIZE; i++)
-		{
-			IDBScratchpad scratchpad = new DBExecuteScratchpad(i);
-			this.queue.add(scratchpad);
-		}
-	}
-
-	public void releaseScratchpad(IDBScratchpad sp)
-	{
-		this.queueLock.lock();
-		try
-		{
-			this.queue.add(sp);
-			this.condition.signal();
-		} finally
-		{
-			this.queueLock.unlock();
-		}
+		padPool.returnObject(sp);
 		LOG.trace("Released scratchpad {}", sp.getScratchpadId());
 	}
 
-	public IDBScratchpad getScratchpad()
+	public static IDBScratchpad getScratchpad()
 	{
-		IDBScratchpad sp = null;
-		this.queueLock.lock();
-		try
-		{
-			while(this.queue.isEmpty())
-			{
-				try
-				{
-					this.condition.await();
-				} catch(InterruptedException e)
-				{
-					e.printStackTrace();
-				}
-			}
-			sp = this.queue.remove(0);
-		} finally
-		{
-			this.queueLock.unlock();
-		}
+		if(!initialized)
+			init();
+
+		IDBScratchpad sp = padPool.borrowObject();
 		LOG.trace("Using scratchpad {}", sp.getScratchpadId());
 		return sp;
+	}
+
+	private static void init()
+	{
+		padPool = new ObjectPool<>();
+
+		StopWatch watch = new StopWatch();
+		watch.start();
+		for(int i = 0; i < DBDefaults.PAD_POOL_SIZE; i++)
+		{
+			try
+			{
+				IDBScratchpad scratchpad = new DBExecuteScratchpad(i);
+				padPool.addObject(scratchpad);
+			} catch(SQLException | ScratchpadException e)
+			{
+				e.printStackTrace();
+			}
+
+		}
+		watch.stop();
+		LOG.info("{} scratchpads created in {} ms", DBDefaults.PAD_POOL_SIZE, watch.getElapsedTime());
+		initialized = true;
 	}
 }

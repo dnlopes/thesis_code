@@ -12,7 +12,7 @@ public class DBDefaults
 	public static final String TPCW_FILE = "/Users/dnlopes/devel/thesis/code/framework/application/tpcw/database.sql";
 	public static final String MICRO_FILE = "/Users/dnlopes/devel/thesis/code/framework/application/micro/database.sql";
 
-	public static final String MYSQL_HOST = "172.16.24.149";
+	public static final String MYSQL_HOST = "172.16.24.151";
 	public static final String MYSQL_PORT = "3306";
 	public static final String MYSQL_USER = "sa";
 	public static final String MYSQL_PASSWORD = "101010";
@@ -23,6 +23,6 @@ public class DBDefaults
 	public static final String CRDT_URL = CRDT_URL_PREFIX + MYSQL_URL;
 	public static final String DEFAULT_URL = DEFAULT_URL_PREFIX + MYSQL_URL;
 
-	public static final int PAD_POOL_SIZE = 10;
+	public static final int PAD_POOL_SIZE = 100;
 
 }
