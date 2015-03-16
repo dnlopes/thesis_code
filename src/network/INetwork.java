@@ -11,7 +11,6 @@ public interface INetwork
 
 	public void sendOperation(Operation op);
 	public void sendToNode(Operation op, Node node);
-	public void addNode(Node newNode);
 	public void sendBytes(byte[] message, Node to);
-
+	public void addNode(Node n);
 }

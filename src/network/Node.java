@@ -38,7 +38,7 @@ public abstract class Node
 
 	public String getName()
 	{
-		return this.role + "-" + this.id;
+		return "[" + this.role + "-" + this.id + "]";
 	}
 
 }
