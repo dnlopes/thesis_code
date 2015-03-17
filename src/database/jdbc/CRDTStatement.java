@@ -6,6 +6,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import network.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.Transaction;
 import runtime.operation.DBSingleOperation;
 import runtime.MyShadowOpCreator;
 import runtime.operation.ShadowOperation;
@@ -23,12 +24,14 @@ public class CRDTStatement implements Statement
 	static final Logger LOG = LoggerFactory.getLogger(CRDTStatement.class);
 
 	private MyShadowOpCreator shdOpCreator;
+	private Transaction transaction;
 	private Proxy proxy;
 
 	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator)
 	{
 		this.proxy = proxy;
 		this.shdOpCreator = creator;
+		this.transaction = this.proxy.getTransaction();
 	}
 
 	@Override
@@ -45,7 +48,7 @@ public class CRDTStatement implements Statement
 
 		try
 		{
-			Result r = proxy.execute(DBSingleOperation.createOperation(arg0), this.proxy.getTransaction().getTxnId());
+			Result r = proxy.execute(DBSingleOperation.createOperation(arg0), this.transaction.getTxnId());
 			res = DBSelectResult.createResult(r);
 			resultSet = new CRDTResultSet(res);
 
@@ -75,7 +78,7 @@ public class CRDTStatement implements Statement
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements for txn {}", proxy.getTransaction().getTxnId());
+			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId());
 			throw new SQLException(e.getMessage());
 		}
 
@@ -88,30 +91,30 @@ public class CRDTStatement implements Statement
 			try
 			{
 				sqlOp = DBSingleOperation.createOperation(updateStr);
-				Result tempRes = this.proxy.execute(sqlOp, this.proxy.getTransaction().getTxnId());
+				Result tempRes = this.proxy.execute(sqlOp, this.transaction.getTxnId());
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
 			} catch(JSQLParserException | ScratchpadException e)
 			{
 				LOG.error("failed to execute statement in scratchpad state for txn {}",
-						this.proxy.getTransaction().getTxnId());
+						this.transaction.getTxnId());
 				throw new SQLException(e.getMessage());
 			}
 
-			if(this.proxy.getTransaction().getShadowOp() == null)
+			if(this.transaction.getShadowOp() == null)
 			{
 				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
-				this.proxy.getTransaction().setShadowOp(shdOp);
+				this.transaction.setShadowOp(shdOp);
 				shdOpCreator.setShadowOperation(shdOp);
 			}
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr, sqlOp);
+				shdOpCreator.addDBEntryToShadowOperation(this.transaction.getShadowOp(), updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}",
-						this.proxy.getTransaction().getTxnId());
+						this.transaction.getTxnId());
 				throw new SQLException(e.getMessage());
 			}
 		}

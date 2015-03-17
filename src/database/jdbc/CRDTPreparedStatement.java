@@ -7,6 +7,7 @@ import network.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
+import runtime.Transaction;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
 import util.MissingImplementationException;
@@ -32,6 +33,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	int[] argPos;
 	String[] vals;
 	private MyShadowOpCreator shdOpCreator;
+	private Transaction transaction;
+
 	private Proxy proxy;
 
 	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator)
@@ -39,6 +42,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		this.proxy = proxy;
 		this.sql = sql;
 		this.shdOpCreator = creator;
+		this.transaction = this.proxy.getTransaction();
 		init(0, 0);
 	}
 
@@ -81,7 +85,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		CRDTResultSet resultSet;
 		try
 		{
-			Result r = proxy.execute(DBSingleOperation.createOperation(sql), this.proxy.getTransaction().getTxnId());
+			Result r = proxy.execute(DBSingleOperation.createOperation(sql), this.transaction.getTxnId());
 			res = DBSelectResult.createResult(r);
 
 			resultSet = new CRDTResultSet(res);
@@ -126,20 +130,20 @@ public class CRDTPreparedStatement implements PreparedStatement
 			try
 			{
 				sqlOp = DBSingleOperation.createOperation(updateStr);
-				Result tempRes = this.proxy.execute(sqlOp, this.proxy.getTransaction().getTxnId());
+				Result tempRes = this.proxy.execute(sqlOp, this.transaction.getTxnId());
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 			} catch(JSQLParserException | ScratchpadException e)
 			{
 				LOG.error("failed to execute statement in scratchpad state for txn {}",
-						this.proxy.getTransaction().getTxnId());
+						this.transaction.getTxnId());
 				throw new SQLException(e.getMessage());
 			}
 
-			if(this.proxy.getTransaction().getShadowOp() == null)
+			if(this.transaction.getShadowOp() == null)
 			{
 				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
-				this.proxy.getTransaction().setShadowOp(shdOp);
+				this.transaction.setShadowOp(shdOp);
 				shdOpCreator.setShadowOperation(shdOp);
 			}
 

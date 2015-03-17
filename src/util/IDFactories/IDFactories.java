@@ -80,7 +80,7 @@ public class IDFactories {
 			}
 		}
 
-		if (IDGeneratorList.containsKey(tableName) == false) {
+		if (!IDGeneratorList.containsKey(tableName)) {
 			try {
 				throw new RuntimeException("IDGenerator table is not found "
 						+ tableName);
@@ -89,7 +89,7 @@ public class IDFactories {
 			}
 		}
 
-		if (IDGeneratorList.get(tableName).containsKey(dataFieldName) == false) {
+		if (!IDGeneratorList.get(tableName).containsKey(dataFieldName)) {
 			try {
 				throw new RuntimeException("IDGenerator is not found "
 						+ tableName + " " + dataFieldName);

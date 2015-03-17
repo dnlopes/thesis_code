@@ -108,6 +108,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public int getTransactionIsolation() throws SQLException
 	{
+		//TODO what now?
 		return 0;
 	}
 
