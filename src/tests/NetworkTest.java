@@ -1,5 +1,6 @@
 package tests;
 
+import applications.tpcw.TPCW_Database;
 import net.sf.appia.core.*;
 
 import network.INetwork;
@@ -19,6 +20,7 @@ public class NetworkTest
 			throws AppiaInvalidQoSException, AppiaCursorException, AppiaEventException, AppiaDuplicatedSessionsException
 	{
 
+		TPCW_Database.getBook(1);
 		int davidPort = 45444;
 		int ricardoPort = 32455;
 

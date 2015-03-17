@@ -23,13 +23,6 @@ public class MicroTest
 		Statement stat = conn.createStatement();
 
 		int res = stat.executeUpdate("update t1 set c=15 where d=1");
-
-
-//		TcpCompleteLayer layer = new TcpCompleteLayer();
-
-//		TcpCompleteSession session = new TcpCompleteSession(layer);
-
-
 		conn.commit();
 	}
 

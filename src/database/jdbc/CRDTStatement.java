@@ -38,7 +38,10 @@ public class CRDTStatement implements Statement
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
-		return this.proxy.executeQuery(arg0);
+		ResultSet result = this.proxy.executeQuery(arg0);
+		LOG.trace("query statement executed properly");
+
+		return result;
 	}
 
 	@Override
@@ -91,6 +94,7 @@ public class CRDTStatement implements Statement
 				throw new SQLException(e.getMessage());
 			}
 		}
+		LOG.trace("update statement executed properly");
 		return result;
 	}
 

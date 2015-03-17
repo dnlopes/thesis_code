@@ -9,7 +9,9 @@ import net.sf.appia.test.appl.ApplLayer;
 import net.sf.appia.test.xml.ecco.EccoLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.Runtime;
 import runtime.operation.Operation;
+import util.ExitCode;
 
 import java.util.*;
 
@@ -26,14 +28,22 @@ public class NetworkInterface implements INetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(NetworkInterface.class);
 
+	private static QoS qos;
+
 	private Map<String, TestSession> sessions;
-	private QoS qos;
 	private Map<String, Channel> channels;
 	private Node me;
 
-	public NetworkInterface(Node node) throws AppiaInvalidQoSException
+	public NetworkInterface(Node node)
 	{
-		this.qos = new QoS("1", QOS_LAYERS);
+		try
+		{
+			qos = new QoS("1", QOS_LAYERS);
+		} catch(AppiaInvalidQoSException e)
+		{
+			LOG.error("failed to init QoS");
+			Runtime.throwRunTimeException("could not create network interface", ExitCode.QOS_ERROR);
+		}
 		this.me = node;
 		this.channels = new HashMap<>();
 		this.sessions = new HashMap<>();

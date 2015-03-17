@@ -34,7 +34,6 @@ public class CRDTConnection implements Connection
 	@Override
 	public Statement createStatement() throws SQLException
 	{
-		//TODO
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
@@ -44,7 +43,6 @@ public class CRDTConnection implements Connection
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
-		//TODO
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
@@ -54,12 +52,13 @@ public class CRDTConnection implements Connection
 	@Override
 	public void commit() throws SQLException
 	{
-		LOG.trace("committing txn {} ", this.proxy.getTransaction().getTxnId());
+		LOG.trace("committing txn {}", this.proxy.getTransaction().getTxnId());
 
 		if(!this.proxy.commit())
 			throw new SQLException("txn commit failed");
 
-		LOG.info("txn {} committed ({} ms)", this.proxy.getTransaction().getTxnId(),this.proxy.getTransaction().getLatency());
+		LOG.info("txn {} committed ({} ms)", this.proxy.getTransaction().getTxnId(),
+				this.proxy.getTransaction().getLatency());
 	}
 
 	@Override

@@ -660,8 +660,6 @@ class TPCW_Populate
 	{
 		try
 		{
-			//Class.forName(driverName);
-			//con = DriverManager.getConnection(dbName);
 			con = ConnectionFactory.getInstance().getDefaultConnection(DBDefaults.TPCW_DB_NAME);
 			con.setAutoCommit(false);
 		} catch(java.lang.Exception ex)

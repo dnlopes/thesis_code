@@ -1,4 +1,4 @@
-<project name="TPCW" default="compile" basedir=".">
+<project name="Main" default="compile" basedir=".">
 
     <!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
     <property environment="env"/>

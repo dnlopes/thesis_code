@@ -21,7 +21,7 @@ import java.sql.SQLException;
 public class Proxy extends Node
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
+	static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
 	private Transaction transaction;
 	private IDBScratchpad pad;
@@ -64,20 +64,24 @@ public class Proxy extends Node
 	public boolean commit()
 	{
 		//TODO  this method must block until receive ack from replicator
+		// we can block on a condition variable of each transaction
+		// for this the network interface must have the txn object to change the value
 		/**
 		 * 1- wrap shadowOperation
-		 * 2- send to replicator
+		 * 2- send to my replicator
 		 * 3- wait for decision
 		 * 4- clean this connection state
 		 * 4- respond to client
 		 * */
 
-		this.getTransaction().endTxn();
+		this.transaction.endTxn();
+		LOG.info("committing txn {}", this.transaction.getTxnId());
 		return true;
 	}
 
 	public void abortTransaction()
 	{
-
+		//TODO
+		LOG.info("aborting txn {}", this.transaction.getTxnId());
 	}
 }

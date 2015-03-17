@@ -1,7 +1,14 @@
 package database.jdbc;
 
+import database.jdbc.util.DBUpdateResult;
+import database.occ.scratchpad.ScratchpadException;
+import net.sf.jsqlparser.JSQLParserException;
 import network.Proxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
+import runtime.operation.DBSingleOperation;
+import runtime.operation.ShadowOperation;
 import util.MissingImplementationException;
 
 import java.io.InputStream;
@@ -18,6 +25,8 @@ import java.util.concurrent.Executor;
  */
 public class CRDTPreparedStatement implements PreparedStatement
 {
+
+	static final Logger LOG = LoggerFactory.getLogger(CRDTPreparedStatement.class);
 
 	String sql;
 	int[] argPos;
@@ -62,77 +71,86 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public ResultSet executeQuery() throws SQLException
 	{
+		//TODO: review
+		String sql = this.generateStatement();
+
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
-		//TODO: implement
-/*
-		//Debug.println("use execute query from TxMudPreparedStatement");
-		String sql;
-		sql = generateStatement();
-		//Debug.println("\nINFO: generated statement: "+sql+"\n\n");
-		if( ! inTx) {
-			txId = proxy.beginTxn();
-			inTx = true;
-			internalAborted = false;
-		}
 		DBSelectResult res;
-		try {
-			Result r = proxy.execute( DBSingleOperation.createOperation( sql), txId); //raw format got from the network
+		CRDTResultSet resultSet;
+		try
+		{
+			Result r = proxy.execute(DBSingleOperation.createOperation(sql), this.proxy.getTransaction().getTxnId());
 			res = DBSelectResult.createResult(r);
-			TxMudResultSet txMudRs = new TxMudResultSet( res);
-			shdOpCreator.setCachedResultSetForDelta(txMudRs);
-			return txMudRs;
-		} catch (ScratchpadException e) {
+
+			resultSet = new CRDTResultSet(res);
+			shdOpCreator.setCachedResultSetForDelta(resultSet);
+		} catch(ScratchpadException | JSQLParserException e)
+		{
 			e.printStackTrace();
 			System.out.println(sql);
-			throw new SQLException( e);
+			throw new SQLException(e);
 		}
-*/
-		return null;
+
+		LOG.trace("query statement executed properly");
+		return resultSet;
 	}
 
 	@Override
 	public int executeUpdate() throws SQLException
 	{
+		//TODO: review
+
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
-		//TODO: implement
-
-/*
-		if( ! inTx) {
-			txId = proxy.beginTxn();
-			inTx = true;
-			internalAborted = false;
+		String[] deterStatements;
+		try
+		{
+			deterStatements = shdOpCreator.makeToDeterministic(this.generateStatement());
+		} catch(JSQLParserException e)
+		{
+			LOG.error("failed to generate deterministic statements for txn {}", proxy.getTransaction().getTxnId());
+			throw new SQLException(e.getMessage());
 		}
 
-		//make it deterministic
-		String[] updateStatements = null;
-		try {
-			//long makeDeterStartTime = TimeMeasurement.getCurrentTimeInNS();
-			updateStatements = shdOpCreator.makeToDeterministic(this.generateStatement());
-		} catch (JSQLParserException e1) {
-			e1.printStackTrace();
-		}
 		int result = 0;
-		for(String updateStr : updateStatements) {
-			DBUpdateResult res = DBUpdateResult.createResult(proxy.execute( DBSingleOperation.createOperation( updateStr), txId).getResult());
-			result += res.getUpdateResult();
-			if(shdOp == null) {
-				shdOp = shdOpCreator.createEmptyShadowOperation();
+
+		for(String updateStr : deterStatements)
+		{
+			DBUpdateResult res;
+			try
+			{
+				res = DBUpdateResult.createResult(proxy.execute(DBSingleOperation.createOperation(updateStr),
+						this.proxy.getTransaction().getTxnId()).getResult());
+				result += res.getUpdateResult();
+			} catch(JSQLParserException | ScratchpadException e)
+			{
+				LOG.error("failed to execute statement in scratchpad state for txn {}",
+						this.proxy.getTransaction().getTxnId());
+				throw new SQLException(e.getMessage());
 			}
-			try {
-				shdOpCreator.addDBEntryToShadowOperation(shdOp, updateStr);
-			} catch (JSQLParserException e) {
-				e.printStackTrace();
+
+			if(this.proxy.getTransaction().getShadowOp() == null)
+			{
+				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
+				this.proxy.getTransaction().setShadowOp(shdOp);
+			}
+
+			try
+			{
+				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr);
+			} catch(JSQLParserException e)
+			{
+				LOG.error("failed to add statement to shadow operation for txn {}",
+						this.proxy.getTransaction().getTxnId());
+				throw new SQLException(e.getMessage());
 			}
 		}
 
-		DBUpdateResult finalRes = DBUpdateResult.createResult( result);
+		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
 		return finalRes.getUpdateResult();
-*/
-		return 0;
 	}
 
 	@Override

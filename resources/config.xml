@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config>
+    <topology replicatorNum="2" executorsNum="2">
+        <replicators>
+            <replicator id="1" host="localhost" port="50000" dbHost="localhost" dbPort="3306" dbUser="sa"
+                        dbPwd="101010"/>
+            <replicator id="2" host="localhost" port="50000" dbHost="localhost" dbPort="3306" dbUser="sa"
+                        dbPwd="101010"/>
+        </replicators>
+        <executors>
+            <executor id="1" host="localhost" port="50005" dbHost="localhost" dbPort="3306" dbUser="sa"
+                      dbPwd="101010" refExecutor="1"/>
+            <executor id="2" host="localhost" port="50005" dbHost="localhost" dbPort="3306" dbUser="sa"
+                      dbPwd="101010" refExecutor="2"/>
+        </executors>
+        <coordinator id="1" dbHost="localhost" dbPort="3306" dbName="tpcw" dbUser="sa" dbPwd="101010"/>
+    </topology>
+    <variables padPoolSize="20" dbName="tpcw"/>
+</config>

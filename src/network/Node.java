@@ -16,6 +16,7 @@ public abstract class Node
 
 	public Node(String hostName, int port, int id, Role role)
 	{
+		this.network = new NetworkInterface(this);
 		this.id = id;
 		this.role = role;
 		this.socketAddress = new InetSocketAddress(hostName, port);
