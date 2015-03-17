@@ -16,7 +16,7 @@ public class MicroTest
 {
 	public static void main(String args[]) throws SQLException
 	{
-		//Micro_Populate db = new Micro_Populate();
+		Micro_Populate db = new Micro_Populate();
 
 		Connection conn = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
 

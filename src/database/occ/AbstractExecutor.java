@@ -758,7 +758,7 @@ public abstract class AbstractExecutor implements IExecutor
 									  String[][] tables) throws SQLException, ScratchpadException
 	{
 		Debug.println("multi table select >>" + dbOp);
-		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("select ");                        // select in base table
 		PlainSelect select = (PlainSelect) dbOp.getSelectBody();
