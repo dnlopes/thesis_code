@@ -280,8 +280,9 @@ public class CrdtFactory
 														  String value, ResultSet rs, Statement statement)
 			throws SQLException
 	{
+		// this looks like a good place to check invariants
 		if(df.hasInvariants())
-			InvariantChecker.checkInvariant(op, statement, df, value);
+			InvariantChecker.checkInvariants(op, statement, df, value);
 
 		switch(df.getCrdtType())
 		{
@@ -314,7 +315,6 @@ public class CrdtFactory
 		case NUMDELTAINTEGER:
 			if(rs != null)
 			{
-				Debug.println("result set is not null");
 				rs.beforeFirst();
 				rs.next();
 				int finalIValue = Integer.parseInt(value);
@@ -323,7 +323,6 @@ public class CrdtFactory
 				return new NumberDeltaInteger(df.getFieldName(), iDelta);
 			} else
 			{
-				Debug.println("result set is null");
 				return new NumberDeltaInteger(df.getFieldName(), Integer.parseInt(value));
 			}
 		case NUMDELTAFLOAT:
