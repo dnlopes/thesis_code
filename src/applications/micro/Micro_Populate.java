@@ -143,9 +143,9 @@ public class Micro_Populate
 					"c int(10) NOT NULL," +
 					"d int(10) unsigned," +
 					"e varchar(50)," +
-					"_SP_del BIT(1) default false," +
-					"_SP_ts int default 0," +
-					"_SP_clock varchar(100)" +
+					"del BIT(1) default false," +
+					"ts int default 0," +
+					"lc varchar(100)" +
 					");");
 
 		}

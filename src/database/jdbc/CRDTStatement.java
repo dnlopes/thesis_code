@@ -38,10 +38,28 @@ public class CRDTStatement implements Statement
 		if(!this.proxy.txnHasBegun())
 			this.proxy.beginTxn();
 
-		ResultSet result = this.proxy.executeQuery(arg0);
-		LOG.trace("query statement executed properly");
+		//ResultSet result = this.proxy.executeQuery(arg0);
 
-		return result;
+		DBSelectResult res;
+		CRDTResultSet resultSet;
+
+		try
+		{
+			Result r = proxy.execute(DBSingleOperation.createOperation(arg0), this.proxy.getTransaction().getTxnId());
+			res = DBSelectResult.createResult(r);
+			resultSet = new CRDTResultSet(res);
+
+			shdOpCreator.setCachedResultSetForDelta(resultSet);
+
+			LOG.trace("query statement executed properly");
+			return resultSet;
+
+		} catch(JSQLParserException | ScratchpadException e)
+		{
+			e.printStackTrace();
+			System.out.println(arg0);
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
@@ -66,10 +84,12 @@ public class CRDTStatement implements Statement
 		for(String updateStr : deterStatements)
 		{
 			DBUpdateResult res;
+			DBSingleOperation sqlOp;
 			try
 			{
-				res = DBUpdateResult.createResult(this.proxy.execute(DBSingleOperation.createOperation(updateStr),
-						this.proxy.getTransaction().getTxnId()).getResult());
+				sqlOp = DBSingleOperation.createOperation(updateStr);
+				Result tempRes = this.proxy.execute(sqlOp, this.proxy.getTransaction().getTxnId());
+				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
 			} catch(JSQLParserException | ScratchpadException e)
@@ -83,10 +103,11 @@ public class CRDTStatement implements Statement
 			{
 				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
 				this.proxy.getTransaction().setShadowOp(shdOp);
+				shdOpCreator.setShadowOperation(shdOp);
 			}
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr);
+				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}",

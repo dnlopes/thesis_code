@@ -1,19 +1,19 @@
 /********************************************************************
-Copyright (c) 2013 chengli.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the GNU Public License v2.0
-which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ Copyright (c) 2013 chengli.
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Public License v2.0
+ which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
-Contributors:
-    chengli - initial API and implementation
+ Contributors:
+ chengli - initial API and implementation
 
-Contact:
-    To distribute or use this code requires prior specific permission.
-    In this case, please contact chengli@mpi-sws.org.
-********************************************************************/
+ Contact:
+ To distribute or use this code requires prior specific permission.
+ In this case, please contact chengli@mpi-sws.org.
+ ********************************************************************/
 /**
- * 
+ *
  */
 package crdtlib;
 
@@ -21,6 +21,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 
+import net.sf.jsqlparser.statement.Statement;
+import runtime.InvariantChecker;
+import runtime.operation.ShadowOperation;
 import util.commonfunc.StringOperations;
 import crdtlib.datatypes.primitivetypes.LwwBoolean;
 import crdtlib.datatypes.primitivetypes.LwwDateTime;
@@ -44,91 +47,101 @@ import database.util.DataField;
 import database.util.DatabaseFunction;
 import util.debug.Debug;
 
-
 // TODO: Auto-generated Javadoc
+
+
 /**
  * A factory for creating Crdt objects.
  */
-public class CrdtFactory {
+public class CrdtFactory
+{
 
 	/**
 	 * Gets the proper crdt object.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType     the crdt type
 	 * @param originalType the original type
+	 *
 	 * @return the proper crdt object
 	 */
-	public static String getProperCrdtObject(CrdtDataFieldType crdtType, String originalType){
-		switch(crdtType){
-			case LWWINTEGER:
-				return "LwwInteger";
-			case LWWFLOAT:
-				return "LwwFloat";
-			case LWWDOUBLE:
-				return "LwwDouble";
-			case LWWSTRING:
-				return "LwwString";
-			case LWWDATETIME:
-				return "LwwDateTime";
-			case LWWLOGICALTIMESTAMP:
-				return "LwwLogicalTimestamp";
-			case LWWBOOLEAN:
-			case LWWDELETEDFLAG:
-				return "LwwBoolean";
-			case NUMDELTAINTEGER:
-				return "NumberDeltaInteger";
-			case NUMDELTAFLOAT:
-				return "NumberDeltaFloat";
-			case NUMDELTADOUBLE:
-				return "NumberDeltaDouble";
-			case NUMDELTADATETIME:
-				return "NumberDeltaDateTime";
-			case NONCRDTFIELD:
-				return "Normal"+getNormalDataType(originalType);
-			case NORMALINTEGER:
-				return "NormalInteger";
-			case NORMALBOOLEAN:
-				return "NormalBoolean";
-			case NORMALFLOAT:
-				return "NormalFloat";
-			case NORMALDOUBLE:
-				return "NormalDouble";
-			case NORMALSTRING:
-				return "NormalString";
-			case NORMALDATETIME:
-				return "NormalDateTime";
-				default:
-					System.err.println("not reachable " + crdtType + " " + originalType);
-					throw new RuntimeException("not such crdt type");
+	public static String getProperCrdtObject(CrdtDataFieldType crdtType, String originalType)
+	{
+		switch(crdtType)
+		{
+		case LWWINTEGER:
+			return "LwwInteger";
+		case LWWFLOAT:
+			return "LwwFloat";
+		case LWWDOUBLE:
+			return "LwwDouble";
+		case LWWSTRING:
+			return "LwwString";
+		case LWWDATETIME:
+			return "LwwDateTime";
+		case LWWLOGICALTIMESTAMP:
+			return "LwwLogicalTimestamp";
+		case LWWBOOLEAN:
+		case LWWDELETEDFLAG:
+			return "LwwBoolean";
+		case NUMDELTAINTEGER:
+			return "NumberDeltaInteger";
+		case NUMDELTAFLOAT:
+			return "NumberDeltaFloat";
+		case NUMDELTADOUBLE:
+			return "NumberDeltaDouble";
+		case NUMDELTADATETIME:
+			return "NumberDeltaDateTime";
+		case NONCRDTFIELD:
+			return "Normal" + getNormalDataType(originalType);
+		case NORMALINTEGER:
+			return "NormalInteger";
+		case NORMALBOOLEAN:
+			return "NormalBoolean";
+		case NORMALFLOAT:
+			return "NormalFloat";
+		case NORMALDOUBLE:
+			return "NormalDouble";
+		case NORMALSTRING:
+			return "NormalString";
+		case NORMALDATETIME:
+			return "NormalDateTime";
+		default:
+			System.err.println("not reachable " + crdtType + " " + originalType);
+			throw new RuntimeException("not such crdt type");
 		}
 	}
-	
+
 	/**
 	 * Gets the lww logical timestamp crdt type string.
 	 *
 	 * @return the lww logical timestamp crdt type string
 	 */
-	public static String getLwwLogicalTimestampCrdtTypeString(){
+	public static String getLwwLogicalTimestampCrdtTypeString()
+	{
 		return "LwwLogicalTimestamp";
 	}
-	
+
 	/**
 	 * Gets the lww deleted flag.
 	 *
 	 * @return the lww deleted flag
 	 */
-	public static String getLwwDeletedFlag(){
+	public static String getLwwDeletedFlag()
+	{
 		return "LwwBoolean";
 	}
-	
+
 	/**
 	 * Checks if is normal data type.
 	 *
 	 * @param crdtType the crdt type
+	 *
 	 * @return true, if is normal data type
 	 */
-	public static boolean isNormalDataType(CrdtDataFieldType crdtType){
-		switch(crdtType){
+	public static boolean isNormalDataType(CrdtDataFieldType crdtType)
+	{
+		switch(crdtType)
+		{
 		case NONCRDTFIELD:
 		case NORMALINTEGER:
 		case NORMALBOOLEAN:
@@ -137,39 +150,49 @@ public class CrdtFactory {
 		case NORMALSTRING:
 		case NORMALDATETIME:
 			return true;
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
-	
+
 	/**
 	 * Gets the normal data type.
 	 *
 	 * @param normalDBType the normal db type
+	 *
 	 * @return the normal data type
 	 */
-	public static String getNormalDataType(String normalDBType){
-		if(normalDBType.toLowerCase().equals("int")){
+	public static String getNormalDataType(String normalDBType)
+	{
+		if(normalDBType.toLowerCase().equals("int"))
+		{
 			return "Integer";
-		}else if(normalDBType.toLowerCase().equals("varchar")){
+		} else if(normalDBType.toLowerCase().equals("varchar"))
+		{
 			return "String";
-		}else if(normalDBType.toLowerCase().equals("float")){
+		} else if(normalDBType.toLowerCase().equals("float"))
+		{
 			return "float";
-		}else if(normalDBType.toLowerCase().equals("datetime")){
+		} else if(normalDBType.toLowerCase().equals("datetime"))
+		{
 			return "DateTime";
-		}else{
+		} else
+		{
 			throw new RuntimeException("not implemented normal db type " + normalDBType);
 		}
 	}
-	
+
 	/**
 	 * Checks if is lww type.
 	 *
 	 * @param crdtType the crdt type
+	 *
 	 * @return true, if is lww type
 	 */
-	public static boolean isLwwType(CrdtDataFieldType crdtType){
-		switch(crdtType){
+	public static boolean isLwwType(CrdtDataFieldType crdtType)
+	{
+		switch(crdtType)
+		{
 		case LWWINTEGER:
 		case LWWFLOAT:
 		case LWWDOUBLE:
@@ -178,72 +201,90 @@ public class CrdtFactory {
 		case LWWBOOLEAN:
 		case LWWDELETEDFLAG:
 			return true;
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
-	
+
 	/**
 	 * Checks if is number delta.
 	 *
 	 * @param crdtType the crdt type
+	 *
 	 * @return true, if is number delta
 	 */
-	public static boolean isNumberDelta(CrdtDataFieldType crdtType) {
-		switch(crdtType){
+	public static boolean isNumberDelta(CrdtDataFieldType crdtType)
+	{
+		switch(crdtType)
+		{
 		case NUMDELTAINTEGER:
 		case NUMDELTAFLOAT:
 		case NUMDELTADOUBLE:
 		case NUMDELTADATETIME:
 			return true;
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
-	
+
 	/**
 	 * Checks if is lww logical timestamp.
 	 *
 	 * @param crdtType the crdt type
+	 *
 	 * @return true, if is lww logical timestamp
 	 */
-	public static boolean isLwwLogicalTimestamp(CrdtDataFieldType crdtType){
-		switch(crdtType){
+	public static boolean isLwwLogicalTimestamp(CrdtDataFieldType crdtType)
+	{
+		switch(crdtType)
+		{
 		case LWWLOGICALTIMESTAMP:
 			return true;
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
-	
+
 	/**
 	 * Checks if is lww deleted flag.
 	 *
 	 * @param crdtType the crdt type
+	 *
 	 * @return true, if is lww deleted flag
 	 */
-	public static boolean isLwwDeletedFlag(CrdtDataFieldType crdtType){
-		switch(crdtType){
+	public static boolean isLwwDeletedFlag(CrdtDataFieldType crdtType)
+	{
+		switch(crdtType)
+		{
 		case LWWDELETEDFLAG:
 			return true;
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
-	
+
 	//for runtime shadow operation generation
-	
+
 	/**
 	 * Generate crdt primitive type.
 	 *
-	 * @param df the df
+	 * @param df    the df
 	 * @param value the value
-	 * @param rs the rs
+	 * @param rs    the rs
+	 *
 	 * @return the primitive type
+	 *
 	 * @throws SQLException the sQL exception
 	 */
-	public static PrimitiveType generateCrdtPrimitiveType(DateFormat dateFormat, DataField df, String value, ResultSet rs) throws SQLException {
-		switch(df.getCrdtType()) {
+	public static PrimitiveType generateCrdtPrimitiveType(ShadowOperation op, DateFormat dateFormat, DataField df,
+														  String value, ResultSet rs, Statement statement)
+			throws SQLException
+	{
+		if(df.hasInvariants())
+			InvariantChecker.checkInvariant(op, statement, df, value);
+
+		switch(df.getCrdtType())
+		{
 		case NONCRDTFIELD:
 			throw new RuntimeException("NONCRDT is depreciated");
 		case NORMALINTEGER:
@@ -271,65 +312,77 @@ public class CrdtFactory {
 		case LWWBOOLEAN:
 			return new LwwBoolean(df.getFieldName(), Boolean.parseBoolean(value));
 		case NUMDELTAINTEGER:
-			if(rs != null) {
+			if(rs != null)
+			{
 				Debug.println("result set is not null");
 				rs.beforeFirst();
 				rs.next();
-				int finalIValue =  Integer.parseInt(value);
+				int finalIValue = Integer.parseInt(value);
 				int oldIValue = rs.getInt(df.getFieldName());
 				int iDelta = finalIValue - oldIValue;
 				return new NumberDeltaInteger(df.getFieldName(), iDelta);
-			}else {
+			} else
+			{
 				Debug.println("result set is null");
 				return new NumberDeltaInteger(df.getFieldName(), Integer.parseInt(value));
 			}
 		case NUMDELTAFLOAT:
-			if(rs != null) {
+			if(rs != null)
+			{
 				rs.beforeFirst();
 				rs.next();
-				float finalFValue =  Float.parseFloat(value);
+				float finalFValue = Float.parseFloat(value);
 				float oldFValue = rs.getFloat(df.getFieldName());
 				float fDelta = finalFValue - oldFValue;
 				return new NumberDeltaFloat(df.getFieldName(), fDelta);
-			}else {
+			} else
+			{
 				return new NumberDeltaFloat(df.getFieldName(), Float.parseFloat(value));
 			}
 		case NUMDELTADOUBLE:
-			if(rs != null) {
+			if(rs != null)
+			{
 				rs.beforeFirst();
 				rs.next();
 				double finalDValue = Double.parseDouble(value);
 				double oldDValue = rs.getDouble(df.getFieldName());
 				double dDelta = finalDValue - oldDValue;
 				return new NumberDeltaDouble(df.getFieldName(), dDelta);
-			}else {
+			} else
+			{
 				return new NumberDeltaDouble(df.getFieldName(), Double.parseDouble(value));
 			}
 		case NUMDELTADATETIME:
-			if(rs != null) {
+			if(rs != null)
+			{
 				rs.beforeFirst();
 				rs.next();
 				long finalTValue = DatabaseFunction.convertDateStrToLong(dateFormat, value);
 				long oldTValue = DatabaseFunction.convertDateStrToLong(dateFormat, rs.getString(df.getFieldName()));
 				long tDelta = finalTValue - oldTValue;
 				return new NumberDeltaDateTime(df.getFieldName(), tDelta);
-			}else {
-				return new NumberDeltaDateTime(df.getFieldName(), DatabaseFunction.convertDateStrToLong(dateFormat, value));
+			} else
+			{
+				return new NumberDeltaDateTime(df.getFieldName(),
+						DatabaseFunction.convertDateStrToLong(dateFormat, value));
 			}
-			default:
-				System.err.println("cannot create primitive type" + df.toString());
-				throw new RuntimeException("not such crdt type");
+		default:
+			System.err.println("cannot create primitive type" + df.toString());
+			throw new RuntimeException("not such crdt type");
 		}
 	}
-	
+
 	/**
 	 * Gets the default value for data field.
 	 *
 	 * @param df the df
+	 *
 	 * @return the default value for data field
 	 */
-	public static String getDefaultValueForDataField(DateFormat dateFormat, DataField df) {
-		switch(df.getCrdtType()) {
+	public static String getDefaultValueForDataField(DateFormat dateFormat, DataField df)
+	{
+		switch(df.getCrdtType())
+		{
 		case NONCRDTFIELD:
 			throw new RuntimeException("NONCRDT is depreciated");
 		case NORMALINTEGER:
@@ -353,10 +406,10 @@ public class CrdtFactory {
 		case NORMALDATETIME:
 		case LWWDATETIME:
 		case NUMDELTADATETIME:
-			return "'"+DatabaseFunction.CURRENTTIMESTAMP(dateFormat)+"'";
+			return "'" + DatabaseFunction.CURRENTTIMESTAMP(dateFormat) + "'";
 		default:
-				System.err.println("cannot get default value for primitive type" + df.toString());
-				throw new RuntimeException("not such crdt type");
+			System.err.println("cannot get default value for primitive type" + df.toString());
+			throw new RuntimeException("not such crdt type");
 		}
 	}
 }

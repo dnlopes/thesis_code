@@ -23,7 +23,6 @@ import net.sf.jsqlparser.statement.update.Update;
 public abstract class DatabaseTable
 {
 
-	private List<Invariant> invariants;
 	private String tableName;
 	private CrdtTableType crdtTableType;
 	private boolean isContainAutoIncrementField;
@@ -47,7 +46,6 @@ public abstract class DatabaseTable
 		this.isContainAutoIncrementField = false;
 
 		this.primaryKeyMap = new LinkedHashMap<>();
-		this.invariants = new LinkedList<>();
 		this.sortedDataFieldMap = new HashMap<>();
 
 		this.tableName = tableName;
@@ -577,11 +575,6 @@ public abstract class DatabaseTable
 	public HashMap<Integer, DataField> getSortedFieldsMap()
 	{
 		return this.sortedDataFieldMap;
-	}
-
-	public void addInvariant(Invariant inv)
-	{
-		this.invariants.add(inv);
 	}
 
 }

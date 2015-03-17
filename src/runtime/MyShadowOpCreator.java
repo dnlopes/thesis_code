@@ -16,6 +16,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -24,6 +25,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.DBOpEntry;
+import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
 import util.ExitCode;
 import util.IDFactories.IDFactories;
@@ -50,8 +52,11 @@ public class MyShadowOpCreator
 
 	static HashMap<String, DatabaseTable> annotatedTableSchema;
 	private static Database database;
+	private static ShadowOperation shadowOperation;
+
 	static CCJSqlParserManager cJsqlParser;
 	static IDFactories iDFactory;
+
 	static boolean isInitialized = false;
 	public static int globalProxyId;
 	public static int totalProxyNum;
@@ -863,9 +868,10 @@ public class MyShadowOpCreator
 	 */
 	public DatabaseTable getDatabaseInstance(String tableName)
 	{
-		DatabaseTable dTb = annotatedTableSchema.get(tableName);
+//		DatabaseTable dTb = annotatedTableSchema.get(tableName);
+		DatabaseTable table = database.getTable(tableName);
 
-		if(dTb == null)
+		if(table == null)
 		{
 			try
 			{
@@ -876,7 +882,7 @@ public class MyShadowOpCreator
 				System.exit(ExitCode.UNKNOWTABLENAME);
 			}
 		}
-		return dTb;
+		return table;
 	}
 
 	/**
@@ -888,7 +894,7 @@ public class MyShadowOpCreator
 	 * @throws JSQLParserException the jSQL parser exception
 	 * @throws SQLException        the sQL exception
 	 */
-	public void addDBEntryToShadowOperation(ShadowOperation shdOp, String sqlQuery)
+	public void addDBEntryToShadowOperation(ShadowOperation shdOp, String sqlQuery, DBSingleOperation sqlOp)
 			throws JSQLParserException, SQLException
 	{
 		// remove the last ";"
@@ -899,13 +905,12 @@ public class MyShadowOpCreator
 		{
 			sqlQuery = sqlQuery.substring(0, endIndex);
 		}
-		net.sf.jsqlparser.statement.Statement sqlStmt = cJsqlParser.parse(new StringReader(sqlQuery));
+		Statement sqlStmt = cJsqlParser.parse(new StringReader(sqlQuery));
 		if(sqlStmt instanceof Insert)
 		{
 			Insert insertStatement = (Insert) sqlStmt;
 			String tableName = insertStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof AosetTable || dTb instanceof AusetTable)
 			{
@@ -930,7 +935,6 @@ public class MyShadowOpCreator
 			Update updateStatement = (Update) sqlStmt;
 			String tableName = updateStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof ArsetTable ||
 					dTb instanceof AusetTable ||
@@ -955,7 +959,6 @@ public class MyShadowOpCreator
 			Delete deleteStatement = (Delete) sqlStmt;
 			String tableName = deleteStatement.getTable().getName();
 			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-			DatabaseTable dTb2 = database.getTable(tableName);
 
 			if(dTb instanceof ArsetTable)
 			{
@@ -1008,7 +1011,8 @@ public class MyShadowOpCreator
 			{
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
+						value, null, insertStatement);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1025,7 +1029,8 @@ public class MyShadowOpCreator
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
+						value, null, insertStatement);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1061,7 +1066,8 @@ public class MyShadowOpCreator
 			{
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
+						value, null, insertStatement);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1078,7 +1084,8 @@ public class MyShadowOpCreator
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
+						value, null, insertStatement);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1112,7 +1119,8 @@ public class MyShadowOpCreator
 			String colName = colIt.next().toString();
 			String value = valueIt.next().toString();
 			DataField df = dbT.getField(colName);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, rs);
+			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df, value,
+					rs, updateStatement);
 			dbOpEntry.addNormalAttribute(pt);
 		}
 		String whereClause = updateStatement.getWhere().toString();
@@ -1158,7 +1166,9 @@ public class MyShadowOpCreator
 			String primaryKeyPair = primaryKeyPairs[i].replaceAll("\\s+", "");
 			String[] fieldAndValue = primaryKeyPair.split("=");
 			DataField df = dbT.getField(fieldAndValue[0]);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, fieldAndValue[1], null);
+			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
+				fieldAndValue[1],
+					null, null);
 			dbOpEntry.addPrimaryKey(pt);
 		}
 	}
@@ -1214,6 +1224,11 @@ public class MyShadowOpCreator
 	public void setDateFormat(DateFormat dateFormat)
 	{
 		this.dateFormat = dateFormat;
+	}
+
+	public void setShadowOperation(ShadowOperation op)
+	{
+		shadowOperation = op;
 	}
 }
 

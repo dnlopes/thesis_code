@@ -22,6 +22,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import crdtlib.datatypes.CrdtEncodeDecode;
 import crdtlib.datatypes.primitivetypes.LwwBoolean;
@@ -42,7 +44,10 @@ import crdtlib.datatypes.primitivetypes.NumberDeltaDouble;
 import crdtlib.datatypes.primitivetypes.NumberDeltaFloat;
 import crdtlib.datatypes.primitivetypes.NumberDeltaInteger;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
-import runtime.operation.DBOpEntry;
+import database.invariants.FieldValuePair;
+import database.invariants.Invariant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -51,15 +56,22 @@ import runtime.operation.DBOpEntry;
 public class ShadowOperation
 {
 
+	static final Logger LOG = LoggerFactory.getLogger(ShadowOperation.class);
+
 	/** The operation list. */
 	ArrayList<DBOpEntry> operationList = null;
+	private Map<Invariant, FieldValuePair> invariants;
+
+	private boolean internalAborted;
 
 	/**
 	 * Instantiates a new shadow op template.
 	 */
 	public ShadowOperation()
 	{
-		this.operationList = new ArrayList<DBOpEntry>();
+		this.operationList = new ArrayList<>();
+		this.internalAborted = false;
+		this.invariants = new HashMap<>();
 	}
 
 	/**
@@ -325,10 +337,6 @@ public class ShadowOperation
 	{
 		this.operationList.add(dbOpEntry);
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 
 	/**
 	 * To string.
@@ -395,5 +403,23 @@ public class ShadowOperation
 	public boolean isEmpty()
 	{
 		return (this.operationList.size() == 0);
+	}
+
+	public boolean isInternalAborted()
+	{
+		return this.internalAborted;
+	}
+
+	public void setInternalAborted()
+	{
+		this.internalAborted = true;
+	}
+
+	public void addInvariant(Invariant inv, FieldValuePair pair)
+	{
+		if(this.invariants.containsKey(inv))
+			LOG.warn("trying to add the same invariant to the shadow operation");
+		this.invariants.put(inv, pair);
+
 	}
 }

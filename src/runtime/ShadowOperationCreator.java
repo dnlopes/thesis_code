@@ -1077,7 +1077,7 @@ public class ShadowOperationCreator
 			{
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, value, null, null);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1094,7 +1094,7 @@ public class ShadowOperationCreator
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, value, null, null);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1130,7 +1130,7 @@ public class ShadowOperationCreator
 			{
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, value, null, null);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1147,7 +1147,7 @@ public class ShadowOperationCreator
 				String colName = colIt.next().toString();
 				String value = valueIt.next().toString();
 				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, null);
+				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, value, null, null);
 				if(df.isPrimaryKey())
 				{
 					dbOpEntry.addPrimaryKey(pt);
@@ -1181,7 +1181,7 @@ public class ShadowOperationCreator
 			String colName = colIt.next().toString();
 			String value = valueIt.next().toString();
 			DataField df = dbT.getField(colName);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, value, rs);
+			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, value, rs, null);
 			dbOpEntry.addNormalAttribute(pt);
 		}
 		String whereClause = updateStatement.getWhere().toString();
@@ -1227,7 +1227,7 @@ public class ShadowOperationCreator
 			String primaryKeyPair = primaryKeyPairs[i].replaceAll("\\s+", "");
 			String[] fieldAndValue = primaryKeyPair.split("=");
 			DataField df = dbT.getField(fieldAndValue[0]);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(this.getDateFormat(), df, fieldAndValue[1], null);
+			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(null, this.getDateFormat(), df, fieldAndValue[1], null, null);
 			dbOpEntry.addPrimaryKey(pt);
 		}
 	}

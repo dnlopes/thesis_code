@@ -28,5 +28,4 @@ public abstract class Invariant
 	public abstract void addPair(DataField field, String remoteField);
 	public abstract void setRemoteTable(String table);
 	public abstract String getRemoteTable();
-
 }

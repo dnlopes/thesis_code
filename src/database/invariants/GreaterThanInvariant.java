@@ -12,12 +12,14 @@ public class GreaterThanInvariant extends Invariant
 {
 
 	private String minValue;
+	private boolean equal;
 
 	public GreaterThanInvariant(DataField field, String threshold)
 	{
 		super();
 		this.fields.add(field);
 		this.minValue = threshold;
+		this.equal = false;
 	}
 
 	public String getMinValue()
@@ -48,5 +50,15 @@ public class GreaterThanInvariant extends Invariant
 	{
 		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
+	}
+
+	public boolean isViolated(String value)
+	{
+		return value.compareTo(this.minValue) < 0;
+	}
+
+	public void setEqual()
+	{
+		this.equal = true;
 	}
 }

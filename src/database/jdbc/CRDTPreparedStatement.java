@@ -86,6 +86,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 
 			resultSet = new CRDTResultSet(res);
 			shdOpCreator.setCachedResultSetForDelta(resultSet);
+			LOG.trace("result set cached");
 		} catch(ScratchpadException | JSQLParserException e)
 		{
 			e.printStackTrace();
@@ -120,10 +121,13 @@ public class CRDTPreparedStatement implements PreparedStatement
 		for(String updateStr : deterStatements)
 		{
 			DBUpdateResult res;
+			DBSingleOperation sqlOp;
+
 			try
 			{
-				res = DBUpdateResult.createResult(proxy.execute(DBSingleOperation.createOperation(updateStr),
-						this.proxy.getTransaction().getTxnId()).getResult());
+				sqlOp = DBSingleOperation.createOperation(updateStr);
+				Result tempRes = this.proxy.execute(sqlOp, this.proxy.getTransaction().getTxnId());
+				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 			} catch(JSQLParserException | ScratchpadException e)
 			{
@@ -136,11 +140,12 @@ public class CRDTPreparedStatement implements PreparedStatement
 			{
 				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
 				this.proxy.getTransaction().setShadowOp(shdOp);
+				shdOpCreator.setShadowOperation(shdOp);
 			}
 
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr);
+				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}",

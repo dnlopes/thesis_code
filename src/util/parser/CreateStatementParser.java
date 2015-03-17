@@ -9,9 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
-import database.invariants.ForeignKeyInvariant;
-import database.invariants.Invariant;
-import database.invariants.UniqueInvariant;
+import database.invariants.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -59,7 +57,7 @@ public class CreateStatementParser
 	 */
 	public static DatabaseTable createTable(String schemaStr)
 	{
-		if(! is_Create_Table_Statement(schemaStr))
+		if(!is_Create_Table_Statement(schemaStr))
 			return null;
 		else
 		{
@@ -128,7 +126,7 @@ public class CreateStatementParser
 		int startIndex = schemaStr.indexOf("(");
 		int endIndex = schemaStr.lastIndexOf(")");
 
-		if(startIndex == - 1 || endIndex == - 1 || startIndex >= endIndex)
+		if(startIndex == -1 || endIndex == -1 || startIndex >= endIndex)
 		{
 			throw_Wrong_Format_Exception(schemaStr);
 		}
@@ -146,7 +144,7 @@ public class CreateStatementParser
 	private static String get_Table_Type_Annotation(String titleStr)
 	{
 		int startIndex = titleStr.indexOf("@");
-		if(startIndex == - 1)
+		if(startIndex == -1)
 			return ""; // there is no annotation
 		int endIndex = titleStr.indexOf(" ", startIndex);
 		String annotationStr = titleStr.substring(startIndex + 1, endIndex);
@@ -180,7 +178,7 @@ public class CreateStatementParser
 	 */
 	public static String get_Table_Name(String titleStr)
 	{
-		if(! titleStr.toLowerCase().contains("table"))
+		if(!titleStr.toLowerCase().contains("table"))
 		{
 			throw_Wrong_Format_Exception(titleStr);
 		}
@@ -238,7 +236,7 @@ public class CreateStatementParser
 		while(beginIndex < bodyStr.length())
 		{
 			int commaIndex = bodyStr.indexOf(',', beginIndex);
-			if(commaIndex == - 1)
+			if(commaIndex == -1)
 			{
 				declarationList.add(bodyStr.substring(declarationBeginIndex));
 				break;
@@ -284,7 +282,7 @@ public class CreateStatementParser
 		Vector<String> attrStrs = new Vector<>();
 		for(int i = 0; i < declarationStrs.length; i++)
 		{
-			if(! (declarationStrs[i].toUpperCase().startsWith(
+			if(!(declarationStrs[i].toUpperCase().startsWith(
 					"CONSTRAINT") || declarationStrs[i].toUpperCase().startsWith(
 					"PRIMARY KEY") || declarationStrs[i].toUpperCase().startsWith(
 					"INDEX") || declarationStrs[i].toUpperCase().startsWith(
@@ -365,7 +363,7 @@ public class CreateStatementParser
 			fieldsMap.put(field.getFieldName(), field);
 			LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
 
-			if(CrdtFactory.isLwwType(field.getCrdtType()) && ! isContainedLwwDataFields)
+			if(CrdtFactory.isLwwType(field.getCrdtType()) && !isContainedLwwDataFields)
 				isContainedLwwDataFields = true;
 
 		}
@@ -404,7 +402,7 @@ public class CreateStatementParser
 
 				int startIndex = constraint.indexOf("(");
 				int endIndex = constraint.indexOf(")");
-				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+				if(startIndex >= endIndex || startIndex == -1 || endIndex == -1)
 					throw_Wrong_Format_Exception(constraint);
 
 				String keyStr = constraint.substring(startIndex + 1, endIndex);
@@ -416,7 +414,7 @@ public class CreateStatementParser
 
 				for(int j = 0; j < pKeys.length; j++)
 				{
-					if(! fieldsMap.containsKey(pKeys[j]))
+					if(!fieldsMap.containsKey(pKeys[j]))
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[j]);
 
 					DataField field = fieldsMap.get(pKeys[j]);
@@ -433,7 +431,7 @@ public class CreateStatementParser
 				int startIndex = constraint.indexOf("(", locationIndex);
 				int endIndex = constraint.indexOf(")", locationIndex);
 
-				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+				if(startIndex >= endIndex || startIndex == -1 || endIndex == -1)
 					throw_Wrong_Format_Exception(constraint);
 
 				String keyStr = constraint.substring(startIndex + 1, endIndex);
@@ -459,7 +457,7 @@ public class CreateStatementParser
 
 				for(int t = 0; t < fKeys.length; t++)
 				{
-					if(! fieldsMap.containsKey(fKeys[t]))
+					if(!fieldsMap.containsKey(fKeys[t]))
 						Runtime.throwRunTimeException("foreign attributes size do not match",
 								ExitCode.WRONGCREATTABLEFORMAT);
 
@@ -474,25 +472,50 @@ public class CreateStatementParser
 				int locationIndex = constraintStrs.elementAt(i).toUpperCase().indexOf("CHECK");
 				int startIndex = constraintStrs.elementAt(i).indexOf("(", locationIndex);
 				int endIndex = constraintStrs.elementAt(i).indexOf(")", locationIndex);
-				if(startIndex >= endIndex || startIndex == - 1 || endIndex == - 1)
+				if(startIndex >= endIndex || startIndex == -1 || endIndex == -1)
 				{
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 				}
 
 				String conditionStr = constraintStrs.elementAt(i).substring(startIndex + 1, endIndex);
 
-				if(conditionStr.contains("<"))
+				if(conditionStr.contains("<="))
 				{
+					String operands[] = conditionStr.split("<=");
+					DataField field = fieldsMap.get(operands[0]);
 
+					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
+					field.addInvariant(inv);
+					inv.setEqual();
+				} else if(conditionStr.contains("<"))
+				{
+					String operands[] = conditionStr.split("<");
+					DataField field = fieldsMap.get(operands[0]);
+
+					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
+					field.addInvariant(inv);
+
+				} else if(conditionStr.contains(">="))
+				{
+					String operands[] = conditionStr.split(">=");
+					DataField field = fieldsMap.get(operands[0]);
+
+					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
+					field.addInvariant(inv);
+					inv.setEqual();
 				} else if(conditionStr.contains(">"))
 				{
 					String operands[] = conditionStr.split(">");
+					DataField field = fieldsMap.get(operands[0]);
+
+					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
+					field.addInvariant(inv);
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 
 			} else if(constraint.toUpperCase().contains("UNIQUE"))
 			{
-
+				//TODO
 			}
 		}
 	}

@@ -12,12 +12,14 @@ public class LesserThanInvariant extends Invariant
 {
 
 	private String maxValue;
+	private boolean equal;
 
 	public LesserThanInvariant(DataField field, String maxValue)
 	{
 		super();
 		this.fields.add(field);
 		this.maxValue = maxValue;
+		this.equal = false;
 	}
 
 	public String getMaxValue()
@@ -48,5 +50,15 @@ public class LesserThanInvariant extends Invariant
 	{
 		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
+	}
+
+	public boolean isViolated(String value)
+	{
+		return value.compareTo(this.maxValue) > 0;
+	}
+
+	public void setEqual()
+	{
+		this.equal = true;
 	}
 }

@@ -64,8 +64,8 @@ public class DBOpEntry{
 	public DBOpEntry(byte opType , String dbTableName) {
 		this.setOpType(opType);
 		this.setDbTableName(dbTableName);
-		this.primaryKeys = new ArrayList<PrimitiveType>();
-		this.normalAttributes = new ArrayList<PrimitiveType>();
+		this.primaryKeys = new ArrayList<>();
+		this.normalAttributes = new ArrayList<>();
 	}
 
 	/**

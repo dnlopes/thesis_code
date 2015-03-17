@@ -153,4 +153,5 @@ public abstract class DataField
 	{
 		this.originalDeclaration = decl;
 	}
+
 }
