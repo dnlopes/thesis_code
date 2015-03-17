@@ -484,6 +484,7 @@ public class CreateStatementParser
 					String operands[] = conditionStr.split("<=");
 					DataField field = fieldsMap.get(operands[0]);
 
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
 					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
 					field.addInvariant(inv);
 					inv.setEqual();
@@ -492,6 +493,7 @@ public class CreateStatementParser
 					String operands[] = conditionStr.split("<");
 					DataField field = fieldsMap.get(operands[0]);
 
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
 					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
 					field.addInvariant(inv);
 
@@ -500,6 +502,7 @@ public class CreateStatementParser
 					String operands[] = conditionStr.split(">=");
 					DataField field = fieldsMap.get(operands[0]);
 
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
 					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
 					field.addInvariant(inv);
 					inv.setEqual();
@@ -508,6 +511,7 @@ public class CreateStatementParser
 					String operands[] = conditionStr.split(">");
 					DataField field = fieldsMap.get(operands[0]);
 
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
 					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
 					field.addInvariant(inv);
 				} else

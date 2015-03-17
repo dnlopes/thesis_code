@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 
 import net.sf.jsqlparser.statement.Statement;
-import runtime.InvariantChecker;
+import database.invariants.InvariantChecker;
 import runtime.operation.ShadowOperation;
 import util.commonfunc.StringOperations;
 import crdtlib.datatypes.primitivetypes.LwwBoolean;

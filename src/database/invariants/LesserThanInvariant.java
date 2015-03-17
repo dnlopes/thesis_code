@@ -11,7 +11,7 @@ import util.ExitCode;
 public class LesserThanInvariant extends Invariant
 {
 
-	private String maxValue;
+	private final String maxValue;
 	private boolean equal;
 
 	public LesserThanInvariant(DataField field, String maxValue)
@@ -54,7 +54,10 @@ public class LesserThanInvariant extends Invariant
 
 	public boolean isViolated(String value)
 	{
-		return value.compareTo(this.maxValue) > 0;
+		if(this.equal)
+			return value.compareTo(this.maxValue) > 0;
+
+		return value.compareTo(this.maxValue) >= 0;
 	}
 
 	public void setEqual()

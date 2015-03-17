@@ -11,7 +11,7 @@ import util.ExitCode;
 public class GreaterThanInvariant extends Invariant
 {
 
-	private String minValue;
+	private final String minValue;
 	private boolean equal;
 
 	public GreaterThanInvariant(DataField field, String threshold)
@@ -54,7 +54,10 @@ public class GreaterThanInvariant extends Invariant
 
 	public boolean isViolated(String value)
 	{
-		return value.compareTo(this.minValue) < 0;
+		if(this.equal)
+			return value.compareTo(this.minValue) < 0;
+
+		return value.compareTo(this.minValue) <= 0;
 	}
 
 	public void setEqual()
