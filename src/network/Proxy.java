@@ -8,11 +8,14 @@ import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Transaction;
+import runtime.TransactionId;
 import runtime.factory.TxnIdFactory;
 import runtime.operation.DBSingleOperation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -23,45 +26,52 @@ public class Proxy extends Node
 
 	static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
-	private Transaction transaction;
-	private IDBScratchpad pad;
+	// records all active transactions along with their respective scratchpads
+	private Map<TransactionId, Transaction> transactions;
+	private Map<TransactionId, IDBScratchpad> pads;
 
 	public Proxy(String hostName, int port, int id)
 	{
 		super(hostName, port, id, Role.PROXY);
-		this.transaction = new Transaction();
-		this.pad = ExecutePadFactory.getScratchpad();
+		this.transactions = new HashMap<>();
+		this.pads = new HashMap<>();
 	}
 
-	public void beginTxn()
+	public void beginTxn(Transaction txn)
 	{
 		long txnId = TxnIdFactory.getNextId();
-		this.transaction.beginTxn(txnId);
+		IDBScratchpad pad = ExecutePadFactory.getScratchpad();
+
+		this.transactions.put(txn.getTxnId(), txn);
+		this.pads.put(txn.getTxnId(), pad);
+		txn.beginTxn(txnId);
+
 		LOG.info("Beggining txn {}", txnId);
 	}
 
-	public boolean txnHasBegun()
+	public boolean txnHasBegun(TransactionId txnId)
 	{
-		return this.transaction.hasBegun();
+		return this.transactions.containsKey(txnId);
 	}
 
-	public ResultSet executeQuery(String sql) throws SQLException
+	public ResultSet executeQuery(TransactionId txnId, String sql) throws SQLException
 	{
-		return pad.executeQuery(sql);
+
+		return this.pads.get(txnId).executeQuery(sql);
 	}
 
-	public Transaction getTransaction()
+	public Transaction getTransaction(TransactionId txnId)
 	{
-		return this.transaction;
+		return this.transactions.get(txnId);
 	}
 
-	public Result execute(DBSingleOperation op, long txnId)
+	public Result execute(DBSingleOperation op, TransactionId txnId)
 			throws JSQLParserException, SQLException, ScratchpadException
 	{
-		return pad.execute(op, txnId);
+		return this.pads.get(txnId).execute(op);
 	}
 
-	public boolean commit()
+	public boolean commit(TransactionId txnId)
 	{
 		//TODO  this method must block until receive ack from replicator
 		// we can block on a condition variable of each transaction
@@ -74,14 +84,14 @@ public class Proxy extends Node
 		 * 4- respond to client
 		 * */
 
-		this.transaction.endTxn();
-		LOG.info("committing txn {}", this.transaction.getTxnId());
+		this.transactions.get(txnId).endTxn();
+		LOG.info("committing txn {}", txnId);
 		return true;
 	}
 
-	public void abortTransaction()
+	public void abortTransaction(TransactionId txnId)
 	{
 		//TODO
-		LOG.info("aborting txn {}", this.transaction.getTxnId());
+		LOG.info("aborting txn {}", txnId);
 	}
 }

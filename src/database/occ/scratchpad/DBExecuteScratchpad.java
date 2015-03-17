@@ -66,7 +66,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
-	public Result execute(DBSingleOperation op, long txnId)
+	public Result execute(DBSingleOperation op)
 			throws JSQLParserException, ScratchpadException, SQLException
 	{
 		op.parseSQL(parser);

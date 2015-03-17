@@ -37,12 +37,12 @@ public class CRDTPreparedStatement implements PreparedStatement
 
 	private Proxy proxy;
 
-	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator)
+	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator, Transaction txn)
 	{
 		this.proxy = proxy;
 		this.sql = sql;
 		this.shdOpCreator = creator;
-		this.transaction = this.proxy.getTransaction();
+		this.transaction = txn;
 		init(0, 0);
 	}
 
@@ -78,8 +78,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 		//TODO: review
 		String sql = this.generateStatement();
 
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
 		DBSelectResult res;
 		CRDTResultSet resultSet;
@@ -107,8 +107,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	{
 		//TODO: review
 
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
 		String[] deterStatements;
 		try
@@ -116,7 +116,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 			deterStatements = shdOpCreator.makeToDeterministic(this.generateStatement());
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements for txn {}", proxy.getTransaction().getTxnId());
+			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId());
 			throw new SQLException(e.getMessage());
 		}
 
@@ -135,8 +135,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 				result += res.getUpdateResult();
 			} catch(JSQLParserException | ScratchpadException e)
 			{
-				LOG.error("failed to execute statement in scratchpad state for txn {}",
-						this.transaction.getTxnId());
+				LOG.error("failed to execute statement in scratchpad state for txn {}", this.transaction.getTxnId());
 				throw new SQLException(e.getMessage());
 			}
 
@@ -149,11 +148,10 @@ public class CRDTPreparedStatement implements PreparedStatement
 
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.proxy.getTransaction().getShadowOp(), updateStr, sqlOp);
+				shdOpCreator.addDBEntryToShadowOperation(this.transaction.getShadowOp(), updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
-				LOG.error("failed to add statement to shadow operation for txn {}",
-						this.proxy.getTransaction().getTxnId());
+				LOG.error("failed to add statement to shadow operation for txn {}", this.transaction.getTxnId());
 				throw new SQLException(e.getMessage());
 			}
 		}

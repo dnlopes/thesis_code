@@ -24,49 +24,51 @@ public class CRDTConnection implements Connection
 
 	private Proxy proxy;
 	private MyShadowOpCreator shdOpCreator;
+	private Transaction transaction;
 
-	public CRDTConnection() throws SQLException
+	public CRDTConnection(Proxy proxy) throws SQLException
 	{
 		this.shdOpCreator = new MyShadowOpCreator(Configuration.SCHEMA_FILE, 1, 1);
-		this.proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID);
+		this.proxy = proxy;
+		this.transaction = new Transaction();
 	}
 
 	@Override
 	public Statement createStatement() throws SQLException
 	{
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
-		return new CRDTStatement(this.proxy, this.shdOpCreator);
+		return new CRDTStatement(this.proxy, this.shdOpCreator, this.transaction);
 	}
 
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
-		return new CRDTPreparedStatement(sql, this.proxy, this.shdOpCreator);
+		return new CRDTPreparedStatement(sql, this.proxy, this.shdOpCreator, this.transaction);
 	}
 
 	@Override
 	public void commit() throws SQLException
 	{
-		LOG.trace("committing txn {}", this.proxy.getTransaction().getTxnId());
+		LOG.trace("committing txn {}", this.transaction.getTxnId().getId());
 
-		if(!this.proxy.commit())
+		if(!this.proxy.commit(this.transaction.getTxnId()))
 			throw new SQLException("txn commit failed");
 
-		LOG.info("txn {} committed ({} ms)", this.proxy.getTransaction().getTxnId(),
-				this.proxy.getTransaction().getLatency());
+		LOG.info("txn {} committed ({} ms)", this.transaction.getTxnId().getId(),
+				this.transaction.getLatency());
 	}
 
 	@Override
 	public void rollback() throws SQLException
 	{
 		//TODO review
-		LOG.info("txn {} aborted by user request", this.proxy.getTransaction().getTxnId());
-		this.proxy.abortTransaction();
+		LOG.info("txn {} aborted by user request", this.transaction.getTxnId().getId());
+		this.proxy.abortTransaction(this.transaction.getTxnId());
 	}
 
 	@Override

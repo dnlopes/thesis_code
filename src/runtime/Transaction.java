@@ -16,7 +16,7 @@ public class Transaction
 
 	static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
 
-	private long txnId;
+	private TransactionId txnId;
 	private long latency;
 	private boolean hasBegun;
 	private boolean hasEnded;
@@ -27,7 +27,7 @@ public class Transaction
 
 	public Transaction()
 	{
-		this.txnId = 0;
+		this.txnId = new TransactionId(0);
 		this.latency = 0;
 		this.hasBegun = false;
 		this.hasEnded = false;
@@ -37,7 +37,7 @@ public class Transaction
 		this.timer = new StopWatch();
 	}
 
-	public long getTxnId()
+	public TransactionId getTxnId()
 	{
 		return this.txnId;
 	}
@@ -79,7 +79,7 @@ public class Transaction
 
 	public void beginTxn(long txnId)
 	{
-		this.txnId = txnId;
+		this.txnId.setId(txnId);
 		this.hasBegun = true;
 		this.timer.start();
 	}
@@ -93,7 +93,7 @@ public class Transaction
 
 	public void clear()
 	{
-		this.txnId = 0;
+		this.txnId.setId(0);
 		this.latency = 0;
 		this.hasBegun = false;
 		this.hasEnded = false;

@@ -27,19 +27,19 @@ public class CRDTStatement implements Statement
 	private Transaction transaction;
 	private Proxy proxy;
 
-	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator)
+	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, Transaction transaction)
 	{
 		this.proxy = proxy;
 		this.shdOpCreator = creator;
-		this.transaction = this.proxy.getTransaction();
+		this.transaction = transaction;
 	}
 
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
 		//TODO review
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
 		//ResultSet result = this.proxy.executeQuery(arg0);
 
@@ -69,8 +69,8 @@ public class CRDTStatement implements Statement
 	public int executeUpdate(String arg0) throws SQLException
 	{
 		//TODO review
-		if(!this.proxy.txnHasBegun())
-			this.proxy.beginTxn();
+		if(!this.transaction.hasBegun())
+			this.proxy.beginTxn(transaction);
 
 		String[] deterStatements;
 		try
@@ -78,7 +78,7 @@ public class CRDTStatement implements Statement
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId());
+			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId().getId());
 			throw new SQLException(e.getMessage());
 		}
 
@@ -98,7 +98,7 @@ public class CRDTStatement implements Statement
 			} catch(JSQLParserException | ScratchpadException e)
 			{
 				LOG.error("failed to execute statement in scratchpad state for txn {}",
-						this.transaction.getTxnId());
+						this.transaction.getTxnId().getId());
 				throw new SQLException(e.getMessage());
 			}
 
@@ -114,7 +114,7 @@ public class CRDTStatement implements Statement
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}",
-						this.transaction.getTxnId());
+						this.transaction.getTxnId().getId());
 				throw new SQLException(e.getMessage());
 			}
 		}

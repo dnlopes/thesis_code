@@ -23,7 +23,7 @@ public interface IDBScratchpad
 	 */
 	public boolean isReadOnly();
 
-	public Result execute(DBSingleOperation op, long txnId)
+	public Result execute(DBSingleOperation op)
 			throws JSQLParserException, ScratchpadException, SQLException;
 
 	/**
