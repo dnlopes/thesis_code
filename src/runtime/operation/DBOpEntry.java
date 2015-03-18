@@ -1,21 +1,23 @@
 /********************************************************************
-Copyright (c) 2013 chengli.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the GNU Public License v2.0
-which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ Copyright (c) 2013 chengli.
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Public License v2.0
+ which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
-Contributors:
-    chengli - initial API and implementation
+ Contributors:
+ chengli - initial API and implementation
 
-Contact:
-    To distribute or use this code requires prior specific permission.
-    In this case, please contact chengli@mpi-sws.org.
-********************************************************************/
+ Contact:
+ To distribute or use this code requires prior specific permission.
+ In this case, please contact chengli@mpi-sws.org.
+ ********************************************************************/
 /**
- * 
+ *
  */
+
 package runtime.operation;
+
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -30,7 +32,7 @@ import crdtlib.datatypes.primitivetypes.LwwLogicalTimestamp;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.util.DatabaseDef;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class DBOpEntry. This class stores a pair of
  * the type of DB op like update/insert/delete, and the
@@ -38,7 +40,8 @@ import database.util.DatabaseDef;
  *
  * @author chengli
  */
-public class DBOpEntry{
+public class DBOpEntry
+{
 	
 	/** The op type. */
 	private byte opType;
@@ -58,10 +61,13 @@ public class DBOpEntry{
 	/**
 	 * Instantiates a new dB op entry.
 	 *
-	 * @param opType the op type
-	 * @param dbTableName the db table name
+	 * @param opType
+	 * 		the op type
+	 * @param dbTableName
+	 * 		the db table name
 	 */
-	public DBOpEntry(byte opType , String dbTableName) {
+	public DBOpEntry(byte opType, String dbTableName)
+	{
 		this.setOpType(opType);
 		this.setDbTableName(dbTableName);
 		this.primaryKeys = new ArrayList<>();
@@ -73,16 +79,19 @@ public class DBOpEntry{
 	 *
 	 * @return the opType
 	 */
-	public byte getOpType() {
+	public byte getOpType()
+	{
 		return opType;
 	}
 
 	/**
 	 * Sets the op type.
 	 *
-	 * @param opType the opType to set
+	 * @param opType
+	 * 		the opType to set
 	 */
-	public void setOpType(byte opType) {
+	public void setOpType(byte opType)
+	{
 		this.opType = opType;
 	}
 
@@ -91,16 +100,19 @@ public class DBOpEntry{
 	 *
 	 * @return the dbTableName
 	 */
-	public String getDbTableName() {
+	public String getDbTableName()
+	{
 		return dbTableName;
 	}
 
 	/**
 	 * Sets the db table name.
 	 *
-	 * @param dbTableName the dbTableName to set
+	 * @param dbTableName
+	 * 		the dbTableName to set
 	 */
-	public void setDbTableName(String dbTableName) {
+	public void setDbTableName(String dbTableName)
+	{
 		this.dbTableName = dbTableName;
 	}
 
@@ -109,16 +121,19 @@ public class DBOpEntry{
 	 *
 	 * @return the primaryKeys
 	 */
-	public List<PrimitiveType> getPrimaryKeys() {
+	public List<PrimitiveType> getPrimaryKeys()
+	{
 		return primaryKeys;
 	}
 
 	/**
 	 * Sets the primary keys.
 	 *
-	 * @param primaryKeys the primaryKeys to set
+	 * @param primaryKeys
+	 * 		the primaryKeys to set
 	 */
-	public void setPrimaryKeys(List<PrimitiveType> primaryKeys) {
+	public void setPrimaryKeys(List<PrimitiveType> primaryKeys)
+	{
 		this.primaryKeys = primaryKeys;
 	}
 
@@ -127,34 +142,41 @@ public class DBOpEntry{
 	 *
 	 * @return the normalAttributes
 	 */
-	public List<PrimitiveType> getNormalAttributes() {
+	public List<PrimitiveType> getNormalAttributes()
+	{
 		return normalAttributes;
 	}
 
 	/**
 	 * Sets the normal attributes.
 	 *
-	 * @param normalAttributes the normalAttributes to set
+	 * @param normalAttributes
+	 * 		the normalAttributes to set
 	 */
-	public void setNormalAttributes(List<PrimitiveType> normalAttributes) {
+	public void setNormalAttributes(List<PrimitiveType> normalAttributes)
+	{
 		this.normalAttributes = normalAttributes;
 	}
 	
 	/**
 	 * Adds the primary key.
 	 *
-	 * @param pt the pt
+	 * @param pt
+	 * 		the pt
 	 */
-	public void addPrimaryKey(PrimitiveType pt) {
+	public void addPrimaryKey(PrimitiveType pt)
+	{
 		this.primaryKeys.add(pt);
 	}
 	
 	/**
 	 * Adds the normal attribute.
 	 *
-	 * @param pt the pt
+	 * @param pt
+	 * 		the pt
 	 */
-	public void addNormalAttribute(PrimitiveType pt) {
+	public void addNormalAttribute(PrimitiveType pt)
+	{
 		this.normalAttributes.add(pt);
 	}
 	
@@ -163,7 +185,8 @@ public class DBOpEntry{
 	 *
 	 * @return the select query
 	 */
-	public String getSelectQuery(DateFormat dateFormat) {
+	public String getSelectQuery(DateFormat dateFormat)
+	{
 		String _str = "SELECT * FROM " + this.getDbTableName() + getWhereClause(dateFormat);
 		//Debug.println("CRDT TRANS -> SELECT " + _str);
 		return _str;
@@ -172,21 +195,28 @@ public class DBOpEntry{
 	/**
 	 * Gets the insert query.
 	 *
-	 * @param ts the ts
-	 * @param lwwts the lwwts
+	 * @param ts
+	 * 		the ts
+	 * @param lwwts
+	 * 		the lwwts
+	 *
 	 * @return the insert query
 	 */
-	public String getInsertQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts) {
-		StringBuilder queryBuilder = new StringBuilder( "INSERT INTO ");
+	public String getInsertQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts)
+	{
+		StringBuilder queryBuilder = new StringBuilder("INSERT INTO ");
 		queryBuilder.append(this.getDbTableName());
 		queryBuilder.append("(");
 		StringBuilder valueStrBuilder = new StringBuilder(" VALUES( ");
-		for(int i = 0; i < this.getPrimaryKeys().size(); i++) {
+		for(int i = 0; i < this.getPrimaryKeys().size(); i++)
+		{
 			PrimitiveType pt = this.getPrimaryKeys().get(i);
-			if(i == 0){
+			if(i == 0)
+			{
 				queryBuilder.append(pt.getDataName());
 				valueStrBuilder.append(CrdtEncodeDecode.getValueString(dateFormat, pt));
-			}else{
+			} else
+			{
 				queryBuilder.append(",");
 				queryBuilder.append(pt.getDataName());
 				valueStrBuilder.append(",");
@@ -194,7 +224,8 @@ public class DBOpEntry{
 			}
 		}
 		
-		for(int i = 0; i < this.getNormalAttributes().size(); i++) {
+		for(int i = 0; i < this.getNormalAttributes().size(); i++)
+		{
 			PrimitiveType pt = this.getNormalAttributes().get(i);
 			queryBuilder.append(",");
 			queryBuilder.append(pt.getDataName());
@@ -222,11 +253,15 @@ public class DBOpEntry{
 	/**
 	 * Gets the update query.
 	 *
-	 * @param ts the ts
-	 * @param lwwts the lwwts
+	 * @param ts
+	 * 		the ts
+	 * @param lwwts
+	 * 		the lwwts
+	 *
 	 * @return the update query
 	 */
-	public String[] getUpdateQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts) {
+	public String[] getUpdateQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts)
+	{
 		String[] queryStrs;
 		StringBuilder lwwStrBl1 = new StringBuilder("UPDATE ");
 		lwwStrBl1.append(this.getDbTableName());
@@ -239,27 +274,34 @@ public class DBOpEntry{
 		
 		boolean isContainedNormalAttribute = false;
 		//split the normal attributes into two parts, one is the normal and one is the lww
-		for(int i = 0; i < this.normalAttributes.size(); i++) {
+		for(int i = 0; i < this.normalAttributes.size(); i++)
+		{
 			PrimitiveType pt = this.normalAttributes.get(i);
-			if(CrdtEncodeDecode.isLastWriterWin(pt)) {
+			if(CrdtEncodeDecode.isLastWriterWin(pt))
+			{
 				lwwStrBl1.append(pt.getDataName());
 				lwwStrBl1.append(" = ");
 				lwwStrBl1.append(CrdtEncodeDecode.getValueString(dateFormat, pt));
-				lwwStrBl1.append(" , "); 
-			}else {
-				if(!isContainedNormalAttribute){
+				lwwStrBl1.append(" , ");
+			} else
+			{
+				if(!isContainedNormalAttribute)
+				{
 					isContainedNormalAttribute = true;
 				}
 				normalStrBl2.append(pt.getDataName());
 				// delta or not delta
-				if(CrdtEncodeDecode.isNumberDelta(pt)) {
+				if(CrdtEncodeDecode.isNumberDelta(pt))
+				{
 					normalStrBl2.append(" = ");
 					normalStrBl2.append(pt.getDataName());
-					if(CrdtEncodeDecode.isPositiveNum(pt)) {
-						normalStrBl2.append(" + "); 
+					if(CrdtEncodeDecode.isPositiveNum(pt))
+					{
+						normalStrBl2.append(" + ");
 					}
-				}else {
-					normalStrBl2.append(" = "); 
+				} else
+				{
+					normalStrBl2.append(" = ");
 				}
 				normalStrBl2.append(CrdtEncodeDecode.getValueString(dateFormat, pt));
 				normalStrBl2.append(",");
@@ -269,7 +311,7 @@ public class DBOpEntry{
 		lwwStrBl1.append(ts.getDataName());
 		lwwStrBl1.append(" = ");
 		lwwStrBl1.append(ts.getValue());
-		lwwStrBl1.append(",");	
+		lwwStrBl1.append(",");
 		lwwStrBl1.append(lwwts.getDataName());
 		lwwStrBl1.append(" = ");
 		lwwStrBl1.append(CrdtEncodeDecode.getValueString(dateFormat, lwwts));
@@ -280,17 +322,19 @@ public class DBOpEntry{
 		lwwStrBl1.append(" AND ");
 		lwwStrBl1.append(ts.getDataName());
 		lwwStrBl1.append(" <= ");
-		lwwStrBl1.append(ts.getValue()) ;
+		lwwStrBl1.append(ts.getValue());
 		
-		if(isContainedNormalAttribute) {
-			normalStrBl2.deleteCharAt(normalStrBl2.length()-1);
+		if(isContainedNormalAttribute)
+		{
+			normalStrBl2.deleteCharAt(normalStrBl2.length() - 1);
 			normalStrBl2.append(whereStr);
 			queryStrs = new String[2];
 			queryStrs[0] = lwwStrBl1.toString();
 			//Debug.println("CRDT TRANS -> update lww " + queryStrs[0] );
 			queryStrs[1] = normalStrBl2.toString();
 			//Debug.println("CRDT TRANS -> update normal " + queryStrs[1] );
-		}else {
+		} else
+		{
 			queryStrs = new String[1];
 			queryStrs[0] = lwwStrBl1.toString();
 			//Debug.println("CRDT TRANS -> update lww " + queryStrs[0] );
@@ -303,15 +347,19 @@ public class DBOpEntry{
 	 *
 	 * @return the where clause
 	 */
-	public String getWhereClause(DateFormat dateFormat) {
+	public String getWhereClause(DateFormat dateFormat)
+	{
 		StringBuilder whereBuilder = new StringBuilder(" WHERE ");
-		for(int i = 0 ; i < this.getPrimaryKeys().size(); i++) {
+		for(int i = 0; i < this.getPrimaryKeys().size(); i++)
+		{
 			PrimitiveType pt = this.getPrimaryKeys().get(i);
-			if(i == 0){
+			if(i == 0)
+			{
 				whereBuilder.append(pt.getDataName());
 				whereBuilder.append(" = ");
 				whereBuilder.append(CrdtEncodeDecode.getValueString(dateFormat, pt));
-			}else{
+			} else
+			{
 				whereBuilder.append(" AND ");
 				whereBuilder.append(pt.getDataName());
 				whereBuilder.append(" = ");
@@ -326,29 +374,33 @@ public class DBOpEntry{
 	/**
 	 * Gets the delete query.
 	 *
-	 * @param ts the ts
-	 * @param lwwts the lwwts
+	 * @param ts
+	 * 		the ts
+	 * @param lwwts
+	 * 		the lwwts
+	 *
 	 * @return the delete query
 	 */
-	public String getDeleteQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts) {
+	public String getDeleteQuery(DateFormat dateFormat, LwwInteger ts, LwwLogicalTimestamp lwwts)
+	{
 		StringBuilder queryStrBuilder = new StringBuilder("UPDATE ");
 		queryStrBuilder.append(this.getDbTableName());
 		queryStrBuilder.append(" SET ");
 		queryStrBuilder.append(ts.getDataName());
 		queryStrBuilder.append(" = ");
 		queryStrBuilder.append(ts.getValue());
-		queryStrBuilder.append(",");	
+		queryStrBuilder.append(",");
 		queryStrBuilder.append(lwwts.getDataName());
 		queryStrBuilder.append(" = ");
 		queryStrBuilder.append(CrdtEncodeDecode.getValueString(dateFormat, lwwts));
-		queryStrBuilder.append(",") ;
+		queryStrBuilder.append(",");
 		queryStrBuilder.append(lwwDeletedFlag);
 		queryStrBuilder.append(" = true ");
 		queryStrBuilder.append(getWhereClause(dateFormat));
 		queryStrBuilder.append(" AND ");
 		queryStrBuilder.append(ts.getDataName());
 		queryStrBuilder.append(" <= ");
-		queryStrBuilder.append(ts.getValue()) ;
+		queryStrBuilder.append(ts.getValue());
 		String queryStr = queryStrBuilder.toString();
 		//Debug.println("CRDT TRANS -> delete " + queryStr );
 		return queryStr;
@@ -357,17 +409,24 @@ public class DBOpEntry{
 	/**
 	 * Gets the attribute by given name.
 	 *
-	 * @param fieldName the field name
+	 * @param fieldName
+	 * 		the field name
+	 *
 	 * @return the attribute by given name
 	 */
-	public PrimitiveType getAttributeByGivenName(String fieldName) {
-		for(PrimitiveType pt : this.getPrimaryKeys()) {
-			if(pt.getDataName().equals(fieldName)) {
+	public PrimitiveType getAttributeByGivenName(String fieldName)
+	{
+		for(PrimitiveType pt : this.getPrimaryKeys())
+		{
+			if(pt.getDataName().equals(fieldName))
+			{
 				return pt;
 			}
 		}
-		for(PrimitiveType pt : this.getNormalAttributes()) {
-			if(pt.getDataName().equals(fieldName)) {
+		for(PrimitiveType pt : this.getNormalAttributes())
+		{
+			if(pt.getDataName().equals(fieldName))
+			{
 				return pt;
 			}
 		}
@@ -377,35 +436,42 @@ public class DBOpEntry{
 	/**
 	 * Compute finger print.
 	 *
-	 * @param md the md
+	 * @param md
+	 * 		the md
+	 *
 	 * @return the string
 	 */
-	public String computeFingerPrint(MessageDigest md) {
+	public String computeFingerPrint(MessageDigest md)
+	{
 		StringBuilder idStrBuilder = new StringBuilder(this.getDbTableName());
 		idStrBuilder.append(".");
 		idStrBuilder.append(DatabaseDef.getDBOpName(this.getOpType()));
-		switch(this.getOpType()) {
+		switch(this.getOpType())
+		{
 		case DatabaseDef.DELETE:
 		case DatabaseDef.INSERT:
 		case DatabaseDef.UNIQUEINSERT:
 			break;
 		case DatabaseDef.UPDATE:
-			for(int i = 0; i < this.getNormalAttributes().size(); i++) {
+			for(int i = 0; i < this.getNormalAttributes().size(); i++)
+			{
 				idStrBuilder.append(".");
 				idStrBuilder.append(this.getNormalAttributes().get(i).getDataName());
 			}
 			break;
-			default:
-				System.out.println("No such database operation type exists " + this.getOpType());
-				System.exit(-1);
+		default:
+			System.out.println("No such database operation type exists " + this.getOpType());
+			System.exit(-1);
 		}
-		try {
+		try
+		{
 			String resultStr = idStrBuilder.toString();
 			byte[] identifierStrInBytes = resultStr.getBytes("UTF-8");
 			md.update(identifierStrInBytes);
 			byte[] res = md.digest();
 			return StringOperations.bytesToHex(res);
-		} catch (UnsupportedEncodingException e) {
+		} catch(UnsupportedEncodingException e)
+		{
 			e.printStackTrace();
 		}
 		throw new RuntimeException("You have trouble to generate a runtime identifier");
@@ -414,16 +480,19 @@ public class DBOpEntry{
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
-	public String toString() {
+	public String toString()
+	{
 		String _str = this.getDbTableName() + " " + DatabaseDef.getDBOpName(this.getOpType()) + " \n";
 		_str += "primary keys :\n";
-		for(PrimitiveType pt : this.getPrimaryKeys()) {
+		for(PrimitiveType pt : this.getPrimaryKeys())
+		{
 			_str += pt.getDataName() + " ";
 			_str += CrdtEncodeDecode.getString(pt) + "\n";
 		}
 		
 		_str += "normal attributes : \n";
-		for(PrimitiveType pt : this.getNormalAttributes()) {
+		for(PrimitiveType pt : this.getNormalAttributes())
+		{
 			_str += pt.getDataName() + " ";
 			_str += CrdtEncodeDecode.getString(pt) + "\n";
 		}

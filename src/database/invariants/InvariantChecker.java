@@ -1,5 +1,6 @@
 package database.invariants;
 
+
 import database.util.DataField;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -50,11 +51,11 @@ public class InvariantChecker
 				if(field.isAutoIncrement())
 				{
 					pair = new FieldValuePair(field, null);
-					LOG.trace("autoincrement constraint to field {}. Requesting value to coordinator",
+					LOG.trace("autoincrement constraint in field {}. Will request value to coordinator",
 							field.getFieldName());
 				} else
 				{
-					LOG.trace("unique constraint to field {} with desired value {}", field.getFieldName(), value);
+					LOG.trace("unique constraint in field {} with desired value {}", field.getFieldName(), value);
 					pair = new FieldValuePair(field, value);
 				}
 
@@ -64,16 +65,16 @@ public class InvariantChecker
 			{
 				if(((GreaterThanInvariant) inv).isViolated(value))
 				{
-					LOG.warn("constraint violated: trying to insert {} for field {}", value, field.getFieldName());
-					shadowOp.setInternalAborted();
+					LOG.warn("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
+					shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else if(inv instanceof LesserThanInvariant)
 			{
 
 				if(((LesserThanInvariant) inv).isViolated(value))
 				{
-					LOG.warn("constraint violated: trying to insert {} for field {}", value, field.getFieldName());
-					shadowOp.setInternalAborted();
+					LOG.warn("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
+					shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else
 			{

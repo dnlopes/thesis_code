@@ -24,6 +24,8 @@ public class Transaction
 	private LogicalClock lc;
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
+	private String abortMessage;
+	private boolean internalAborted;
 
 	public Transaction()
 	{
@@ -35,6 +37,7 @@ public class Transaction
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
+		this.internalAborted = false;
 	}
 
 	public TransactionId getTxnId()
@@ -110,5 +113,21 @@ public class Transaction
 	public boolean hasEnded()
 	{
 		return this.hasEnded;
+	}
+
+	public boolean isInternalAborted()
+	{
+		return this.internalAborted;
+	}
+
+	public void setInternalAborted(String errorMessage)
+	{
+		this.internalAborted = true;
+		this.abortMessage = errorMessage;
+	}
+
+	public String getAbortMessage()
+	{
+		return this.abortMessage;
 	}
 }

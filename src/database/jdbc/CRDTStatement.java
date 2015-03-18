@@ -1,5 +1,6 @@
 package database.jdbc;
 
+
 import database.jdbc.util.DBUpdateResult;
 import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
@@ -26,12 +27,14 @@ public class CRDTStatement implements Statement
 	private MyShadowOpCreator shdOpCreator;
 	private Transaction transaction;
 	private Proxy proxy;
+	private ShadowOperation operation;
 
 	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, Transaction transaction)
 	{
 		this.proxy = proxy;
 		this.shdOpCreator = creator;
 		this.transaction = transaction;
+		this.operation = this.transaction.getShadowOp();
 	}
 
 	@Override
@@ -55,7 +58,6 @@ public class CRDTStatement implements Statement
 			shdOpCreator.setCachedResultSetForDelta(resultSet);
 
 			LOG.trace("query statement executed properly");
-			return resultSet;
 
 		} catch(JSQLParserException | ScratchpadException e)
 		{
@@ -63,6 +65,12 @@ public class CRDTStatement implements Statement
 			System.out.println(arg0);
 			throw new SQLException(e);
 		}
+
+		if(operation.isInternalAborted())
+			throw new SQLException(operation.getAbortMessage());
+
+		LOG.trace("query statement executed properly");
+		return resultSet;
 	}
 
 	@Override
@@ -102,15 +110,17 @@ public class CRDTStatement implements Statement
 				throw new SQLException(e.getMessage());
 			}
 
-			if(this.transaction.getShadowOp() == null)
+			if(this.operation == null)
 			{
-				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
-				this.transaction.setShadowOp(shdOp);
+				ShadowOperation shdOp = new ShadowOperation(this.transaction);
+				//shdOpCreator.createEmptyShadowOperation();
+				this.operation = shdOp;
+				//this.transaction.setShadowOp(shdOp);
 				shdOpCreator.setShadowOperation(shdOp);
 			}
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.transaction.getShadowOp(), updateStr, sqlOp);
+				shdOpCreator.addDBEntryToShadowOperation(this.operation, updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}",
@@ -118,8 +128,12 @@ public class CRDTStatement implements Statement
 				throw new SQLException(e.getMessage());
 			}
 		}
+		if(operation.isInternalAborted())
+			throw new SQLException(operation.getAbortMessage());
+
 		LOG.trace("update statement executed properly");
 		return result;
+
 	}
 
 /*

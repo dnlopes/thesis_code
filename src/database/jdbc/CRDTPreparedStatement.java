@@ -1,5 +1,6 @@
 package database.jdbc;
 
+
 import database.jdbc.util.DBUpdateResult;
 import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
@@ -34,6 +35,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	String[] vals;
 	private MyShadowOpCreator shdOpCreator;
 	private Transaction transaction;
+	private ShadowOperation operation;
 
 	private Proxy proxy;
 
@@ -43,6 +45,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		this.sql = sql;
 		this.shdOpCreator = creator;
 		this.transaction = txn;
+		this.operation = this.transaction.getShadowOp();
 		init(0, 0);
 	}
 
@@ -98,6 +101,9 @@ public class CRDTPreparedStatement implements PreparedStatement
 			throw new SQLException(e);
 		}
 
+		if(this.transaction.isInternalAborted())
+			throw new SQLException(this.transaction.getAbortMessage());
+
 		LOG.trace("query statement executed properly");
 		return resultSet;
 	}
@@ -139,16 +145,18 @@ public class CRDTPreparedStatement implements PreparedStatement
 				throw new SQLException(e.getMessage());
 			}
 
-			if(this.transaction.getShadowOp() == null)
+			if(this.operation == null)
 			{
-				ShadowOperation shdOp = shdOpCreator.createEmptyShadowOperation();
-				this.transaction.setShadowOp(shdOp);
+				ShadowOperation shdOp = new ShadowOperation(this.transaction);
+				//shdOpCreator.createEmptyShadowOperation();
+				this.operation = shdOp;
+				//this.transaction.setShadowOp(shdOp);
 				shdOpCreator.setShadowOperation(shdOp);
 			}
 
 			try
 			{
-				shdOpCreator.addDBEntryToShadowOperation(this.transaction.getShadowOp(), updateStr, sqlOp);
+				shdOpCreator.addDBEntryToShadowOperation(this.operation, updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
 				LOG.error("failed to add statement to shadow operation for txn {}", this.transaction.getTxnId());
@@ -157,6 +165,11 @@ public class CRDTPreparedStatement implements PreparedStatement
 		}
 
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
+
+		if(this.transaction.isInternalAborted())
+			throw new SQLException(this.transaction.getAbortMessage());
+
+		LOG.trace("update statement executed properly");
 		return finalRes.getUpdateResult();
 	}
 
@@ -741,8 +754,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	/**
 	 * @deprecated
-	 */
-	public void setUnicodeStream(int arg0, InputStream arg1, int arg2) throws SQLException
+	 */ public void setUnicodeStream(int arg0, InputStream arg1, int arg2) throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}

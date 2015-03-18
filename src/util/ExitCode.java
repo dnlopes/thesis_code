@@ -1,6 +1,7 @@
 /*
  * This class defines all possible runtime exception types
  */
+
 package util;
 
 
@@ -111,11 +112,5 @@ public class ExitCode
 	public static final int QOS_ERROR = 34;
 	public static final int CHANNEL_ERROR = 35;
 	public static final int UNKNOWN_INVARIANT = 36;
-
-
-
-
-
-
 
 }

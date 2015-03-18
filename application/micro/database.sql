@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS `t1`;
 @LWWSTRING `e` varchar(50),
 @LWWSTRING `lc` varchar(50) default '1#2#3#4',
 PRIMARY KEY  (`a`),
-CHECK(e<="COCO")
+CHECK(b>5)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t2`;

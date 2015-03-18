@@ -15,7 +15,9 @@
 /**
  *
  */
+
 package runtime.operation;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -48,6 +50,7 @@ import database.invariants.FieldValuePair;
 import database.invariants.Invariant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.Transaction;
 
 
 /**
@@ -61,29 +64,30 @@ public class ShadowOperation
 	/** The operation list. */
 	ArrayList<DBOpEntry> operationList = null;
 	private Map<Invariant, FieldValuePair> invariants;
-
-	private boolean internalAborted;
+	private Transaction transaction;
 
 	/**
 	 * Instantiates a new shadow op template.
 	 */
-	public ShadowOperation()
+	public ShadowOperation(Transaction txn)
 	{
 		this.operationList = new ArrayList<>();
-		this.internalAborted = false;
 		this.invariants = new HashMap<>();
+		this.transaction = txn;
 	}
 
 	/**
 	 * Instantiates a new shadow operation.
 	 *
-	 * @param dis the dis
+	 * @param dis
+	 * 		the dis
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public ShadowOperation(DataInputStream dis) throws IOException
 	{
-		this.operationList = new ArrayList<DBOpEntry>();
+		this.operationList = new ArrayList<>();
 		int operationCount = dis.readInt();
 		for(int i = 0; i < operationCount; i++)
 		{
@@ -100,7 +104,8 @@ public class ShadowOperation
 	 *
 	 * @return the byte[]
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public byte[] encodeShadowOperation() throws IOException
 	{
@@ -118,13 +123,17 @@ public class ShadowOperation
 	/**
 	 * Decode db op entry.
 	 *
-	 * @param opType    the op type
-	 * @param tableName the table name
-	 * @param dis       the dis
+	 * @param opType
+	 * 		the op type
+	 * @param tableName
+	 * 		the table name
+	 * @param dis
+	 * 		the dis
 	 *
 	 * @return the dB op entry
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public DBOpEntry decodeDBOpEntry(byte opType, String tableName, DataInputStream dis) throws IOException
 	{
@@ -149,10 +158,13 @@ public class ShadowOperation
 	/**
 	 * Encode db op entry.
 	 *
-	 * @param dbOpEntry the db op entry
-	 * @param dos       the dos
+	 * @param dbOpEntry
+	 * 		the db op entry
+	 * @param dos
+	 * 		the dos
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public void encodeDBOpEntry(DBOpEntry dbOpEntry, DataOutputStream dos) throws IOException
 	{
@@ -177,11 +189,13 @@ public class ShadowOperation
 	/**
 	 * Decode primitive type.
 	 *
-	 * @param dis the dis
+	 * @param dis
+	 * 		the dis
 	 *
 	 * @return the primitive type
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public PrimitiveType decodePrimitiveType(DataInputStream dis) throws IOException
 	{
@@ -246,10 +260,13 @@ public class ShadowOperation
 	/**
 	 * Encode primitive type.
 	 *
-	 * @param pt  the pt
-	 * @param dos the dos
+	 * @param pt
+	 * 		the pt
+	 * @param dos
+	 * 		the dos
 	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 * 		Signals that an I/O exception has occurred.
 	 */
 	public void encodePrimitiveType(PrimitiveType pt, DataOutputStream dos) throws IOException
 	{
@@ -331,7 +348,8 @@ public class ShadowOperation
 	/**
 	 * Adds the operation.
 	 *
-	 * @param dbOpEntry the db op entry
+	 * @param dbOpEntry
+	 * 		the db op entry
 	 */
 	public void addOperation(DBOpEntry dbOpEntry)
 	{
@@ -369,7 +387,8 @@ public class ShadowOperation
 	/**
 	 * Sets the operation list.
 	 *
-	 * @param operationList the operationList to set
+	 * @param operationList
+	 * 		the operationList to set
 	 */
 	public void setOperationList(ArrayList<DBOpEntry> operationList)
 	{
@@ -405,21 +424,16 @@ public class ShadowOperation
 		return (this.operationList.size() == 0);
 	}
 
-	public boolean isInternalAborted()
-	{
-		return this.internalAborted;
-	}
-
-	public void setInternalAborted()
-	{
-		this.internalAborted = true;
-	}
-
 	public void addInvariant(Invariant inv, FieldValuePair pair)
 	{
 		if(this.invariants.containsKey(inv))
 			LOG.warn("trying to add the same invariant to the shadow operation");
 		this.invariants.put(inv, pair);
 
+	}
+
+	public Transaction getTransaction()
+	{
+		return this.transaction;
 	}
 }

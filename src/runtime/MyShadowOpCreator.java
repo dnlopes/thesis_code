@@ -156,16 +156,6 @@ public class MyShadowOpCreator
 	}
 
 	/**
-	 * Creates the empty shadow operation.
-	 *
-	 * @return the shadow operation
-	 */
-	public ShadowOperation createEmptyShadowOperation()
-	{
-		return new ShadowOperation();
-	}
-
-	/**
 	 * Reset cached result set.
 	 */
 	public void resetCachedResultSet()

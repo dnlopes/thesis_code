@@ -1,5 +1,6 @@
 package util;
 
+
 import java.sql.SQLException;
 
 
@@ -8,7 +9,6 @@ import java.sql.SQLException;
  */
 public class MissingImplementationException extends SQLException
 {
-
 
 	public MissingImplementationException()
 	{

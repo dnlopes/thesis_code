@@ -15,13 +15,18 @@ public class FieldValuePair
 
 	private final DataField field;
 	private final String value;
-	private boolean accepted;
+	private boolean isValid;
 
 	public FieldValuePair(DataField field, String value)
 	{
 		this.field = field;
 		this.value = value;
-		this.accepted = false;
+		this.isValid = false;
+	}
+
+	public void validateInvariant()
+	{
+		this.isValid = true;
 	}
 
 }

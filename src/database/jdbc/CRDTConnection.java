@@ -1,5 +1,6 @@
 package database.jdbc;
 
+
 import network.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +60,7 @@ public class CRDTConnection implements Connection
 		if(!this.proxy.commit(this.transaction.getTxnId()))
 			throw new SQLException("txn commit failed");
 
-		LOG.info("txn {} committed ({} ms)", this.transaction.getTxnId().getId(),
-				this.transaction.getLatency());
+		LOG.info("txn {} committed ({} ms)", this.transaction.getTxnId().getId(), this.transaction.getLatency());
 	}
 
 	@Override
