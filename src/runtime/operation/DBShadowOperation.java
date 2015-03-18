@@ -2,7 +2,7 @@ package runtime.operation;
 
 import database.occ.IDatabase;
 import database.occ.IDefDatabase;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -110,7 +110,7 @@ public abstract class DBShadowOperation extends DBOperation
 
 	public static DBOperation decodeShadow(DataInputStream dis) throws IOException
 	{
-		runtime.Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 		/*
 		byte b = dis.readByte();
@@ -200,7 +200,7 @@ public abstract class DBShadowOperation extends DBOperation
 
 	public static void encodeShadow(DBOperation op0, DataOutputStream dos) throws IOException
 	{
-		Runtime.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 		/*
 		Debug.println("encode shadow operation\n");
 		if(op0 instanceof DBTPCWShdCreateEmptyCart ){

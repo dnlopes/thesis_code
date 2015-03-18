@@ -9,7 +9,7 @@ import net.sf.appia.test.appl.ApplLayer;
 import net.sf.appia.test.xml.ecco.EccoLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import runtime.operation.Operation;
 import util.ExitCode;
 
@@ -42,7 +42,7 @@ public class NetworkInterface implements INetwork
 		} catch(AppiaInvalidQoSException e)
 		{
 			LOG.error("failed to init QoS");
-			Runtime.throwRunTimeException("could not create network interface", ExitCode.QOS_ERROR);
+			RuntimeHelper.throwRunTimeException("could not create network interface", ExitCode.QOS_ERROR);
 		}
 		this.me = node;
 		this.channels = new HashMap<>();

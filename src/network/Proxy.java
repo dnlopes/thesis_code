@@ -98,7 +98,7 @@ public class Proxy extends Node
 		Transaction txn = this.transactions.get(txnId);
 
 		txn.endTxn();
-		LOG.trace("committing txn {}", txn.getTxnId());
+		LOG.trace("committing txn {}", txn.getTxnId().getId());
 		return true;
 	}
 

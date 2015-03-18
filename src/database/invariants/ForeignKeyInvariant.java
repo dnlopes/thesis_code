@@ -1,7 +1,7 @@
 package database.invariants;
 
 import database.util.DataField;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 
 import java.util.LinkedList;
@@ -26,7 +26,7 @@ public class ForeignKeyInvariant extends Invariant
 	@Override
 	public void addField(DataField field)
 	{
-		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	public void addPair(DataField origin, String remote)

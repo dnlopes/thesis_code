@@ -3,7 +3,7 @@ package runtime;
 /**
  * Created by dnlopes on 13/03/15.
  */
-public class Runtime
+public class RuntimeHelper
 {
 
 	public static void throwRunTimeException(String message, int exitCode)

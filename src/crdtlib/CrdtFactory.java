@@ -51,9 +51,6 @@ import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
 import database.util.DatabaseFunction;
-import util.debug.Debug;
-
-// TODO: Auto-generated Javadoc
 
 
 /**
@@ -387,8 +384,9 @@ public class CrdtFactory
 			}
 		default:
 			LOG.error("cannot create primitive type for field {}", df.getFieldName());
-			runtime.Runtime.throwRunTimeException("unkown primitive type", ExitCode.UNKNOWN_PRIMITIVE_TYPET);
-			throw new RuntimeException();
+			RuntimeHelper.throwRunTimeException("unkown primitive type", ExitCode.UNKNOWN_PRIMITIVE_TYPET);
+			//dumb return, for compiler...
+			return null;
 		}
 	}
 

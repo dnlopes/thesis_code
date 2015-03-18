@@ -3,7 +3,6 @@
  */
 package database.util;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum CrdtDataFieldType.
  */

@@ -9,7 +9,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 
 
@@ -51,7 +51,7 @@ public class InvariantChecker
 				if(field.isAutoIncrement())
 				{
 					RequestValue requestValue = new RequestValue(field.getTableName(), field.getFieldName());
-					shadowOp.addRequestValue(requestValue);
+					shadowOp.addCheckValue(requestValue);
 					LOG.trace("autoincrement constraint in field {}. Will request value to coordinator",
 							field.getFieldName());
 
@@ -80,7 +80,7 @@ public class InvariantChecker
 			} else
 			{
 				LOG.error("Unkown Invariant type. Exiting.");
-				Runtime.throwRunTimeException("unknown invariant type", ExitCode.UNKNOWN_INVARIANT);
+				RuntimeHelper.throwRunTimeException("unknown invariant type", ExitCode.UNKNOWN_INVARIANT);
 			}
 		}
 
@@ -106,7 +106,7 @@ public class InvariantChecker
 			if(inv instanceof UniqueInvariant)
 			{
 				DeleteValue deleteValue = new DeleteValue(field.getTableName(), field.getFieldName(), value);
-				shadowOp.addDeleteValue(deleteValue);
+				shadowOp.addCheckValue(deleteValue);
 			}
 		}
 	}

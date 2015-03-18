@@ -1,5 +1,6 @@
 package database.occ;
 
+
 import database.jdbc.Result;
 import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBSelectResult;
@@ -17,7 +18,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import runtime.operation.DBOperation;
 import runtime.operation.DBSingleOpPair;
 import runtime.operation.DBSingleOperation;
@@ -47,7 +48,7 @@ public abstract class AbstractExecutor implements IExecutor
 	AbstractExecutor(boolean blue)
 	{
 		this.blue = blue;
-		this.deletedPks = new HashSet<String[]>();
+		this.deletedPks = new HashSet<>();
 		this.modified = false;
 	}
 
@@ -58,7 +59,7 @@ public abstract class AbstractExecutor implements IExecutor
 	{
 		try
 		{
-			if(modified && ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_MYSQL)
+			if(modified)
 				db.addToBatchUpdate("delete from " + tempTableName + ";");
 		} catch(SQLException e)
 		{
@@ -113,7 +114,7 @@ public abstract class AbstractExecutor implements IExecutor
 	 */
 	public void addDeletedKeysWhere(StringBuffer buffer)
 	{
-/*		Iterator<String[]> it = deletedPks.iterator();
+		Iterator<String[]> it = deletedPks.iterator();
 		while( it.hasNext()) {
 			String[] pk = it.next();
 			String[] pkAlias = def.getPksAlias();
@@ -125,7 +126,6 @@ public abstract class AbstractExecutor implements IExecutor
 				buffer.append( "'");
 			}
 		}
-*/
 	}
 
 	/**
@@ -344,7 +344,8 @@ public abstract class AbstractExecutor implements IExecutor
 	/**
 	 * Add order by clause to the current buffer
 	 */
-	protected void addOrderBy(StringBuffer buffer, List l, IExecutor[] policies, String[][] tables, boolean inTempTable)
+	protected void addOrderBy(StringBuffer buffer, List l, IExecutor[] policies, String[][] tables, boolean
+			inTempTable)
 	{
 		if(l == null || l.size() == 0)
 			return;
@@ -380,7 +381,8 @@ public abstract class AbstractExecutor implements IExecutor
 	/**
 	 * Add group by clause to the current buffer
 	 */
-	protected void addGroupBy(StringBuffer buffer, List l, IExecutor[] policies, String[][] tables, boolean inTempTable)
+	protected void addGroupBy(StringBuffer buffer, List l, IExecutor[] policies, String[][] tables, boolean
+			inTempTable)
 	{
 		if(l == null || l.size() == 0)
 			return;
@@ -441,7 +443,8 @@ public abstract class AbstractExecutor implements IExecutor
 	/**
 	 * Add where clause to the current buffer, removing needed deleted Pks
 	 */
-	protected void addWhere(StringBuffer buffer, Expression e, IExecutor policies, String[] tables, boolean inTempTable)
+	protected void addWhere(StringBuffer buffer, Expression e, IExecutor policies, String[] tables, boolean
+			inTempTable)
 	{
 		if(e == null)
 			return;
@@ -454,7 +457,7 @@ public abstract class AbstractExecutor implements IExecutor
 			buffer.append(replaceAliasInStr(e.toString(), policies, tables, inTempTable));
 			buffer.append(" ) ");
 		}
-/*		Iterator<String[]> it = deletedPks.iterator();
+		/*Iterator<String[]> it = deletedPks.iterator();
 		while( it.hasNext()) {
 			String[] pk = it.next();
 			String[] pkName = def.getPksPlain();		//TODO: must differ the plain and alias
@@ -465,8 +468,8 @@ public abstract class AbstractExecutor implements IExecutor
 				buffer.append( pk[i]);
 				buffer.append( "'");
 			}
-		}
-*/
+		}  */
+
 	}
 
 	/**
@@ -582,7 +585,8 @@ public abstract class AbstractExecutor implements IExecutor
 		try
 		{
 			this.tableId = tableId;
-			tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + tableName + "_" + scratchpad.getScratchpadId();
+			tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + tableName + "_" + scratchpad
+					.getScratchpadId();
 			tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + tableId;
 			StringBuffer buffer2 = new StringBuffer();
@@ -733,7 +737,7 @@ public abstract class AbstractExecutor implements IExecutor
 		} catch(SQLException e)
 		{
 			LOG.error("failed to create temporary tables for scratchpad {}", scratchpad.getScratchpadId());
-			Runtime.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
+			RuntimeHelper.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 		}
 	}
 
@@ -873,7 +877,8 @@ public abstract class AbstractExecutor implements IExecutor
 			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
 				Join join= (Join) joinsIt.next();
 				String joinString = join.toString();
-				if(joinString.contains("inner join")||joinString.contains("INNER JOIN")|| joinString.contains("left outer join") || joinString.contains("LEFT OUTER JOIN"))
+				if(joinString.contains("inner join")||joinString.contains("INNER JOIN")|| joinString.contains("left
+				outer join") || joinString.contains("LEFT OUTER JOIN"))
 					buffer.append(" ");
 				else
 					buffer.append(",");
@@ -1056,8 +1061,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -1130,8 +1135,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
@@ -1177,8 +1182,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
@@ -1264,8 +1269,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -1316,8 +1321,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
@@ -1354,8 +1359,8 @@ public abstract class AbstractExecutor implements IExecutor
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-							"max("))
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith("max("))
 					{
 						aggregateQuery = true;
 						buffer.append(str + " as a ");
@@ -1387,7 +1392,7 @@ public abstract class AbstractExecutor implements IExecutor
 			buffer.append(";");
 
 			//Debug.println( "---->" + buffer.toString());
-			List<String[]> result = new ArrayList<String[]>();
+			List<String[]> result = new ArrayList<>();
 			ResultSet rs = db.executeQuery(buffer.toString());
 			addToResultList(rs, result, db, !aggregateQuery);
 			return rs;
@@ -1543,6 +1548,7 @@ public abstract class AbstractExecutor implements IExecutor
 
 		//Debug.println( ":" + buffer.toString());
 		ResultSet res = db.executeQuery(buffer.toString());
+
 		while(res.next())
 		{
 			int nPks = def.getPksPlain().length;

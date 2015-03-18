@@ -8,7 +8,7 @@ package database.invariants;
  * For instance, if the field is a unique field, the value represents the "desired" value.
  * The coordinator service will then verify if this value is already used and respond accordingly.
  */
-public class CheckValue
+public class CheckValue extends Value
 {
 
 	private String field;

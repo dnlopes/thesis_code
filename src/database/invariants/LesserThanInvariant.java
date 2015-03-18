@@ -1,7 +1,7 @@
 package database.invariants;
 
 import database.util.DataField;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 
 
@@ -30,25 +30,25 @@ public class LesserThanInvariant extends Invariant
 	@Override
 	public void addField(DataField field)
 	{
-		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public void addPair(DataField field, String remoteField)
 	{
-		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public void setRemoteTable(String table)
 	{
-		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
 	public String getRemoteTable()
 	{
-		Runtime.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("this method should not be called", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 

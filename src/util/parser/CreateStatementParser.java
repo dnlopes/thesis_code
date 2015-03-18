@@ -12,10 +12,9 @@ import java.util.Vector;
 import database.invariants.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.debug.Debug;
-
-import runtime.Runtime;
 
 import database.util.table.AosetTable;
 import database.util.table.ArsetTable;
@@ -357,7 +356,7 @@ public class CreateStatementParser
 			if(fieldsMap.containsKey(field.getFieldName()))
 			{
 				String message = "field " + field.getFieldName() + "is duplicated";
-				Runtime.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
+				RuntimeHelper.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
@@ -375,7 +374,7 @@ public class CreateStatementParser
 			if(fieldsMap.containsKey(lwwField.getFieldName()))
 			{
 				String message = "field " + lwwField.getFieldName() + "is duplicated";
-				Runtime.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
+				RuntimeHelper.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
 			}
 
 			fieldsMap.put(lwwField.getFieldName(), lwwField);
@@ -450,7 +449,7 @@ public class CreateStatementParser
 				String[] foreignAttributes = foreignKeyStr.split(",");
 
 				if(foreignAttributes.length != fKeys.length)
-					Runtime.throwRunTimeException("foreign attributes size do not match",
+					RuntimeHelper.throwRunTimeException("foreign attributes size do not match",
 							ExitCode.WRONGCREATTABLEFORMAT);
 
 				String foreignKeyTable = constraint.substring(startIndex_2 + 1, endIndex_2).trim();
@@ -458,7 +457,7 @@ public class CreateStatementParser
 				for(int t = 0; t < fKeys.length; t++)
 				{
 					if(!fieldsMap.containsKey(fKeys[t]))
-						Runtime.throwRunTimeException("foreign attributes size do not match",
+						RuntimeHelper.throwRunTimeException("foreign attributes size do not match",
 								ExitCode.WRONGCREATTABLEFORMAT);
 
 					DataField originField = fieldsMap.get(fKeys[t]);

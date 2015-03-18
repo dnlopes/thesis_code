@@ -4,7 +4,7 @@ package database.invariants;
 /**
  * Created by dnlopes on 18/03/15.
  */
-public class DeleteValue
+public class DeleteValue extends Value
 {
 
 	private String field;

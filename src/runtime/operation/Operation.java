@@ -44,27 +44,27 @@ public class Operation implements java.io.Serializable {
 	/*
 	public Object getStatementObj()
 	{
-		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 	public Object getStatement()
 	{
-		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 	public Object executeDefOpUpdate()
 	{
-		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 	public Object executeDefOpDelete()
 	{
-		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
 	public Object executeDefOpInsert()
 	{
-		Runtime.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
+		RuntimeHelper.throwRunTimeException("unimplemented method", ExitCode.MISSING_IMPLEMENTATION);
 		return null;
 	}
                                  */

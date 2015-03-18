@@ -26,8 +26,11 @@ public class MicroTest
 
 		//ResultSet rese = stat.executeQuery("select * from t1");
 
-		//int res = stat.executeUpdate("update t1 set c=15 where d=1");
-		int res = stat.executeUpdate("insert into t1 (a,b,c,d,e) values(54,6,1,1,ZZZZ)");
+		int res = stat.executeUpdate("delete from t1 where d=9 OR c=10");
+
+		int res2 = stat.executeUpdate("update t1 set b=10 where d=9 OR c=10");
+
+		//int res = stat.executeUpdate("insert into t1 (a,b,c,d,e) values(54,6,1,1,ZZZZ)");
 		conn.commit();
 	}
 

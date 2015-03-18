@@ -361,9 +361,6 @@ public class MyShadowOpCreator
 	 */
 	public String[] makeToDeterministic(String sqlQuery) throws JSQLParserException
 	{
-
-		//Debug.println("Try to make the queries deterministic");
-
 		String[] deterQueries = null;
 
 		// contains current_time_stamp
@@ -376,8 +373,8 @@ public class MyShadowOpCreator
 		{
 			Insert insertStmt = (Insert) sqlStmt;
 			String tableName = insertStmt.getTable().getName();
-			List<String> colList = new ArrayList<String>();
-			List<String> valList = new ArrayList<String>();
+			List<String> colList = new ArrayList<>();
+			List<String> valList = new ArrayList<>();
 			Iterator colIt = insertStmt.getColumns().iterator();
 			while(colIt.hasNext())
 			{
@@ -392,8 +389,8 @@ public class MyShadowOpCreator
 		} else if(sqlStmt instanceof Update)
 		{
 			Update updateStmt = (Update) sqlStmt;
-			List<String> colList = new ArrayList<String>();
-			List<String> valList = new ArrayList<String>();
+			List<String> colList = new ArrayList<>();
+			List<String> valList = new ArrayList<>();
 			Iterator colIt = updateStmt.getColumns().iterator();
 			while(colIt.hasNext())
 			{

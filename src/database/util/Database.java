@@ -2,8 +2,7 @@ package database.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.*;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 
 import java.util.Collection;
@@ -47,7 +46,7 @@ public class Database
 		if(this.tables.containsKey(table.getTableName()))
 		{
 			LOG.error("table {} already exists", table.getTableName());
-			Runtime.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
+			RuntimeHelper.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
 		}
 
 		this.tables.put(table.getTableName(), table);

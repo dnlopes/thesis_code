@@ -48,6 +48,7 @@ import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.invariants.CheckValue;
 import database.invariants.DeleteValue;
 import database.invariants.RequestValue;
+import database.invariants.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Transaction;
@@ -63,9 +64,7 @@ public class ShadowOperation
 
 	/** The operation list. */
 	ArrayList<DBOpEntry> operationList = null;
-	private List<CheckValue> checkValueList;
-	private List<RequestValue> requestValueList;
-	private List<DeleteValue> deleteValueList;
+	private List<Value> checkList;
 
 	private Transaction transaction;
 
@@ -75,9 +74,7 @@ public class ShadowOperation
 	public ShadowOperation(Transaction txn)
 	{
 		this.operationList = new ArrayList<>();
-		this.checkValueList = new ArrayList<>();
-		this.requestValueList = new ArrayList<>();
-		this.deleteValueList = new ArrayList<>();
+		this.checkList = new ArrayList<>();
 		this.transaction = txn;
 	}
 
@@ -429,19 +426,9 @@ public class ShadowOperation
 		return (this.operationList.size() == 0);
 	}
 
-	public void addCheckValue(CheckValue pair)
+	public void addCheckValue(Value value)
 	{
-		this.checkValueList.add(pair);
-	}
-
-	public void addRequestValue(RequestValue request)
-	{
-		this.requestValueList.add(request);
-	}
-
-	public void addDeleteValue(DeleteValue request)
-	{
-		this.deleteValueList.add(request);
+		this.checkList.add(value);
 	}
 
 	public Transaction getTransaction()

@@ -4,7 +4,7 @@ package database.invariants;
 /**
  * Created by dnlopes on 18/03/15.
  */
-public class RequestValue
+public class RequestValue extends Value
 {
 	private String table;
 	private String field;

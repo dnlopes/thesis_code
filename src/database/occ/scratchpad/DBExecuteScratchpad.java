@@ -12,7 +12,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 import util.defaults.ScratchpadDefaults;
@@ -78,7 +78,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			if(executor == null)
 			{
 				LOG.error("executor for table {} not found", tableName[0][2]);
-				Runtime.throwRunTimeException("could not find a proper executor for this operation",
+				RuntimeHelper.throwRunTimeException("could not find a proper executor for this operation",
 						ExitCode.EXECUTOR_NOT_FOUND);
 			}
 			if(op.isQuery())
@@ -107,6 +107,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public ResultSet executeQuery(String op) throws SQLException
 	{
 		//TODO
+		LOG.debug("executing operation: {}", op);
 		return this.statQ.executeQuery(op);
 	}
 
@@ -114,6 +115,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public int executeUpdate(String op) throws SQLException
 	{
 		//TODO
+		LOG.debug("executing operation: {}", op);
 		return this.statU.executeUpdate(op);
 	}
 
@@ -121,6 +123,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public void addToBatchUpdate(String op) throws SQLException
 	{
 		this.statBU.addBatch(op);
+		LOG.debug("executing operation: {}", op);
 		this.batchEmpty = false;
 	}
 

@@ -5,7 +5,7 @@ import network.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
-import runtime.Runtime;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.MissingImplementationException;
 
@@ -75,7 +75,7 @@ public class CRDTConnection implements Connection
 	public void setAutoCommit(boolean autoCommit) throws SQLException
 	{
 		if(autoCommit)
-			Runtime.throwRunTimeException("autocommit not supported", ExitCode.AUTO_COMMIT_NOT_SUPPORTED);
+			RuntimeHelper.throwRunTimeException("autocommit not supported", ExitCode.AUTO_COMMIT_NOT_SUPPORTED);
 	}
 
 
