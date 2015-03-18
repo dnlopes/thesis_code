@@ -66,8 +66,8 @@ public class CRDTStatement implements Statement
 			throw new SQLException(e);
 		}
 
-		if(operation.isInternalAborted())
-			throw new SQLException(operation.getAbortMessage());
+		if(this.transaction.isInternalAborted())
+			throw new SQLException(this.transaction.getAbortMessage());
 
 		LOG.trace("query statement executed properly");
 		return resultSet;
@@ -128,8 +128,8 @@ public class CRDTStatement implements Statement
 				throw new SQLException(e.getMessage());
 			}
 		}
-		if(operation.isInternalAborted())
-			throw new SQLException(operation.getAbortMessage());
+		if(this.transaction.isInternalAborted())
+			throw new SQLException(this.transaction.getAbortMessage());
 
 		LOG.trace("update statement executed properly");
 		return result;
