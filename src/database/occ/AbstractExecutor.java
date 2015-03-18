@@ -114,6 +114,7 @@ public abstract class AbstractExecutor implements IExecutor
 	 */
 	public void addDeletedKeysWhere(StringBuffer buffer)
 	{
+
 		Iterator<String[]> it = deletedPks.iterator();
 		while( it.hasNext()) {
 			String[] pk = it.next();
@@ -1030,7 +1031,7 @@ public abstract class AbstractExecutor implements IExecutor
 			throws SQLException, ScratchpadException
 	{
 		//Debug.println( "single table select>>" + dbOp);
-		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
 
 		boolean aggregateQuery = false;
 		if(db.isReadOnly())
@@ -1219,7 +1220,7 @@ public abstract class AbstractExecutor implements IExecutor
 			buffer.append(";");
 
 			//Debug.println( "---->" + buffer.toString());
-			List<String[]> result = new ArrayList<String[]>();
+			List<String[]> result = new ArrayList<>();
 			ResultSet rs = db.executeQuery(buffer.toString());
 			addToResultList(rs, result, db, !aggregateQuery);
 			rs.close();
