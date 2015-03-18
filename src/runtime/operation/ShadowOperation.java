@@ -24,8 +24,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import crdtlib.datatypes.CrdtEncodeDecode;
 import crdtlib.datatypes.primitivetypes.LwwBoolean;
@@ -46,8 +45,9 @@ import crdtlib.datatypes.primitivetypes.NumberDeltaDouble;
 import crdtlib.datatypes.primitivetypes.NumberDeltaFloat;
 import crdtlib.datatypes.primitivetypes.NumberDeltaInteger;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
-import database.invariants.FieldValuePair;
-import database.invariants.Invariant;
+import database.invariants.CheckValue;
+import database.invariants.DeleteValue;
+import database.invariants.RequestValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Transaction;
@@ -63,7 +63,10 @@ public class ShadowOperation
 
 	/** The operation list. */
 	ArrayList<DBOpEntry> operationList = null;
-	private Map<Invariant, FieldValuePair> invariants;
+	private List<CheckValue> checkValueList;
+	private List<RequestValue> requestValueList;
+	private List<DeleteValue> deleteValueList;
+
 	private Transaction transaction;
 
 	/**
@@ -72,7 +75,9 @@ public class ShadowOperation
 	public ShadowOperation(Transaction txn)
 	{
 		this.operationList = new ArrayList<>();
-		this.invariants = new HashMap<>();
+		this.checkValueList = new ArrayList<>();
+		this.requestValueList = new ArrayList<>();
+		this.deleteValueList = new ArrayList<>();
 		this.transaction = txn;
 	}
 
@@ -424,12 +429,19 @@ public class ShadowOperation
 		return (this.operationList.size() == 0);
 	}
 
-	public void addInvariant(Invariant inv, FieldValuePair pair)
+	public void addCheckValue(CheckValue pair)
 	{
-		if(this.invariants.containsKey(inv))
-			LOG.warn("trying to add the same invariant to the shadow operation");
-		this.invariants.put(inv, pair);
+		this.checkValueList.add(pair);
+	}
 
+	public void addRequestValue(RequestValue request)
+	{
+		this.requestValueList.add(request);
+	}
+
+	public void addDeleteValue(DeleteValue request)
+	{
+		this.deleteValueList.add(request);
 	}
 
 	public Transaction getTransaction()

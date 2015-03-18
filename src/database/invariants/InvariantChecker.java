@@ -33,7 +33,7 @@ public class InvariantChecker
 		if(stat instanceof Update)
 			checkInvariantsForUpdate(shadowOp, (Update) stat, field, value);
 		if(stat instanceof Delete)
-			checkInvariantsForDelete(shadowOp, (Delete) stat, field);
+			checkInvariantsForDelete(shadowOp, field, value);
 	}
 
 	public static void checkInvariantsForInsert(ShadowOperation shadowOp, DataField field, String value)
@@ -47,25 +47,26 @@ public class InvariantChecker
 		{
 			if(inv instanceof UniqueInvariant)
 			{
-				FieldValuePair pair;
+
 				if(field.isAutoIncrement())
 				{
-					pair = new FieldValuePair(field, null);
+					RequestValue requestValue = new RequestValue(field.getTableName(), field.getFieldName());
+					shadowOp.addRequestValue(requestValue);
 					LOG.trace("autoincrement constraint in field {}. Will request value to coordinator",
 							field.getFieldName());
+
 				} else
 				{
+					CheckValue checkValue = new CheckValue(field.getTableName(), field.getFieldName(), value);
 					LOG.trace("unique constraint in field {} with desired value {}", field.getFieldName(), value);
-					pair = new FieldValuePair(field, value);
+					shadowOp.addCheckValue(checkValue);
 				}
-
-				shadowOp.addInvariant(inv, pair);
 
 			} else if(inv instanceof GreaterThanInvariant)
 			{
 				if(((GreaterThanInvariant) inv).isViolated(value))
 				{
-					LOG.warn("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
+					LOG.error("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
 					shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else if(inv instanceof LesserThanInvariant)
@@ -73,7 +74,7 @@ public class InvariantChecker
 
 				if(((LesserThanInvariant) inv).isViolated(value))
 				{
-					LOG.warn("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
+					LOG.error("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
 					shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else
@@ -91,9 +92,22 @@ public class InvariantChecker
 		//TODO
 	}
 
-	public static void checkInvariantsForDelete(ShadowOperation shadowOp, Delete stat, DataField field)
+	public static void checkInvariantsForDelete(ShadowOperation shadowOp, DataField field, String value)
 	{
-		//TODO
-		// maybe we should contact the coordinator to free "unique" names that will be free after delete?
+
+		// we should contact the coordinator to free "unique" names that will be free after delete
+		// CHECK constraints are not relevant in this case
+		// what if this check constraint involves other tuples?
+		// here we only care about unique values that will be freed by the operation
+		// we should not care about autoincrement as well
+
+		for(Invariant inv : field.getInvariants())
+		{
+			if(inv instanceof UniqueInvariant)
+			{
+				DeleteValue deleteValue = new DeleteValue(field.getTableName(), field.getFieldName(), value);
+				shadowOp.addDeleteValue(deleteValue);
+			}
+		}
 	}
 }

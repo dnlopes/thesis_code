@@ -1,7 +1,9 @@
 /**
  *
  */
+
 package runtime;
+
 
 import crdtlib.CrdtFactory;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
@@ -73,13 +75,20 @@ public class MyShadowOpCreator
 	/**
 	 * Instantiates a new crdt transformer.
 	 *
-	 * @param schemaFilePath the sql schema
-	 * @param propertiesStr  the properties str
-	 * @param userName       the user name
-	 * @param password       the password
-	 * @param gPId           the g p id
-	 * @param numOfProxies   the num of proxies
-	 * @param txMudConn      the tx mud conn
+	 * @param schemaFilePath
+	 * 		the sql schema
+	 * @param propertiesStr
+	 * 		the properties str
+	 * @param userName
+	 * 		the user name
+	 * @param password
+	 * 		the password
+	 * @param gPId
+	 * 		the g p id
+	 * @param numOfProxies
+	 * 		the num of proxies
+	 * @param txMudConn
+	 * 		the tx mud conn
 	 */
 	public MyShadowOpCreator(String schemaFilePath, int gPId, int numOfProxies) throws SQLException
 	{
@@ -105,7 +114,8 @@ public class MyShadowOpCreator
 	/**
 	 * Close real connection.
 	 *
-	 * @param originalConn the original conn
+	 * @param originalConn
+	 * 		the original conn
 	 */
 	private void closeRealConnection(Connection originalConn)
 	{
@@ -125,9 +135,12 @@ public class MyShadowOpCreator
 	/**
 	 * Inits the id factories.
 	 *
-	 * @param gPI  the g pi
-	 * @param pId  the id
-	 * @param conn the conn
+	 * @param gPI
+	 * 		the g pi
+	 * @param pId
+	 * 		the id
+	 * @param conn
+	 * 		the conn
 	 */
 	public void initIDFactories(int gPI, int pId, Connection conn)
 	{
@@ -171,9 +184,12 @@ public class MyShadowOpCreator
 	/**
 	 * Find missing data fields.
 	 *
-	 * @param tableName the table name
-	 * @param colList   the col list
-	 * @param valueList the value list
+	 * @param tableName
+	 * 		the table name
+	 * @param colList
+	 * 		the col list
+	 * @param valueList
+	 * 		the value list
 	 *
 	 * @return the sets the
 	 */
@@ -186,9 +202,12 @@ public class MyShadowOpCreator
 	/**
 	 * Fill in missing value.
 	 *
-	 * @param tableName the table name
-	 * @param colList   the col list
-	 * @param valueList the value list
+	 * @param tableName
+	 * 		the table name
+	 * @param colList
+	 * 		the col list
+	 * @param valueList
+	 * 		the value list
 	 */
 	public void fillInMissingValue(String tableName, List<String> colList, List<String> valueList)
 	{
@@ -268,8 +287,10 @@ public class MyShadowOpCreator
 	/**
 	 * Replace value for database functions.
 	 *
-	 * @param tableName the table name
-	 * @param valueList the value list
+	 * @param tableName
+	 * 		the table name
+	 * @param valueList
+	 * 		the value list
 	 */
 	public void replaceValueForDatabaseFunctions(String tableName, List<String> valueList)
 	{
@@ -288,8 +309,10 @@ public class MyShadowOpCreator
 	/**
 	 * Checks if is primary key missing from where clause.
 	 *
-	 * @param tableName   the table name
-	 * @param whereClause the where clause
+	 * @param tableName
+	 * 		the table name
+	 * @param whereClause
+	 * 		the where clause
 	 *
 	 * @return true, if is primary key missing from where clause
 	 */
@@ -310,8 +333,10 @@ public class MyShadowOpCreator
 	/**
 	 * Gets the primary key selection query.
 	 *
-	 * @param tableName   the table name
-	 * @param whereClause the where clause
+	 * @param tableName
+	 * 		the table name
+	 * @param whereClause
+	 * 		the where clause
 	 *
 	 * @return the primary key selection query
 	 */
@@ -326,11 +351,13 @@ public class MyShadowOpCreator
 	/**
 	 * Make to deterministic.
 	 *
-	 * @param sqlQuery the sql query
+	 * @param sqlQuery
+	 * 		the sql query
 	 *
 	 * @return the string[]
 	 *
-	 * @throws net.sf.jsqlparser.JSQLParserException the jSQL parser exception
+	 * @throws net.sf.jsqlparser.JSQLParserException
+	 * 		the jSQL parser exception
 	 */
 	public String[] makeToDeterministic(String sqlQuery) throws JSQLParserException
 	{
@@ -407,9 +434,12 @@ public class MyShadowOpCreator
 	/**
 	 * Fill in missing primary keys for update.
 	 *
-	 * @param updateStmt the update stmt
-	 * @param colList    the col list
-	 * @param valList    the val list
+	 * @param updateStmt
+	 * 		the update stmt
+	 * @param colList
+	 * 		the col list
+	 * @param valList
+	 * 		the val list
 	 *
 	 * @return the string[]
 	 */
@@ -447,7 +477,8 @@ public class MyShadowOpCreator
 	/**
 	 * Fill in missing primary keys for delete.
 	 *
-	 * @param delStmt the del stmt
+	 * @param delStmt
+	 * 		the del stmt
 	 *
 	 * @return the string[]
 	 */
@@ -487,10 +518,13 @@ public class MyShadowOpCreator
 	/**
 	 * Replace selection for insert.
 	 *
-	 * @param insertStmt the insert stmt
-	 * @param valList    the val list
+	 * @param insertStmt
+	 * 		the insert stmt
+	 * @param valList
+	 * 		the val list
 	 *
-	 * @throws JSQLParserException the jSQL parser exception
+	 * @throws JSQLParserException
+	 * 		the jSQL parser exception
 	 */
 	public void replaceSelectionForInsert(Insert insertStmt, List<String> valList) throws JSQLParserException
 	{
@@ -541,10 +575,13 @@ public class MyShadowOpCreator
 	/**
 	 * Replace selection for update.
 	 *
-	 * @param upStmt  the up stmt
-	 * @param valList the val list
+	 * @param upStmt
+	 * 		the up stmt
+	 * @param valList
+	 * 		the val list
 	 *
-	 * @throws JSQLParserException the jSQL parser exception
+	 * @throws JSQLParserException
+	 * 		the jSQL parser exception
 	 */
 	public void replaceSelectionForUpdate(Update upStmt, List<String> valList) throws JSQLParserException
 	{
@@ -595,9 +632,12 @@ public class MyShadowOpCreator
 	/**
 	 * Assemble insert.
 	 *
-	 * @param tableName the table name
-	 * @param colList   the col list
-	 * @param valList   the val list
+	 * @param tableName
+	 * 		the table name
+	 * @param colList
+	 * 		the col list
+	 * @param valList
+	 * 		the val list
 	 *
 	 * @return the string
 	 */
@@ -642,10 +682,14 @@ public class MyShadowOpCreator
 	/**
 	 * Assemble update.
 	 *
-	 * @param tableName      the table name
-	 * @param colList        the col list
-	 * @param valList        the val list
-	 * @param whereClauseStr the where clause str
+	 * @param tableName
+	 * 		the table name
+	 * @param colList
+	 * 		the col list
+	 * @param valList
+	 * 		the val list
+	 * @param whereClauseStr
+	 * 		the where clause str
 	 *
 	 * @return the string
 	 */
@@ -672,10 +716,14 @@ public class MyShadowOpCreator
 	/**
 	 * Assemble updates.
 	 *
-	 * @param tableName the table name
-	 * @param colList   the col list
-	 * @param valList   the val list
-	 * @param rs        the rs
+	 * @param tableName
+	 * 		the table name
+	 * @param colList
+	 * 		the col list
+	 * @param valList
+	 * 		the val list
+	 * @param rs
+	 * 		the rs
 	 *
 	 * @return the string[]
 	 */
@@ -742,8 +790,10 @@ public class MyShadowOpCreator
 	/**
 	 * Assemble delete.
 	 *
-	 * @param tableName      the table name
-	 * @param whereClauseStr the where clause str
+	 * @param tableName
+	 * 		the table name
+	 * @param whereClauseStr
+	 * 		the where clause str
 	 *
 	 * @return the string
 	 */
@@ -760,8 +810,10 @@ public class MyShadowOpCreator
 	/**
 	 * Assemble deletes.
 	 *
-	 * @param tableName the table name
-	 * @param rs        the rs
+	 * @param tableName
+	 * 		the table name
+	 * @param rs
+	 * 		the rs
 	 *
 	 * @return the string[]
 	 */
@@ -820,9 +872,12 @@ public class MyShadowOpCreator
 	/**
 	 * Gets the _ value_ in_ correct_ format.
 	 *
-	 * @param tableName  the table name
-	 * @param fieldIndex the field index
-	 * @param Value      the value
+	 * @param tableName
+	 * 		the table name
+	 * @param fieldIndex
+	 * 		the field index
+	 * @param Value
+	 * 		the value
 	 *
 	 * @return the _ value_ in_ correct_ format
 	 */
@@ -836,9 +891,12 @@ public class MyShadowOpCreator
 	/**
 	 * Gets the _ value_ in_ correct_ format.
 	 *
-	 * @param tableName    the table name
-	 * @param dataFileName the data file name
-	 * @param Value        the value
+	 * @param tableName
+	 * 		the table name
+	 * @param dataFileName
+	 * 		the data file name
+	 * @param Value
+	 * 		the value
 	 *
 	 * @return the _ value_ in_ correct_ format
 	 */
@@ -852,13 +910,14 @@ public class MyShadowOpCreator
 	/**
 	 * Gets the database instance.
 	 *
-	 * @param tableName the table name
+	 * @param tableName
+	 * 		the table name
 	 *
 	 * @return the database instance
 	 */
 	public DatabaseTable getDatabaseInstance(String tableName)
 	{
-//		DatabaseTable dTb = annotatedTableSchema.get(tableName);
+		//		DatabaseTable dTb = annotatedTableSchema.get(tableName);
 		DatabaseTable table = database.getTable(tableName);
 
 		if(table == null)
@@ -878,11 +937,15 @@ public class MyShadowOpCreator
 	/**
 	 * Adds the database entry to shadow operation.
 	 *
-	 * @param shdOp    the shd op
-	 * @param sqlQuery the sql query
+	 * @param shdOp
+	 * 		the shd op
+	 * @param sqlQuery
+	 * 		the sql query
 	 *
-	 * @throws JSQLParserException the jSQL parser exception
-	 * @throws SQLException        the sQL exception
+	 * @throws JSQLParserException
+	 * 		the jSQL parser exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public void addDBEntryToShadowOperation(ShadowOperation shdOp, String sqlQuery, DBSingleOperation sqlOp)
 			throws JSQLParserException, SQLException
@@ -913,7 +976,8 @@ public class MyShadowOpCreator
 				try
 				{
 					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or cannot be modified!");
+							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
+									"cannot be modified!");
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();
@@ -930,13 +994,15 @@ public class MyShadowOpCreator
 					dTb instanceof AusetTable ||
 					dTb instanceof UosetTable)
 			{
-				shdOp.addOperation(this.createUpdateDBOpEntry(dTb, updateStatement, this.getCachedResultSetForDelta()));
+				shdOp.addOperation(this.createUpdateDBOpEntry(dTb, updateStatement, this.getCachedResultSetForDelta
+						()));
 			} else
 			{
 				try
 				{
 					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or cannot be modified!");
+							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
+									"cannot be modified!");
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();
@@ -958,7 +1024,8 @@ public class MyShadowOpCreator
 				try
 				{
 					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or cannot be modified!");
+							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
+									"cannot be modified!");
 				} catch(RuntimeException e)
 				{
 					e.printStackTrace();
@@ -981,12 +1048,15 @@ public class MyShadowOpCreator
 	/**
 	 * Creates the insert database op entry.
 	 *
-	 * @param dbT             the database t
-	 * @param insertStatement the insert statement
+	 * @param dbT
+	 * 		the database t
+	 * @param insertStatement
+	 * 		the insert statement
 	 *
 	 * @return the dB op entry
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public DBOpEntry createInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
 	{
@@ -1036,12 +1106,15 @@ public class MyShadowOpCreator
 	/**
 	 * Creates the unique insert database op entry.
 	 *
-	 * @param dbT             the database t
-	 * @param insertStatement the insert statement
+	 * @param dbT
+	 * 		the database t
+	 * @param insertStatement
+	 * 		the insert statement
 	 *
 	 * @return the dB op entry
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public DBOpEntry createUniqueInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
 	{
@@ -1091,13 +1164,17 @@ public class MyShadowOpCreator
 	/**
 	 * Creates the update database op entry.
 	 *
-	 * @param dbT             the database t
-	 * @param updateStatement the update statement
-	 * @param rs              the rs
+	 * @param dbT
+	 * 		the database t
+	 * @param updateStatement
+	 * 		the update statement
+	 * @param rs
+	 * 		the rs
 	 *
 	 * @return the dB op entry
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public DBOpEntry createUpdateDBOpEntry(DatabaseTable dbT, Update updateStatement, ResultSet rs) throws SQLException
 	{
@@ -1121,12 +1198,15 @@ public class MyShadowOpCreator
 	/**
 	 * Creates the delete database op entry.
 	 *
-	 * @param dbT             the database t
-	 * @param deleteStatement the delete statement
+	 * @param dbT
+	 * 		the database t
+	 * @param deleteStatement
+	 * 		the delete statement
 	 *
 	 * @return the dB op entry
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public DBOpEntry createDeleteDBOpEntry(DatabaseTable dbT, Delete deleteStatement) throws SQLException
 	{
@@ -1139,11 +1219,15 @@ public class MyShadowOpCreator
 	/**
 	 * Adds the field and value in where clause to database op entry.
 	 *
-	 * @param dbT         the database t
-	 * @param whereClause the where clause
-	 * @param dbOpEntry   the database op entry
+	 * @param dbT
+	 * 		the database t
+	 * @param whereClause
+	 * 		the where clause
+	 * @param dbOpEntry
+	 * 		the database op entry
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public void addFieldAndValueInWhereClauseToDBOpEntry(DatabaseTable dbT, String whereClause, DBOpEntry dbOpEntry)
 			throws SQLException
@@ -1157,8 +1241,7 @@ public class MyShadowOpCreator
 			String[] fieldAndValue = primaryKeyPair.split("=");
 			DataField df = dbT.getField(fieldAndValue[0]);
 			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-				fieldAndValue[1],
-					null, null);
+					fieldAndValue[1], null, null);
 			dbOpEntry.addPrimaryKey(pt);
 		}
 	}
@@ -1166,8 +1249,10 @@ public class MyShadowOpCreator
 	/**
 	 * Assign next unique id.
 	 *
-	 * @param tableName     the table name
-	 * @param dataFieldName the data field name
+	 * @param tableName
+	 * 		the table name
+	 * @param dataFieldName
+	 * 		the data field name
 	 *
 	 * @return the int
 	 */
@@ -1179,7 +1264,8 @@ public class MyShadowOpCreator
 	/**
 	 * Sets the cached result set for delta.
 	 *
-	 * @param cachedResultSetForDelta the cachedResultSetForDelta to set
+	 * @param cachedResultSetForDelta
+	 * 		the cachedResultSetForDelta to set
 	 */
 	public void setCachedResultSetForDelta(CRDTResultSet cachedResultSetForDelta)
 	{
@@ -1209,7 +1295,8 @@ public class MyShadowOpCreator
 	/**
 	 * Sets the date format.
 	 *
-	 * @param dateFormat the dateFormat to set
+	 * @param dateFormat
+	 * 		the dateFormat to set
 	 */
 	public void setDateFormat(DateFormat dateFormat)
 	{

@@ -1,5 +1,6 @@
 package network;
 
+
 import database.jdbc.Result;
 import database.occ.scratchpad.ExecutePadFactory;
 import database.occ.scratchpad.IDBScratchpad;
@@ -71,9 +72,20 @@ public class Proxy extends Node
 		return this.pads.get(txnId).execute(op);
 	}
 
+	/**
+	 * Atempts to commit a transaction.
+	 * This method does not actually commit the transaction.
+	 * Instead, it sends the shadow operation to the replicator and waits for the acknowledge
+	 *
+	 * @param txnId
+	 * 		the id of the transaction to commit
+	 *
+	 * @return - the commit decision
+	 */
 	public boolean commit(TransactionId txnId)
 	{
 		//TODO  this method must block until receive ack from replicator
+
 		// we can block on a condition variable of each transaction
 		// for this the network interface must have the txn object to change the value
 		/**
@@ -83,15 +95,25 @@ public class Proxy extends Node
 		 * 4- clean this connection state
 		 * 4- respond to client
 		 * */
+		Transaction txn = this.transactions.get(txnId);
 
-		this.transactions.get(txnId).endTxn();
-		LOG.info("committing txn {}", txnId);
+		txn.endTxn();
+		LOG.trace("committing txn {}", txn.getTxnId());
 		return true;
 	}
 
+	/**
+	 * Aborts the transaction at application request.
+	 * It is called when the connection decides to rollback
+	 *
+	 * @param txnId
+	 * 		the id of the transaction to abort
+	 */
 	public void abortTransaction(TransactionId txnId)
 	{
 		//TODO
-		LOG.info("aborting txn {}", txnId);
+		Transaction txn = this.transactions.get(txnId);
+
+		LOG.trace("aborting txn {}", txn.getTxnId());
 	}
 }

@@ -1,5 +1,6 @@
 package database.occ.scratchpad;
 
+
 import database.jdbc.ConnectionFactory;
 import database.jdbc.Result;
 import database.occ.OCCExecuter;
@@ -66,8 +67,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
-	public Result execute(DBSingleOperation op)
-			throws JSQLParserException, ScratchpadException, SQLException
+	public Result execute(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
 	{
 		op.parseSQL(parser);
 

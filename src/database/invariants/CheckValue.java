@@ -1,7 +1,5 @@
 package database.invariants;
 
-import database.util.DataField;
-
 
 /**
  * Created by dnlopes on 17/03/15.
@@ -10,23 +8,19 @@ import database.util.DataField;
  * For instance, if the field is a unique field, the value represents the "desired" value.
  * The coordinator service will then verify if this value is already used and respond accordingly.
  */
-public class FieldValuePair
+public class CheckValue
 {
 
-	private final DataField field;
-	private final String value;
+	private String field;
+	private String value;
+	private String table;
 	private boolean isValid;
 
-	public FieldValuePair(DataField field, String value)
+	public CheckValue(String tableName, String fieldName, String value)
 	{
-		this.field = field;
+		this.field = fieldName;
+		this.table = tableName;
 		this.value = value;
 		this.isValid = false;
 	}
-
-	public void validateInvariant()
-	{
-		this.isValid = true;
-	}
-
 }

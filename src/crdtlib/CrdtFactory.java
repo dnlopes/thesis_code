@@ -15,7 +15,9 @@
 /**
  *
  */
+
 package crdtlib;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +25,11 @@ import java.text.DateFormat;
 
 import net.sf.jsqlparser.statement.Statement;
 import database.invariants.InvariantChecker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import runtime.*;
 import runtime.operation.ShadowOperation;
+import util.ExitCode;
 import util.commonfunc.StringOperations;
 import crdtlib.datatypes.primitivetypes.LwwBoolean;
 import crdtlib.datatypes.primitivetypes.LwwDateTime;
@@ -56,11 +62,15 @@ import util.debug.Debug;
 public class CrdtFactory
 {
 
+	static final Logger LOG = LoggerFactory.getLogger(CrdtFactory.class);
+
 	/**
 	 * Gets the proper crdt object.
 	 *
-	 * @param crdtType     the crdt type
-	 * @param originalType the original type
+	 * @param crdtType
+	 * 		the crdt type
+	 * @param originalType
+	 * 		the original type
 	 *
 	 * @return the proper crdt object
 	 */
@@ -134,7 +144,8 @@ public class CrdtFactory
 	/**
 	 * Checks if is normal data type.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType
+	 * 		the crdt type
 	 *
 	 * @return true, if is normal data type
 	 */
@@ -158,7 +169,8 @@ public class CrdtFactory
 	/**
 	 * Gets the normal data type.
 	 *
-	 * @param normalDBType the normal db type
+	 * @param normalDBType
+	 * 		the normal db type
 	 *
 	 * @return the normal data type
 	 */
@@ -185,7 +197,8 @@ public class CrdtFactory
 	/**
 	 * Checks if is lww type.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType
+	 * 		the crdt type
 	 *
 	 * @return true, if is lww type
 	 */
@@ -209,7 +222,8 @@ public class CrdtFactory
 	/**
 	 * Checks if is number delta.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType
+	 * 		the crdt type
 	 *
 	 * @return true, if is number delta
 	 */
@@ -230,7 +244,8 @@ public class CrdtFactory
 	/**
 	 * Checks if is lww logical timestamp.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType
+	 * 		the crdt type
 	 *
 	 * @return true, if is lww logical timestamp
 	 */
@@ -248,7 +263,8 @@ public class CrdtFactory
 	/**
 	 * Checks if is lww deleted flag.
 	 *
-	 * @param crdtType the crdt type
+	 * @param crdtType
+	 * 		the crdt type
 	 *
 	 * @return true, if is lww deleted flag
 	 */
@@ -268,13 +284,17 @@ public class CrdtFactory
 	/**
 	 * Generate crdt primitive type.
 	 *
-	 * @param df    the df
-	 * @param value the value
-	 * @param rs    the rs
+	 * @param df
+	 * 		the df
+	 * @param value
+	 * 		the value
+	 * @param rs
+	 * 		the rs
 	 *
 	 * @return the primitive type
 	 *
-	 * @throws SQLException the sQL exception
+	 * @throws SQLException
+	 * 		the sQL exception
 	 */
 	public static PrimitiveType generateCrdtPrimitiveType(ShadowOperation op, DateFormat dateFormat, DataField df,
 														  String value, ResultSet rs, Statement statement)
@@ -366,15 +386,17 @@ public class CrdtFactory
 						DatabaseFunction.convertDateStrToLong(dateFormat, value));
 			}
 		default:
-			System.err.println("cannot create primitive type" + df.toString());
-			throw new RuntimeException("not such crdt type");
+			LOG.error("cannot create primitive type for field {}", df.getFieldName());
+			runtime.Runtime.throwRunTimeException("unkown primitive type", ExitCode.UNKNOWN_PRIMITIVE_TYPET);
+			throw new RuntimeException();
 		}
 	}
 
 	/**
 	 * Gets the default value for data field.
 	 *
-	 * @param df the df
+	 * @param df
+	 * 		the df
 	 *
 	 * @return the default value for data field
 	 */

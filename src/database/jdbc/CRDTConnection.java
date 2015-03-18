@@ -67,8 +67,8 @@ public class CRDTConnection implements Connection
 	public void rollback() throws SQLException
 	{
 		//TODO review
-		LOG.info("txn {} aborted by user request", this.transaction.getTxnId().getId());
 		this.proxy.abortTransaction(this.transaction.getTxnId());
+		LOG.info("txn {} aborted by user request", this.transaction.getTxnId().getId());
 	}
 
 	@Override
