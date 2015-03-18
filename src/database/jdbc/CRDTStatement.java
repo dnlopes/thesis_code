@@ -113,8 +113,9 @@ public class CRDTStatement implements Statement
 			if(this.operation == null)
 			{
 				ShadowOperation shdOp = new ShadowOperation(this.transaction);
+				this.transaction.setShadowOp(shdOp);
 				//shdOpCreator.createEmptyShadowOperation();
-				this.operation = shdOp;
+				//this.operation = shdOp;
 				//this.transaction.setShadowOp(shdOp);
 				shdOpCreator.setShadowOperation(shdOp);
 			}
