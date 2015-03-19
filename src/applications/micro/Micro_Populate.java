@@ -138,17 +138,21 @@ public class Micro_Populate
 			{
 				// do nothing
 			}
-			stat.execute("CREATE TABLE t" + i + " (" +
-					"a int(10) NOT NULL," +
-					"b int(10) NOT NULL," +
-					"c int(10) NOT NULL," +
-					"d int(10) unsigned," +
-					"e varchar(50)," +
-					"_SP_del BIT(1) default false," +
-					"_SP_ts int default 0," +
-					"_SP_clock varchar(100)," +
-					"PRIMARY KEY(a)" +
-					");");
+			String statement = "CREATE TABLE t" + i + " (" +
+					"a int(10) NOT NULL, " +
+					"b int(10) NOT NULL, " +
+					"c int(10) NOT NULL, " +
+					"d int(10) NOT NULL, " +
+					"e varchar(50) NOT NULL, " +
+					"_SP_del BIT(1) default false, " +
+					"_SP_ts int default 0, " +
+					"_SP_clock varchar(100) default '" + logicalClockStr + "', " +
+					"_SP_immut int(10) NOT NULL, " +
+					"PRIMARY KEY(a), " +
+					"UNIQUE(_SP_immut)" +
+					");";
+
+			stat.execute(statement);
 
 		}
 		conn.commit();
@@ -163,16 +167,17 @@ public class Micro_Populate
 			int b = randomGenerator.nextInt(recordNum) + 1;
 			int c = randomGenerator.nextInt(recordNum) + 1;
 			int d = randomGenerator.nextInt(recordNum) + 1;
-			String e = get_random_string(50);
+			String e = get_random_string(15);
 			for(int j = 1; j <= tableNum; j++)
 			{
 				try
 				{
-					stat.execute(
-							"insert into t" + j + " values (" + Integer.toString(a) + "," + Integer.toString(b) + "," +
-									Integer.toString(c) + "," + Integer.toString(
-									d) + ",'" + e + "'," + Integer.toString(0) + "," + Integer.toString(
-									0) + ",'" + logicalClockStr + "')");
+					String statement = "insert into t" + j + " values (" + Integer.toString(a) + "," + Integer.toString
+							(b) + "," +
+							Integer.toString(c) + "," + Integer.toString(
+							d) + ",'" + e + "'," + Integer.toString(0) + "," + Integer.toString(
+							0) + ",'" + logicalClockStr + "', " + Integer.toString(i) + ")";
+					stat.execute(statement);
 				} catch(SQLException e1)
 				{
 
