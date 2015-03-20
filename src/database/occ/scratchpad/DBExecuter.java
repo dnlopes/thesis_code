@@ -227,12 +227,12 @@ public class DBExecuter implements IExecuter
 	{
 		if(e == null)
 			return;
-		buffer.append(" where ");
+		buffer.append(" WHERE (");
 		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		buffer.append(" = FALSE");
+		buffer.append(" = FALSE)");
 		if(e != null)
 		{
-			buffer.append(" and ( ");
+			buffer.append(" AND ( ");
 			buffer.append(e.toString());
 			buffer.append(" ) ");
 		}
@@ -779,21 +779,15 @@ public class DBExecuter implements IExecuter
 	{
 		LOG.trace("first fetch rows to delete");
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(select *");
+		buffer.append("(SELECT *");
 		//buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-		buffer.append(" from ");
+		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
-		buffer.append("AND (");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-		buffer.append(" NOT IN (");
-		//do not select rows that are already in the scratchpad.
-		//fill with duplicated values
-		this.fillDuplicatedValues(buffer, false);
-		buffer.append(")");
-		buffer.append(") union (select *");
+		this.addNotInClause(buffer, true, true);
+		buffer.append(") UNION (SELECT *");
 		//buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-		buffer.append(" from ");
+		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
 		buffer.append(")");
@@ -846,7 +840,7 @@ public class DBExecuter implements IExecuter
 		LOG.trace("erasing affected rows from temporary table");
 		LOG.trace("executing delete: {}", delete);
 
-		db.executeUpdate(delete);
+		rowsUpdated += db.executeUpdate(delete);
 		return DBUpdateResult.createResult(rowsUpdated);
 	}
 
@@ -858,9 +852,9 @@ public class DBExecuter implements IExecuter
 
 		// now perform the actual update only in the scratchpad
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("update ");
+		buffer.append("UPDATE ");
 		buffer.append(this.tempTableName);
-		buffer.append(" set ");
+		buffer.append(" SET ");
 		Iterator colIt = updateOp.getColumns().iterator();
 		Iterator expIt = updateOp.getExpressions().iterator();
 
@@ -872,7 +866,7 @@ public class DBExecuter implements IExecuter
 			if(colIt.hasNext())
 				buffer.append(" , ");
 		}
-		buffer.append(" where ");
+		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
 		buffer.append(";");
 
@@ -898,34 +892,7 @@ public class DBExecuter implements IExecuter
 		whereClauseTemp.append(" = FALSE");
 		whereClauseTemp.append(" ) ");
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-
-		boolean needPrefix = true;
-		boolean notInClauseAdded = false;
-		if(this.duplicatedRows.size() > 0)
-		{
-			notInClauseAdded = true;
-			whereClauseOrig.append("AND (");
-			whereClauseOrig.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-			whereClauseOrig.append(" NOT IN (");
-			needPrefix = false;
-			fillDuplicatedValues(whereClauseOrig, false);
-		}
-
-		if(this.deletedRows.size() > 0)
-		{
-			notInClauseAdded = true;
-			if(needPrefix)
-			{
-				whereClauseOrig.append("AND ");
-				whereClauseOrig.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				whereClauseOrig.append(" NOT IN (");
-				fillDeletedValues(whereClauseOrig, false);
-			} else
-				fillDeletedValues(whereClauseOrig, true);
-		}
-
-		if(notInClauseAdded)
-			whereClauseOrig.append("))");
+		this.addNotInClause(whereClauseOrig, true, true);
 
 		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
@@ -1096,10 +1063,10 @@ public class DBExecuter implements IExecuter
 		int rowsInserted = 0;
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(select *, '" + updateOp.getTable().toString() + "' as tname from ");
+		buffer.append("(SELECT *, '" + updateOp.getTable().toString() + "' as tname FROM ");
 		buffer.append(updateOp.getTable().toString());
 		addWhere(buffer, updateOp.getWhere());
-		buffer.append(") union (select *, '" + this.tempTableName + "' as tname from ");
+		buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, updateOp.getWhere());
 		buffer.append(")");
@@ -1230,5 +1197,37 @@ public class DBExecuter implements IExecuter
 			}
 		}
 		return true;
+	}
+
+	private void addNotInClause(StringBuffer buffer, boolean filterDeleted, boolean filterDuplicated)
+	{
+		boolean notInClauseAdded = false;
+		boolean needComma = false;
+
+		if(this.duplicatedRows.size() > 0 && filterDuplicated)
+		{
+			buffer.append(" AND (");
+			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+			buffer.append(" NOT IN (");
+			notInClauseAdded = true;
+			fillDuplicatedValues(buffer, needComma);
+			needComma = true;
+		}
+
+		if(this.deletedRows.size() > 0 && filterDeleted)
+		{
+			if(!notInClauseAdded)
+			{
+				buffer.append("AND (");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+				buffer.append(" NOT IN (");
+				notInClauseAdded = true;
+			}
+
+			fillDeletedValues(buffer, needComma);
+		}
+
+		if(notInClauseAdded)
+			buffer.append("))");
 	}
 }
