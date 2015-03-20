@@ -56,20 +56,27 @@ public class PadTest
 
 
 		// expected: 4
-		int result = stat.executeUpdate("update t1 set b=10 where d=10 OR c=9");
-
+		StopWatch txn = new LoggingStopWatch("txn");
+		txn.start();
+		stat.executeUpdate("update t1 set b=10 where d=10 OR c=9");
+		txn.stop();
 		// expected: 5
-		result = stat.executeUpdate("delete from t1 where b=10");
-
+		txn.start();
+		stat.executeUpdate("delete from t1 where b=10");
+		txn.stop();
 
 		//expected: 2
+		txn.start();
 		ResultSet rs = stat.executeQuery("SELECT * from t1 where d=2");
-		result = countResultSetRows(rs);
+		txn.stop();
+		countResultSetRows(rs);
 
 
 		// expected: 3
+		txn.start();
 		rs = stat.executeQuery("SELECT * from t1 where d=2 OR b=3");
-		result = countResultSetRows(rs);
+		txn.stop();
+		countResultSetRows(rs);
 
 		//int res = stat.executeUpdate("insert into t1 (a,b,c,d,e) values(54,6,1,1,ZZZZ)");
 

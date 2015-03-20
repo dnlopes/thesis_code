@@ -5,6 +5,8 @@ import database.jdbc.util.DBUpdateResult;
 import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
 import network.Proxy;
+import org.perf4j.LoggingStopWatch;
+import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Transaction;
@@ -74,6 +76,7 @@ public class CRDTStatement implements Statement
 		try
 		{
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
+
 		} catch(JSQLParserException e)
 		{
 			LOG.error("failed to generate deterministic statements: {}", arg0);
