@@ -11,6 +11,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Configuration;
@@ -899,11 +900,10 @@ public class DBExecuter implements IExecuter
 
 		plainSelect.setFromItem(this.tempTable);
 		queryToTemp = plainSelect.toString();
-		queryToOrigin = org.apache.commons.lang3.StringUtils.replace(queryToOrigin, defaultWhere,
+		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere,
 				whereClauseOrig.toString());
 
-		queryToTemp = org.apache.commons.lang3.StringUtils.replace(queryToTemp, defaultWhere,
-				whereClauseTemp.toString());
+		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
 
 		buffer.append("(");
 		buffer.append(queryToTemp);
