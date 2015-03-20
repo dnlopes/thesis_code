@@ -67,7 +67,7 @@ public class MyShadowOpCreator
 	Connection con;
 
 	/** The cached result set for delta. */
-	private CRDTResultSet cachedResultSetForDelta;
+	private ResultSet cachedResultSetForDelta;
 
 	/** The date format instance, it is thread-local since it is not thread-safe. */
 	DateFormat dateFormat;
@@ -326,7 +326,7 @@ public class MyShadowOpCreator
 	 * This function is to check whether the delete and update are specified by
 	 * a or a group of primary keys. If not, it will generate a query to fetch
 	 * the list of records matching the condition If the return value is not
-	 * empty, then please execute your return string to fetch primary keys;
+	 * empty, then please executeUpdate your return string to fetch primary keys;
 	 * Otherwise please ignore the function
 	 */
 
@@ -448,7 +448,7 @@ public class MyShadowOpCreator
 		{
 			String primaryKeySelectStr = getPrimaryKeySelectionQuery(updateStmt.getTable().getName(),
 					updateStmt.getWhere());
-			//execute the primaryKeySelectStr
+			//executeUpdate the primaryKeySelectStr
 			try
 			{
 				LOG.trace("fetching rows from main database");
@@ -486,7 +486,7 @@ public class MyShadowOpCreator
 		{
 			String primaryKeySelectStr = this.getPrimaryKeySelectionQuery(delStmt.getTable().getName(),
 					delStmt.getWhere());
-			//execute the primaryKeySelectStr
+			//executeUpdate the primaryKeySelectStr
 			try
 			{
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
@@ -531,7 +531,7 @@ public class MyShadowOpCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection
+				//executeUpdate the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{
@@ -589,7 +589,7 @@ public class MyShadowOpCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection
+				//executeUpdate the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{
@@ -1264,7 +1264,7 @@ public class MyShadowOpCreator
 	 * @param cachedResultSetForDelta
 	 * 		the cachedResultSetForDelta to set
 	 */
-	public void setCachedResultSetForDelta(CRDTResultSet cachedResultSetForDelta)
+	public void setCachedResultSetForDelta(ResultSet cachedResultSetForDelta)
 	{
 		this.cachedResultSetForDelta = cachedResultSetForDelta;
 	}
@@ -1274,7 +1274,7 @@ public class MyShadowOpCreator
 	 *
 	 * @return the cachedResultSetForDelta
 	 */
-	public CRDTResultSet getCachedResultSetForDelta()
+	public ResultSet getCachedResultSetForDelta()
 	{
 		return cachedResultSetForDelta;
 	}

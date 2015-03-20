@@ -40,29 +40,20 @@ public class CRDTStatement implements Statement
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		//TODO review
 		if(!this.transaction.hasBegun())
 			this.proxy.beginTxn(transaction);
 
-		//ResultSet result = this.proxy.executeQuery(arg0);
-
-		DBSelectResult res;
-		CRDTResultSet resultSet;
-
+		ResultSet rs;
 		try
 		{
-			Result r = proxy.execute(DBSingleOperation.createOperation(arg0), this.transaction.getTxnId());
-			res = DBSelectResult.createResult(r);
-			resultSet = new CRDTResultSet(res);
-
-			shdOpCreator.setCachedResultSetForDelta(resultSet);
-
-			LOG.trace("query statement executed properly");
+			DBSingleOperation dbOp = DBSingleOperation.createOperation(arg0);
+			rs = proxy.executeQuery(dbOp, this.transaction.getTxnId());
+			shdOpCreator.setCachedResultSetForDelta(rs);
 
 		} catch(JSQLParserException | ScratchpadException e)
 		{
 			e.printStackTrace();
-			System.out.println(arg0);
+			LOG.error("failed to execute: {}", arg0);
 			throw new SQLException(e);
 		}
 
@@ -70,13 +61,12 @@ public class CRDTStatement implements Statement
 			throw new SQLException(this.transaction.getAbortMessage());
 
 		LOG.trace("query statement executed properly");
-		return resultSet;
+		return rs;
 	}
 
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-		//TODO review
 		if(!this.transaction.hasBegun())
 			this.proxy.beginTxn(transaction);
 
@@ -86,7 +76,7 @@ public class CRDTStatement implements Statement
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId().getId());
+			LOG.error("failed to generate deterministic statements: {}", arg0);
 			throw new SQLException(e.getMessage());
 		}
 
@@ -99,14 +89,14 @@ public class CRDTStatement implements Statement
 			try
 			{
 				sqlOp = DBSingleOperation.createOperation(updateStr);
-				Result tempRes = this.proxy.execute(sqlOp, this.transaction.getTxnId());
+				Result tempRes = this.proxy.executeUpdate(sqlOp, this.transaction.getTxnId());
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
 			} catch(JSQLParserException | ScratchpadException e)
 			{
-				LOG.error("failed to execute statement in scratchpad state for txn {}",
-						this.transaction.getTxnId().getId());
+				e.printStackTrace();
+				LOG.error("failed to execute: {}", arg0);
 				throw new SQLException(e.getMessage());
 			}
 
@@ -124,17 +114,18 @@ public class CRDTStatement implements Statement
 				shdOpCreator.addDBEntryToShadowOperation(this.operation, updateStr, sqlOp);
 			} catch(JSQLParserException e)
 			{
-				LOG.error("failed to add statement to shadow operation for txn {}",
-						this.transaction.getTxnId().getId());
+				LOG.error("failed to add statement to shadow operation: {}", arg0);
 				throw new SQLException(e.getMessage());
 			}
 		}
+
 		if(this.transaction.isInternalAborted())
 			throw new SQLException(this.transaction.getAbortMessage());
 
-		LOG.trace("update statement executed properly");
-		return result;
+		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
 
+		LOG.trace("update statement executed properly");
+		return finalRes.getUpdateResult();
 	}
 
 /*

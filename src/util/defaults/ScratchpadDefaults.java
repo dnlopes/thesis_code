@@ -19,6 +19,8 @@ public class ScratchpadDefaults
 
 	public static final String SCRATCHPAD_COL_PREFIX = "_SP_";
 	public static final String SCRATCHPAD_COL_DELETED = "_SP_del";
+	public static final String SCRATCHPAD_COL_IMMUTABLE = "_SP_immut";
+
 	public static final String SCRATCHPAD_COL_TS = "_SP_ts";
 	public static final String SCRATCHPAD_COL_VV = "_SP_clock";
 

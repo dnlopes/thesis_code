@@ -113,5 +113,8 @@ public class ExitCode
 	public static final int CHANNEL_ERROR = 35;
 	public static final int UNKNOWN_INVARIANT = 36;
 	public static final int UNKNOWN_PRIMITIVE_TYPET = 36;
+	public static final int MULTI_TABLE_UPDATE = 36;
+	public static final int UNEXPECTED_OP = 37;
+
 
 }

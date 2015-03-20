@@ -390,7 +390,7 @@ public class ShadowOperationCreator
 	 * This function is to check whether the delete and update are specified by
 	 * a or a group of primary keys. If not, it will generate a query to fetch
 	 * the list of records matching the condition If the return value is not
-	 * empty, then please execute your return string to fetch primary keys;
+	 * empty, then please executeUpdate your return string to fetch primary keys;
 	 * Otherwise please ignore the function
 	 */
 
@@ -515,7 +515,7 @@ public class ShadowOperationCreator
 		{
 			String primaryKeySelectStr = getPrimaryKeySelectionQuery(updateStmt.getTable().getName(),
 					updateStmt.getWhere());
-			//execute the primaryKeySelectStr
+			//executeUpdate the primaryKeySelectStr
 			try
 			{
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
@@ -553,7 +553,7 @@ public class ShadowOperationCreator
 		{
 			String primaryKeySelectStr = this.getPrimaryKeySelectionQuery(delStmt.getTable().getName(),
 					delStmt.getWhere());
-			//execute the primaryKeySelectStr
+			//executeUpdate the primaryKeySelectStr
 			try
 			{
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
@@ -598,7 +598,7 @@ public class ShadowOperationCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection 
+				//executeUpdate the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{
@@ -656,7 +656,7 @@ public class ShadowOperationCreator
 			String valStr = valueIt.next().toString().trim();
 			if(valStr.contains("SELECT") || valStr.contains("select"))
 			{
-				//execute the selection 
+				//executeUpdate the selection
 				//remove two brackets
 				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
 				{

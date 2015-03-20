@@ -206,7 +206,7 @@ public class TPCW_Database {
 	    
 	    // Set parameter
 	    get_name.setInt(1, c_id);
-	    // 	    out.println("About to execute query!");
+	    // 	    out.println("About to executeUpdate query!");
 	    //            out.flush();
 
 	    ResultSet rs = get_name.executeQuery();

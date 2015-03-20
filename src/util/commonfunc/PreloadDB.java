@@ -72,10 +72,10 @@ public class PreloadDB
    */
   public boolean preload(){
       /*try {
-              stat.execute("DROP TABLE IF EXISTS BLACKHOLEbids;");
-              stat.execute("CREATE TABLE BLACKHOLEbids LIKE bids;");
-              stat.execute("ALTER TABLE BLACKHOLEbids ENGINE = BLACKHOLE;");
-              stat.execute("INSERT INTO BLACKHOLEbids SELECT * FROM bids ORDER BY id;");
+              stat.executeUpdate("DROP TABLE IF EXISTS BLACKHOLEbids;");
+              stat.executeUpdate("CREATE TABLE BLACKHOLEbids LIKE bids;");
+              stat.executeUpdate("ALTER TABLE BLACKHOLEbids ENGINE = BLACKHOLE;");
+              stat.executeUpdate("INSERT INTO BLACKHOLEbids SELECT * FROM bids ORDER BY id;");
               stat.close();
               c.close();
       }catch(Exception e){

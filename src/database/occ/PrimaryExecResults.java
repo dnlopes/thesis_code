@@ -13,7 +13,7 @@ public class PrimaryExecResults
 	public List<Result> results;
 	
 	public PrimaryExecResults() {
-		results = new ArrayList<Result>();
+		results = new ArrayList<>();
 	}
 	
 	public void addResult( Result r) {

@@ -55,10 +55,11 @@ public class Proxy extends Node
 		return this.transactions.containsKey(txnId);
 	}
 
-	public ResultSet executeQuery(TransactionId txnId, String sql) throws SQLException
+	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)
+			throws SQLException, ScratchpadException, JSQLParserException
 	{
 
-		return this.pads.get(txnId).executeQuery(sql);
+		return this.pads.get(txnId).executeQuery(op);
 	}
 
 	public Transaction getTransaction(TransactionId txnId)
@@ -66,10 +67,11 @@ public class Proxy extends Node
 		return this.transactions.get(txnId);
 	}
 
-	public Result execute(DBSingleOperation op, TransactionId txnId)
+	public Result executeUpdate(DBSingleOperation op, TransactionId txnId)
 			throws JSQLParserException, SQLException, ScratchpadException
 	{
-		return this.pads.get(txnId).execute(op);
+
+		return this.pads.get(txnId).executeUpdate(op);
 	}
 
 	/**
@@ -95,6 +97,12 @@ public class Proxy extends Node
 		 * 4- clean this connection state
 		 * 4- respond to client
 		 * */
+
+		// if does not contain, it means the transaction was not created
+		// i.e no statements were executed. Thus, it should commit in every case
+		if(!this.transactions.containsKey(txnId))
+			return true;
+
 		Transaction txn = this.transactions.get(txnId);
 
 		txn.endTxn();
