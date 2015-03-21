@@ -1,6 +1,9 @@
 package database.jdbc;
 
-import network.Proxy;
+
+import network.node.Proxy;
+import network.node.Replicator;
+import org.apache.thrift.transport.TTransportException;
 import runtime.Configuration;
 import util.defaults.DBDefaults;
 
@@ -16,16 +19,24 @@ public class CRDTDriver implements Driver
 {
 
 	private static Proxy proxy;
+	private static Replicator replicator;
+
 	static
 	{
 		try
 		{
 			// static block to auto-register in the DriverManager
 			DriverManager.registerDriver(new CRDTDriver());
-			proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID);
+			replicator = new Replicator("localhost", 30000, 2);
+
+			proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID,
+					replicator);
 		} catch(SQLException E)
 		{
 			throw new RuntimeException("Error: failed to register CRDT:Driver");
+		} catch(TTransportException e)
+		{
+			e.printStackTrace();
 		}
 	}
 

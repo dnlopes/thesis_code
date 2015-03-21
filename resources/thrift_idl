@@ -1,0 +1,23 @@
+namespace java thrift
+
+
+enum MessageType {
+ COMMIT = 1,
+ REQUEST_TXN = 2,
+ VALIDATE = 3,
+}
+
+//typedef list<String> TweetList
+
+struct ThriftOperation {
+ 1: required i64 txnId;
+ 2: required list<string> operations;
+}
+
+service ReplicatorRPC {
+ bool commitOperation(1:ThriftOperation  op);
+ bool commitOperationSync(1:ThriftOperation  op);
+ oneway void commitOperationAsync(1:ThriftOperation op);
+}
+
+//service CoordinatorRPC {}

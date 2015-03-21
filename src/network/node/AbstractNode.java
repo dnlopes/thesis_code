@@ -1,4 +1,8 @@
-package network;
+package network.node;
+
+import network.INetwork;
+import network.NetworkInterface;
+import org.apache.thrift.transport.TTransportException;
 
 import java.net.InetSocketAddress;
 
@@ -6,15 +10,15 @@ import java.net.InetSocketAddress;
 /**
  * Created by dnlopes on 15/03/15.
  */
-public abstract class Node
+public abstract class AbstractNode
 {
 
 	private Role role;
 	private int id;
 	private InetSocketAddress socketAddress;
-	protected NetworkInterface network;
+	protected INetwork network;
 
-	public Node(String hostName, int port, int id, Role role)
+	public AbstractNode(String hostName, int port, int id, Role role) throws TTransportException
 	{
 		this.id = id;
 		this.role = role;
@@ -39,7 +43,7 @@ public abstract class Node
 
 	public String getName()
 	{
-		return "[" + this.role + "-" + this.id + "]";
+		return this.role + "-" + this.id;
 	}
 
 }

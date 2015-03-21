@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import network.Proxy;
+import network.node.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;

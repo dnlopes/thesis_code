@@ -1,6 +1,7 @@
 package network;
 
-import runtime.operation.Operation;
+import network.node.AbstractNode;
+import util.thrift.ThriftOperation;
 
 
 /**
@@ -8,9 +9,5 @@ import runtime.operation.Operation;
  */
 public interface INetwork
 {
-
-	public void sendOperation(Operation op);
-	public void sendToNode(Operation op, Node node);
-	public void sendBytes(byte[] message, Node to);
-	public void addNode(Node n);
+	public boolean commitOperation(ThriftOperation thriftOperation, AbstractNode node);
 }

@@ -4,7 +4,7 @@ package database.jdbc;
 import database.jdbc.util.DBUpdateResult;
 import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
-import network.Proxy;
+import network.node.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
