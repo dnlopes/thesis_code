@@ -5,10 +5,11 @@ import network.node.Replicator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.TransactionId;
+import runtime.Utils;
+import runtime.operation.ShadowOperation;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
-
-import java.util.List;
 
 
 /**
@@ -26,11 +27,21 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public boolean commitOperation(ThriftOperation shadowOp) throws TException
+	public boolean commitOperation(ThriftOperation thriftOp) throws TException
 	{
-		List<String> operations = shadowOp.getOperations();
-		LOG.info("op: {}", operations.get(0));
-		return true;
+		//here we decide how a operation commit happens.
+		//for now, we commit locally, send to othe replicators but dont wait for their responses
+		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
+
+		TransactionId txnId = shadowOp.getTransaction().getTxnId();
+
+		if(this.replicator.alreadyCommitted(txnId))
+		{
+			LOG.warn("duplicated transaction {}. Ignoring.", txnId.getId());
+			return true;
+		}
+
+		return this.replicator.commitOperation(shadowOp);
 	}
 
 	@Override

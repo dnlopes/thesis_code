@@ -2,38 +2,37 @@ package network;
 
 
 import network.node.AbstractNode;
-import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TSimpleJSONProtocol;
-import org.apache.thrift.transport.*;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import util.thrift.ReplicatorRPC;
-import util.thrift.ThriftOperation;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
- * Created by dnlopes on 15/03/15.
+ * Created by dnlopes on 21/03/15.
  */
-public class NetworkInterface implements INetwork
+public class AbstractNetwork
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(NetworkInterface.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
-	private AbstractNode me;
-	private Map<String, ReplicatorRPC.Client> clients;
+	protected AbstractNode me;
+	protected Map<String, ReplicatorRPC.Client> clients;
 
-	public NetworkInterface(AbstractNode node) throws TTransportException
+	public AbstractNetwork(AbstractNode node)
 	{
 		this.me = node;
 		this.clients = new HashMap<>();
 	}
 
-	private void addNode(AbstractNode newNode)
+	protected void addNode(AbstractNode newNode)
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -61,24 +60,5 @@ public class NetworkInterface implements INetwork
 		}
 
 		LOG.trace("new node added {}", newNode.getName());
-	}
-
-	@Override
-	public boolean commitOperation(ThriftOperation thriftOperation, AbstractNode node)
-	{
-		if(!this.clients.containsKey(node.getName()))
-			this.addNode(node);
-
-		ReplicatorRPC.Client client = this.clients.get(node.getName());
-		//TODO: generate thrift operation
-		try
-		{
-			return client.commitOperation(thriftOperation);
-		} catch(TException e)
-		{
-			e.printStackTrace();
-			return false;
-		}
-
 	}
 }

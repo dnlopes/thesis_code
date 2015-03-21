@@ -26,6 +26,7 @@ public class Transaction
 	private ShadowOperation shadowOp;
 	private String abortMessage;
 	private boolean internalAborted;
+	private boolean readOnly;
 
 	public Transaction()
 	{
@@ -33,6 +34,7 @@ public class Transaction
 		this.latency = 0;
 		this.hasBegun = false;
 		this.hasEnded = false;
+		this.readOnly = true;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
@@ -108,11 +110,6 @@ public class Transaction
 	public boolean hasBegun()
 	{
 		return this.hasBegun;
-	}
-
-	public boolean hasEnded()
-	{
-		return this.hasEnded;
 	}
 
 	public boolean isInternalAborted()

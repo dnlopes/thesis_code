@@ -6,6 +6,8 @@ import database.occ.scratchpad.ExecutePadFactory;
 import database.occ.scratchpad.IDBScratchpad;
 import database.occ.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
+import network.IProxyNetwork;
+import network.ProxyNetwork;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +15,6 @@ import runtime.Transaction;
 import runtime.TransactionId;
 import runtime.factory.TxnIdFactory;
 import runtime.operation.DBSingleOperation;
-import runtime.operation.ShadowOperation;
-import util.thrift.ThriftOperation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,12 +30,12 @@ public class Proxy extends AbstractNode
 
 	static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
+	private IProxyNetwork networkInterface;
+	//this is the replicator in which we will execute RPCs
+	private Replicator replicator;
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> pads;
-
-	//this is the replicator in which we will execute RPCs
-	private Replicator replicator;
 
 	public Proxy(String hostName, int port, int id, Replicator replicator) throws TTransportException
 	{
@@ -44,6 +44,7 @@ public class Proxy extends AbstractNode
 		this.transactions = new HashMap<>();
 		this.pads = new HashMap<>();
 		this.replicator = replicator;
+		this.networkInterface = new ProxyNetwork(this);
 	}
 
 	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)
@@ -72,25 +73,22 @@ public class Proxy extends AbstractNode
 	 */
 	public boolean commit(TransactionId txnId)
 	{
-		//TODO  this method must block until receive ack from replicator
-		// if does not contain, it means the transaction was not created
+		// if does not contain the txn, it means the transaction was not yet created
 		// i.e no statements were executed. Thus, it should commit in every case
 		if(!this.transactions.containsKey(txnId))
 			return true;
 
 		Transaction txn = this.transactions.get(txnId);
-		ThriftOperation thriftOp = this.createThriftOperation(txn.getShadowOp());
 
-		boolean commitDecision = this.network.commitOperation(thriftOp, this.replicator);
+		// FIXME: this call MUST NOT block, but for now it DOES block
+		boolean commitDecision = this.networkInterface.commitOperation(txn.getShadowOp(), this.replicator);
 
 		if(commitDecision)
 		{
 			txn.endTxn();
 			LOG.trace("txn {} committed", txn.getTxnId().getId());
-		}
-		else
+		} else
 			LOG.trace("txn {} failed to commit", txn.getTxnId().getId());
-
 
 		return commitDecision;
 	}
@@ -129,31 +127,5 @@ public class Proxy extends AbstractNode
 	public boolean txnHasBegun(TransactionId txnId)
 	{
 		return this.transactions.containsKey(txnId);
-	}
-
-	private ThriftOperation createThriftOperation(ShadowOperation shadowOp)
-	{
-		ThriftOperation thriftOperation = new ThriftOperation();
-		thriftOperation.addToOperations("OLA");
-		thriftOperation.setTxnId(1);
-		return thriftOperation;
-	}
-
-	public boolean TESTCOMMIT()
-	{
-		ThriftOperation thriftOp = this.createThriftOperation(null);
-
-
-		boolean commitDecision = this.network.commitOperation(thriftOp, this.replicator);
-
-		if(commitDecision)
-		{
-			LOG.trace("txn {} committed");
-		}
-		else
-			LOG.trace("txn {} failed to commit");
-
-
-		return commitDecision;
 	}
 }

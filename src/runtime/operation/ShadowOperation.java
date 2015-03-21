@@ -68,6 +68,11 @@ public class ShadowOperation
 
 	private Transaction transaction;
 
+	public ShadowOperation()
+	{
+
+	}
+
 	/**
 	 * Instantiates a new shadow op template.
 	 */

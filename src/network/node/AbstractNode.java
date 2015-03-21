@@ -1,9 +1,5 @@
 package network.node;
 
-import network.INetwork;
-import network.NetworkInterface;
-import org.apache.thrift.transport.TTransportException;
-
 import java.net.InetSocketAddress;
 
 
@@ -16,14 +12,12 @@ public abstract class AbstractNode
 	private Role role;
 	private int id;
 	private InetSocketAddress socketAddress;
-	protected INetwork network;
 
-	public AbstractNode(String hostName, int port, int id, Role role) throws TTransportException
+	public AbstractNode(String hostName, int port, int id, Role role)
 	{
 		this.id = id;
 		this.role = role;
 		this.socketAddress = new InetSocketAddress(hostName, port);
-		this.network = new NetworkInterface(this);
 	}
 
 	public Role getRole()
@@ -45,7 +39,6 @@ public abstract class AbstractNode
 	{
 		return this.role + "-" + this.id;
 	}
-
 }
 
 
