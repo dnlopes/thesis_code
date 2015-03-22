@@ -1,6 +1,8 @@
 package runtime;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
 import util.thrift.ThriftOperation;
 
@@ -10,6 +12,8 @@ import util.thrift.ThriftOperation;
  */
 public class Utils
 {
+	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+
 
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
@@ -22,9 +26,7 @@ public class Utils
 	public static ShadowOperation decodeThriftOperation(ThriftOperation thriftOperation)
 	{
 		//TODO
-		ShadowOperation shadowOperation = new ShadowOperation();
+		ShadowOperation shadowOperation = new ShadowOperation(thriftOperation.getOperations());
 		return  shadowOperation;
 	}
-
-	
 }

@@ -1,8 +1,5 @@
 package runtime.operation;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
@@ -19,68 +16,28 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.update.Update;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public class DBSingleOperation extends DBOperation
+public class DBSingleOperation
 {
 
+	private static final Logger LOG = LoggerFactory.getLogger(DBSingleOperation.class);
+
+	private Statement opStatement;
+	private boolean isQuery;
 	transient public String sql;
-	transient Statement stat;
 	transient String[][] table;
 
 	public DBSingleOperation(String sql)
 	{
-		super(sql.getBytes());
 		this.sql = sql;
 	}
 
-	public DBSingleOperation(Operation op)
+	public Statement getStatement()
 	{
-		super(op.getOperation());
-		this.sql = null;
-	}
-
-	public static DBSingleOperation createOperation(String sql)
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(baos);
-		try
-		{
-			dos.writeByte(OP_SINGLEOP);
-			dos.writeUTF(sql);
-		} catch(IOException e)
-		{
-			System.err.println("create single op exception");
-			System.exit(-1);
-		}
-		return new DBSingleOperation(baos.toByteArray(), sql);
-
-	}
-
-	protected DBSingleOperation(byte[] arr, String sql)
-	{
-		super(arr);
-		this.sql = sql;
-	}
-
-	public String getStatement()
-	{
-		if(sql == null)
-			sql = new String(super.getOperation());
-		return sql;
-	}
-
-	public Statement getStatementObj()
-	{
-		if(stat == null)
-			throw new RuntimeException("Not parsed yet - unexpected situation");
-		return stat;
-	}
-
-	public void parseSQL(CCJSqlParserManager parser) throws JSQLParserException
-	{
-		if(stat == null)
-			stat = parser.parse(new StringReader(getStatement()));
+		return this.opStatement;
 	}
 
 	/*
@@ -92,26 +49,26 @@ public class DBSingleOperation extends DBOperation
 	{
 		if(table != null)
 			return table;
-		if(stat == null)
+		if(opStatement == null)
 			throw new RuntimeException("Not parsed yet - unexpected situation");
-		if(stat instanceof Insert)
+		if(opStatement instanceof Insert)
 		{
-			table = new String[][]{{((Insert) stat).getTable().getName(), ((Insert) stat).getTable().getName(), ((Insert) stat).getTable().getName().toUpperCase()}};
-		} else if(stat instanceof Update)
+			table = new String[][]{{((Insert) opStatement).getTable().getName(), ((Insert) opStatement).getTable().getName(), ((Insert) opStatement).getTable().getName().toUpperCase()}};
+		} else if(opStatement instanceof Update)
 		{
-			table = new String[][]{{((Update) stat).getTable().getName(), ((Update) stat).getTable().getName(), ((Update) stat).getTable().getName().toUpperCase()}};
-		} else if(stat instanceof Delete)
+			table = new String[][]{{((Update) opStatement).getTable().getName(), ((Update) opStatement).getTable().getName(), ((Update) opStatement).getTable().getName().toUpperCase()}};
+		} else if(opStatement instanceof Delete)
 		{
-			table = new String[][]{{((Delete) stat).getTable().getName(), ((Delete) stat).getTable().getName(), ((Delete) stat).getTable().getName().toUpperCase()}};
-		} else if(stat instanceof Select)
+			table = new String[][]{{((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName().toUpperCase()}};
+		} else if(opStatement instanceof Select)
 		{
-			SelectBody sb = ((Select) stat).getSelectBody();
+			SelectBody sb = ((Select) opStatement).getSelectBody();
 			if(!(sb instanceof PlainSelect))
-				throw new RuntimeException("Cannot process select : " + stat);
+				throw new RuntimeException("Cannot process select : " + opStatement);
 			PlainSelect psb = (PlainSelect) sb;
 			FromItem fi = psb.getFromItem();
 			if(!(fi instanceof Table))
-				throw new RuntimeException("Cannot process select : " + stat);
+				throw new RuntimeException("Cannot process select : " + opStatement);
 			List joins = psb.getJoins();
 			int nJoins = joins == null ? 0 : joins.size();
 			table = new String[nJoins + 1][3];
@@ -132,20 +89,25 @@ public class DBSingleOperation extends DBOperation
 				}
 			}
 		} else
-			throw new RuntimeException("Cannot process operation : " + stat);
+			throw new RuntimeException("Cannot process operation : " + opStatement);
 		return table;
 	}
 
 	public boolean isQuery()
 	{
-		if(stat == null)
-			throw new RuntimeException("Not parsed yet - unexpected situation");
-		return stat instanceof Select;
+		return this.isQuery;
 	}
 
-	public String toString()
+	public void parse(CCJSqlParserManager parser)
 	{
-		return getStatement();
+		try
+		{
+			this.opStatement = parser.parse(new StringReader(this.sql));
+			this.isQuery = this.opStatement instanceof Select;
+		} catch(JSQLParserException e)
+		{
+			LOG.warn("failed to parse sql string {}", sql);
+			e.printStackTrace();
+		}
 	}
-
 }

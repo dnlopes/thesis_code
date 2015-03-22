@@ -1,4 +1,4 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 import java.util.Iterator;
 import java.util.List;

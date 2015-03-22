@@ -1,10 +1,9 @@
 package tests;
 
-import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
-import database.occ.scratchpad.IDBScratchpad;
+import database.scratchpad.IDBScratchpad;
 import runtime.Configuration;
-import database.occ.scratchpad.ExecutePadFactory;
+import database.scratchpad.ExecutePadFactory;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 

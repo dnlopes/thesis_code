@@ -1,4 +1,4 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 import org.perf4j.StopWatch;
 import util.ObjectPool;

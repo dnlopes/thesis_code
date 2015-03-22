@@ -1,4 +1,4 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 
 import database.jdbc.Result;
@@ -39,4 +39,7 @@ public interface IDBScratchpad
 
 	public int executeUpdate(String op) throws SQLException;
 
+	public void resetScratchpad() throws SQLException;
+
+	public TransactionWriteSet createTransactionWriteSet() throws SQLException;
 }

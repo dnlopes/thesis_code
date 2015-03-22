@@ -1,10 +1,12 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 
 import database.jdbc.Result;
 import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
+import database.util.Database;
+import database.util.DatabaseTable;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -16,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.Configuration;
 import runtime.RuntimeHelper;
-import runtime.operation.DBOperation;
 import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 import util.debug.Debug;
@@ -32,42 +33,33 @@ public class DBExecuter implements IExecuter
 	static final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
 
 	TableDefinition tableDefinition;
-	Set<String[]> deletedPks;
+	private DatabaseTable dbTable;
 	// we save the _SP_immut field to verify which rows are duplicated in the scratchpad and main database
 	private Set<String> duplicatedRows;
+	private Set<String> insertedRows;
 	private Set<String> deletedRows;
-	private FromItem tempTable;
-	private String originTableName;
-	protected String tempTableName;
+	private Set<String> modifiedColumns;
+
+	private TableWriteSet writeSet;
+
+	private FromItem fromItemTemp;
+	private String tempTableName;
 	String tempTableNameAlias;
 	int tableId;
-	boolean modified;
+	private boolean modified;
 
 	public DBExecuter(int tableId, String tableName)
 	{
 		this.tableId = tableId;
-		this.originTableName = tableName;
+		this.dbTable = Database.getInstance().getTable(tableName);
 		this.modified = false;
-		this.deletedPks = new HashSet<>();
+		this.fromItemTemp = new Table(Configuration.DB_NAME, this.dbTable.getTableName());
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
-	}
+		this.modifiedColumns = new HashSet<>();
+		this.insertedRows = new HashSet<>();
 
-	/**
-	 * Called on begin transaction
-	 */
-	public void beginTx(IDBScratchpad db)
-	{
-		try
-		{
-			if(modified)
-				db.addToBatchUpdate("delete from " + tempTableName + ";");
-		} catch(SQLException e)
-		{
-			Debug.kill(e);
-		}
-		modified = false;
-		deletedPks.clear();
+		this.writeSet = new TableWriteSet(this.dbTable.getTableName());
 	}
 
 	/**
@@ -108,6 +100,7 @@ public class DBExecuter implements IExecuter
 	public void addDeletedKeysWhere(StringBuffer buffer)
 	{
 
+		/*
 		for(String[] pk : deletedPks)
 		{
 			String[] pkAlias = tableDefinition.getPksAlias();
@@ -119,7 +112,7 @@ public class DBExecuter implements IExecuter
 				buffer.append(pk[i]);
 				buffer.append("'");
 			}
-		}
+		}      */
 	}
 
 	/**
@@ -331,9 +324,8 @@ public class DBExecuter implements IExecuter
 	{
 		try
 		{
-			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.originTableName + "_" +
+			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.dbTable.getTableName() + "_" +
 					scratchpad.getScratchpadId();
-			this.tempTable = new Table(Configuration.DB_NAME, this.tempTableName);
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
 
@@ -356,9 +348,9 @@ public class DBExecuter implements IExecuter
 			ArrayList<String> tempAlias = new ArrayList<>();    // for columns with aliases
 			ArrayList<String> tempTempAlias = new ArrayList<>();    // for temp columns with aliases
 			ArrayList<String> uniqueIndices = new ArrayList<>(); // unique index
-			ResultSet colSet = metadata.getColumns(null, null, this.originTableName, "%");
+			ResultSet colSet = metadata.getColumns(null, null, this.dbTable.getTableName(), "%");
 			boolean first = true;
-			LOG.debug("INFO scratchpad: read table:" + this.originTableName);
+			LOG.debug("INFO scratchpad: read table:" + this.dbTable.getTableName());
 
 			while(colSet.next())
 			{
@@ -426,7 +418,7 @@ public class DBExecuter implements IExecuter
 				colsIsStr[i] = tempIsStr.get(i);
 
 			//get all unique index
-			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.originTableName, true, true);
+			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.dbTable.getTableName(), true, true);
 			while(uqIndices.next())
 			{
 				String indexName = uqIndices.getString("INDEX_NAME");
@@ -440,7 +432,7 @@ public class DBExecuter implements IExecuter
 			}
 			uqIndices.close();
 
-			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.originTableName);
+			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.dbTable.getTableName());
 			while(pkSet.next())
 			{
 				if(temp.size() == 0)
@@ -474,8 +466,8 @@ public class DBExecuter implements IExecuter
 
 			LOG.debug("Unique indices: " + Arrays.toString(uqIndicesPlain));
 
-			this.tableDefinition = new TableDefinition(this.originTableName, tableNameAlias, this.tableId, colsIsStr,
-					cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
+			this.tableDefinition = new TableDefinition(this.dbTable.getTableName(), tableNameAlias, this.tableId,
+					colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
 
 			if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
 				buffer.append(") NOT PERSISTENT;");    // FOR H2
@@ -507,7 +499,7 @@ public class DBExecuter implements IExecuter
 	 * @throws SQLException
 	 * @throws ScratchpadException
 	 */
-	public Result executeTempOpSelect(DBOperation op, Select dbOp, IDBScratchpad db, IExecuter[] policies,
+	public Result executeTempOpSelect(DBSingleOperation op, Select dbOp, IDBScratchpad db, IExecuter[] policies,
 									  String[][] tables) throws SQLException, ScratchpadException
 	{
 		Debug.println("multi table select >>" + dbOp);
@@ -663,8 +655,8 @@ public class DBExecuter implements IExecuter
 	public ResultSet executeTemporaryQueryOnSingleTable(DBSingleOperation dbOp, IDBScratchpad db)
 			throws SQLException, ScratchpadException
 	{
-		if(dbOp.getStatementObj() instanceof Select)
-			return this.executeTempOpSelect((Select) dbOp.getStatementObj(), db);
+		if(dbOp.getStatement() instanceof Select)
+			return this.executeTempOpSelect((Select) dbOp.getStatement(), db);
 		else
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 		return null;
@@ -674,8 +666,8 @@ public class DBExecuter implements IExecuter
 	public ResultSet executeTemporaryQueryOnMultTable(DBSingleOperation dbOp, IDBScratchpad db, IExecuter[] policies,
 													  String[][] tables) throws SQLException, ScratchpadException
 	{
-		if(dbOp.getStatementObj() instanceof Select)
-			return executeTempOpSelect((Select) dbOp.getStatementObj(), db, policies, tables);
+		if(dbOp.getStatement() instanceof Select)
+			return executeTempOpSelect((Select) dbOp.getStatement(), db, policies, tables);
 		else
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 		return null;
@@ -686,18 +678,32 @@ public class DBExecuter implements IExecuter
 			throws SQLException, ScratchpadException
 	{
 		modified = true;
-		if(dbOp.getStatementObj() instanceof Insert)
-			return executeTempOpInsert(dbOp, (Insert) dbOp.getStatementObj(), db);
-		else if(dbOp.getStatementObj() instanceof Delete)
-			return executeTempOpDelete((Delete) dbOp.getStatementObj(), db);
-		else if(dbOp.getStatementObj() instanceof Update)
-			return executeTempOpUpdate((Update) dbOp.getStatementObj(), db);
+		if(dbOp.getStatement() instanceof Insert)
+			return executeTempOpInsert(dbOp, (Insert) dbOp.getStatement(), db);
+		else if(dbOp.getStatement() instanceof Delete)
+			return executeTempOpDelete((Delete) dbOp.getStatement(), db);
+		else if(dbOp.getStatement() instanceof Update)
+			return executeTempOpUpdate((Update) dbOp.getStatement(), db);
 		else
 		{
 			modified = false;
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 		}
 		return null;
+	}
+
+	@Override
+	public void resetExecuter(IDBScratchpad pad) throws SQLException
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("TRUNCATE TABLE ");
+		buffer.append(this.tempTableName);
+		pad.addToBatchUpdate(buffer.toString());
+		this.deletedRows.clear();
+		this.duplicatedRows.clear();
+		this.modifiedColumns.clear();
+		this.insertedRows.clear();
+		this.modified = false;
 	}
 
 	/**
@@ -780,14 +786,15 @@ public class DBExecuter implements IExecuter
 	{
 		LOG.trace("first fetch rows to delete");
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(SELECT *");
-		//buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append("(SELECT ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
+		buffer.append(" AND ");
 		this.addNotInClause(buffer, true, true);
-		buffer.append(") UNION (SELECT *");
-		//buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(") UNION (SELECT ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
@@ -805,10 +812,13 @@ public class DBExecuter implements IExecuter
 		{
 			rowsUpdated++;
 			String immutValue = res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-			// we will remove this row.
-			// thus, remove it form duplicatedRows and add it to deletedRows
+
+			/* we will remove this row.
+			thus, remove it form duplicatedRows and add it to deletedRows */
 			this.duplicatedRows.remove(immutValue);
+			this.writeSet.removeUpdatedRow(immutValue);
 			this.deletedRows.add(immutValue);
+			this.writeSet.addDeletedRow(immutValue);
 
 			int nPks = tableDefinition.getPksPlain().length;
 			if(nPks > 0)
@@ -817,7 +827,6 @@ public class DBExecuter implements IExecuter
 				for(int i = 0; i < pkVal.length; i++)
 					pkVal[i] = res.getObject(i + 1).toString();
 				db.addToWriteSet(DBWriteSetEntry.createEntry(deleteOp.getTable().toString(), pkVal, true, true));
-				deletedPks.add(pkVal);
 			}
 
 			String[] uniqueIndexStrs = tableDefinition.getUqIndicesPlain();
@@ -861,7 +870,10 @@ public class DBExecuter implements IExecuter
 
 		while(colIt.hasNext())
 		{
-			buffer.append(colIt.next());
+			String columnName = colIt.next().toString();
+			this.modifiedColumns.add(columnName);
+			this.writeSet.addModifiedColumns(columnName);
+			buffer.append(columnName);
 			buffer.append(" = ");
 			buffer.append(expIt.next());
 			if(colIt.hasNext())
@@ -891,17 +903,16 @@ public class DBExecuter implements IExecuter
 		whereClauseTemp.append(") AND (");
 		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 		whereClauseTemp.append(" = FALSE");
-		whereClauseTemp.append(" ) ");
+		whereClauseTemp.append(" ) AND ");
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
 		this.addNotInClause(whereClauseOrig, true, true);
 
 		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
 
-		plainSelect.setFromItem(this.tempTable);
+		plainSelect.setFromItem(this.fromItemTemp);
 		queryToTemp = plainSelect.toString();
-		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere,
-				whereClauseOrig.toString());
+		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
 
 		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
 
@@ -974,7 +985,7 @@ public class DBExecuter implements IExecuter
 		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
 
-		plainSelect.setFromItem(this.tempTable);
+		plainSelect.setFromItem(this.fromItemTemp);
 		queryToTemp = plainSelect.toString();
 		queryToOrigin = org.apache.commons.lang3.StringUtils.replace(queryToOrigin, defaultWhere,
 				whereClauseOrig.toString());
@@ -1035,6 +1046,32 @@ public class DBExecuter implements IExecuter
 
 		boolean first = true;
 		for(String immut : this.deletedRows)
+		{
+			if(first)
+			{
+				buffer.append(immut);
+				first = false;
+			} else
+			{
+				buffer.append(",");
+				buffer.append(immut);
+			}
+		}
+	}
+
+	/**
+	 * Fills the buffer with the newly inserted values
+	 *
+	 * @param buffer
+	 * @param startWithComa
+	 */
+	private void fillInsertedValues(StringBuffer buffer, boolean startWithComa)
+	{
+		if(startWithComa)
+			buffer.append(",");
+
+		boolean first = true;
+		for(String immut : this.insertedRows)
 		{
 			if(first)
 			{
@@ -1117,16 +1154,16 @@ public class DBExecuter implements IExecuter
 					switch(tableDefinition.colsPlain[i])
 					{
 					case ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE:
-						// record the immutable value. This way we will know which rows are duplicated in scratchpad
-						// and main db.
+						/* record the immutable value. This way we will know which rows are duplicated in scratchpad
+						and main db. */
 						String immutablueValue = Integer.toString(res.getInt(i + 1));
 						if(this.duplicatedRows.contains(immutablueValue))
 							RuntimeHelper.throwRunTimeException(
 									"this record is already in the scratchpad. This " + "should not be possible",
 									ExitCode.HASHMAPDUPLICATE);
 						this.duplicatedRows.add(immutablueValue);
+						this.writeSet.addUpdatedRow(immutablueValue);
 						buffer.append(immutablueValue);
-
 						break;
 					case ScratchpadDefaults.SCRATCHPAD_COL_DELETED:
 						buffer.append(res.getObject(i + 1) == null ? "NULL" : Integer.toString(res.getInt(i + 1)));
@@ -1206,7 +1243,7 @@ public class DBExecuter implements IExecuter
 
 		if(this.duplicatedRows.size() > 0 && filterDuplicated)
 		{
-			buffer.append(" AND (");
+			buffer.append("(");
 			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
 			buffer.append(" NOT IN (");
 			notInClauseAdded = true;
@@ -1229,5 +1266,105 @@ public class DBExecuter implements IExecuter
 
 		if(notInClauseAdded)
 			buffer.append("))");
+	}
+
+	private void addInClause(StringBuffer buffer, boolean includeDeleted, boolean includeDuplicated, boolean
+			includeInserted)
+	{
+		boolean notInClauseAdded = false;
+		boolean needComma = false;
+
+		if(this.duplicatedRows.size() > 0 && includeDuplicated)
+		{
+			buffer.append("(");
+			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+			buffer.append(" IN (");
+			notInClauseAdded = true;
+			fillDuplicatedValues(buffer, needComma);
+			needComma = true;
+		}
+
+		if(this.insertedRows.size() > 0 && includeInserted)
+		{
+			if(!notInClauseAdded)
+			{
+				buffer.append("AND (");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+				buffer.append(" IN (");
+				notInClauseAdded = true;
+			}
+
+			fillInsertedValues(buffer, needComma);
+		}
+
+		if(this.deletedRows.size() > 0 && includeDeleted)
+		{
+			if(!notInClauseAdded)
+			{
+				buffer.append("AND (");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+				buffer.append(" IN (");
+				notInClauseAdded = true;
+			}
+
+			fillDeletedValues(buffer, needComma);
+		}
+
+		if(notInClauseAdded)
+			buffer.append("))");
+	}
+
+	private ResultSet getUpdateResultSet(IDBScratchpad pad) throws SQLException
+	{
+		if(!modified)
+			return null;
+
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("SELECT ");
+
+		boolean first = true;
+
+		for(String column : this.modifiedColumns)
+		{
+			if(first)
+			{
+				first = false;
+				buffer.append(column);
+			} else
+			{
+				buffer.append(",");
+				buffer.append(column);
+			}
+		}
+
+		buffer.append(" FROM ");
+		buffer.append(this.tempTableName);
+		buffer.append(" WHERE ");
+		this.addInClause(buffer, false, true, false);
+
+		return pad.executeQuery(buffer.toString());
+	}
+
+	private ResultSet getInserteResultSet(IDBScratchpad pad) throws SQLException
+	{
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("SELECT * FROM ");
+		buffer.append(this.tempTableName);
+		buffer.append(" WHERE ");
+		this.addInClause(buffer, false, false, true);
+
+		return pad.executeQuery(buffer.toString());
+	}
+
+	@Override
+	public TableWriteSet createWriteSet(IDBScratchpad pad) throws SQLException
+	{
+		ResultSet updateResultSet = this.getUpdateResultSet(pad);
+		ResultSet insertResultSet = this.getInserteResultSet(pad);
+
+		this.writeSet.setInsertResultSet(insertResultSet);
+		this.writeSet.setUpdateResultSet(updateResultSet);
+
+		return this.writeSet;
 	}
 }

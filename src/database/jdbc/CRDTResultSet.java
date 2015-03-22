@@ -1,6 +1,6 @@
 package database.jdbc;
 
-import database.occ.scratchpad.ScratchpadException;
+import database.scratchpad.ScratchpadException;
 import util.debug.Debug;
 
 import java.io.InputStream;

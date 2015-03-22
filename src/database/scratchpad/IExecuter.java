@@ -1,4 +1,4 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 
 import database.jdbc.Result;
@@ -16,11 +16,6 @@ import java.sql.SQLException;
  */
 public interface IExecuter
 {
-
-	/**
-	 * Called on begin transaction
-	 */
-	public void beginTx(IDBScratchpad db);
 
 	/**
 	 * Returns the table definition for this execution policy
@@ -80,4 +75,12 @@ public interface IExecuter
 	 * @throws ScratchpadException
 	 */
 	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db) throws SQLException, ScratchpadException;
+
+	/**
+	 * Cleans the state of the temporary table of this executer
+	 */
+	public void resetExecuter(IDBScratchpad pad) throws SQLException;
+
+	public TableWriteSet createWriteSet(IDBScratchpad pad) throws SQLException;
+
 }

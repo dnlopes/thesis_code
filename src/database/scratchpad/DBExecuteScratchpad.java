@@ -1,4 +1,4 @@
-package database.occ.scratchpad;
+package database.scratchpad;
 
 
 import database.jdbc.ConnectionFactory;
@@ -36,17 +36,16 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	private Statement statU;
 	private Statement statBU;
 	private boolean batchEmpty;
-
 	private CCJSqlParserManager parser;
 
 	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
 	{
 		this.id = id;
-		this.parser = new CCJSqlParserManager();
 		this.defaultConnection = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
 		this.executers = new HashMap<>();
 		this.readOnly = false;
 		this.batchEmpty = true;
+		this.parser = new CCJSqlParserManager();
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
@@ -68,7 +67,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public Result executeUpdate(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
 	{
-		op.parseSQL(parser);
+		op.parse(this.parser);
 
 		if(op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
@@ -93,7 +92,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public ResultSet executeQuery(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
 	{
-		op.parseSQL(parser);
+		op.parse(this.parser);
 
 		if(!op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
@@ -221,4 +220,25 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			this.defaultConnection.commit();
 		}
 	}
+
+	@Override
+	public void resetScratchpad() throws SQLException
+	{
+		for(IExecuter executer : this.executers.values())
+			executer.resetExecuter(this);
+
+		this.executeBatch();
+	}
+
+	@Override
+	public TransactionWriteSet createTransactionWriteSet() throws SQLException
+	{
+		TransactionWriteSet writeSet = new TransactionWriteSet();
+
+		for(IExecuter executer: this.executers.values())
+			writeSet.addTableWriteSet(executer.getTableName(), executer.createWriteSet(this));
+
+		return writeSet;
+	}
+
 }

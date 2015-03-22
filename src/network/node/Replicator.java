@@ -92,6 +92,7 @@ public class Replicator extends AbstractNode
 
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
 	{
+
 		//TODO: implement
 		Statement stat;
 		try
@@ -100,8 +101,8 @@ public class Replicator extends AbstractNode
 			for(String statement : shadowOp.getOperationList())
 			{
 				stat.execute(statement);
-
 			}
+
 		} catch(SQLException e)
 		{
 			LOG.error("failed to execute operation {} in main database", shadowOp.getTransaction().getTxnId().getId());

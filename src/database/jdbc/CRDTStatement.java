@@ -2,7 +2,7 @@ package database.jdbc;
 
 
 import database.jdbc.util.DBUpdateResult;
-import database.occ.scratchpad.ScratchpadException;
+import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
 import network.node.Proxy;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import runtime.Transaction;
 import runtime.operation.DBSingleOperation;
 import runtime.MyShadowOpCreator;
-import runtime.operation.ShadowOperation;
 import util.MissingImplementationException;
 
 import java.sql.*;
@@ -27,14 +26,12 @@ public class CRDTStatement implements Statement
 	private MyShadowOpCreator shdOpCreator;
 	private Transaction transaction;
 	private Proxy proxy;
-	private ShadowOperation operation;
 
 	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, Transaction transaction)
 	{
 		this.proxy = proxy;
 		this.shdOpCreator = creator;
 		this.transaction = transaction;
-		this.operation = this.transaction.getShadowOp();
 	}
 
 	@Override
@@ -46,7 +43,7 @@ public class CRDTStatement implements Statement
 		ResultSet rs;
 		try
 		{
-			DBSingleOperation dbOp = DBSingleOperation.createOperation(arg0);
+			DBSingleOperation dbOp = new DBSingleOperation(arg0);
 			rs = proxy.executeQuery(dbOp, this.transaction.getTxnId());
 			shdOpCreator.setCachedResultSetForDelta(rs);
 
@@ -86,11 +83,11 @@ public class CRDTStatement implements Statement
 		for(String updateStr : deterStatements)
 		{
 			DBUpdateResult res;
-			DBSingleOperation sqlOp;
+			DBSingleOperation dbOp;
 			try
 			{
-				sqlOp = DBSingleOperation.createOperation(updateStr);
-				Result tempRes = this.proxy.executeUpdate(sqlOp, this.transaction.getTxnId());
+				dbOp = new DBSingleOperation(updateStr);
+				Result tempRes = this.proxy.executeUpdate(dbOp, this.transaction.getTxnId());
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
@@ -98,24 +95,6 @@ public class CRDTStatement implements Statement
 			{
 				e.printStackTrace();
 				LOG.error("failed to execute: {}", arg0);
-				throw new SQLException(e.getMessage());
-			}
-
-			if(this.operation == null)
-			{
-				ShadowOperation shdOp = new ShadowOperation(this.transaction);
-				this.transaction.setShadowOp(shdOp);
-				//shdOpCreator.createEmptyShadowOperation();
-				this.operation = shdOp;
-				//this.transaction.setShadowOp(shdOp);
-				shdOpCreator.setShadowOperation(shdOp);
-			}
-			try
-			{
-				shdOpCreator.addDBEntryToShadowOperation(this.operation, updateStr, sqlOp);
-			} catch(JSQLParserException e)
-			{
-				LOG.error("failed to add statement to shadow operation: {}", arg0);
 				throw new SQLException(e.getMessage());
 			}
 		}

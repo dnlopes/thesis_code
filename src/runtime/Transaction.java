@@ -1,11 +1,16 @@
 package runtime;
 
+
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
 import util.LogicalClock;
 import util.TimeStamp;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -14,12 +19,12 @@ import util.TimeStamp;
 public class Transaction
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
 
 	private TransactionId txnId;
 	private long latency;
 	private boolean hasBegun;
-	private boolean hasEnded;
+
 	private TimeStamp timestamp;
 	private LogicalClock lc;
 	private StopWatch timer;
@@ -27,19 +32,28 @@ public class Transaction
 	private String abortMessage;
 	private boolean internalAborted;
 	private boolean readOnly;
+	private boolean readyToCommit;
+
+	private List<DBSingleOperation> txnOps;
 
 	public Transaction()
 	{
 		this.txnId = new TransactionId(0);
+		this.txnOps = new ArrayList<>();
 		this.latency = 0;
 		this.hasBegun = false;
-		this.hasEnded = false;
 		this.readOnly = true;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
 		this.internalAborted = false;
+		this.readyToCommit = false;
+	}
+
+	public boolean isReadOnly()
+	{
+		return this.readOnly;
 	}
 
 	public TransactionId getTxnId()
@@ -72,11 +86,6 @@ public class Transaction
 		return this.shadowOp;
 	}
 
-	public void setShadowOp(ShadowOperation op)
-	{
-		this.shadowOp = op;
-	}
-
 	public long getLatency()
 	{
 		return this.latency;
@@ -93,18 +102,19 @@ public class Transaction
 	{
 		this.timer.stop();
 		this.latency = this.timer.getElapsedTime();
-		this.hasEnded = true;
 	}
 
-	public void clear()
+	public void resetState()
 	{
 		this.txnId.setId(0);
+		this.timer.stop();
 		this.latency = 0;
 		this.hasBegun = false;
-		this.hasEnded = false;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
+		this.abortMessage = null;
+		this.readyToCommit = false;
 	}
 
 	public boolean hasBegun()
@@ -126,5 +136,32 @@ public class Transaction
 	public String getAbortMessage()
 	{
 		return this.abortMessage;
+	}
+
+	/**
+	 * Adds a new operation within this transaction
+	 * This operation is either a insert,delete or update operation
+	 *
+	 * @param op
+	 */
+	public void addOperation(DBSingleOperation op)
+	{
+		this.txnOps.add(op);
+	}
+
+	/**
+	 * Called before commit.
+	 * This method looks at the txn write set and generates a minimal sequence of sql operations
+	 * to apply the intended changes
+	 */
+	public void setReadyToCommit(ShadowOperation shadowOp)
+	{
+		this.shadowOp = shadowOp;
+		this.readyToCommit = true;
+	}
+
+	public boolean isReadyToCommit()
+	{
+		return this.readyToCommit;
 	}
 }

@@ -947,6 +947,7 @@ public class MyShadowOpCreator
 	public void addDBEntryToShadowOperation(ShadowOperation shdOp, String sqlQuery, DBSingleOperation sqlOp)
 			throws JSQLParserException, SQLException
 	{
+		/*
 		// remove the last ";"
 
 		sqlQuery = sqlQuery.trim();
@@ -1040,6 +1041,7 @@ public class MyShadowOpCreator
 				System.exit(ExitCode.UNKNOWSQLQUERY);
 			}
 		}
+		*/
 	}
 
 	/**
