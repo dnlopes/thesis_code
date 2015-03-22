@@ -36,7 +36,6 @@ public abstract class DatabaseTable
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 
 	protected static Timestamp_LWW timestampLWW = new Timestamp_LWW();
-	protected static CCJSqlParserManager cJsqlParser = new CCJSqlParserManager();
 
 	protected DatabaseTable(String tableName, CrdtTableType tableType,
 							LinkedHashMap<String, DataField> fieldsMap)

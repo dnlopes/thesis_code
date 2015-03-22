@@ -2,7 +2,7 @@ package network.node;
 
 
 import database.jdbc.Result;
-import database.scratchpad.ExecutePadFactory;
+import database.scratchpad.ScratchpadFactory;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
 import database.scratchpad.TransactionWriteSet;
@@ -12,6 +12,7 @@ import network.ProxyNetwork;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.Configuration;
 import runtime.Transaction;
 import runtime.TransactionId;
 import runtime.factory.TxnIdFactory;
@@ -30,22 +31,22 @@ import java.util.Map;
 public class Proxy extends AbstractNode
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
-	private Replicator replicator;
+	private NodeMedatada replicator;
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> pads;
 
-	public Proxy(String hostName, int port, int id, Replicator replicator) throws TTransportException
+	public Proxy(NodeMedatada nodeInfo) throws TTransportException
 	{
-		super(hostName, port, id, Role.PROXY);
+		super(nodeInfo);
 
 		this.transactions = new HashMap<>();
 		this.pads = new HashMap<>();
-		this.replicator = replicator;
+		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
 		this.networkInterface = new ProxyNetwork(this);
 	}
 
@@ -115,7 +116,7 @@ public class Proxy extends AbstractNode
 	public void beginTxn(Transaction txn)
 	{
 		long txnId = TxnIdFactory.getNextId();
-		IDBScratchpad pad = ExecutePadFactory.getScratchpad();
+		IDBScratchpad pad = ScratchpadFactory.getInstante().getScratchpad();
 
 		this.transactions.put(txn.getTxnId(), txn);
 		this.pads.put(txn.getTxnId(), pad);

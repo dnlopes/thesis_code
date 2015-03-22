@@ -3,8 +3,10 @@ package tests;
 
 import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
+import org.xml.sax.SAXException;
 import runtime.Configuration;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,17 +19,16 @@ import java.sql.Statement;
 public class MicroTest
 {
 
-	public static void main(String args[]) throws SQLException
+	public static void main(String args[]) throws SQLException, IOException, SAXException, ClassNotFoundException
 	{
 		//Micro_Populate db = new Micro_Populate();
 
-		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.DB_NAME);
-
+		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
 		Statement stat = conn.createStatement();
 
-		int res2 = stat.executeUpdate("update t1 set b=1 where c=10 OR d=10"); // 0,2,5,6
-		int res = stat.executeUpdate("delete from t1 where c=1"); // 0,4,8
+		int res2 = stat.executeUpdate("update t4 set b=1 where c=10 OR d=10"); // 0,2,5,6
+		int res = stat.executeUpdate("update t4 set b=2 where c=10 OR d=10"); // 0,4,8
 
 		//ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
 

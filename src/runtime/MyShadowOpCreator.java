@@ -7,18 +7,12 @@ package runtime;
 
 import crdtlib.CrdtFactory;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
-import database.jdbc.CRDTResultSet;
 import database.jdbc.ConnectionFactory;
 import database.util.*;
-import database.util.table.AosetTable;
-import database.util.table.ArsetTable;
-import database.util.table.AusetTable;
-import database.util.table.UosetTable;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -53,7 +47,7 @@ public class MyShadowOpCreator
 	static final Logger LOG = LoggerFactory.getLogger(MyShadowOpCreator.class);
 
 	static HashMap<String, DatabaseTable> annotatedTableSchema;
-	private static Database database;
+	private DatabaseMetadata databaseMetadata;
 	private static ShadowOperation shadowOperation;
 
 	static CCJSqlParserManager cJsqlParser;
@@ -94,9 +88,10 @@ public class MyShadowOpCreator
 	{
 		if(!isInitialized)
 		{
-			Connection originalConn = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
+			Connection originalConn = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 			DDLParser sP = new DDLParser(schemaFilePath);
-			database = sP.parseAnnotations();
+			databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
+			sP.parseAnnotations();
 			annotatedTableSchema = sP.getTableCrdtFormMap();
 			cJsqlParser = new CCJSqlParserManager();
 			iDFactory = new IDFactories();
@@ -106,7 +101,7 @@ public class MyShadowOpCreator
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
-		this.con = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
+		this.con = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 		this.cachedResultSetForDelta = null;
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
 	}
@@ -915,7 +910,7 @@ public class MyShadowOpCreator
 	public DatabaseTable getDatabaseInstance(String tableName)
 	{
 		//		DatabaseTable dTb = annotatedTableSchema.get(tableName);
-		DatabaseTable table = database.getTable(tableName);
+		DatabaseTable table = databaseMetadata.getTable(tableName);
 
 		if(table == null)
 		{

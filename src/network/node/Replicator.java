@@ -32,21 +32,25 @@ public class Replicator extends AbstractNode
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
 	private Connection originalConn;
-	private Map<String, AbstractNode> otherReplicators;
+	private Map<String, NodeMedatada> otherReplicators;
 	//saves all txn already committed
 	private Set<TransactionId> committed;
 	
-	public Replicator(String hostName, int id, int port)
+	public Replicator(NodeMedatada nodeInfo)
 	{
-		super(hostName, id, port, Role.REPLICATOR);
+		super(nodeInfo);
+
 		this.otherReplicators = new HashMap<>();
+		for(NodeMedatada allReplicators : Configuration.getInstance().getReplicators().values())
+			this.otherReplicators.put(allReplicators.getName(), allReplicators);
+
 		this.committed = new HashSet<>();
 
 		this.networkInterface = new ReplicatorNetwork(this);
 
 		try
 		{
-			this.originalConn = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
+			this.originalConn = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 		} catch(SQLException e)
 		{
 			e.printStackTrace();
@@ -82,7 +86,7 @@ public class Replicator extends AbstractNode
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
-		for(AbstractNode node : otherReplicators.values())
+		for(NodeMedatada node : otherReplicators.values())
 			this.networkInterface.sendOperationAsync(shadowOperation, node);
 
 		return commitDecision;

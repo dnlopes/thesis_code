@@ -5,7 +5,7 @@ import database.jdbc.Result;
 import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
-import database.util.Database;
+import database.util.DatabaseMetadata;
 import database.util.DatabaseTable;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
@@ -51,9 +51,9 @@ public class DBExecuter implements IExecuter
 	public DBExecuter(int tableId, String tableName)
 	{
 		this.tableId = tableId;
-		this.dbTable = Database.getInstance().getTable(tableName);
+		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.modified = false;
-		this.fromItemTemp = new Table(Configuration.DB_NAME, this.dbTable.getTableName());
+		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.dbTable.getTableName());
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.modifiedColumns = new HashSet<>();
@@ -1107,8 +1107,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, updateOp.getWhere());
-		buffer.append(")");
-		buffer.append(";");
+		buffer.append(");");
 
 		ResultSet res = pad.executeQuery(buffer.toString());
 		while(res.next())

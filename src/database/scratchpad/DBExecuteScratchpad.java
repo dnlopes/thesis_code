@@ -41,7 +41,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
 	{
 		this.id = id;
-		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
+		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 		this.executers = new HashMap<>();
 		this.readOnly = false;
 		this.batchEmpty = true;

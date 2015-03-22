@@ -1,6 +1,8 @@
 package database.jdbc;
 
 
+import network.node.NodeMedatada;
+import runtime.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.Connection;
@@ -34,6 +36,18 @@ public class ConnectionFactory
 		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
+	public static Connection getCRDTConnection(NodeMedatada nodeInfo) throws SQLException
+	{
+		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+		url.append(nodeInfo.getDbHost());
+		url.append(":");
+		url.append(nodeInfo.getDbPort());
+		url.append("/");
+		url.append(Configuration.getInstance().getDatabaseName());
+
+		return getCRDTConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+	}
+
 	/**
 	 * @param database
 	 * 		host:port
@@ -57,6 +71,18 @@ public class ConnectionFactory
 	public static Connection getDefaultConnection(String database) throws SQLException
 	{
 		return getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
+	}
+
+	public static Connection getDefaultConnection(NodeMedatada nodeInfo) throws SQLException
+	{
+		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		url.append(nodeInfo.getDbHost());
+		url.append(":");
+		url.append(nodeInfo.getDbPort());
+		url.append("/");
+		url.append(Configuration.getInstance().getDatabaseName());
+
+		return getDefaultConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
 	}
 
 	/**

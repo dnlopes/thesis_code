@@ -22,7 +22,4 @@ public class DBDefaults
 	public static final String DEFAULT_URL_PREFIX = "jdbc:mysql://";
 	public static final String CRDT_URL = CRDT_URL_PREFIX + MYSQL_URL;
 	public static final String DEFAULT_URL = DEFAULT_URL_PREFIX + MYSQL_URL;
-
-	public static final int PAD_POOL_SIZE = 10;
-
 }

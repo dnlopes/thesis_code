@@ -2,6 +2,7 @@ package network;
 
 
 import network.node.AbstractNode;
+import network.node.NodeMedatada;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -32,7 +33,7 @@ public class AbstractNetwork
 		this.clients = new HashMap<>();
 	}
 
-	protected void addNode(AbstractNode newNode)
+	protected void addNode(NodeMedatada newNode)
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -45,8 +46,8 @@ public class AbstractNetwork
 			return;
 		}
 
-		TTransport newTransport = new TSocket(newNode.getSocketAddress().getHostName(),
-				newNode.getSocketAddress().getPort());
+		TTransport newTransport = new TSocket(newNode.getHost(),
+				newNode.getPort());
 
 		try
 		{

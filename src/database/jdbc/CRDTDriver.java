@@ -4,6 +4,8 @@ package database.jdbc;
 import network.node.Proxy;
 import network.node.Replicator;
 import org.apache.thrift.transport.TTransportException;
+import org.perf4j.LoggingStopWatch;
+import org.perf4j.StopWatch;
 import runtime.Configuration;
 import util.defaults.DBDefaults;
 
@@ -17,6 +19,8 @@ import java.util.logging.Logger;
  */
 public class CRDTDriver implements Driver
 {
+	private static final int MY_PROXY_ID = 1;
+	private static final int MY_REPLICATOR_ID = 1;
 
 	private static Proxy proxy;
 	private static Replicator replicator;
@@ -25,12 +29,9 @@ public class CRDTDriver implements Driver
 	{
 		try
 		{
-			// static block to auto-register in the DriverManager
 			DriverManager.registerDriver(new CRDTDriver());
-			replicator = new Replicator("localhost", 35000, 2);
-
-			proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID,
-					replicator);
+			replicator = new Replicator(Configuration.getInstance().getReplicators().get(MY_REPLICATOR_ID));
+			proxy = new Proxy(Configuration.getInstance().getProxies().get(MY_PROXY_ID));
 
 		} catch(SQLException E)
 		{
@@ -40,14 +41,6 @@ public class CRDTDriver implements Driver
 			e.printStackTrace();
 		}
 	}
-
-
-	public static void init() throws TTransportException
-	{
-
-
-	}
-
 
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException

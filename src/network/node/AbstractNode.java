@@ -13,11 +13,11 @@ public abstract class AbstractNode
 	private int id;
 	private InetSocketAddress socketAddress;
 
-	public AbstractNode(String hostName, int port, int id, Role role)
+	public AbstractNode(NodeMedatada nodeInfo)
 	{
-		this.id = id;
-		this.role = role;
-		this.socketAddress = new InetSocketAddress(hostName, port);
+		this.id = nodeInfo.getId();
+		this.role = nodeInfo.getRole();
+		this.socketAddress = new InetSocketAddress(nodeInfo.getHost(), nodeInfo.getPort());
 	}
 
 	public Role getRole()

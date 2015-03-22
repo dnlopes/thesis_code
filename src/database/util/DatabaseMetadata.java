@@ -1,11 +1,11 @@
 package database.util;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,20 +13,14 @@ import java.util.Map;
 /**
  * Created by dnlopes on 12/03/15.
  */
-public class Database
+public class DatabaseMetadata
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(Database.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetadata.class);
 
-	private static Database ourInstance = new Database();
 	private Map<String, DatabaseTable> tables;
 
-	public static Database getInstance()
-	{
-		return ourInstance;
-	}
-
-	private Database()
+	public DatabaseMetadata()
 	{
 		this.tables = new HashMap<>();
 	}
@@ -34,11 +28,6 @@ public class Database
 	public DatabaseTable getTable(String tableName)
 	{
 		return tables.get(tableName);
-	}
-
-	public Collection<DatabaseTable> getTables()
-	{
-		return this.tables.values();
 	}
 
 	public void addTable(DatabaseTable table)

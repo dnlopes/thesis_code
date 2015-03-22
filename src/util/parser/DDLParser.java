@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import database.util.Database;
+import database.util.DatabaseMetadata;
+import runtime.Configuration;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -32,7 +33,7 @@ public class DDLParser
 
 	/** The file name. */
 	private String fileName = "";
-	private Database database;
+	private DatabaseMetadata databaseMetadata;
 
 	/** The table crdt form map. */
 	private HashMap<String, DatabaseTable> tableCrdtFormMap;
@@ -45,7 +46,7 @@ public class DDLParser
 	public DDLParser(String fileName)
 	{
 		this.fileName = fileName;
-		this.database = Database.getInstance();
+		this.databaseMetadata = new DatabaseMetadata();
 	}
 
 	/**
@@ -111,7 +112,7 @@ public class DDLParser
 	/**
 	 * Parses the annotations.
 	 */
-	public Database parseAnnotations()
+	public DatabaseMetadata parseAnnotations()
 	{
 
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
@@ -122,7 +123,7 @@ public class DDLParser
 			DatabaseTable table = CreateStatementParser.createTable(allTableStrings.elementAt(i));
 			if(table != null)
 			{
-				this.database.addTable(table);
+				this.databaseMetadata.addTable(table);
 				this.tableCrdtFormMap.put(table.getTableName(), table);
 			} else
 			{
@@ -143,7 +144,7 @@ public class DDLParser
 			}
 		}
 
-		return database;
+		return databaseMetadata;
 	}
 
 	/**

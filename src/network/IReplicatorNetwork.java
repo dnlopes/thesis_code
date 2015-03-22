@@ -1,7 +1,7 @@
 package network;
 
 
-import network.node.AbstractNode;
+import network.node.NodeMedatada;
 import runtime.operation.ShadowOperation;
 
 
@@ -10,5 +10,5 @@ import runtime.operation.ShadowOperation;
  */
 public interface IReplicatorNetwork extends INetwork
 {
-	public void sendOperationAsync(ShadowOperation shadowOp, AbstractNode node);
+	public void sendOperationAsync(ShadowOperation shadowOp, NodeMedatada node);
 }

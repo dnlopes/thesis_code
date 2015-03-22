@@ -3,7 +3,7 @@ package tests;
 import database.jdbc.ConnectionFactory;
 import database.scratchpad.IDBScratchpad;
 import runtime.Configuration;
-import database.scratchpad.ExecutePadFactory;
+import database.scratchpad.ScratchpadFactory;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 
@@ -25,14 +25,14 @@ public class PadTest
 
 		StopWatch watch = new LoggingStopWatch("firstPad");
 		watch.start();
-		IDBScratchpad pad = ExecutePadFactory.getScratchpad();
+		IDBScratchpad pad = ScratchpadFactory.getInstante().getScratchpad();
 		watch.stop();
 		watch.setTag("secondPad");
 		watch.start();
-		IDBScratchpad pad2 = ExecutePadFactory.getScratchpad();
+		IDBScratchpad pad2 = ScratchpadFactory.getInstante().getScratchpad();
 		watch.stop();
 
-		Connection con = ConnectionFactory.getCRDTConnection(Configuration.DB_NAME);
+		Connection con = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getDatabaseName());
 		Statement stat = con.createStatement();
 
 		/*

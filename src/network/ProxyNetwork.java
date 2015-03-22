@@ -2,6 +2,7 @@ package network;
 
 
 import network.node.AbstractNode;
+import network.node.NodeMedatada;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, AbstractNode node)
+	public boolean commitOperation(ShadowOperation shadowOp, NodeMedatada node)
 	{
 		if(!this.clients.containsKey(node.getName()))
 			this.addNode(node);

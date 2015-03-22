@@ -19,8 +19,8 @@ public class NetworkTest
 
 		int davidPort = 45444;
 
-		Replicator replicator = new Replicator("localhost", davidPort, 2);
-		Proxy proxy = new Proxy("localhost", 45000,1, replicator);
+		//Replicator replicator = new Replicator("localhost", davidPort, 2);
+		//Proxy proxy = new Proxy("localhost", 45000,1, replicator);
 
 	}
 
