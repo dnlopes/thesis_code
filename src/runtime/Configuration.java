@@ -4,7 +4,6 @@ package runtime;
 import database.util.DatabaseMetadata;
 import network.node.NodeMedatada;
 import network.node.Role;
-import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public final class Configuration
 	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
-		this.watch = new LoggingStopWatch("config");
+		this.watch = new StopWatch("config");
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
@@ -273,9 +272,8 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		if(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0)
-			return false;
-		return true;
+		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
+				.size() == 0 || this.coordinators.size() == 0);
 	}
 }
 
