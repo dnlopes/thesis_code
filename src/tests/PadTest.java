@@ -32,7 +32,7 @@ public class PadTest
 		IDBScratchpad pad2 = ExecutePadFactory.getScratchpad();
 		watch.stop();
 
-		Connection con = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
+		Connection con = ConnectionFactory.getCRDTConnection(Configuration.DB_NAME);
 		Statement stat = con.createStatement();
 
 		/*

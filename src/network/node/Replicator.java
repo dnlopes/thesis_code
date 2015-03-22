@@ -43,6 +43,15 @@ public class Replicator extends AbstractNode
 		this.committed = new HashSet<>();
 
 		this.networkInterface = new ReplicatorNetwork(this);
+
+		try
+		{
+			this.originalConn = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+
 		try
 		{
 			this.serverThread = new ReplicatorServerThread(this);
@@ -53,13 +62,6 @@ public class Replicator extends AbstractNode
 			e.printStackTrace();
 		}
 
-		try
-		{
-			this.originalConn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
-		} catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -92,23 +94,28 @@ public class Replicator extends AbstractNode
 
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
 	{
-
-		//TODO: implement
 		Statement stat;
 		try
 		{
 			stat = this.originalConn.createStatement();
 			for(String statement : shadowOp.getOperationList())
 			{
+				LOG.trace("executing on maindb: {}", statement);
 				stat.execute(statement);
 			}
 
+			this.originalConn.commit();
+
 		} catch(SQLException e)
 		{
-			LOG.error("failed to execute operation {} in main database", shadowOp.getTransaction().getTxnId().getId());
+			LOG.error("failed to execute operation {} in main database", shadowOp.getTxnId());
 			e.printStackTrace();
 			return false;
 		}
+		TransactionId txnId = new TransactionId(shadowOp.getTxnId());
+		this.committed.add(txnId);
+
+		LOG.info("txn {} committed", shadowOp.getTxnId());
 		return true;
 	}
 }

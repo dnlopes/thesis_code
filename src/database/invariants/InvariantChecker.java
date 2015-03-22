@@ -67,7 +67,7 @@ public class InvariantChecker
 				if(((GreaterThanInvariant) inv).isViolated(value))
 				{
 					LOG.error("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
-					shadowOp.getTransaction().setInternalAborted("check constraint violated");
+					//shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else if(inv instanceof LesserThanInvariant)
 			{
@@ -75,7 +75,7 @@ public class InvariantChecker
 				if(((LesserThanInvariant) inv).isViolated(value))
 				{
 					LOG.error("constraint violated: trying to insert {} in field {}", value, field.getFieldName());
-					shadowOp.getTransaction().setInternalAborted("check constraint violated");
+					//shadowOp.getTransaction().setInternalAborted("check constraint violated");
 				}
 			} else
 			{

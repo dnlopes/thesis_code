@@ -86,16 +86,9 @@ public class Proxy extends AbstractNode
 			return true;
 
 		this.prepareToCommit(txnId);
-		/* TODO: PREPARE OPERATION
-		// 1- ask coodinator for values
-		2- prepare sql operations based on WriteSets
-		*/
 
 		if(!txn.isReadyToCommit())
-		{
-			this.resetTransactionInfo(txnId);
 			return false;
-		}
 
 		// FIXME: this call MUST NOT block, but for now it DOES block
 		boolean commitDecision = this.networkInterface.commitOperation(txn.getShadowOp(), this.replicator);
@@ -138,11 +131,6 @@ public class Proxy extends AbstractNode
 		}
 	}
 
-	public IDBScratchpad getScratchpadOfTxn(TransactionId txnId)
-	{
-		return this.pads.get(txnId);
-	}
-
 	public void prepareToCommit(TransactionId txnId)
 	{
 
@@ -151,7 +139,7 @@ public class Proxy extends AbstractNode
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
 			writeSet.generateMinimalStatements();
-			ShadowOperation shadowOp = new ShadowOperation(writeSet.getStatements());
+			ShadowOperation shadowOp = new ShadowOperation(txnId.getId(), writeSet.getStatements());
 			this.transactions.get(txnId).setReadyToCommit(shadowOp);
 
 		} catch(SQLException e)

@@ -18,13 +18,11 @@
 
 package runtime.operation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import database.invariants.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Transaction;
 
 
 /**
@@ -37,21 +35,12 @@ public class ShadowOperation
 
 	private List<String> operationList;
 	private List<Value> checkList;
-	private Transaction transaction;
+	private long txnId;
 
-	public ShadowOperation(List<String> operations)
+	public ShadowOperation(long txnId, List<String> operations)
 	{
+		this.txnId = txnId;
 		this.operationList = operations;
-	}
-
-	/**
-	 * Instantiates a new shadow op template.
-	 */
-	public ShadowOperation(Transaction txn)
-	{
-		this.operationList = new ArrayList<>();
-		this.checkList = new ArrayList<>();
-		this.transaction = txn;
 	}
 
 	public List<String> getOperationList()
@@ -64,8 +53,9 @@ public class ShadowOperation
 		this.checkList.add(value);
 	}
 
-	public Transaction getTransaction()
+	public long getTxnId()
 	{
-		return this.transaction;
+		return this.txnId;
 	}
+
 }

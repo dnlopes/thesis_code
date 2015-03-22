@@ -885,6 +885,7 @@ public class DBExecuter implements IExecuter
 
 		db.addToBatchUpdate(buffer.toString());
 		db.executeBatch();
+		this.modified = true;
 		return DBUpdateResult.createResult(1);
 	}
 
@@ -1316,7 +1317,7 @@ public class DBExecuter implements IExecuter
 
 	private ResultSet getUpdateResultSet(IDBScratchpad pad) throws SQLException
 	{
-		if(!modified)
+		if(this.duplicatedRows.size() <= 0)
 			return null;
 
 		StringBuffer buffer = new StringBuffer();
@@ -1347,6 +1348,9 @@ public class DBExecuter implements IExecuter
 
 	private ResultSet getInserteResultSet(IDBScratchpad pad) throws SQLException
 	{
+		if(this.insertedRows.size() <= 0)
+			return null;
+
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("SELECT * FROM ");
 		buffer.append(this.tempTableName);
@@ -1359,6 +1363,9 @@ public class DBExecuter implements IExecuter
 	@Override
 	public TableWriteSet createWriteSet(IDBScratchpad pad) throws SQLException
 	{
+		this.modifiedColumns.add(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		this.writeSet.addModifiedColumns(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+
 		ResultSet updateResultSet = this.getUpdateResultSet(pad);
 		ResultSet insertResultSet = this.getInserteResultSet(pad);
 

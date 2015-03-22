@@ -21,15 +21,15 @@ public class MicroTest
 	{
 		//Micro_Populate db = new Micro_Populate();
 
-		Connection conn = ConnectionFactory.getInstance().getCRDTConnection(Configuration.DB_NAME);
+		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.DB_NAME);
 
 
 		Statement stat = conn.createStatement();
 
-		int res2 = stat.executeUpdate("update t1 set b=10 where d=10 OR c=1"); // 0,2,5,6
-		//int res = stat.executeUpdate("delete from t1 where d=9 OR c=7"); // 0,4,8
+		int res2 = stat.executeUpdate("update t1 set b=5 where d=10 OR c=1"); // 0,2,5,6
+		int res = stat.executeUpdate("delete from t1 where b=5"); // 0,4,8
 
-		ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
+		//ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
 
 
 		//ResultSet rese = stat.executeQuery("select * from t1");

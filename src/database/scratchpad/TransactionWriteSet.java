@@ -61,15 +61,19 @@ public class TransactionWriteSet
 				buffer.append(" SET ");
 
 				//for each modified column
-				for(String column: tableWriteSet.getModifiedColumns())
+				for(String column : tableWriteSet.getModifiedColumns())
 				{
+					// ignore immut field. there is no point in updating it
+					if(column.startsWith(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE))
+						continue;
+
 					buffer.append(column);
 					buffer.append("=");
 					buffer.append(rs.getString(column));
-
-					if(!rs.isLast())
-						buffer.append(",");
+					buffer.append(",");
 				}
+
+				buffer.deleteCharAt(buffer.length() - 1);
 
 				buffer.append(" WHERE ");
 				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
@@ -80,8 +84,10 @@ public class TransactionWriteSet
 			}
 		}
 	}
+
 	/**
 	 * Generates all delete statements for a given transaction
+	 *
 	 * @param allStatements
 	 */
 	private void generateDeletes(List<String> allStatements)
@@ -96,10 +102,11 @@ public class TransactionWriteSet
 			// add delete statements
 			buffer.append("DELETE from ");
 			buffer.append(tableWriteSet.getTableName());
-			buffer.append(" WHERE ");
+			buffer.append(" WHERE (");
 			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
 			buffer.append(" IN ");
 			this.addDeletedClause(buffer, tableWriteSet.getDeletedRows());
+			buffer.append(")");
 			allStatements.add(buffer.toString());
 			buffer.setLength(0);
 		}
@@ -113,7 +120,6 @@ public class TransactionWriteSet
 			if(first)
 			{
 				first = false;
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
 				buffer.append("(");
 				buffer.append(tupleId);
 			} else

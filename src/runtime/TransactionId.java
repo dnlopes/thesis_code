@@ -1,5 +1,6 @@
 package runtime;
 
+
 /**
  * Created by dnlopes on 17/03/15.
  */
@@ -22,5 +23,4 @@ public class TransactionId
 	{
 		this.id = id;
 	}
-
 }

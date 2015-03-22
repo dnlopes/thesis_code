@@ -163,7 +163,7 @@ public class TPCW_Database {
 	    
 	    while(true) {
 		try {
-			con = ConnectionFactory.getInstance().getCRDTConnection("tpcw");
+			con = ConnectionFactory.getCRDTConnection("tpcw");
 		    //   con = DriverManager.getConnection("jdbc:postgresql://eli.ece.wisc.edu/tpcw", "milo", "");
 		    //con = DriverManager.getConnection(databaseProp.getDatabaseURL(), databaseProp.getDatabaseUsername(),
 			//		databaseProp.getDatabasePassword());

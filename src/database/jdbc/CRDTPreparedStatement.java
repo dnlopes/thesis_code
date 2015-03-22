@@ -145,6 +145,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 			throw new SQLException(this.transaction.getAbortMessage());
 
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
+		this.transaction.setNotReadOnly();
 
 		LOG.trace("update statement executed properly");
 		return finalRes.getUpdateResult();

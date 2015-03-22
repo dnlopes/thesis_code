@@ -4,13 +4,9 @@ package runtime;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
 import util.LogicalClock;
 import util.TimeStamp;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -34,12 +30,9 @@ public class Transaction
 	private boolean readOnly;
 	private boolean readyToCommit;
 
-	private List<DBSingleOperation> txnOps;
-
 	public Transaction()
 	{
 		this.txnId = new TransactionId(0);
-		this.txnOps = new ArrayList<>();
 		this.latency = 0;
 		this.hasBegun = false;
 		this.readOnly = true;
@@ -139,17 +132,6 @@ public class Transaction
 	}
 
 	/**
-	 * Adds a new operation within this transaction
-	 * This operation is either a insert,delete or update operation
-	 *
-	 * @param op
-	 */
-	public void addOperation(DBSingleOperation op)
-	{
-		this.txnOps.add(op);
-	}
-
-	/**
 	 * Called before commit.
 	 * This method looks at the txn write set and generates a minimal sequence of sql operations
 	 * to apply the intended changes
@@ -160,6 +142,10 @@ public class Transaction
 		this.readyToCommit = true;
 	}
 
+	public void setNotReadOnly()
+	{
+		this.readOnly = false;
+	}
 	public boolean isReadyToCommit()
 	{
 		return this.readyToCommit;

@@ -27,10 +27,11 @@ public class CRDTDriver implements Driver
 		{
 			// static block to auto-register in the DriverManager
 			DriverManager.registerDriver(new CRDTDriver());
-			replicator = new Replicator("localhost", 30000, 2);
+			replicator = new Replicator("localhost", 35000, 2);
 
 			proxy = new Proxy(Configuration.PROXY_HOSTNAME, Configuration.PROXY_PORT, Configuration.PROXY_ID,
 					replicator);
+
 		} catch(SQLException E)
 		{
 			throw new RuntimeException("Error: failed to register CRDT:Driver");
@@ -39,6 +40,14 @@ public class CRDTDriver implements Driver
 			e.printStackTrace();
 		}
 	}
+
+
+	public static void init() throws TTransportException
+	{
+
+
+	}
+
 
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException

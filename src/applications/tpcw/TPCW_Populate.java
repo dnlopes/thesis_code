@@ -660,7 +660,7 @@ class TPCW_Populate
 	{
 		try
 		{
-			con = ConnectionFactory.getInstance().getDefaultConnection(DBDefaults.TPCW_DB_NAME);
+			con = ConnectionFactory.getDefaultConnection(DBDefaults.TPCW_DB_NAME);
 			con.setAutoCommit(false);
 		} catch(java.lang.Exception ex)
 		{

@@ -33,7 +33,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		//for now, we commit locally, send to othe replicators but dont wait for their responses
 		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
 
-		TransactionId txnId = shadowOp.getTransaction().getTxnId();
+		TransactionId txnId = new TransactionId(shadowOp.getTxnId());
 
 		if(this.replicator.alreadyCommitted(txnId))
 		{

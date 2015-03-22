@@ -1,5 +1,6 @@
 package database.jdbc;
 
+
 import util.defaults.DBDefaults;
 
 import java.sql.Connection;
@@ -14,14 +15,8 @@ import java.sql.SQLException;
  */
 public class ConnectionFactory
 {
-	private static ConnectionFactory ourInstance = new ConnectionFactory();
 
-	public static ConnectionFactory getInstance()
-	{
-		return ourInstance;
-	}
-
-	private ConnectionFactory()
+	static
 	{
 		try
 		{
@@ -29,17 +24,19 @@ public class ConnectionFactory
 			Class.forName("database.jdbc.CRDTDriver");
 		} catch(ClassNotFoundException e)
 		{
-			throw new RuntimeException(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
-	public Connection getCRDTConnection(String database) throws SQLException
+
+	public static Connection getCRDTConnection(String database) throws SQLException
 	{
-		return this.getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
+		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
 	/**
-	 * @param database host:port
+	 * @param database
+	 * 		host:port
 	 * @param user
 	 * @param password
 	 *
@@ -47,23 +44,24 @@ public class ConnectionFactory
 	 *
 	 * @throws SQLException
 	 */
-	public Connection getCRDTConnection(String database, String user, String password) throws SQLException
+	public static Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
 		StringBuilder url = new StringBuilder(DBDefaults.CRDT_URL);
 		url.append(database);
-        Connection c = DriverManager.getConnection(url.toString(), user, password);
-        c.setAutoCommit(false);
+		Connection c = DriverManager.getConnection(url.toString(), user, password);
+		c.setAutoCommit(false);
 
-        return c;
+		return c;
 	}
 
-	public Connection getDefaultConnection(String database) throws SQLException
+	public static Connection getDefaultConnection(String database) throws SQLException
 	{
-		return this.getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
+		return getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
 	/**
-	 * @param database host:port
+	 * @param database
+	 * 		host:port
 	 * @param user
 	 * @param password
 	 *
@@ -71,15 +69,14 @@ public class ConnectionFactory
 	 *
 	 * @throws SQLException
 	 */
-	public Connection getDefaultConnection(String database, String user, String password) throws SQLException
+	public static Connection getDefaultConnection(String database, String user, String password) throws SQLException
 	{
 		StringBuilder url = new StringBuilder(DBDefaults.DEFAULT_URL);
 		url.append(database);
-        Connection c = DriverManager.getConnection(url.toString(), user, password);
-        c.setAutoCommit(false);
+		Connection c = DriverManager.getConnection(url.toString(), user, password);
+		c.setAutoCommit(false);
 
-        return c;
+		return c;
 	}
-
 
 }

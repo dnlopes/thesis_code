@@ -94,7 +94,7 @@ public class MyShadowOpCreator
 	{
 		if(!isInitialized)
 		{
-			Connection originalConn = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
+			Connection originalConn = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
 			DDLParser sP = new DDLParser(schemaFilePath);
 			database = sP.parseAnnotations();
 			annotatedTableSchema = sP.getTableCrdtFormMap();
@@ -106,7 +106,7 @@ public class MyShadowOpCreator
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
-		this.con = ConnectionFactory.getInstance().getDefaultConnection(Configuration.DB_NAME);
+		this.con = ConnectionFactory.getDefaultConnection(Configuration.DB_NAME);
 		this.cachedResultSetForDelta = null;
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
 	}

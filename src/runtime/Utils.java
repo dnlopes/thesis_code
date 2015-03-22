@@ -18,15 +18,13 @@ public class Utils
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
 		//TODO
-		ThriftOperation thriftOperation = new ThriftOperation();
-
-		return  thriftOperation;
+		return new ThriftOperation(shadowOperation.getTxnId(), shadowOperation.getOperationList());
 	}
 
 	public static ShadowOperation decodeThriftOperation(ThriftOperation thriftOperation)
 	{
 		//TODO
-		ShadowOperation shadowOperation = new ShadowOperation(thriftOperation.getOperations());
-		return  shadowOperation;
+		return new ShadowOperation(thriftOperation.getTxnId(), thriftOperation
+				.getOperations());
 	}
 }

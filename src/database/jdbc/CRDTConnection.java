@@ -1,7 +1,5 @@
 package database.jdbc;
 
-
-import database.scratchpad.IDBScratchpad;
 import network.node.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,24 +55,29 @@ public class CRDTConnection implements Connection
 	public void commit() throws SQLException
 	{
 		LOG.trace("committing txn {}", this.transaction.getTxnId().getId());
-		IDBScratchpad pad = this.proxy.getScratchpadOfTxn(this.transaction.getTxnId());
 		this.proxy.prepareToCommit(this.transaction.getTxnId());
 
 		if(!this.transaction.isReadyToCommit())
-			throw new SQLException("failed to prepare txn");
+		{
+			this.proxy.resetTransactionInfo(this.transaction.getTxnId());
+			throw new SQLException("failed to prepare shadow operation");
+		}
 
 		if(!this.proxy.commit(this.transaction.getTxnId()))
+		{
+			this.proxy.resetTransactionInfo(this.transaction.getTxnId());
 			throw new SQLException("txn commit failed");
+		}
 
-		LOG.info("txn {} committed ({} ms)", this.transaction.getTxnId().getId(), this.transaction.getLatency());
 		this.proxy.resetTransactionInfo(this.transaction.getTxnId());
 	}
 
 	@Override
 	public void rollback() throws SQLException
 	{
+		long txnId = this.transaction.getTxnId().getId();
 		this.proxy.resetTransactionInfo(this.transaction.getTxnId());
-		LOG.info("txn {} aborted by user request", this.transaction.getTxnId().getId());
+		LOG.info("txn {} aborted by user request", txnId);
 	}
 
 	@Override
