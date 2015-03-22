@@ -54,22 +54,14 @@ public class CRDTConnection implements Connection
 	@Override
 	public void commit() throws SQLException
 	{
-		LOG.trace("committing txn {}", this.transaction.getTxnId().getId());
 		this.proxy.prepareToCommit(this.transaction.getTxnId());
 
 		if(!this.transaction.isReadyToCommit())
-		{
-			this.proxy.resetTransactionInfo(this.transaction.getTxnId());
 			throw new SQLException("failed to prepare shadow operation");
-		}
 
 		if(!this.proxy.commit(this.transaction.getTxnId()))
-		{
-			this.proxy.resetTransactionInfo(this.transaction.getTxnId());
 			throw new SQLException("txn commit failed");
-		}
 
-		this.proxy.resetTransactionInfo(this.transaction.getTxnId());
 	}
 
 	@Override

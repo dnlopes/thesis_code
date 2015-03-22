@@ -83,12 +83,20 @@ public class Proxy extends AbstractNode
 		Transaction txn = this.transactions.get(txnId);
 
 		if(txn.isReadOnly())
+		{
+			txn.endTxn();
+			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
+			this.resetTransactionInfo(txnId);
 			return true;
+		}
 
 		this.prepareToCommit(txnId);
 
 		if(!txn.isReadyToCommit())
+		{
+			this.resetTransactionInfo(txnId);
 			return false;
+		}
 
 		// FIXME: this call MUST NOT block, but for now it DOES block
 		boolean commitDecision = this.networkInterface.commitOperation(txn.getShadowOp(), this.replicator);
@@ -96,9 +104,9 @@ public class Proxy extends AbstractNode
 		if(commitDecision)
 		{
 			txn.endTxn();
-			LOG.trace("txn {} committed", txn.getTxnId().getId());
+			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
 		} else
-			LOG.trace("txn {} failed to commit", txn.getTxnId().getId());
+			LOG.error("txn {} failed to commit", txn.getTxnId().getId());
 
 		this.resetTransactionInfo(txnId);
 		return commitDecision;

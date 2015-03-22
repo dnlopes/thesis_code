@@ -26,8 +26,8 @@ public class MicroTest
 
 		Statement stat = conn.createStatement();
 
-		int res2 = stat.executeUpdate("update t1 set b=5 where d=10 OR c=1"); // 0,2,5,6
-		int res = stat.executeUpdate("delete from t1 where b=5"); // 0,4,8
+		int res2 = stat.executeUpdate("update t1 set b=1 where c=10 OR d=10"); // 0,2,5,6
+		int res = stat.executeUpdate("delete from t1 where c=1"); // 0,4,8
 
 		//ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
 

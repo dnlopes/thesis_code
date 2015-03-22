@@ -74,10 +74,11 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-		//TODO commit the operation in main database
-		// should block until decision is made
-		//1- execute locally
-		//2- send async to others
+
+		/*	should block until decision is made
+			1- execute locally
+			2- send async to others
+		*/
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
