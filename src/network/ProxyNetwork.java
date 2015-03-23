@@ -4,6 +4,7 @@ package network;
 import network.node.AbstractNode;
 import network.node.NodeMedatada;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,14 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	public boolean commitOperation(ShadowOperation shadowOp, NodeMedatada node)
 	{
 		if(!this.clients.containsKey(node.getName()))
-			this.addNode(node);
+			try
+			{
+				this.addNode(node);
+			} catch(TTransportException e)
+			{
+				LOG.error("failed to bind with {}", node.getName());
+				return false;
+			}
 
 		ReplicatorRPC.Client client = this.clients.get(node.getName());
 		ThriftOperation thriftOp = Utils.encodeThriftOperation(shadowOp);
@@ -41,7 +49,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			return client.commitOperation(thriftOp);
 		} catch(TException e)
 		{
-			e.printStackTrace();
+			LOG.error("failed to commit shadow op {}", shadowOp.getTxnId());
 			return false;
 		}
 	}

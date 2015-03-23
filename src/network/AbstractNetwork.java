@@ -33,7 +33,7 @@ public class AbstractNetwork
 		this.clients = new HashMap<>();
 	}
 
-	protected void addNode(NodeMedatada newNode)
+	protected void addNode(NodeMedatada newNode) throws TTransportException
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -49,16 +49,10 @@ public class AbstractNetwork
 		TTransport newTransport = new TSocket(newNode.getHost(),
 				newNode.getPort());
 
-		try
-		{
 			newTransport.open();
 			TProtocol protocol = new TBinaryProtocol(newTransport);
 			ReplicatorRPC.Client newClient = new ReplicatorRPC.Client(protocol);
 			this.clients.put(newNode.getName(), newClient);
-		} catch(TTransportException e)
-		{
-			e.printStackTrace();
-		}
 
 		LOG.trace("new node added {}", newNode.getName());
 	}
