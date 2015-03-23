@@ -25,6 +25,8 @@ public class MicroTest
 
 		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
+		Connection conn2 = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getProxies().get(1));
+
 		Statement stat = conn.createStatement();
 
 		int res2 = stat.executeUpdate("update t4 set b=1 where c=10 OR d=10"); // 0,2,5,6

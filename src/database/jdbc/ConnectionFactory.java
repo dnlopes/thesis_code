@@ -30,7 +30,6 @@ public class ConnectionFactory
 		}
 	}
 
-
 	public static Connection getCRDTConnection(String database) throws SQLException
 	{
 		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
@@ -45,7 +44,10 @@ public class ConnectionFactory
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		return getCRDTConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
 	}
 
 	/**
@@ -58,11 +60,9 @@ public class ConnectionFactory
 	 *
 	 * @throws SQLException
 	 */
-	public static Connection getCRDTConnection(String database, String user, String password) throws SQLException
+	private static Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
-		StringBuilder url = new StringBuilder(DBDefaults.CRDT_URL);
-		url.append(database);
-		Connection c = DriverManager.getConnection(url.toString(), user, password);
+		Connection c = DriverManager.getConnection(database, user, password);
 		c.setAutoCommit(false);
 
 		return c;
@@ -82,7 +82,10 @@ public class ConnectionFactory
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		return getDefaultConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
 	}
 
 	/**
@@ -95,7 +98,7 @@ public class ConnectionFactory
 	 *
 	 * @throws SQLException
 	 */
-	public static Connection getDefaultConnection(String database, String user, String password) throws SQLException
+	private static Connection getDefaultConnection(String database, String user, String password) throws SQLException
 	{
 		StringBuilder url = new StringBuilder(DBDefaults.DEFAULT_URL);
 		url.append(database);

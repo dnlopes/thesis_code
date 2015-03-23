@@ -23,14 +23,12 @@ public class CRDTDriver implements Driver
 	private static final int MY_REPLICATOR_ID = 1;
 
 	private static Proxy proxy;
-	private static Replicator replicator;
 
 	static
 	{
 		try
 		{
 			DriverManager.registerDriver(new CRDTDriver());
-			replicator = new Replicator(Configuration.getInstance().getReplicators().get(MY_REPLICATOR_ID));
 			proxy = new Proxy(Configuration.getInstance().getProxies().get(MY_PROXY_ID));
 
 		} catch(SQLException E)
