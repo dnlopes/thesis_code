@@ -904,27 +904,38 @@ public class DBExecuter implements IExecuter
 		LOG.trace("creating selection for query {}", selectOp.toString());
 		String queryToOrigin;
 		String queryToTemp;
+
 		StringBuffer buffer = new StringBuffer();
 
 		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
 
 		StringBuffer whereClauseTemp = new StringBuffer();
-		whereClauseTemp.append("(");
-		whereClauseTemp.append(plainSelect.getWhere());
-		whereClauseTemp.append(") AND (");
+
+
+		if(plainSelect.getWhere() != null)
+		{
+			whereClauseTemp.append("(");
+			whereClauseTemp.append(plainSelect.getWhere());
+			whereClauseTemp.append(") AND");
+		}
+
+		whereClauseTemp.append(" (");
 		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		whereClauseTemp.append(" = FALSE");
-		whereClauseTemp.append(" ) AND ");
+		whereClauseTemp.append(" = FALSE )");
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-		this.addNotInClause(whereClauseOrig, true, true);
+		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
+		{
+			whereClauseOrig.append(" AND ");
+			this.addNotInClause(whereClauseOrig, true, true);
+		}
 
 		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
 
 		plainSelect.setFromItem(this.fromItemTemp);
 		queryToTemp = plainSelect.toString();
-		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
 
+		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
 		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
 
 		buffer.append("(");
@@ -1371,5 +1382,10 @@ public class DBExecuter implements IExecuter
 		this.writeSet.setUpdateResultSet(updateResultSet);
 
 		return this.writeSet;
+	}
+
+	private void prepareWhereClauseForSelect(StringBuffer buffer)
+	{
+
 	}
 }
