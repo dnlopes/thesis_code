@@ -64,6 +64,8 @@ public enum CrdtDataFieldType {
 	NUMDELTADOUBLE, 
 	 
 	/** The numdeltadatetime. */
-	NUMDELTADATETIME
+	NUMDELTADATETIME,
+
+	IMMUTABLE_FIELD
 	
 }

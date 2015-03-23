@@ -18,28 +18,33 @@ public class DatabaseMetadata
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetadata.class);
 
-	private Map<String, DatabaseTable> tables;
+	private static Map<String, DatabaseTable> ALL_TABLES;
 
 	public DatabaseMetadata()
 	{
-		this.tables = new HashMap<>();
+		ALL_TABLES = new HashMap<>();
 	}
 
 	public DatabaseTable getTable(String tableName)
 	{
-		return tables.get(tableName);
+		return ALL_TABLES.get(tableName);
 	}
 
 	public void addTable(DatabaseTable table)
 	{
-		if(this.tables.containsKey(table.getTableName()))
+		if(ALL_TABLES.containsKey(table.getName()))
 		{
-			LOG.error("table {} already exists", table.getTableName());
+			LOG.error("table {} already exists", table.getName());
 			RuntimeHelper.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
 		}
 
-		this.tables.put(table.getTableName(), table);
-		LOG.trace("table {} added", table.getTableName());
+		ALL_TABLES.put(table.getName(), table);
+		LOG.trace("table {} added", table.getName());
+	}
+
+	public static DataField getField(String tableName, String fieldName)
+	{
+		return ALL_TABLES.get(tableName).getField(fieldName);
 	}
 
 }

@@ -11,15 +11,13 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum MessageType implements org.apache.thrift.TEnum {
-  COMMIT(1),
-  REQUEST_TXN(2),
-  VALIDATE(3),
-  INVARIANT(4);
+public enum InvariantCheckType implements org.apache.thrift.TEnum {
+  CHECK_UNIQUE(1),
+  GET_ID(2);
 
   private final int value;
 
-  private MessageType(int value) {
+  private InvariantCheckType(int value) {
     this.value = value;
   }
 
@@ -34,16 +32,12 @@ public enum MessageType implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static MessageType findByValue(int value) { 
+  public static InvariantCheckType findByValue(int value) { 
     switch (value) {
       case 1:
-        return COMMIT;
+        return CHECK_UNIQUE;
       case 2:
-        return REQUEST_TXN;
-      case 3:
-        return VALIDATE;
-      case 4:
-        return INVARIANT;
+        return GET_ID;
       default:
         return null;
     }

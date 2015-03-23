@@ -27,14 +27,14 @@ public abstract class DataField
 	private int position;
 
 
-	protected DataField(CrdtDataFieldType crdtFieldType, String name, String tableName, String fieldType,
+	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos)
 	{
 		this.defaultValue = null;
 		this.isAllowedNULL = false;
 		this.position = -1;
 
-		this.crdtDataType = crdtFieldType;
+		this.crdtDataType = fieldTag;
 		this.fieldName = name;
 		this.tableName = tableName;
 		this.dataType = fieldType;
@@ -154,4 +154,10 @@ public abstract class DataField
 		this.originalDeclaration = decl;
 	}
 
+	public boolean isDeltaField()
+	{
+		return this.crdtDataType == CrdtDataFieldType.NUMDELTADATETIME || this.crdtDataType == CrdtDataFieldType
+				.NUMDELTADOUBLE || this.crdtDataType == CrdtDataFieldType.NUMDELTAFLOAT || this.crdtDataType ==
+				CrdtDataFieldType.NUMDELTAINTEGER;
+	}
 }

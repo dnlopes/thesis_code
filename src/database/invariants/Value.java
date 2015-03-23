@@ -6,5 +6,4 @@ package database.invariants;
  */
 public abstract class Value
 {
-	
 }

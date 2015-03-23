@@ -71,8 +71,8 @@ public class ArsetTable extends DatabaseTable
 			{
 				buffer.append(it.next() + ",");
 			}
-			buffer.append(lwwDeletedFlag.getFieldName() + ",");
-			buffer.append(lwwLogicalTimestamp.getFieldName() + ",");
+			buffer.append(deletedField.getFieldName() + ",");
+			buffer.append(timestampField.getFieldName() + ",");
 			buffer.append(timestampLWW.get_Data_Field_Name());
 			buffer.append(") ");
 		}
@@ -82,7 +82,7 @@ public class ArsetTable extends DatabaseTable
 		{
 			buffer.append(valueList[i] + ",");
 		}
-		buffer.append(lwwDeletedFlag.getDefaultValue() + ",");
+		buffer.append(deletedField.getDefaultValue() + ",");
 		buffer.append("? ,"); // for causality clock
 		buffer.append("?");// for lww timestamp
 		buffer.append(");");
@@ -118,7 +118,7 @@ public class ArsetTable extends DatabaseTable
 		for(int i = 0; i < colList.size(); i++)
 		{
 			Debug.println(colList.get(i));
-			DataField dT = dataFieldMap.get(colList.get(i));
+			DataField dT = fieldsMap.get(colList.get(i));
 			String dataValue = valueList.elementAt(i);
 			if(dT.getCrdtType().name().contains("LWW"))
 			{
@@ -186,8 +186,8 @@ public class ArsetTable extends DatabaseTable
 			}
 		}
 		// appending the fields to the lww
-		LWWBuffer.append(((LWW_DELETEDFLAG) lwwDeletedFlag).get_Unmark_Deleted() + ",");
-		LWWBuffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).get_Set_Logical_Timestamp() + ",");
+		LWWBuffer.append(((LWW_DELETEDFLAG) deletedField).get_Unmark_Deleted() + ",");
+		LWWBuffer.append(((LWW_LOGICALTIMESTAMP) timestampField).get_Set_Logical_Timestamp() + ",");
 		LWWBuffer.append(timestampLWW.get_Set_Timestamp_LWW() + " ");
 
 		// add lww clause to where
@@ -242,7 +242,7 @@ public class ArsetTable extends DatabaseTable
 		String insertIngoreStr = get_Insert_Ingore_Stmt(tbName, colList, valueList);
 
 		// change to update
-		//Set<String> dataFieldKeyList = dataFieldMap.keySet();
+		//Set<String> dataFieldKeyList = fieldsMap.keySet();
 		//Iterator dFKIt = dataFieldKeyList.iterator();
 		StringBuilder whereClause = new StringBuilder(" where ");
 		int whereClauseSize = whereClause.length();
@@ -252,7 +252,7 @@ public class ArsetTable extends DatabaseTable
 		Vector<String> newValueList = new Vector<>();
 		for(int i = 0; i < colList.size(); i++)
 		{
-			DataField dT = dataFieldMap.get(colList.get(i).toString());
+			DataField dT = fieldsMap.get(colList.get(i).toString());
 			if(dT.isPrimaryKey())
 			{
 				whereClause.append(dT.getFieldName() + " = " + valueList[i] + " and ");
@@ -337,7 +337,7 @@ public class ArsetTable extends DatabaseTable
 		while(colIt.hasNext())
 		{
 			Column cL = colIt.next();
-			DataField dT = dataFieldMap.get(cL.getColumnName());
+			DataField dT = fieldsMap.get(cL.getColumnName());
 			String dataValue = valIt.next().toString();
 			if(dT.getCrdtType().name().contains("LWW"))
 			{
@@ -409,8 +409,8 @@ public class ArsetTable extends DatabaseTable
 		}
 
 		// appending the fields to the lww
-		LWWBuffer.append(((LWW_DELETEDFLAG) lwwDeletedFlag).get_Unmark_Deleted() + ",");
-		LWWBuffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).get_Set_Logical_Timestamp() + ",");
+		LWWBuffer.append(((LWW_DELETEDFLAG) deletedField).get_Unmark_Deleted() + ",");
+		LWWBuffer.append(((LWW_LOGICALTIMESTAMP) timestampField).get_Set_Logical_Timestamp() + ",");
 		LWWBuffer.append(timestampLWW.get_Set_Timestamp_LWW() + " ");
 
 		// add lww clause to where
@@ -463,8 +463,8 @@ public class ArsetTable extends DatabaseTable
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("update ");
 		buffer.append(tbName + " ");
-		buffer.append("set " + ((LWW_DELETEDFLAG) lwwDeletedFlag).get_Mark_Deleted() + ",");
-		buffer.append(((LWW_LOGICALTIMESTAMP) lwwLogicalTimestamp).get_Set_Logical_Timestamp() + ",");
+		buffer.append("set " + ((LWW_DELETEDFLAG) deletedField).get_Mark_Deleted() + ",");
+		buffer.append(((LWW_LOGICALTIMESTAMP) timestampField).get_Set_Logical_Timestamp() + ",");
 		buffer.append(timestampLWW.get_Set_Timestamp_LWW() + " ");
 
 		// add lww clause to where
@@ -485,7 +485,7 @@ public class ArsetTable extends DatabaseTable
 	public String toString()
 	{
 		String myString = super.toString();
-		myString += lwwDeletedFlag.toString() + "\n";
+		myString += deletedField.toString() + "\n";
 		myString += timestampLWW.toString() + "\n";
 		return myString;
 	}

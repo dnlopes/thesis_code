@@ -1,13 +1,32 @@
 namespace java thrift
 
 
+enum InvariantCheckType {
+    CHECK_UNIQUE = 1,
+    GET_ID = 2
+}
+
 enum MessageType {
  COMMIT = 1,
  REQUEST_TXN = 2,
  VALIDATE = 3,
+ INVARIANT = 4
 }
 
-//typedef list<String> TweetList
+typedef list<String> TweetList
+
+struct Invariant {
+    1: required string tableName;
+    2: required string fieldName;
+    3: string value;
+    4: required string success;
+}
+
+struct InvariantMessage{
+ 1: required InvariantCheckType messageType;
+ 2: required list<Invariant> invariants;
+}
+
 
 struct ThriftOperation {
  1: required i64 txnId;

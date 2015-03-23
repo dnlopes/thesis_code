@@ -5,6 +5,7 @@ import database.jdbc.Result;
 import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
+import database.util.DataField;
 import database.util.DatabaseTable;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
@@ -33,11 +34,13 @@ public class DBExecuter implements IExecuter
 
 	TableDefinition tableDefinition;
 	private DatabaseTable dbTable;
+	private Map<Integer, DataField> databaseFields;
 	// we save the _SP_immut field to verify which rows are duplicated in the scratchpad and main database
-	private Set<String> duplicatedRows;
-	private Set<String> insertedRows;
-	private Set<String> deletedRows;
+	private Set<Integer> duplicatedRows;
+	private Set<Integer> insertedRows;
+	private Set<Integer> deletedRows;
 	private Set<String> modifiedColumns;
+	private Map<Integer, String> deltaValues;
 
 	private TableWriteSet writeSet;
 
@@ -52,13 +55,18 @@ public class DBExecuter implements IExecuter
 		this.tableId = tableId;
 		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.modified = false;
-		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.dbTable.getTableName());
+		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.dbTable.getName());
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.modifiedColumns = new HashSet<>();
 		this.insertedRows = new HashSet<>();
+		this.deltaValues = new HashMap<>();
+		this.writeSet = new TableWriteSet(this.dbTable.getName());
 
-		this.writeSet = new TableWriteSet(this.dbTable.getTableName());
+		this.databaseFields = new HashMap<>();
+
+		for(DataField field : this.dbTable.getFieldsList())
+			this.databaseFields.put(field.getPosition(), field);
 	}
 
 	/**
@@ -250,7 +258,7 @@ public class DBExecuter implements IExecuter
 			{
 				tRep = "$1" + ((DBExecuter) policies[i]).getTempTableName() + ".";
 				//else
-				//tRep = policies[i].getTableName() + ".";
+				//tRep = policies[i].getName() + ".";
 				where = where.replaceAll(t, tRep);
 			}
 		}
@@ -323,7 +331,7 @@ public class DBExecuter implements IExecuter
 	{
 		try
 		{
-			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.dbTable.getTableName() + "_" +
+			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.dbTable.getName() + "_" +
 					scratchpad.getScratchpadId();
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
@@ -347,9 +355,9 @@ public class DBExecuter implements IExecuter
 			ArrayList<String> tempAlias = new ArrayList<>();    // for columns with aliases
 			ArrayList<String> tempTempAlias = new ArrayList<>();    // for temp columns with aliases
 			ArrayList<String> uniqueIndices = new ArrayList<>(); // unique index
-			ResultSet colSet = metadata.getColumns(null, null, this.dbTable.getTableName(), "%");
+			ResultSet colSet = metadata.getColumns(null, null, this.dbTable.getName(), "%");
 			boolean first = true;
-			LOG.debug("INFO scratchpad: read table:" + this.dbTable.getTableName());
+			LOG.debug("INFO scratchpad: read table:" + this.dbTable.getName());
 
 			while(colSet.next())
 			{
@@ -417,7 +425,7 @@ public class DBExecuter implements IExecuter
 				colsIsStr[i] = tempIsStr.get(i);
 
 			//get all unique index
-			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.dbTable.getTableName(), true, true);
+			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.dbTable.getName(), true, true);
 			while(uqIndices.next())
 			{
 				String indexName = uqIndices.getString("INDEX_NAME");
@@ -431,7 +439,7 @@ public class DBExecuter implements IExecuter
 			}
 			uqIndices.close();
 
-			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.dbTable.getTableName());
+			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.dbTable.getName());
 			while(pkSet.next())
 			{
 				if(temp.size() == 0)
@@ -465,8 +473,8 @@ public class DBExecuter implements IExecuter
 
 			LOG.debug("Unique indices: " + Arrays.toString(uqIndicesPlain));
 
-			this.tableDefinition = new TableDefinition(this.dbTable.getTableName(), tableNameAlias, this.tableId,
-					colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
+			this.tableDefinition = new TableDefinition(this.dbTable.getName(), tableNameAlias, this.tableId, colsIsStr,
+					cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
 
 			if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
 				buffer.append(") NOT PERSISTENT;");    // FOR H2
@@ -702,6 +710,7 @@ public class DBExecuter implements IExecuter
 		this.duplicatedRows.clear();
 		this.modifiedColumns.clear();
 		this.insertedRows.clear();
+		this.deltaValues.clear();
 		this.modified = false;
 	}
 
@@ -810,7 +819,7 @@ public class DBExecuter implements IExecuter
 		while(res.next())
 		{
 			rowsUpdated++;
-			String immutValue = res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+			Integer immutValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
@@ -870,11 +879,13 @@ public class DBExecuter implements IExecuter
 		while(colIt.hasNext())
 		{
 			String columnName = colIt.next().toString();
+			String newValue = expIt.next().toString();
+
 			this.modifiedColumns.add(columnName);
 			this.writeSet.addModifiedColumns(columnName);
 			buffer.append(columnName);
 			buffer.append(" = ");
-			buffer.append(expIt.next());
+			buffer.append(newValue);
 			if(colIt.hasNext())
 				buffer.append(" , ");
 		}
@@ -1019,7 +1030,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(String immut : this.duplicatedRows)
+		for(Integer immut : this.duplicatedRows)
 		{
 			if(first)
 			{
@@ -1045,7 +1056,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(String immut : this.deletedRows)
+		for(Integer immut : this.deletedRows)
 		{
 			if(first)
 			{
@@ -1071,7 +1082,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(String immut : this.insertedRows)
+		for(Integer immut : this.insertedRows)
 		{
 			if(first)
 			{
@@ -1134,31 +1145,39 @@ public class DBExecuter implements IExecuter
 				//Debug.println("record exist in temporary table but not real table");
 				continue;
 			}
+
+			// immut field of this row
+			Integer immutablueValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+
 			buffer.setLength(0);
 			buffer.append("insert into ");
 			buffer.append(this.tempTableName);
 			buffer.append(" values (");
-			for(int i = 0; i < tableDefinition.colsPlain.length; i++)
+			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
 			{
+				DataField currentField = this.dbTable.getField(i);
+				// if is delta just keep track of old value
+				boolean isDeltaField = currentField.isDeltaField();
+
 				if(i > 0)
 					buffer.append(",");
 
 				// if it is a string, include "" in the value
-				if(tableDefinition.colsStr[i])
+				if(this.tableDefinition.colsStr[i])
 				{
 					buffer.append(
 							res.getObject(i + 1) == null ? "NULL" : "\"" + res.getObject(i + 1).toString() + "\"");
 				} else
 				{
-					switch(tableDefinition.colsPlain[i])
+
+					switch(this.tableDefinition.colsPlain[i])
 					{
 					case ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE:
 						/* record the immutable value. This way we will know which rows are duplicated in scratchpad
 						and main db. */
-						String immutablueValue = Integer.toString(res.getInt(i + 1));
 						if(this.duplicatedRows.contains(immutablueValue))
 							RuntimeHelper.throwRunTimeException(
-									"this record is already in the scratchpad. This " + "should not be possible",
+									"this record is already in the scratchpad. This should not be possible",
 									ExitCode.HASHMAPDUPLICATE);
 						this.duplicatedRows.add(immutablueValue);
 						this.writeSet.addUpdatedRow(immutablueValue);
@@ -1168,6 +1187,8 @@ public class DBExecuter implements IExecuter
 						buffer.append(res.getObject(i + 1) == null ? "NULL" : Integer.toString(res.getInt(i + 1)));
 						break;
 					default:
+						if(isDeltaField)
+							this.deltaValues.put(immutablueValue, res.getObject(i + 1).toString());
 						buffer.append(res.getObject(i + 1) == null ? "NULL" : res.getObject(i + 1).toString());
 						break;
 					}
@@ -1177,27 +1198,6 @@ public class DBExecuter implements IExecuter
 			pad.addToBatchUpdate(buffer.toString());
 			rowsInserted++;
 
-			//TODO why is this here?
-			// commented until talk with Cheng
-			/*
-			int nPks = tableDefinition.getPksPlain().length;
-			if(nPks > 0)
-			{
-				String[] pkVal = new String[nPks];
-				for(int i = 0; i < pkVal.length; i++)
-					pkVal[i] = res.getObject(i + 1).toString();
-				pad.addToWriteSet(DBWriteSetEntry.createEntry(updateOp.getTable().toString(), pkVal, this.blue,
-						false));
-			}
-
-			String[] uniqueIndexStrs = tableDefinition.getUqIndicesPlain();
-			for(int k = 0; k < uniqueIndexStrs.length; k++)
-			{
-				String[] uqStr = new String[1];
-				uqStr[0] = res.getString(uniqueIndexStrs[k]);
-				pad.addToWriteSet(DBWriteSetEntry.createEntry(tableDefinition.name, uqStr, blue, true));
-			}
-			*/
 		}
 		LOG.trace("{} were missing in temporary table", rowsInserted);
 		res.close();
@@ -1267,8 +1267,8 @@ public class DBExecuter implements IExecuter
 			buffer.append("))");
 	}
 
-	private void addInClause(StringBuffer buffer, boolean includeDeleted, boolean includeDuplicated, boolean
-			includeInserted)
+	private void addInClause(StringBuffer buffer, boolean includeDeleted, boolean includeDuplicated,
+							 boolean includeInserted)
 	{
 		boolean notInClauseAdded = false;
 		boolean needComma = false;

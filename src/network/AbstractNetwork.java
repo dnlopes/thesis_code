@@ -1,7 +1,6 @@
 package network;
 
 
-import network.node.AbstractNode;
 import network.node.NodeMetadata;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -24,10 +23,10 @@ public class AbstractNetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
-	protected AbstractNode me;
+	protected NodeMetadata me;
 	protected Map<String, ReplicatorRPC.Client> clients;
 
-	public AbstractNetwork(AbstractNode node)
+	public AbstractNetwork(NodeMetadata node)
 	{
 		this.me = node;
 		this.clients = new HashMap<>();

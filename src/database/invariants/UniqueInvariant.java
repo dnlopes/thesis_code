@@ -13,7 +13,7 @@ public class UniqueInvariant extends Invariant
 
 	public UniqueInvariant()
 	{
-		super();
+		super(InvariantType.UNIQUE);
 	}
 
 	public void addField(DataField field)

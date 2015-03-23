@@ -1,6 +1,11 @@
 package database.scratchpad;
 
 
+import database.invariants.InvariantChecker;
+import database.invariants.Value;
+import database.jdbc.util.DBOperationType;
+import database.util.DataField;
+import database.util.DatabaseMetadata;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.ResultSet;
@@ -16,11 +21,13 @@ public class TransactionWriteSet
 
 	private Map<String, TableWriteSet> writeSet;
 	private List<String> statements;
+	private List<Value> invariantsToCheck;
 
 	public TransactionWriteSet()
 	{
 		this.writeSet = new HashMap<>();
 		this.statements = new ArrayList<>();
+		this.invariantsToCheck = new ArrayList<>();
 	}
 
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
@@ -63,13 +70,19 @@ public class TransactionWriteSet
 				//for each modified column
 				for(String column : tableWriteSet.getModifiedColumns())
 				{
-					// ignore immut field. there is no point in updating it
-					if(column.startsWith(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE))
+					// ignore custom fields. there is no point in updating it
+					if(column.startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
 						continue;
+
+					String newValue = rs.getString(column);
+					DataField field = DatabaseMetadata.getField(tableWriteSet.getTableName(), column);
+
+					if(field.hasInvariants())
+						InvariantChecker.checkInvariants(DBOperationType.UPDATE, field, newValue, this.invariantsToCheck);
 
 					buffer.append(column);
 					buffer.append("=");
-					buffer.append(rs.getString(column));
+					buffer.append(newValue);
 					buffer.append(",");
 				}
 
@@ -112,10 +125,10 @@ public class TransactionWriteSet
 		}
 	}
 
-	private void addDeletedClause(StringBuilder buffer, Set<String> deletedRows)
+	private void addDeletedClause(StringBuilder buffer, Set<Integer> deletedRows)
 	{
 		boolean first = true;
-		for(String tupleId : deletedRows)
+		for(Integer tupleId : deletedRows)
 		{
 			if(first)
 			{

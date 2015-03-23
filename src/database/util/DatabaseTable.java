@@ -1,20 +1,22 @@
 package database.util;
 
+
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.Map.Entry;
 
-import crdtlib.CrdtFactory;
-
-import database.invariants.Invariant;
+import database.util.field.hidden.DeletedField;
+import database.util.field.hidden.ImmutableField;
+import database.util.field.hidden.LWWField;
+import database.util.field.hidden.LogicalClockField;
 import util.ExitCode;
 import util.debug.Debug;
 
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import util.defaults.ScratchpadDefaults;
 
 
 /**
@@ -23,50 +25,59 @@ import net.sf.jsqlparser.statement.update.Update;
 public abstract class DatabaseTable
 {
 
-	private String tableName;
-	private CrdtTableType crdtTableType;
-	private boolean isContainAutoIncrementField;
+	private String name;
+	private CrdtTableType tag;
+	private boolean containsAutoIncrementField;
 	private int numOfHiddenFields;
 	private String primaryKeyString;
 
-	protected DataField lwwDeletedFlag;
-	protected DataField lwwLogicalTimestamp;
-	protected LinkedHashMap<String, DataField> dataFieldMap;
-	protected HashMap<Integer, DataField> sortedDataFieldMap;
+	protected DataField deletedField;
+	protected DataField timestampField;
+	protected DataField immutableField;
+
+	protected LinkedHashMap<String, DataField> fieldsMap;
+	protected HashMap<Integer, DataField> sortedFieldsMap;
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 
-	protected static Timestamp_LWW timestampLWW = new Timestamp_LWW();
+	protected static LWWField timestampLWW;
 
-	protected DatabaseTable(String tableName, CrdtTableType tableType,
-							LinkedHashMap<String, DataField> fieldsMap)
+	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
 	{
-		this.lwwDeletedFlag = null;
-		this.lwwLogicalTimestamp = null;
-		this.isContainAutoIncrementField = false;
+		this.fieldsMap = fieldsMap;
+
+		if(tableType != CrdtTableType.NONCRDTTABLE)
+			this.addScratchpadFields(name, tableType);
+
+		this.containsAutoIncrementField = false;
 
 		this.primaryKeyMap = new LinkedHashMap<>();
-		this.sortedDataFieldMap = new HashMap<>();
+		this.sortedFieldsMap = new HashMap<>();
 
-		this.tableName = tableName;
-		this.crdtTableType = tableType;
-		this.dataFieldMap = fieldsMap;
+		this.name = name;
+		this.tag = tableType;
 
-		this.setNumOfHiddenFields(0);
+		int totalHiddenFields = 0;
+		timestampLWW = new LWWField(name, this.fieldsMap.size());
+		this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
 
-		for(Entry<String, DataField> entry : fieldsMap.entrySet())
+		for(Entry<String, DataField> entry : this.fieldsMap.entrySet())
 		{
+			if(entry.getValue().getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
+				totalHiddenFields++;
+
 			if(entry.getValue().isPrimaryKey())
 				this.addPrimaryKey(entry.getValue());
 
-			if(entry.getValue().isAutoIncrement() && ! this.isAutoIncremental())
-				this.isContainAutoIncrementField = true;
+			if(entry.getValue().isAutoIncrement() && !this.isAutoIncremental())
+				this.containsAutoIncrementField = true;
 
-			this.sortedDataFieldMap.put(entry.getValue().getPosition(), entry.getValue());
-			this.setLwwLogicalTimestampDataField(entry.getValue());
-			this.setLwwDeletedFlagDataField(entry.getValue());
+			this.sortedFieldsMap.put(entry.getValue().getPosition(), entry.getValue());
 		}
 
+		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
+
+
 	}
 
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
@@ -75,24 +86,6 @@ public abstract class DatabaseTable
 			throws JSQLParserException;
 
 	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
-
-	private void setLwwLogicalTimestampDataField(DataField field)
-	{
-		if(CrdtFactory.isLwwLogicalTimestamp(field.getCrdtType()))
-		{
-			this.lwwLogicalTimestamp = field;
-			this.setNumOfHiddenFields(this.getNumOfHiddenFields() + 1);
-		}
-	}
-
-	private void setLwwDeletedFlagDataField(DataField df)
-	{
-		if(CrdtFactory.isLwwDeletedFlag(df.getCrdtType()))
-		{
-			this.lwwDeletedFlag = df;
-			this.setNumOfHiddenFields(this.getNumOfHiddenFields() + 1);
-		}
-	}
 
 	public void addPrimaryKey(DataField field)
 	{
@@ -120,7 +113,7 @@ public abstract class DatabaseTable
 		this.primaryKeyMap.put(field.getFieldName(), field);
 		if(field.isAutoIncrement())
 		{
-			this.isContainAutoIncrementField = true;
+			this.containsAutoIncrementField = true;
 		}
 	}
 
@@ -129,9 +122,9 @@ public abstract class DatabaseTable
 	 *
 	 * @return the _ table_ name
 	 */
-	public String getTableName()
+	public String getName()
 	{
-		return this.tableName;
+		return this.name;
 	}
 
 	/**
@@ -141,7 +134,7 @@ public abstract class DatabaseTable
 	 */
 	public CrdtTableType getTableType()
 	{
-		return this.crdtTableType;
+		return this.tag;
 	}
 
 	/**
@@ -151,7 +144,7 @@ public abstract class DatabaseTable
 	 */
 	public HashMap<String, DataField> getFieldsMap()
 	{
-		return this.dataFieldMap;
+		return this.fieldsMap;
 	}
 
 	/**
@@ -161,7 +154,7 @@ public abstract class DatabaseTable
 	 */
 	public List<DataField> getFieldsList()
 	{
-		Collection<DataField> dataFields = this.dataFieldMap.values();
+		Collection<DataField> dataFields = this.fieldsMap.values();
 		if(dataFields instanceof List)
 		{
 			return (List<DataField>) dataFields;
@@ -215,7 +208,7 @@ public abstract class DatabaseTable
 	 */
 	public int getFieldCount()
 	{
-		int tempCount = dataFieldMap.size() - this.getNumOfHiddenFields();
+		int tempCount = fieldsMap.size() - this.getNumOfHiddenFields();
 		if(tempCount <= 0)
 		{
 			throw new RuntimeException("You have zero or negative number of data fields");
@@ -226,14 +219,15 @@ public abstract class DatabaseTable
 	/**
 	 * Gets the _ data_ field.
 	 *
-	 * @param name the d tn
+	 * @param name
+	 * 		the d tn
 	 *
 	 * @return the _ data_ field
 	 */
 	public DataField getField(String name)
 	{
 
-		if(this.dataFieldMap == null)
+		if(this.fieldsMap == null)
 		{
 			try
 			{
@@ -244,7 +238,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		if(! dataFieldMap.containsKey(name))
+		if(!fieldsMap.containsKey(name))
 		{
 			try
 			{
@@ -255,21 +249,22 @@ public abstract class DatabaseTable
 			}
 		}
 
-		return dataFieldMap.get(name);
+		return fieldsMap.get(name);
 
 	}
 
 	/**
 	 * Gets the _ data_ field.
 	 *
-	 * @param dfIndex the df index
+	 * @param dfIndex
+	 * 		the df index
 	 *
 	 * @return the _ data_ field
 	 */
 	public DataField getField(int index)
 	{
 
-		if(this.sortedDataFieldMap == null)
+		if(this.sortedFieldsMap == null)
 		{
 			try
 			{
@@ -280,7 +275,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		if(this.sortedDataFieldMap.size() <= index)
+		if(this.sortedFieldsMap.size() <= index)
 		{
 			try
 			{
@@ -291,7 +286,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		if(! this.sortedDataFieldMap.containsKey(new Integer(index)))
+		if(!this.sortedFieldsMap.containsKey(new Integer(index)))
 		{
 			try
 			{
@@ -302,7 +297,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		return this.sortedDataFieldMap.get(new Integer(index));
+		return this.sortedFieldsMap.get(new Integer(index));
 
 	}
 
@@ -313,7 +308,7 @@ public abstract class DatabaseTable
 	 */
 	public DataField getDeletedFlag()
 	{
-		return this.lwwDeletedFlag;
+		return this.deletedField;
 	}
 
 	/**
@@ -323,13 +318,14 @@ public abstract class DatabaseTable
 	 */
 	public DataField getLwwTs()
 	{
-		return this.lwwLogicalTimestamp;
+		return this.timestampField;
 	}
 
 	/**
 	 * Gets the _ primary_ key.
 	 *
-	 * @param name the kn
+	 * @param name
+	 * 		the kn
 	 *
 	 * @return the _ primary_ key
 	 */
@@ -347,7 +343,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		if(! this.primaryKeyMap.containsKey(name))
+		if(!this.primaryKeyMap.containsKey(name))
 		{
 			try
 			{
@@ -368,14 +364,16 @@ public abstract class DatabaseTable
 	 */
 	public boolean isAutoIncremental()
 	{
-		return this.isContainAutoIncrementField;
+		return this.containsAutoIncrementField;
 	}
 
 	/**
 	 * Find mising data field.
 	 *
-	 * @param colList   the col list
-	 * @param valueList the value list
+	 * @param colList
+	 * 		the col list
+	 * @param valueList
+	 * 		the value list
 	 *
 	 * @return the sets the
 	 */
@@ -392,11 +390,11 @@ public abstract class DatabaseTable
 			Set<String> dfNameSet = new HashSet<>();
 			Set<String> colSet = new HashSet<>(colList);
 			int i = 0;
-			Iterator<Entry<Integer, DataField>> it = sortedDataFieldMap.entrySet().iterator();
+			Iterator<Entry<Integer, DataField>> it = sortedFieldsMap.entrySet().iterator();
 			while(it.hasNext() && i < getFieldCount())
 			{
 				Entry<Integer, DataField> en = it.next();
-				if(! colSet.contains(en.getValue().getFieldName()))
+				if(!colSet.contains(en.getValue().getFieldName()))
 				{
 					dfNameSet.add(en.getValue().getFieldName());
 				}
@@ -414,7 +412,8 @@ public abstract class DatabaseTable
 	/**
 	 * Checks if is primary key missing from where clause.
 	 *
-	 * @param whereClauseStr the where clause str
+	 * @param whereClauseStr
+	 * 		the where clause str
 	 *
 	 * @return true, if is primary key missing from where clause
 	 */
@@ -425,7 +424,7 @@ public abstract class DatabaseTable
 		for(Entry<String, DataField> stringDataFieldEntry : primaryKeysMap.entrySet())
 		{
 			DataField pk = stringDataFieldEntry.getValue();
-			if(! whereClauseStr.contains(pk.getFieldName()))
+			if(!whereClauseStr.contains(pk.getFieldName()))
 			{
 				Debug.println("You missing primary key in the where clause of this statement");
 				return true;
@@ -443,7 +442,8 @@ public abstract class DatabaseTable
 	/**
 	 * Generated primary key query.
 	 *
-	 * @param whereClauseStr the where clause str
+	 * @param whereClauseStr
+	 * 		the where clause str
 	 *
 	 * @return the string
 	 */
@@ -452,7 +452,7 @@ public abstract class DatabaseTable
 		StringBuilder selectStr = new StringBuilder("select ");
 		selectStr.append(this.getPrimaryKeyString());
 		selectStr.append(" from ");
-		selectStr.append(this.getTableName());
+		selectStr.append(this.getName());
 		selectStr.append(" ");
 		selectStr.append(" where ");
 		selectStr.append(whereClauseStr);
@@ -475,7 +475,7 @@ public abstract class DatabaseTable
 	 */
 	public String toString()
 	{
-		String myString = "TableName: " + this.tableName + " \n";
+		String myString = "TableName: " + this.name + " \n";
 		myString += "primary key maps --> \n";
 
 		for(Entry<String, DataField> entry : this.primaryKeyMap.entrySet())
@@ -485,15 +485,15 @@ public abstract class DatabaseTable
 
 		myString += "data field maps -------->\n";
 
-		for(Entry<String, DataField> entry : dataFieldMap.entrySet())
+		for(Entry<String, DataField> entry : fieldsMap.entrySet())
 		{
 			myString += entry.getValue().toString() + " \n ";
 		}
 
-		myString += " is contained AutoIncremental fields: " + this.isContainAutoIncrementField + "\n";
-		if(this.lwwLogicalTimestamp != null)
+		myString += " is contained AutoIncremental fields: " + this.containsAutoIncrementField + "\n";
+		if(this.timestampField != null)
 		{
-			myString += " logicalTimestamp: " + lwwLogicalTimestamp.toString() + "\n";
+			myString += " logicalTimestamp: " + timestampField.toString() + "\n";
 		}
 
 		return myString;
@@ -503,7 +503,8 @@ public abstract class DatabaseTable
 	/**
 	 * Sets the num of hidden fields.
 	 *
-	 * @param numOfHiddenFields the numOfHiddenFields to set
+	 * @param numOfHiddenFields
+	 * 		the numOfHiddenFields to set
 	 */
 	public void setNumOfHiddenFields(int numOfHiddenFields)
 	{
@@ -523,7 +524,8 @@ public abstract class DatabaseTable
 	/**
 	 * Sets the primary key string.
 	 *
-	 * @param primaryKeyString the primaryKeyString to set
+	 * @param primaryKeyString
+	 * 		the primaryKeyString to set
 	 */
 	public void setPrimaryKeyString(String primaryKeyString)
 	{
@@ -573,7 +575,28 @@ public abstract class DatabaseTable
 
 	public HashMap<Integer, DataField> getSortedFieldsMap()
 	{
-		return this.sortedDataFieldMap;
+		return this.sortedFieldsMap;
+	}
+
+	private void addScratchpadFields(String name, CrdtTableType tableType)
+	{
+		if(tableType == CrdtTableType.ARSETTABLE)
+		{
+			DataField deletedField = new DeletedField(name, fieldsMap.size());
+			this.fieldsMap.put(deletedField.getFieldName(), deletedField);
+			this.deletedField = deletedField;
+			this.deletedField.setDefaultValue("FALSE");
+		}
+
+		DataField clockField = new LogicalClockField(name, fieldsMap.size());
+		this.fieldsMap.put(clockField.getFieldName(), clockField);
+		DataField immutableField = new ImmutableField(name, fieldsMap.size());
+		this.fieldsMap.put(immutableField.getFieldName(), immutableField);
+
+		this.timestampField = clockField;
+		this.immutableField = immutableField;
+
+
 	}
 
 }

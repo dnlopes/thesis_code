@@ -19,7 +19,7 @@ public class ForeignKeyInvariant extends Invariant
 
 	public ForeignKeyInvariant()
 	{
-		super();
+		super(InvariantType.FOREIGN_KEY);
 		this.remoteFields = new LinkedList<>();
 	}
 

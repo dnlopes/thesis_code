@@ -16,7 +16,7 @@ public class GreaterThanInvariant extends Invariant
 
 	public GreaterThanInvariant(DataField field, String threshold)
 	{
-		super();
+		super(InvariantType.GREATHER_THAN);
 		this.fields.add(field);
 		this.minValue = threshold;
 		this.equal = false;

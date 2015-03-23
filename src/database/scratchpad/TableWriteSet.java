@@ -14,9 +14,9 @@ public class TableWriteSet
 	// original name, not temporary
 	private String tableName;
 	// list of tupleId that were deleted
-	private Set<String> deletedTuples;
-	private Set<String> insertedTuples;
-	private Set<String> updatedTuples;
+	private Set<Integer> deletedTuples;
+	private Set<Integer> insertedTuples;
+	private Set<Integer> updatedTuples;
 	private Set<String> modifiedColumns;
 
 	private ResultSet updateResultSet;
@@ -31,22 +31,22 @@ public class TableWriteSet
 		this.modifiedColumns = new HashSet<>();
 	}
 
-	public void addDeletedRow(String id)
+	public void addDeletedRow(Integer id)
 	{
 		this.deletedTuples.add(id);
 	}
 
-	public void addInsertedRow(String id)
+	public void addInsertedRow(Integer id)
 	{
 		this.insertedTuples.add(id);
 	}
 
-	public void removeUpdatedRow(String id)
+	public void removeUpdatedRow(Integer id)
 	{
 		this.updatedTuples.remove(id);
 	}
 
-	public void addUpdatedRow(String id)
+	public void addUpdatedRow(Integer id)
 	{
 		this.updatedTuples.add(id);
 	}
@@ -61,7 +61,7 @@ public class TableWriteSet
 		return this.modifiedColumns;
 	}
 
-	public Set<String> getDeletedRows()
+	public Set<Integer> getDeletedRows()
 	{
 		return this.deletedTuples;
 	}

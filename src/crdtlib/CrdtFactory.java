@@ -298,8 +298,8 @@ public class CrdtFactory
 			throws SQLException
 	{
 		// this looks like a good place to check invariants
-		if(df.hasInvariants())
-			InvariantChecker.checkInvariants(op, statement, df, value);
+		//if(df.hasInvariants())
+		//	InvariantChecker.checkInvariants(op, statement, df, value);
 
 		switch(df.getCrdtType())
 		{

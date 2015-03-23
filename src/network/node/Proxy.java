@@ -47,7 +47,7 @@ public class Proxy extends AbstractNode
 		this.transactions = new HashMap<>();
 		this.scratchpad = new HashMap<>();
 		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
-		this.networkInterface = new ProxyNetwork(this);
+		this.networkInterface = new ProxyNetwork(this.getMetadata());
 	}
 
 	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)

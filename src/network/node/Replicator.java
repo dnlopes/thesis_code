@@ -45,7 +45,7 @@ public class Replicator extends AbstractNode
 
 		this.committed = new HashSet<>();
 
-		this.networkInterface = new ReplicatorNetwork(this);
+		this.networkInterface = new ReplicatorNetwork(this.getMetadata());
 
 		try
 		{

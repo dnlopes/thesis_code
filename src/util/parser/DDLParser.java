@@ -123,7 +123,7 @@ public class DDLParser
 			if(table != null)
 			{
 				this.databaseMetadata.addTable(table);
-				this.tableCrdtFormMap.put(table.getTableName(), table);
+				this.tableCrdtFormMap.put(table.getName(), table);
 			} else
 			{
 				throw new RuntimeException(

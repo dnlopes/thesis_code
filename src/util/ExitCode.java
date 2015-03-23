@@ -115,6 +115,7 @@ public final class ExitCode
 	public static final int UNEXPECTED_OP = 37;
 	public static final int XML_ERROR = 38;
 	public static final int WRONG_ARGUMENTS_NUMBER = 39;
+	public static final int DUPLICATED_FIELD = 39;
 
 
 

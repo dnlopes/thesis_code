@@ -1,6 +1,7 @@
 package tests;
 
 
+import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
 import org.xml.sax.SAXException;
 import util.defaults.Configuration;
@@ -23,12 +24,10 @@ public class MicroTest
 
 		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
-		Connection conn2 = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getProxies().get(1));
-
 		Statement stat = conn.createStatement();
 
-		int res2 = stat.executeUpdate("update t4 set b=1 where c=10 OR d=10"); // 0,2,5,6
-		int res = stat.executeUpdate("update t4 set b=2 where c=10 OR d=10"); // 0,4,8
+		int res2 = stat.executeUpdate("update t1 set b=8 where a=2"); // 0,2,5,6
+		//int res = stat.executeUpdate("update t1 set b=2 where c=10 OR d=10"); // 0,4,8
 
 		//ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
 

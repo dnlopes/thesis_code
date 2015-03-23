@@ -1,7 +1,6 @@
 package network;
 
 
-import network.node.AbstractNode;
 import network.node.NodeMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
-	public ReplicatorNetwork(AbstractNode node)
+	public ReplicatorNetwork(NodeMetadata node)
 	{
 		super(node);
 	}

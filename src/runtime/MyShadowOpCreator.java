@@ -148,7 +148,7 @@ public class MyShadowOpCreator
 		{
 			Map.Entry<String, DatabaseTable> entry = it.next();
 			DatabaseTable dT = entry.getValue();
-			String tableName = dT.getTableName();
+			String tableName = dT.getName();
 			LOG.trace("We initialize the ID generator for " + tableName);
 			HashMap<String, DataField> pkMap = dT.getPrimaryKeysMap();
 			Iterator<Map.Entry<String, DataField>> pkIt = pkMap.entrySet().iterator();
@@ -1056,7 +1056,7 @@ public class MyShadowOpCreator
 	 */
 	public DBOpEntry createInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
 	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getTableName());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
 		if(colIt == null || !colIt.hasNext())
@@ -1114,7 +1114,7 @@ public class MyShadowOpCreator
 	 */
 	public DBOpEntry createUniqueInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
 	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getTableName());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getName());
 		Iterator colIt = insertStatement.getColumns().iterator();
 		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
 		if(colIt == null || !colIt.hasNext())
@@ -1174,7 +1174,7 @@ public class MyShadowOpCreator
 	 */
 	public DBOpEntry createUpdateDBOpEntry(DatabaseTable dbT, Update updateStatement, ResultSet rs) throws SQLException
 	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UPDATE, dbT.getTableName());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UPDATE, dbT.getName());
 		Iterator colIt = updateStatement.getColumns().iterator();
 		Iterator valueIt = updateStatement.getExpressions().iterator();
 		while(colIt.hasNext() && valueIt.hasNext())
@@ -1206,7 +1206,7 @@ public class MyShadowOpCreator
 	 */
 	public DBOpEntry createDeleteDBOpEntry(DatabaseTable dbT, Delete deleteStatement) throws SQLException
 	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.DELETE, dbT.getTableName());
+		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.DELETE, dbT.getName());
 		String whereClause = deleteStatement.getWhere().toString();
 		this.addFieldAndValueInWhereClauseToDBOpEntry(dbT, whereClause, dbOpEntry);
 		return dbOpEntry;

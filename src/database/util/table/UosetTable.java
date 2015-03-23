@@ -68,15 +68,15 @@ public class UosetTable extends DatabaseTable
 			{
 				buffer.append(it.next() + ",");
 			}
-			buffer.append(lwwDeletedFlag.getFieldName() + ",");
-			buffer.append(lwwLogicalTimestamp.getFieldName() + ",");
+			buffer.append(deletedField.getFieldName() + ",");
+			buffer.append(timestampField.getFieldName() + ",");
 			buffer.append(timestampLWW.get_Data_Field_Name());
 			buffer.append(") ");
 		}
 
 		buffer.append(" values (");
 		buffer.append(valueStr + ",");
-		buffer.append(lwwDeletedFlag.getDefaultValue() + ",");
+		buffer.append(deletedField.getDefaultValue() + ",");
 		buffer.append("? ,"); // for causality clock
 		buffer.append("?");// for lww timestamp
 		buffer.append(");");

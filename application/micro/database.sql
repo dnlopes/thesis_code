@@ -4,13 +4,12 @@ USE micro;
 DROP TABLE IF EXISTS `t1`;
 @ARSETTABLE CREATE TABLE `t1` (
 @LWWINTEGER `a` int(10) unsigned NOT NULL,
-@LWWINTEGER `b` int(10) unsigned,
+@NUMDELTAINTEGER `b` int(10) unsigned,
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-@LWWSTRING `lc` varchar(50) default '1#2#3#4',
 PRIMARY KEY  (`a`),
-CHECK(b>5)
+CHECK(b>0)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t2`;
@@ -20,7 +19,6 @@ DROP TABLE IF EXISTS `t2`;
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-@LWWSTRING `lc` varchar(50) default '1#2#3#4',
 PRIMARY KEY  (`a`)
 ) ENGINE=INNODB;
 
@@ -31,7 +29,6 @@ DROP TABLE IF EXISTS `t3`;
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-@LWWSTRING `lc` varchar(50) default '1#2#3#4',
 PRIMARY KEY  (`a`)
 ) ENGINE=INNODB;
 
@@ -42,7 +39,6 @@ DROP TABLE IF EXISTS `t4`;
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-@LWWSTRING `lc` varchar(50) default '1#2#3#4',
 PRIMARY KEY  (`a`)
 ) ENGINE=INNODB;
 

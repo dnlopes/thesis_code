@@ -16,7 +16,7 @@ public class LesserThanInvariant extends Invariant
 
 	public LesserThanInvariant(DataField field, String maxValue)
 	{
-		super();
+		super(InvariantType.LESSER_THAN);
 		this.fields.add(field);
 		this.maxValue = maxValue;
 		this.equal = false;

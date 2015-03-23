@@ -11,12 +11,18 @@ import java.util.List;
  */
 public abstract class Invariant
 {
-
 	protected List<DataField> fields;
+	protected InvariantType invType;
 
-	protected Invariant()
+	public Invariant(InvariantType type)
 	{
+		this.invType = type;
 		this.fields = new LinkedList<>();
+	}
+
+	public InvariantType getType()
+	{
+		return this.invType;
 	}
 
 	public List<DataField> getFields()

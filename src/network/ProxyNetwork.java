@@ -1,7 +1,6 @@
 package network;
 
 
-import network.node.AbstractNode;
 import network.node.NodeMetadata;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
@@ -22,7 +21,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 
-	public ProxyNetwork(AbstractNode node)
+	public ProxyNetwork(NodeMetadata node)
 	{
 		super(node);
 	}

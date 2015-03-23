@@ -64,6 +64,7 @@ public class CreateStatementParser
 			String bodyStr = get_Table_Body_String(schemaStr);
 			CrdtTableType tableType = get_Table_Type(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
+			//create base fields here
 			LinkedHashMap<String, DataField> fieldsMap = createFields(tableName, bodyStr);
 
 			DatabaseTable dT = null;
@@ -77,7 +78,6 @@ public class CreateStatementParser
 				dT = new AosetTable(tableName, fieldsMap);
 				break;
 			case ARSETTABLE:
-				ArsetTable.addLwwDeletedFlagDataField(tableName, fieldsMap);
 				dT = new ArsetTable(tableName, fieldsMap);
 				break;
 			case UOSETTABLE:
@@ -92,8 +92,8 @@ public class CreateStatementParser
 					throw new RuntimeException("Unknown table annotation type");
 				} catch(RuntimeException e)
 				{
-					e.printStackTrace();
-					System.exit(ExitCode.UNKNOWNTABLEANNOTYPE);
+					LOG.error("table type not recognized: {}", tableType);
+					RuntimeHelper.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
 				}
 			}
 			return dT;
@@ -322,22 +322,6 @@ public class CreateStatementParser
 	}
 
 	/**
-	 * Gets the _ data_ field.
-	 *
-	 * @param tableName the table name
-	 * @param attrStr   the attr str
-	 * @param position  the position
-	 *
-	 * @return the _ data_ field
-	 */
-	public static DataField get_Data_Field(String tableName, String attrStr, int position)
-	{
-		Debug.println("tableName: " + tableName + " attrStr " + attrStr + " position " + position);
-		DataField dF = DataFieldParser.createField(tableName, attrStr, position);
-		return dF;
-	}
-
-	/**
 	 * Gets the _ data_ fields.
 	 *
 	 * @param tableName     the table name
@@ -345,41 +329,24 @@ public class CreateStatementParser
 	 *
 	 * @return the _ data_ fields
 	 */
-	public static LinkedHashMap<String, DataField> getFieldsForTable(String tableName, Vector<String> attributeStrs)
+	public static LinkedHashMap<String, DataField> createTableFields(String tableName, Vector<String> attributeStrs)
 	{
 		LinkedHashMap<String, DataField> fieldsMap = new LinkedHashMap<>();
-		boolean isContainedLwwDataFields = false;
+
 		for(int i = 0; i < attributeStrs.size(); i++)
 		{
-			DataField field = CreateStatementParser.get_Data_Field(tableName, attributeStrs.elementAt(i), i);
+			DataField field = DataFieldParser.createField(tableName, attributeStrs.elementAt(i), i);
 
 			if(fieldsMap.containsKey(field.getFieldName()))
 			{
-				String message = "field " + field.getFieldName() + "is duplicated";
-				RuntimeHelper.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
+				LOG.error("field {} is duplicated", field.getFieldName());
+				RuntimeHelper.throwRunTimeException("duplicated field", ExitCode.DUPLICATED_FIELD);
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
 			LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
-
-			if(CrdtFactory.isLwwType(field.getCrdtType()) && !isContainedLwwDataFields)
-				isContainedLwwDataFields = true;
-
 		}
-		if(isContainedLwwDataFields)
-		{
-			DataField lwwField = DataFieldParser.create_LwwLogicalTimestamp_Data_Field_Instance(tableName,
-					attributeStrs.size());
 
-			if(fieldsMap.containsKey(lwwField.getFieldName()))
-			{
-				String message = "field " + lwwField.getFieldName() + "is duplicated";
-				RuntimeHelper.throwRunTimeException(message, ExitCode.HASHMAPDUPLICATE);
-			}
-
-			fieldsMap.put(lwwField.getFieldName(), lwwField);
-			LOG.trace("field {} from table {} added", lwwField.getFieldName(), lwwField.getTableName());
-		}
 		return fieldsMap;
 	}
 
@@ -537,7 +504,7 @@ public class CreateStatementParser
 		Vector<String> attrStrs = getAttributesStrs(declarations);
 		Vector<String> consStrs = getConstraintStrs(declarations);
 
-		LinkedHashMap<String, DataField> fieldsMap = getFieldsForTable(tableName, attrStrs);
+		LinkedHashMap<String, DataField> fieldsMap = createTableFields(tableName, attrStrs);
 		setFieldsConstraints(fieldsMap, consStrs);
 		return fieldsMap;
 	}
