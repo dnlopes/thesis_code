@@ -113,7 +113,9 @@ public final class ExitCode
 	public static final int UNKNOWN_PRIMITIVE_TYPET = 36;
 	public static final int MULTI_TABLE_UPDATE = 36;
 	public static final int UNEXPECTED_OP = 37;
-	public static final int XML_ERROR = 37;
+	public static final int XML_ERROR = 38;
+	public static final int WRONG_ARGUMENTS_NUMBER = 39;
+
 
 
 

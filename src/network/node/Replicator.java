@@ -9,7 +9,6 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
-import runtime.TransactionId;
 import runtime.operation.ShadowOperation;
 
 import java.sql.Connection;
@@ -34,7 +33,7 @@ public class Replicator extends AbstractNode
 	private Connection originalConn;
 	private Map<String, NodeMetadata> otherReplicators;
 	//saves all txn already committed
-	private Set<TransactionId> committed;
+	private Set<Long> committed;
 	
 	public Replicator(NodeMetadata nodeInfo)
 	{
@@ -78,7 +77,11 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-
+		if(this.alreadyCommitted(shadowOperation.getTxnId()))
+		{
+			LOG.warn("duplicated transaction {}. Ignored.", shadowOperation.getTxnId());
+			return true;
+		}
 		/*	should block until decision is made
 			1- execute locally
 			2- send async to others
@@ -92,7 +95,7 @@ public class Replicator extends AbstractNode
 		return commitDecision;
 	}
 
-	public boolean alreadyCommitted(TransactionId txnId)
+	public boolean alreadyCommitted(Long txnId)
 	{
 		return this.committed.contains(txnId);
 	}
@@ -117,8 +120,7 @@ public class Replicator extends AbstractNode
 			e.printStackTrace();
 			return false;
 		}
-		TransactionId txnId = new TransactionId(shadowOp.getTxnId());
-		this.committed.add(txnId);
+		this.committed.add(shadowOp.getTxnId());
 
 		LOG.info("txn {} committed", shadowOp.getTxnId());
 		return true;

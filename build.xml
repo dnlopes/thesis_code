@@ -1,72 +1,84 @@
 <project name="Main" default="compile" basedir=".">
 
-    <!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
-    <property environment="env"/>
+	<!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
+	<property environment="env" />
 
-    <property name="mysql.host" value="localhost"/>
-    <property name="mysql.port" value="53306"/>
+	<property name="mysql.host" value="localhost" />
+	<property name="mysql.port" value="53306" />
 
-    <!-- TPCW OPTIONS -->
-    <property name="TPCW_NUM_EBS" value="50"/>
-    <property name="TPCW_NUM_ITEMS" value="100"/>
-    <property name="gendb-tpcw" value="applications.tpcw.TPCW_Populate" />
-
-
-    <!-- set properties for this build -->
-    <property name="base.dir" value="."/>
-    <property name="src.dir" value="${base.dir}/src"/>
-    <property name="dist.dir" value="${base.dir}/dist"/>
-    <property name="libs.dir" value="${base.dir}/libs"/>
-    <property name="classes.dir" value="${dist.dir}/classes"/>
+	<!-- TPCW OPTIONS -->
+	<property name="TPCW_NUM_EBS" value="50" />
+	<property name="TPCW_NUM_ITEMS" value="100" />
+	<property name="gendb-tpcw" value="applications.tpcw.TPCW_Populate" />
 
 
-    <!-- PATHS DEFINITIONS -->
-    <path id="dependencies.path">
-        <fileset dir="${libs.dir}">
-            <include name="*.jar"/>
-        </fileset>
-    </path>
-    <path id="runtime.path">
-        <pathelement path="${classes.dir}"/>
-    </path>
+	<!-- set properties for this build -->
+	<property name="base.dir" value="." />
+	<property name="src.dir" value="${base.dir}/src" />
+	<property name="dist.dir" value="${base.dir}/dist" />
+	<property name="libs.dir" value="${base.dir}/libs" />
+	<property name="classes.dir" value="${dist.dir}/classes" />
+	<property name="jars.dir" value="${dist.dir}/jars" />
 
-    <!-- MAIN TASKS -->
 
-    <target name="init" depends="clean">
-        <tstamp/>
-        <mkdir dir="${dist.dir}"/>
-        <mkdir dir="${classes.dir}"/>
-    </target>
 
-    <target name="clean" description="Clean distribution directory">
-        <delete dir="${dist.dir}"/>
-    </target>
+	<!-- PATHS DEFINITIONS -->
+	<path id="dependencies.path">
+		<fileset dir="${libs.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<path id="runtime.path">
+		<pathelement path="${classes.dir}" />
+	</path>
 
-    <target name="compile" depends="init" description="Compile source code">
-        <javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
-            <classpath refid="dependencies.path"/>
-        </javac>
-    </target>
+	<!-- MAIN TASKS -->
 
-    <target name="tpcw-gendb" depends="compile" description="Generate TPCW database">
-        <java classname="${gendb-tpcw}" fork="true" >
-            <arg value="${TPCW_NUM_EBS}"/>
-            <arg value="${TPCW_NUM_ITEMS}"/>
-            <classpath refid="runtime.path"/>
-            <classpath refid="dependencies.path"/>
-        </java>
-    </target>
+	<target name="init" depends="clean">
+		<tstamp />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${jars.dir}" />
+	</target>
 
-    <target name="check-mysql">
-        <echo message="Checking whether MySQL is running..."/>
-        <fail message="MySQL is not running. :(">
-            <condition>
-                <not>
-                    <socket server="${mysql.host}" port="${mysql.port}"/>
-                </not>
-            </condition>
-        </fail>
-        <echo message="MySQL is running :D"/>
-    </target>
+	<target name="clean" description="Clean distribution directory">
+		<delete dir="${dist.dir}" />
+	</target>
+
+	<target name="compile" depends="init" description="Compile source code">
+		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
+			<classpath refid="dependencies.path" />
+		</javac>
+	</target>
+
+	<target name="tpcw-gendb" depends="compile" description="Generate TPCW database">
+		<java classname="${gendb-tpcw}" fork="true">
+			<arg value="${TPCW_NUM_EBS}" />
+			<arg value="${TPCW_NUM_ITEMS}" />
+			<classpath refid="runtime.path" />
+			<classpath refid="dependencies.path" />
+		</java>
+	</target>
+
+	<target name="check-mysql">
+		<echo message="Checking whether MySQL is running..." />
+		<fail message="MySQL is not running. :(">
+			<condition>
+				<not>
+					<socket server="${mysql.host}" port="${mysql.port}" />
+				</not>
+			</condition>
+		</fail>
+		<echo message="MySQL is running :D" />
+	</target>
+
+	<target name="jars" depends="compile" description="Generates jars">
+		<jar destfile="${jars.dir}/Replicator.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="main.ReplicatorMain"/>
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}" />
+		</jar>
+	</target>
 </project>
 

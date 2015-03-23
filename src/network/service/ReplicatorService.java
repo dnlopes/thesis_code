@@ -5,7 +5,6 @@ import network.node.Replicator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.TransactionId;
 import runtime.Utils;
 import runtime.operation.ShadowOperation;
 import util.thrift.ReplicatorRPC;
@@ -29,18 +28,10 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public boolean commitOperation(ThriftOperation thriftOp) throws TException
 	{
+		LOG.trace("received new operation");
 		//here we decide how a operation commit happens.
 		//for now, we commit locally, send to othe replicators but dont wait for their responses
 		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
-
-		TransactionId txnId = new TransactionId(shadowOp.getTxnId());
-
-		if(this.replicator.alreadyCommitted(txnId))
-		{
-			LOG.warn("duplicated transaction {}. Ignoring.", txnId.getId());
-			return true;
-		}
-
 		return this.replicator.commitOperation(shadowOp);
 	}
 
