@@ -12,7 +12,7 @@ import network.ProxyNetwork;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import runtime.Transaction;
 import runtime.TransactionId;
 import runtime.factory.TxnIdFactory;
@@ -150,6 +150,7 @@ public class Proxy extends AbstractNode
 
 	public void prepareToCommit(TransactionId txnId)
 	{
+		LOG.trace("preparing to commit txn {}", txnId.getId());
 
 		IDBScratchpad pad = this.scratchpad.get(txnId);
 		try

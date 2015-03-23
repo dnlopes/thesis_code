@@ -9,10 +9,10 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.*;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
 import util.ExitCode;
+import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.*;

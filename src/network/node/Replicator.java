@@ -8,7 +8,7 @@ import network.server.ReplicatorServerThread;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import runtime.TransactionId;
 import runtime.operation.ShadowOperation;
 

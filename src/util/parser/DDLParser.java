@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import database.util.DatabaseMetadata;
-import runtime.Configuration;
 import util.ExitCode;
 import util.debug.Debug;
 

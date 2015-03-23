@@ -2,7 +2,7 @@ package network.node;
 
 
 import database.util.DatabaseMetadata;
-import runtime.Configuration;
+import util.defaults.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;

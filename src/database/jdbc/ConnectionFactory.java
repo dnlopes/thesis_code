@@ -2,7 +2,7 @@ package database.jdbc;
 
 
 import network.node.NodeMetadata;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.Connection;

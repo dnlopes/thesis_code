@@ -1,4 +1,4 @@
-package runtime;
+package util.defaults;
 
 
 import database.util.DatabaseMetadata;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
+import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.parser.DDLParser;
 

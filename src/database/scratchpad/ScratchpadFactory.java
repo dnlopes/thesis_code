@@ -2,7 +2,7 @@ package database.scratchpad;
 
 
 import org.perf4j.StopWatch;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import util.ObjectPool;
 
 import java.sql.SQLException;

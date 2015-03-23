@@ -2,7 +2,7 @@ package tests;
 
 import database.jdbc.ConnectionFactory;
 import database.scratchpad.IDBScratchpad;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import database.scratchpad.ScratchpadFactory;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;

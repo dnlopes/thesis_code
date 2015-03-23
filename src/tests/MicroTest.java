@@ -1,14 +1,12 @@
 package tests;
 
 
-import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
 import org.xml.sax.SAXException;
-import runtime.Configuration;
+import util.defaults.Configuration;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 

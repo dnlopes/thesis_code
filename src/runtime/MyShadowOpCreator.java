@@ -28,6 +28,7 @@ import util.ExitCode;
 import util.IDFactories.IDFactories;
 import util.IDFactories.IDGenerator;
 import util.debug.Debug;
+import util.defaults.Configuration;
 import util.parser.DDLParser;
 
 import java.io.StringReader;

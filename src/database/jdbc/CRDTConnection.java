@@ -7,6 +7,7 @@ import runtime.*;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.MissingImplementationException;
+import util.defaults.Configuration;
 
 import java.sql.*;
 import java.util.Map;

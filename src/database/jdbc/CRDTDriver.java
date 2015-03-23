@@ -2,11 +2,8 @@ package database.jdbc;
 
 
 import network.node.Proxy;
-import network.node.Replicator;
 import org.apache.thrift.transport.TTransportException;
-import org.perf4j.LoggingStopWatch;
-import org.perf4j.StopWatch;
-import runtime.Configuration;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.*;
