@@ -2,7 +2,7 @@ package network;
 
 
 import network.node.AbstractNode;
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -33,7 +33,7 @@ public class AbstractNetwork
 		this.clients = new HashMap<>();
 	}
 
-	protected void addNode(NodeMedatada newNode) throws TTransportException
+	protected void addNode(NodeMetadata newNode) throws TTransportException
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -46,13 +46,12 @@ public class AbstractNetwork
 			return;
 		}
 
-		TTransport newTransport = new TSocket(newNode.getHost(),
-				newNode.getPort());
+		TTransport newTransport = new TSocket(newNode.getHost(), newNode.getPort());
 
-			newTransport.open();
-			TProtocol protocol = new TBinaryProtocol(newTransport);
-			ReplicatorRPC.Client newClient = new ReplicatorRPC.Client(protocol);
-			this.clients.put(newNode.getName(), newClient);
+		newTransport.open();
+		TProtocol protocol = new TBinaryProtocol(newTransport);
+		ReplicatorRPC.Client newClient = new ReplicatorRPC.Client(protocol);
+		this.clients.put(newNode.getName(), newClient);
 
 		LOG.trace("new node added {}", newNode.getName());
 	}

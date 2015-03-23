@@ -35,17 +35,17 @@ public class Proxy extends AbstractNode
 
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
-	private NodeMedatada replicator;
+	private NodeMetadata replicator;
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
-	private Map<TransactionId, IDBScratchpad> pads;
+	private Map<TransactionId, IDBScratchpad> scratchpad;
 
-	public Proxy(NodeMedatada nodeInfo) throws TTransportException
+	public Proxy(NodeMetadata nodeInfo) throws TTransportException
 	{
 		super(nodeInfo);
 
 		this.transactions = new HashMap<>();
-		this.pads = new HashMap<>();
+		this.scratchpad = new HashMap<>();
 		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
 		this.networkInterface = new ProxyNetwork(this);
 	}
@@ -54,14 +54,14 @@ public class Proxy extends AbstractNode
 			throws SQLException, ScratchpadException, JSQLParserException
 	{
 
-		return this.pads.get(txnId).executeQuery(op);
+		return this.scratchpad.get(txnId).executeQuery(op);
 	}
 
 	public Result executeUpdate(DBSingleOperation op, TransactionId txnId)
 			throws JSQLParserException, SQLException, ScratchpadException
 	{
 
-		return this.pads.get(txnId).executeUpdate(op);
+		return this.scratchpad.get(txnId).executeUpdate(op);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class Proxy extends AbstractNode
 
 		if(txn.isReadOnly())
 		{
-			txn.endTxn();
+			txn.finish();
 			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
 			this.resetTransactionInfo(txnId);
 			return true;
@@ -95,16 +95,18 @@ public class Proxy extends AbstractNode
 
 		if(!txn.isReadyToCommit())
 		{
+			// something went wrong
+			// commit fails
 			this.resetTransactionInfo(txnId);
 			return false;
 		}
 
-		// FIXME: this call MUST NOT block, but for now it DOES block
+		// FIXME: this call MUST NOT block, but for now it DOES
 		boolean commitDecision = this.networkInterface.commitOperation(txn.getShadowOp(), this.replicator);
 
 		if(commitDecision)
 		{
-			txn.endTxn();
+			txn.finish();
 			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
 		} else
 			LOG.error("txn {} failed to commit", txn.getTxnId().getId());
@@ -113,14 +115,14 @@ public class Proxy extends AbstractNode
 		return commitDecision;
 	}
 
-	public void beginTxn(Transaction txn)
+	public void beginTransaction(Transaction txn)
 	{
 		long txnId = TxnIdFactory.getNextId();
 		IDBScratchpad pad = ScratchpadFactory.getInstante().getScratchpad();
 
 		this.transactions.put(txn.getTxnId(), txn);
-		this.pads.put(txn.getTxnId(), pad);
-		txn.beginTxn(txnId);
+		this.scratchpad.put(txn.getTxnId(), pad);
+		txn.start(txnId);
 
 		LOG.info("Beggining txn {}", txnId);
 	}
@@ -129,21 +131,27 @@ public class Proxy extends AbstractNode
 	{
 		Transaction transaction = this.transactions.get(txn);
 		transaction.resetState();
-		IDBScratchpad pad = this.pads.get(txn);
+		IDBScratchpad pad = this.scratchpad.get(txn);
 		try
 		{
 			pad.resetScratchpad();
 		} catch(SQLException e)
 		{
-			LOG.warn("failed to clean scratchpad state {}", pad.getScratchpadId());
+			LOG.warn("failed to clean scratchpad state {}. Reason: {}", pad.getScratchpadId(), e.getMessage());
 			e.printStackTrace();
 		}
+
+		this.transactions.remove(txn);
+		this.scratchpad.remove(txn);
+		ScratchpadFactory.getInstante().releaseScratchpad(pad);
+
+		LOG.trace("txn state cleaned");
 	}
 
 	public void prepareToCommit(TransactionId txnId)
 	{
 
-		IDBScratchpad pad = this.pads.get(txnId);
+		IDBScratchpad pad = this.scratchpad.get(txnId);
 		try
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
@@ -153,7 +161,7 @@ public class Proxy extends AbstractNode
 
 		} catch(SQLException e)
 		{
-			LOG.error("failed to prepare operation for commit");
+			LOG.error("failed to prepare operation {} for commit. Reason: {}", txnId.getId(), e.getMessage());
 			e.printStackTrace();
 		}
 

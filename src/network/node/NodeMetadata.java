@@ -3,7 +3,7 @@ package network.node;
 /**
  * Created by dnlopes on 22/03/15.
  */
-public class NodeMedatada
+public class NodeMetadata
 {
 
 	private int id;
@@ -17,7 +17,7 @@ public class NodeMedatada
 	private int refReplicator;
 
 	// for building replicator
-	public NodeMedatada(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
+	public NodeMetadata(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
 						Role role)
 	{
 		//default for error
@@ -33,7 +33,7 @@ public class NodeMedatada
 	}
 
 	// for building coordinator
-	public NodeMedatada(int id, String host, int port, Role role)
+	public NodeMetadata(int id, String host, int port, Role role)
 	{
 		//default for error
 		this.refReplicator = -1;
@@ -44,7 +44,7 @@ public class NodeMedatada
 	}
 
 	// for building proxy
-	public NodeMedatada(int refReplicator, int id, String host, int port, String dbHost, int dbPort, String dbUser,
+	public NodeMetadata(int refReplicator, int id, String host, int port, String dbHost, int dbPort, String dbUser,
 						String dbPwd, Role role)
 	{
 		this.refReplicator = refReplicator;

@@ -2,7 +2,7 @@ package runtime;
 
 
 import database.util.DatabaseMetadata;
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import network.node.Role;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
@@ -32,9 +32,9 @@ public final class Configuration
 
 	private String CONFIG_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/resources/config.xml";
 
-	private Map<Integer, NodeMedatada> replicators;
-	private Map<Integer, NodeMedatada> proxies;
-	private Map<Integer, NodeMedatada> coordinators;
+	private Map<Integer, NodeMetadata> replicators;
+	private Map<Integer, NodeMetadata> proxies;
+	private Map<Integer, NodeMetadata> coordinators;
 	private DatabaseMetadata databaseMetadata;
 	private String databaseName;
 	private String schemaFile;
@@ -194,7 +194,7 @@ public final class Configuration
 		String hostName = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
 
-		NodeMedatada newCoordinator = new NodeMedatada(Integer.parseInt(id), hostName, Integer.parseInt(port),
+		NodeMetadata newCoordinator = new NodeMetadata(Integer.parseInt(id), hostName, Integer.parseInt(port),
 				Role.COORDINATOR);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
@@ -211,7 +211,7 @@ public final class Configuration
 		String dbUser = map.getNamedItem("dbUser").getNodeValue();
 		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
 
-		NodeMedatada newReplicator = new NodeMedatada(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
+		NodeMetadata newReplicator = new NodeMetadata(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
 				Integer.parseInt(dbPort), dbUser, dbPwd, Role.REPLICATOR);
 
 		replicators.put(Integer.parseInt(id), newReplicator);
@@ -229,23 +229,23 @@ public final class Configuration
 		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
 		String refExecutor = map.getNamedItem("refExecutor").getNodeValue();
 
-		NodeMedatada newProxy = new NodeMedatada(Integer.parseInt(refExecutor), Integer.parseInt(id), hostName,
+		NodeMetadata newProxy = new NodeMetadata(Integer.parseInt(refExecutor), Integer.parseInt(id), hostName,
 				Integer.parseInt(port), dbHost, Integer.parseInt(dbPort), dbUser, dbPwd, Role.PROXY);
 
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public Map<Integer, NodeMedatada> getReplicators()
+	public Map<Integer, NodeMetadata> getReplicators()
 	{
 		return replicators;
 	}
 
-	public Map<Integer, NodeMedatada> getProxies()
+	public Map<Integer, NodeMetadata> getProxies()
 	{
 		return proxies;
 	}
 
-	public Map<Integer, NodeMedatada> getCoordinators()
+	public Map<Integer, NodeMetadata> getCoordinators()
 	{
 		return coordinators;
 	}

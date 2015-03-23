@@ -1,7 +1,7 @@
 package network;
 
 
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import runtime.operation.ShadowOperation;
 
 
@@ -10,5 +10,5 @@ import runtime.operation.ShadowOperation;
  */
 public interface IProxyNetwork extends INetwork
 {
-	public boolean commitOperation(ShadowOperation shadowOp, NodeMedatada node);
+	public boolean commitOperation(ShadowOperation shadowOp, NodeMetadata node);
 }

@@ -78,7 +78,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		String arg0 = this.generateStatement();
 
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		ResultSet rs;
 		try
@@ -107,7 +107,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 		String arg0 = this.generateStatement();
 
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		String[] deterStatements;
 		try

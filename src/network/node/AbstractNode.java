@@ -12,9 +12,11 @@ public abstract class AbstractNode
 	private Role role;
 	private int id;
 	private InetSocketAddress socketAddress;
+	private NodeMetadata metadata;
 
-	public AbstractNode(NodeMedatada nodeInfo)
+	public AbstractNode(NodeMetadata nodeInfo)
 	{
+		this.metadata = nodeInfo;
 		this.id = nodeInfo.getId();
 		this.role = nodeInfo.getRole();
 		this.socketAddress = new InetSocketAddress(nodeInfo.getHost(), nodeInfo.getPort());
@@ -38,6 +40,11 @@ public abstract class AbstractNode
 	public String getName()
 	{
 		return this.role + "-" + this.id;
+	}
+
+	public NodeMetadata getMetadata()
+	{
+		return this.metadata;
 	}
 }
 

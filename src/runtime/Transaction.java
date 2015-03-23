@@ -84,14 +84,14 @@ public class Transaction
 		return this.latency;
 	}
 
-	public void beginTxn(long txnId)
+	public void start(long txnId)
 	{
 		this.txnId.setId(txnId);
 		this.hasBegun = true;
 		this.timer.start();
 	}
 
-	public void endTxn()
+	public void finish()
 	{
 		this.timer.stop();
 		this.latency = this.timer.getElapsedTime();

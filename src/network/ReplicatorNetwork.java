@@ -2,7 +2,7 @@ package network;
 
 
 import network.node.AbstractNode;
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
@@ -21,7 +21,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public void sendOperationAsync(ShadowOperation shadowOp, NodeMedatada node)
+	public void sendOperationAsync(ShadowOperation shadowOp, NodeMetadata node)
 	{
 		//TODO
 	}

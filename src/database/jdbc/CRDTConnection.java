@@ -28,8 +28,8 @@ public class CRDTConnection implements Connection
 
 	public CRDTConnection(Proxy proxy) throws SQLException
 	{
-		this.shdOpCreator = new MyShadowOpCreator(Configuration.getInstance().getSchemaFile(), 1, 1);
 		this.proxy = proxy;
+		this.shdOpCreator = new MyShadowOpCreator(Configuration.getInstance().getSchemaFile(), this.proxy, 1, 1);
 		this.transaction = new Transaction();
 	}
 
@@ -37,7 +37,7 @@ public class CRDTConnection implements Connection
 	public Statement createStatement() throws SQLException
 	{
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		return new CRDTStatement(this.proxy, this.shdOpCreator, this.transaction);
 	}
@@ -46,7 +46,7 @@ public class CRDTConnection implements Connection
 	public PreparedStatement prepareStatement(String sql) throws SQLException
 	{
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		return new CRDTPreparedStatement(sql, this.proxy, this.shdOpCreator, this.transaction);
 	}

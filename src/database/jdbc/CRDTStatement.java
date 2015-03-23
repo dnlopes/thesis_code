@@ -38,7 +38,7 @@ public class CRDTStatement implements Statement
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		ResultSet rs;
 		try
@@ -65,7 +65,7 @@ public class CRDTStatement implements Statement
 	public int executeUpdate(String arg0) throws SQLException
 	{
 		if(!this.transaction.hasBegun())
-			this.proxy.beginTxn(transaction);
+			this.proxy.beginTransaction(transaction);
 
 		String[] deterStatements;
 		try

@@ -18,6 +18,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
+import network.node.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.DBOpEntry;
@@ -84,11 +85,11 @@ public class MyShadowOpCreator
 	 * @param txMudConn
 	 * 		the tx mud conn
 	 */
-	public MyShadowOpCreator(String schemaFilePath, int gPId, int numOfProxies) throws SQLException
+	public MyShadowOpCreator(String schemaFilePath, Proxy proxy, int gPId, int numOfProxies) throws SQLException
 	{
 		if(!isInitialized)
 		{
-			Connection originalConn = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
+			Connection originalConn = ConnectionFactory.getDefaultConnection(proxy.getMetadata());
 			DDLParser sP = new DDLParser(schemaFilePath);
 			databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
 			sP.parseAnnotations();

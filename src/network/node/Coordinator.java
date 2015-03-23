@@ -3,7 +3,6 @@ package network.node;
 
 import database.util.DatabaseMetadata;
 import runtime.Configuration;
-import util.parser.DDLParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +20,7 @@ public class Coordinator extends AbstractNode
 	private Map<String, Set<String>> uniques;
 	private Map<String, Long> autoIncremented;
 
-	public Coordinator(NodeMedatada nodeInfo)
+	public Coordinator(NodeMetadata nodeInfo)
 	{
 		super(nodeInfo);
 		databaseMetadata = Configuration.getInstance().getDatabaseMetadata();

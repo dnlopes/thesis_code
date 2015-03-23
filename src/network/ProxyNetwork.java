@@ -2,7 +2,7 @@ package network;
 
 
 import network.node.AbstractNode;
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, NodeMedatada node)
+	public boolean commitOperation(ShadowOperation shadowOp, NodeMetadata node)
 	{
 		if(!this.clients.containsKey(node.getName()))
 			try

@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import network.node.NodeMedatada;
+import network.node.NodeMetadata;
 import runtime.Configuration;
 import util.defaults.DBDefaults;
 
@@ -35,7 +35,7 @@ public class ConnectionFactory
 		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
-	public static Connection getCRDTConnection(NodeMedatada nodeInfo) throws SQLException
+	public static Connection getCRDTConnection(NodeMetadata nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
 		url.append(nodeInfo.getDbHost());
@@ -73,7 +73,7 @@ public class ConnectionFactory
 		return getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
-	public static Connection getDefaultConnection(NodeMedatada nodeInfo) throws SQLException
+	public static Connection getDefaultConnection(NodeMetadata nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
 		url.append(nodeInfo.getDbHost());
