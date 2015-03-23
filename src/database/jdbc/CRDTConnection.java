@@ -55,14 +55,8 @@ public class CRDTConnection implements Connection
 	@Override
 	public void commit() throws SQLException
 	{
-		this.proxy.prepareToCommit(this.transaction.getTxnId());
-
-		if(!this.transaction.isReadyToCommit())
-			throw new SQLException("failed to prepare shadow operation");
-
 		if(!this.proxy.commit(this.transaction.getTxnId()))
 			throw new SQLException("txn commit failed");
-
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package main;
 
 
 import network.node.Replicator;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -18,8 +17,6 @@ public class ReplicatorMain
 
 	public static void main(String args[])
 	{
-		PropertyConfigurator.configure("log4j.properties");
-
 		if(args.length != 1)
 		{
 			LOG.error("usage: java -jar ReplicatorMain <id>");

@@ -19,14 +19,14 @@ public class CRDTDriver implements Driver
 	private static final int MY_PROXY_ID = 1;
 	private static final int MY_REPLICATOR_ID = 1;
 
-	private static Proxy proxy;
+	private static Proxy PROXY;
 
 	static
 	{
 		try
 		{
 			DriverManager.registerDriver(new CRDTDriver());
-			proxy = new Proxy(Configuration.getInstance().getProxies().get(MY_PROXY_ID));
+			PROXY = new Proxy(Configuration.getInstance().getProxies().get(MY_PROXY_ID));
 
 		} catch(SQLException E)
 		{
@@ -43,7 +43,7 @@ public class CRDTDriver implements Driver
 		// verify URL again, because some apps call Driver.getConnection
 		// which tries directly to connect and do not check url before
 		if(this.acceptsURL(url))
-			return new CRDTConnection(proxy);
+			return new CRDTConnection(PROXY);
 
 		return null;
 	}

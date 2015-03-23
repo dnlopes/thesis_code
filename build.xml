@@ -17,6 +17,7 @@
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="libs.dir" value="${base.dir}/libs" />
+	<property name="resources.dir" value="${base.dir}/resources" />
 	<property name="classes.dir" value="${dist.dir}/classes" />
 	<property name="jars.dir" value="${dist.dir}/jars" />
 
@@ -73,11 +74,14 @@
 	</target>
 
 	<target name="jars" depends="compile" description="Generates jars">
-		<jar destfile="${jars.dir}/Replicator.jar" basedir="${classes.dir}">
+		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="main.ReplicatorMain"/>
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="*.properties"/>
+			</fileset>
 		</jar>
 	</target>
 </project>

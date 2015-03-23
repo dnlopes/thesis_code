@@ -2,15 +2,15 @@
 <config>
     <topology replicatorNum="2" executorsNum="2">
         <replicators>
-            <replicator id="1" host="localhost" port="50000" dbHost="172.16.24.154" dbPort="3306" dbUser="sa"
+            <replicator id="1" host="localhost" port="50000" dbHost="172.16.24.155" dbPort="3306" dbUser="sa"
                         dbPwd="101010"/>
-            <replicator id="2" host="localhost" port="50001" dbHost="172.16.24.154" dbPort="3306" dbUser="sa"
+            <replicator id="2" host="localhost" port="50001" dbHost="172.16.24.155" dbPort="3306" dbUser="sa"
                         dbPwd="101010"/>
         </replicators>
         <proxies>
-            <proxy id="1" host="localhost" port="50005" dbHost="172.16.24.154" dbPort="3306" dbUser="sa"
+            <proxy id="1" host="localhost" port="50005" dbHost="172.16.24.155" dbPort="3306" dbUser="sa"
                       dbPwd="101010" refExecutor="1"/>
-            <proxy id="2" host="localhost" port="50006" dbHost="172.16.24.154" dbPort="3306" dbUser="sa"
+            <proxy id="2" host="localhost" port="50006" dbHost="172.16.24.155" dbPort="3306" dbUser="sa"
                       dbPwd="101010" refExecutor="2"/>
         </proxies>
 		<coordinators>
