@@ -2,6 +2,7 @@ package network;
 
 
 import network.node.NodeMetadata;
+import network.node.Role;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -9,6 +10,9 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.RuntimeHelper;
+import util.ExitCode;
+import util.thrift.CoordinatorRPC;
 import util.thrift.ReplicatorRPC;
 
 import java.util.HashMap;
@@ -24,12 +28,16 @@ public class AbstractNetwork
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
 	protected NodeMetadata me;
-	protected Map<String, ReplicatorRPC.Client> clients;
+	protected Map<String, ReplicatorRPC.Client> replicatorsClients;
+	protected Map<String, CoordinatorRPC.Client> coordinatorsClients;
+
 
 	public AbstractNetwork(NodeMetadata node)
 	{
 		this.me = node;
-		this.clients = new HashMap<>();
+		this.replicatorsClients = new HashMap<>();
+		this.coordinatorsClients = new HashMap<>();
+
 	}
 
 	protected void addNode(NodeMetadata newNode) throws TTransportException
@@ -39,7 +47,20 @@ public class AbstractNetwork
 			LOG.warn("should not be adding myself to the nodes list");
 			return;
 		}
-		if(this.clients.containsKey(newNode.getName()))
+
+		if(newNode.getRole() == Role.COORDINATOR)
+			this.addCoordinatorNode(newNode);
+		else if(newNode.getRole() == Role.REPLICATOR)
+			this.addReplicatorNode(newNode);
+		else
+			RuntimeHelper.throwRunTimeException("unexpected node type", ExitCode.UNEXPECTED_OP);
+
+		LOG.trace("new node added {}", newNode.getName());
+	}
+
+	private void addReplicatorNode(NodeMetadata newNode) throws TTransportException
+	{
+		if(this.replicatorsClients.containsKey(newNode.getName()))
 		{
 			LOG.warn("already have this node {}", newNode.getName());
 			return;
@@ -50,8 +71,22 @@ public class AbstractNetwork
 		newTransport.open();
 		TProtocol protocol = new TBinaryProtocol(newTransport);
 		ReplicatorRPC.Client newClient = new ReplicatorRPC.Client(protocol);
-		this.clients.put(newNode.getName(), newClient);
+		this.replicatorsClients.put(newNode.getName(), newClient);
+	}
 
-		LOG.trace("new node added {}", newNode.getName());
+	private void addCoordinatorNode(NodeMetadata newNode) throws TTransportException
+	{
+		if(this.coordinatorsClients.containsKey(newNode.getName()))
+		{
+			LOG.warn("already have this node {}", newNode.getName());
+			return;
+		}
+
+		TTransport newTransport = new TSocket(newNode.getHost(), newNode.getPort());
+
+		newTransport.open();
+		TProtocol protocol = new TBinaryProtocol(newTransport);
+		CoordinatorRPC.Client newClient = new CoordinatorRPC.Client(protocol);
+		this.coordinatorsClients.put(newNode.getName(), newClient);
 	}
 }

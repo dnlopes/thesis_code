@@ -38,8 +38,7 @@ import org.slf4j.LoggerFactory;
 public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessage, InvariantMessage._Fields>, java.io.Serializable, Cloneable, Comparable<InvariantMessage> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("InvariantMessage");
 
-  private static final org.apache.thrift.protocol.TField MESSAGE_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("messageType", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField INVARIANTS_FIELD_DESC = new org.apache.thrift.protocol.TField("invariants", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField CHECK_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("checkList", org.apache.thrift.protocol.TType.LIST, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,21 +46,11 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     schemes.put(TupleScheme.class, new InvariantMessageTupleSchemeFactory());
   }
 
-  /**
-   * 
-   * @see InvariantCheckType
-   */
-  public InvariantCheckType messageType; // required
-  public List<Invariant> invariants; // required
+  public List<CheckInvariantThrift> checkList; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    /**
-     * 
-     * @see InvariantCheckType
-     */
-    MESSAGE_TYPE((short)1, "messageType"),
-    INVARIANTS((short)2, "invariants");
+    CHECK_LIST((short)1, "checkList");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -76,10 +65,8 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // MESSAGE_TYPE
-          return MESSAGE_TYPE;
-        case 2: // INVARIANTS
-          return INVARIANTS;
+        case 1: // CHECK_LIST
+          return CHECK_LIST;
         default:
           return null;
       }
@@ -123,11 +110,9 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.MESSAGE_TYPE, new org.apache.thrift.meta_data.FieldMetaData("messageType", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, InvariantCheckType.class)));
-    tmpMap.put(_Fields.INVARIANTS, new org.apache.thrift.meta_data.FieldMetaData("invariants", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.CHECK_LIST, new org.apache.thrift.meta_data.FieldMetaData("checkList", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Invariant.class))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CheckInvariantThrift.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(InvariantMessage.class, metaDataMap);
   }
@@ -136,27 +121,22 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
   }
 
   public InvariantMessage(
-    InvariantCheckType messageType,
-    List<Invariant> invariants)
+    List<CheckInvariantThrift> checkList)
   {
     this();
-    this.messageType = messageType;
-    this.invariants = invariants;
+    this.checkList = checkList;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public InvariantMessage(InvariantMessage other) {
-    if (other.isSetMessageType()) {
-      this.messageType = other.messageType;
-    }
-    if (other.isSetInvariants()) {
-      List<Invariant> __this__invariants = new ArrayList<Invariant>(other.invariants.size());
-      for (Invariant other_element : other.invariants) {
-        __this__invariants.add(new Invariant(other_element));
+    if (other.isSetCheckList()) {
+      List<CheckInvariantThrift> __this__checkList = new ArrayList<CheckInvariantThrift>(other.checkList.size());
+      for (CheckInvariantThrift other_element : other.checkList) {
+        __this__checkList.add(new CheckInvariantThrift(other_element));
       }
-      this.invariants = __this__invariants;
+      this.checkList = __this__checkList;
     }
   }
 
@@ -166,96 +146,55 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
 
   @Override
   public void clear() {
-    this.messageType = null;
-    this.invariants = null;
+    this.checkList = null;
   }
 
-  /**
-   * 
-   * @see InvariantCheckType
-   */
-  public InvariantCheckType getMessageType() {
-    return this.messageType;
+  public int getCheckListSize() {
+    return (this.checkList == null) ? 0 : this.checkList.size();
   }
 
-  /**
-   * 
-   * @see InvariantCheckType
-   */
-  public InvariantMessage setMessageType(InvariantCheckType messageType) {
-    this.messageType = messageType;
+  public java.util.Iterator<CheckInvariantThrift> getCheckListIterator() {
+    return (this.checkList == null) ? null : this.checkList.iterator();
+  }
+
+  public void addToCheckList(CheckInvariantThrift elem) {
+    if (this.checkList == null) {
+      this.checkList = new ArrayList<CheckInvariantThrift>();
+    }
+    this.checkList.add(elem);
+  }
+
+  public List<CheckInvariantThrift> getCheckList() {
+    return this.checkList;
+  }
+
+  public InvariantMessage setCheckList(List<CheckInvariantThrift> checkList) {
+    this.checkList = checkList;
     return this;
   }
 
-  public void unsetMessageType() {
-    this.messageType = null;
+  public void unsetCheckList() {
+    this.checkList = null;
   }
 
-  /** Returns true if field messageType is set (has been assigned a value) and false otherwise */
-  public boolean isSetMessageType() {
-    return this.messageType != null;
+  /** Returns true if field checkList is set (has been assigned a value) and false otherwise */
+  public boolean isSetCheckList() {
+    return this.checkList != null;
   }
 
-  public void setMessageTypeIsSet(boolean value) {
+  public void setCheckListIsSet(boolean value) {
     if (!value) {
-      this.messageType = null;
-    }
-  }
-
-  public int getInvariantsSize() {
-    return (this.invariants == null) ? 0 : this.invariants.size();
-  }
-
-  public java.util.Iterator<Invariant> getInvariantsIterator() {
-    return (this.invariants == null) ? null : this.invariants.iterator();
-  }
-
-  public void addToInvariants(Invariant elem) {
-    if (this.invariants == null) {
-      this.invariants = new ArrayList<Invariant>();
-    }
-    this.invariants.add(elem);
-  }
-
-  public List<Invariant> getInvariants() {
-    return this.invariants;
-  }
-
-  public InvariantMessage setInvariants(List<Invariant> invariants) {
-    this.invariants = invariants;
-    return this;
-  }
-
-  public void unsetInvariants() {
-    this.invariants = null;
-  }
-
-  /** Returns true if field invariants is set (has been assigned a value) and false otherwise */
-  public boolean isSetInvariants() {
-    return this.invariants != null;
-  }
-
-  public void setInvariantsIsSet(boolean value) {
-    if (!value) {
-      this.invariants = null;
+      this.checkList = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case MESSAGE_TYPE:
+    case CHECK_LIST:
       if (value == null) {
-        unsetMessageType();
+        unsetCheckList();
       } else {
-        setMessageType((InvariantCheckType)value);
-      }
-      break;
-
-    case INVARIANTS:
-      if (value == null) {
-        unsetInvariants();
-      } else {
-        setInvariants((List<Invariant>)value);
+        setCheckList((List<CheckInvariantThrift>)value);
       }
       break;
 
@@ -264,11 +203,8 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case MESSAGE_TYPE:
-      return getMessageType();
-
-    case INVARIANTS:
-      return getInvariants();
+    case CHECK_LIST:
+      return getCheckList();
 
     }
     throw new IllegalStateException();
@@ -281,10 +217,8 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     }
 
     switch (field) {
-    case MESSAGE_TYPE:
-      return isSetMessageType();
-    case INVARIANTS:
-      return isSetInvariants();
+    case CHECK_LIST:
+      return isSetCheckList();
     }
     throw new IllegalStateException();
   }
@@ -302,21 +236,12 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     if (that == null)
       return false;
 
-    boolean this_present_messageType = true && this.isSetMessageType();
-    boolean that_present_messageType = true && that.isSetMessageType();
-    if (this_present_messageType || that_present_messageType) {
-      if (!(this_present_messageType && that_present_messageType))
+    boolean this_present_checkList = true && this.isSetCheckList();
+    boolean that_present_checkList = true && that.isSetCheckList();
+    if (this_present_checkList || that_present_checkList) {
+      if (!(this_present_checkList && that_present_checkList))
         return false;
-      if (!this.messageType.equals(that.messageType))
-        return false;
-    }
-
-    boolean this_present_invariants = true && this.isSetInvariants();
-    boolean that_present_invariants = true && that.isSetInvariants();
-    if (this_present_invariants || that_present_invariants) {
-      if (!(this_present_invariants && that_present_invariants))
-        return false;
-      if (!this.invariants.equals(that.invariants))
+      if (!this.checkList.equals(that.checkList))
         return false;
     }
 
@@ -327,15 +252,10 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_messageType = true && (isSetMessageType());
-    list.add(present_messageType);
-    if (present_messageType)
-      list.add(messageType.getValue());
-
-    boolean present_invariants = true && (isSetInvariants());
-    list.add(present_invariants);
-    if (present_invariants)
-      list.add(invariants);
+    boolean present_checkList = true && (isSetCheckList());
+    list.add(present_checkList);
+    if (present_checkList)
+      list.add(checkList);
 
     return list.hashCode();
   }
@@ -348,22 +268,12 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetMessageType()).compareTo(other.isSetMessageType());
+    lastComparison = Boolean.valueOf(isSetCheckList()).compareTo(other.isSetCheckList());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMessageType()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.messageType, other.messageType);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetInvariants()).compareTo(other.isSetInvariants());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetInvariants()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.invariants, other.invariants);
+    if (isSetCheckList()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkList, other.checkList);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -388,19 +298,11 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     StringBuilder sb = new StringBuilder("InvariantMessage(");
     boolean first = true;
 
-    sb.append("messageType:");
-    if (this.messageType == null) {
+    sb.append("checkList:");
+    if (this.checkList == null) {
       sb.append("null");
     } else {
-      sb.append(this.messageType);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("invariants:");
-    if (this.invariants == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.invariants);
+      sb.append(this.checkList);
     }
     first = false;
     sb.append(")");
@@ -409,11 +311,8 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (messageType == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'messageType' was not present! Struct: " + toString());
-    }
-    if (invariants == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'invariants' was not present! Struct: " + toString());
+    if (checkList == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'checkList' was not present! Struct: " + toString());
     }
     // check for sub-struct validity
   }
@@ -452,29 +351,21 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
           break;
         }
         switch (schemeField.id) {
-          case 1: // MESSAGE_TYPE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.messageType = util.thrift.InvariantCheckType.findByValue(iprot.readI32());
-              struct.setMessageTypeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // INVARIANTS
+          case 1: // CHECK_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.invariants = new ArrayList<Invariant>(_list0.size);
-                Invariant _elem1;
+                struct.checkList = new ArrayList<CheckInvariantThrift>(_list0.size);
+                CheckInvariantThrift _elem1;
                 for (int _i2 = 0; _i2 < _list0.size; ++_i2)
                 {
-                  _elem1 = new Invariant();
+                  _elem1 = new CheckInvariantThrift();
                   _elem1.read(iprot);
-                  struct.invariants.add(_elem1);
+                  struct.checkList.add(_elem1);
                 }
                 iprot.readListEnd();
               }
-              struct.setInvariantsIsSet(true);
+              struct.setCheckListIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -494,16 +385,11 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.messageType != null) {
-        oprot.writeFieldBegin(MESSAGE_TYPE_FIELD_DESC);
-        oprot.writeI32(struct.messageType.getValue());
-        oprot.writeFieldEnd();
-      }
-      if (struct.invariants != null) {
-        oprot.writeFieldBegin(INVARIANTS_FIELD_DESC);
+      if (struct.checkList != null) {
+        oprot.writeFieldBegin(CHECK_LIST_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.invariants.size()));
-          for (Invariant _iter3 : struct.invariants)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.checkList.size()));
+          for (CheckInvariantThrift _iter3 : struct.checkList)
           {
             _iter3.write(oprot);
           }
@@ -528,10 +414,9 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, InvariantMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeI32(struct.messageType.getValue());
       {
-        oprot.writeI32(struct.invariants.size());
-        for (Invariant _iter4 : struct.invariants)
+        oprot.writeI32(struct.checkList.size());
+        for (CheckInvariantThrift _iter4 : struct.checkList)
         {
           _iter4.write(oprot);
         }
@@ -541,20 +426,18 @@ public class InvariantMessage implements org.apache.thrift.TBase<InvariantMessag
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, InvariantMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.messageType = util.thrift.InvariantCheckType.findByValue(iprot.readI32());
-      struct.setMessageTypeIsSet(true);
       {
         org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.invariants = new ArrayList<Invariant>(_list5.size);
-        Invariant _elem6;
+        struct.checkList = new ArrayList<CheckInvariantThrift>(_list5.size);
+        CheckInvariantThrift _elem6;
         for (int _i7 = 0; _i7 < _list5.size; ++_i7)
         {
-          _elem6 = new Invariant();
+          _elem6 = new CheckInvariantThrift();
           _elem6.read(iprot);
-          struct.invariants.add(_elem6);
+          struct.checkList.add(_elem6);
         }
       }
-      struct.setInvariantsIsSet(true);
+      struct.setCheckListIsSet(true);
     }
   }
 

@@ -14,8 +14,7 @@ import org.apache.thrift.TEnum;
 public enum MessageType implements org.apache.thrift.TEnum {
   COMMIT(1),
   REQUEST_TXN(2),
-  VALIDATE(3),
-  INVARIANT(4);
+  VALIDATE(3);
 
   private final int value;
 
@@ -42,8 +41,6 @@ public enum MessageType implements org.apache.thrift.TEnum {
         return REQUEST_TXN;
       case 3:
         return VALIDATE;
-      case 4:
-        return INVARIANT;
       default:
         return null;
     }

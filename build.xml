@@ -83,6 +83,15 @@
 				<include name="*.properties"/>
 			</fileset>
 		</jar>
+		<jar destfile="${jars.dir}/coordinator.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="main.CoordinatorMain"/>
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="*.properties"/>
+			</fileset>
+		</jar>
 	</target>
 </project>
 

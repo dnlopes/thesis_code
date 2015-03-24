@@ -1,30 +1,37 @@
-namespace java thrift
+namespace java util.thrift
 
 
-enum InvariantCheckType {
-    CHECK_UNIQUE = 1,
-    GET_ID = 2
+enum CheckInvariantType {
+    UNIQUE,
+    FOREIGN_KEY,
+    GREATHER_THAN,
+    LESSER_THAN,
+    DELETE_VALUE,
+    DELTA,
+    REQUEST_VALUE
 }
+
 
 enum MessageType {
  COMMIT = 1,
  REQUEST_TXN = 2,
  VALIDATE = 3,
- INVARIANT = 4
 }
 
 typedef list<String> TweetList
 
-struct Invariant {
-    1: required string tableName;
-    2: required string fieldName;
-    3: string value;
-    4: required string success;
+struct CheckInvariantThrift {
+    1: required CheckInvariantType type;
+    2: required i32 id;
+    3: required string fieldName;
+    4: required string tableName;
+    5: string value;
+    6: string resquestedValue;
+    7: bool success;
 }
 
 struct InvariantMessage{
- 1: required InvariantCheckType messageType;
- 2: required list<Invariant> invariants;
+ 1: required list<CheckInvariantThrift> checkList;
 }
 
 
@@ -39,4 +46,7 @@ service ReplicatorRPC {
  oneway void commitOperationAsync(1:ThriftOperation op);
 }
 
-//service CoordinatorRPC {}
+service CoordinatorRPC {
+
+    list<CheckInvariantThrift> checkInvariants(1:list<CheckInvariantThrift> checkList);
+}

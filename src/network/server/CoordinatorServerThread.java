@@ -2,8 +2,7 @@ package network.server;
 
 
 import network.node.Coordinator;
-import network.node.Replicator;
-import network.service.ReplicatorService;
+import network.service.CoordinatorService;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
@@ -11,7 +10,7 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.thrift.ReplicatorRPC;
+import util.thrift.CoordinatorRPC;
 
 
 /**
@@ -23,15 +22,15 @@ public class CoordinatorServerThread implements Runnable
 	static final Logger LOG = LoggerFactory.getLogger(CoordinatorServerThread.class);
 
 	private Coordinator me;
-	private ReplicatorService handler;
-	private ReplicatorRPC.Processor processor;
+	private CoordinatorService handler;
+	private CoordinatorRPC.Processor processor;
 	private TServer server;
 
 	public CoordinatorServerThread(Coordinator node) throws TTransportException
 	{
 		this.me = node;
-		//this.handler = new ReplicatorService(this.me);
-		this.processor = new ReplicatorRPC.Processor(handler);
+		this.handler = new CoordinatorService(this.me);
+		this.processor = new CoordinatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
 		this.server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
 	}
@@ -39,7 +38,7 @@ public class CoordinatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		LOG.info("starting replicator server on port {}", this.me.getSocketAddress().getPort());
+		LOG.info("starting coordinator server on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}
 }

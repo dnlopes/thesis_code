@@ -1,8 +1,12 @@
 package network;
 
 
+import database.invariants.CheckInvariantItem;
 import network.node.NodeMetadata;
+import org.apache.thrift.TException;
 import runtime.operation.ShadowOperation;
+
+import java.util.List;
 
 
 /**
@@ -11,4 +15,6 @@ import runtime.operation.ShadowOperation;
 public interface IProxyNetwork extends INetwork
 {
 	public boolean commitOperation(ShadowOperation shadowOp, NodeMetadata node);
+
+	public List<CheckInvariantItem> checkInvariants(List<CheckInvariantItem> checkList, NodeMetadata node) throws TException;
 }

@@ -11,13 +11,18 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum InvariantCheckType implements org.apache.thrift.TEnum {
-  CHECK_UNIQUE(1),
-  GET_ID(2);
+public enum CheckInvariantType implements org.apache.thrift.TEnum {
+  UNIQUE(0),
+  FOREIGN_KEY(1),
+  GREATHER_THAN(2),
+  LESSER_THAN(3),
+  DELETE_VALUE(4),
+  DELTA(5),
+  REQUEST_VALUE(6);
 
   private final int value;
 
-  private InvariantCheckType(int value) {
+  private CheckInvariantType(int value) {
     this.value = value;
   }
 
@@ -32,12 +37,22 @@ public enum InvariantCheckType implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static InvariantCheckType findByValue(int value) { 
+  public static CheckInvariantType findByValue(int value) { 
     switch (value) {
+      case 0:
+        return UNIQUE;
       case 1:
-        return CHECK_UNIQUE;
+        return FOREIGN_KEY;
       case 2:
-        return GET_ID;
+        return GREATHER_THAN;
+      case 3:
+        return LESSER_THAN;
+      case 4:
+        return DELETE_VALUE;
+      case 5:
+        return DELTA;
+      case 6:
+        return REQUEST_VALUE;
       default:
         return null;
     }

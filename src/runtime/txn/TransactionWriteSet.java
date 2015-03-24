@@ -3,7 +3,6 @@ package runtime.txn;
 
 import database.invariants.*;
 import database.util.DataField;
-
 import database.util.DatabaseTable;
 import runtime.RuntimeHelper;
 import util.ExitCode;
@@ -22,7 +21,7 @@ public class TransactionWriteSet
 
 	private Map<String, TableWriteSet> writeSet;
 	private List<String> statements;
-	private List<CheckInvariant> invariantsToCheck;
+	private List<CheckInvariantItem> invariantsToCheck;
 	private List<TupleWriteSet> modifiedTuples;
 
 	public TransactionWriteSet()
@@ -51,6 +50,11 @@ public class TransactionWriteSet
 	public List<String> getStatements()
 	{
 		return this.statements;
+	}
+
+	public List<CheckInvariantItem> getInvariantsList()
+	{
+		return this.invariantsToCheck;
 	}
 
 	private void generateUpdates(List<String> allStatements) throws SQLException
@@ -186,7 +190,8 @@ public class TransactionWriteSet
 				switch(inv.getType())
 				{
 				case UNIQUE:
-					UniqueValue newInvReq = new UniqueValue(rowId, tableName, fieldName, newModifiedFields.get
+					UniqueValue newInvReq = new UniqueValue(rowId, this.invariantsToCheck.size(), tableName, fieldName,
+							newModifiedFields.get
 							(fieldName));
 					this.invariantsToCheck.add(newInvReq);
 					break;
@@ -201,7 +206,7 @@ public class TransactionWriteSet
 					if(delta1 < 0)
 					//not safe to execute locally, must coordinate
 					{
-						DeltaValue deltaValue = new DeltaValue(rowId, tableName, fieldName, Double.toString(delta1));
+						DeltaValue deltaValue = new DeltaValue(rowId, this.invariantsToCheck.size(), tableName, fieldName, Double.toString(delta1));
 						this.invariantsToCheck.add(deltaValue);
 					}
 					break;
@@ -212,7 +217,7 @@ public class TransactionWriteSet
 					if(delta2 > 0)
 					//not safe to execute locally, must coordinate
 					{
-						DeltaValue deltaValue = new DeltaValue(rowId, tableName, fieldName, Double.toString(delta2));
+						DeltaValue deltaValue = new DeltaValue(rowId, this.invariantsToCheck.size(), tableName, fieldName, Double.toString(delta2));
 						this.invariantsToCheck.add(deltaValue);
 					}
 					break;

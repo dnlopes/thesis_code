@@ -1,10 +1,12 @@
 package network.node;
 
 
+import database.invariants.CheckInvariantItem;
 import database.jdbc.Result;
 import database.scratchpad.ScratchpadFactory;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
+import org.apache.thrift.TException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 import runtime.txn.TransactionWriteSet;
@@ -24,6 +26,7 @@ import runtime.operation.ShadowOperation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -38,6 +41,7 @@ public class Proxy extends AbstractNode
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
 	private NodeMetadata replicator;
+	private NodeMetadata coordinator;
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> scratchpad;
@@ -49,6 +53,7 @@ public class Proxy extends AbstractNode
 		this.transactions = new HashMap<>();
 		this.scratchpad = new HashMap<>();
 		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
+		this.coordinator = Configuration.getInstance().getCoordinators().get(1);
 		this.networkInterface = new ProxyNetwork(this.getMetadata());
 	}
 
@@ -161,11 +166,16 @@ public class Proxy extends AbstractNode
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
 			writeSet.verifyInvariants();
+			List<CheckInvariantItem> checkList = writeSet.getInvariantsList();
+			//if we must coordinate then do it here. this is a blocking call
+			if(checkList.size() > 0)
+				this.networkInterface.checkInvariants(checkList, this.coordinator);
+
 			writeSet.generateMinimalStatements();
 			ShadowOperation shadowOp = new ShadowOperation(txnId.getId(), writeSet.getStatements());
 			this.transactions.get(txnId).setReadyToCommit(shadowOp);
 
-		} catch(SQLException e)
+		} catch(SQLException | TException e)
 		{
 			LOG.error("failed to prepare operation {} for commit. Reason: {}", txnId.getId(), e.getMessage());
 			e.printStackTrace();

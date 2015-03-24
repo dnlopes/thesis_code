@@ -2,11 +2,15 @@ package network.node;
 
 
 import database.util.DatabaseMetadata;
-import network.ICoordinatorNetwork;
-import network.IReplicatorNetwork;
+import network.server.CoordinatorServerThread;
+import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
+import util.thrift.CheckInvariantThrift;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,12 +20,14 @@ import java.util.Set;
  */
 public class Coordinator extends AbstractNode
 {
+	static final Logger LOG = LoggerFactory.getLogger(Coordinator.class);
+
 
 	private DatabaseMetadata databaseMetadata;
-	private ICoordinatorNetwork networkInterface;
-
 	private Map<String, Set<String>> uniques;
 	private Map<String, Long> autoIncremented;
+	private CoordinatorServerThread serverThread;
+
 
 	public Coordinator(NodeMetadata nodeInfo)
 	{
@@ -30,12 +36,21 @@ public class Coordinator extends AbstractNode
 		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
 		this.uniques = new HashMap<>();
 		this.autoIncremented = new HashMap<>();
-		this.setup();
+
+		try
+		{
+			this.serverThread = new CoordinatorServerThread(this);
+			new Thread(this.serverThread).start();
+		} catch(TTransportException e)
+		{
+			LOG.error("failed to create background thread on replicator {}", this.getName());
+			e.printStackTrace();
+		}
 	}
 
-	private void setup()
+	public void processInvariants(List<CheckInvariantThrift> checkList)
 	{
-
+		LOG.trace("processing invariants list");
 	}
 
 
