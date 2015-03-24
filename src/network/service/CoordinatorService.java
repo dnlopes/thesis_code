@@ -31,6 +31,6 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	{
 		LOG.trace("received new invariants list to verify");
 		this.coordinator.processInvariants(checkList);
-		return null;
+		return checkList;
 	}
 }
