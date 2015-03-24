@@ -20,7 +20,7 @@ package runtime.operation;
 
 import java.util.List;
 
-import database.invariants.CheckInvariantItem;
+import database.constraints.CheckInvariantItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

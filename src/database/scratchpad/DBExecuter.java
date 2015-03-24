@@ -1,9 +1,9 @@
 package database.scratchpad;
 
 
-import database.invariants.GreaterThanInvariant;
-import database.invariants.Invariant;
-import database.invariants.LesserThanInvariant;
+import database.constraints.AbstractConstraint;
+import database.constraints.Constraint;
+import database.constraints.check.CheckConstraint;
 import database.jdbc.Result;
 import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
@@ -1344,13 +1344,9 @@ public class DBExecuter implements IExecuter
 
 	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolated
 	{
-		for(Invariant inv : field.getInvariants())
+		for(Constraint constraint: field.getInvariants())
 		{
-			if(inv instanceof GreaterThanInvariant)
-				if(((GreaterThanInvariant) inv).isViolated(newValue))
-					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
-			if(inv instanceof LesserThanInvariant)
-				if(((LesserThanInvariant) inv).isViolated(newValue))
+			if(!((CheckConstraint) constraint).isValidValue(newValue))
 					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
 		}
 	}

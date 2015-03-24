@@ -1,0 +1,51 @@
+package network;
+
+import java.net.InetSocketAddress;
+
+
+/**
+ * Created by dnlopes on 15/03/15.
+ */
+public abstract class AbstractNode
+{
+
+	private Role role;
+	private int id;
+	private InetSocketAddress socketAddress;
+	private NodeMetadata metadata;
+
+	public AbstractNode(NodeMetadata nodeInfo)
+	{
+		this.metadata = nodeInfo;
+		this.id = nodeInfo.getId();
+		this.role = nodeInfo.getRole();
+		this.socketAddress = new InetSocketAddress(nodeInfo.getHost(), nodeInfo.getPort());
+	}
+
+	public Role getRole()
+	{
+		return this.role;
+	}
+
+	public int getId()
+	{
+		return this.id;
+	}
+
+	public InetSocketAddress getSocketAddress()
+	{
+		return this.socketAddress;
+	}
+
+	public String getName()
+	{
+		return this.role + "-" + this.id;
+	}
+
+	public NodeMetadata getMetadata()
+	{
+		return this.metadata;
+	}
+}
+
+

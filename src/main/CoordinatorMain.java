@@ -1,8 +1,7 @@
 package main;
 
 
-import network.node.Coordinator;
-import network.node.Replicator;
+import network.coordinator.Coordinator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;

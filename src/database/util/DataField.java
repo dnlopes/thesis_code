@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import database.invariants.Invariant;
+import database.constraints.Constraint;
 
 
 /**
@@ -14,7 +14,7 @@ import database.invariants.Invariant;
 public abstract class DataField
 {
 
-	private List<Invariant> invariants;
+	private List<Constraint> invariants;
 	private CrdtDataFieldType crdtDataType;
 	private String fieldName;
 	private String tableName;
@@ -110,12 +110,12 @@ public abstract class DataField
 		return this.position;
 	}
 
-	public List<Invariant> getInvariants()
+	public List<Constraint> getInvariants()
 	{
 		return this.invariants;
 	}
 
-	public void addInvariant(Invariant inv)
+	public void addInvariant(Constraint inv)
 	{
 		this.invariants.add(inv);
 	}

@@ -2,8 +2,8 @@ package util.defaults;
 
 
 import database.util.DatabaseMetadata;
-import network.node.NodeMetadata;
-import network.node.Role;
+import network.NodeMetadata;
+import network.Role;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

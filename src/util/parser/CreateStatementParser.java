@@ -2,14 +2,20 @@
  * This class defines methods to parse a create table statement, for example
  * it will return the table name, and return attributes list.
  */
+
 package util.parser;
+
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
-import database.invariants.*;
+import database.constraints.*;
+import database.constraints.check.*;
+import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.unique.UniqueConstraint;
+import database.util.CrdtDataFieldType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -19,7 +25,6 @@ import util.debug.Debug;
 import database.util.table.AosetTable;
 import database.util.table.ArsetTable;
 import database.util.table.AusetTable;
-import crdtlib.CrdtFactory;
 import database.util.table.READONLY_Table;
 import database.util.table.UosetTable;
 import database.util.CrdtTableType;
@@ -38,7 +43,8 @@ public class CreateStatementParser
 	/**
 	 * Checks if is _ create_ table_ statement.
 	 *
-	 * @param schemaStr the schema str
+	 * @param schemaStr
+	 * 		the schema str
 	 *
 	 * @return true, if is _ create_ table_ statement
 	 */
@@ -50,7 +56,8 @@ public class CreateStatementParser
 	/**
 	 * Create_ table_ instance.
 	 *
-	 * @param schemaStr the schema str
+	 * @param schemaStr
+	 * 		the schema str
 	 *
 	 * @return the database table
 	 */
@@ -103,7 +110,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ table_ title_ string.
 	 *
-	 * @param schemaStr the schema str
+	 * @param schemaStr
+	 * 		the schema str
 	 *
 	 * @return the _ table_ title_ string
 	 */
@@ -116,7 +124,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ table_ body_ string.
 	 *
-	 * @param schemaStr the schema str
+	 * @param schemaStr
+	 * 		the schema str
 	 *
 	 * @return the _ table_ body_ string
 	 */
@@ -136,7 +145,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ table_ type_ annotation.
 	 *
-	 * @param titleStr the title str
+	 * @param titleStr
+	 * 		the title str
 	 *
 	 * @return the _ table_ type_ annotation
 	 */
@@ -153,7 +163,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ table_ type.
 	 *
-	 * @param titleStr the title str
+	 * @param titleStr
+	 * 		the title str
 	 *
 	 * @return the _ table_ type
 	 */
@@ -171,7 +182,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ table_ name.
 	 *
-	 * @param titleStr the title str
+	 * @param titleStr
+	 * 		the title str
 	 *
 	 * @return the _ table_ name
 	 */
@@ -194,9 +206,12 @@ public class CreateStatementParser
 	/**
 	 * Checks if is right comma to split.
 	 *
-	 * @param str        the str
-	 * @param beginIndex the begin index
-	 * @param commaIndex the comma index
+	 * @param str
+	 * 		the str
+	 * @param beginIndex
+	 * 		the begin index
+	 * @param commaIndex
+	 * 		the comma index
 	 *
 	 * @return true, if is right comma to split
 	 */
@@ -222,7 +237,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ declarations.
 	 *
-	 * @param bodyStr the body str
+	 * @param bodyStr
+	 * 		the body str
 	 *
 	 * @return the _ declarations
 	 */
@@ -272,7 +288,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ attribute strs.
 	 *
-	 * @param declarationStrs the declaration strs
+	 * @param declarationStrs
+	 * 		the declaration strs
 	 *
 	 * @return the _ attribute strs
 	 */
@@ -303,7 +320,8 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ constraint strs.
 	 *
-	 * @param declarationStrs the declaration strs
+	 * @param declarationStrs
+	 * 		the declaration strs
 	 *
 	 * @return the _ constraint strs
 	 */
@@ -324,8 +342,10 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ data_ fields.
 	 *
-	 * @param tableName     the table name
-	 * @param attributeStrs the attribute strs
+	 * @param tableName
+	 * 		the table name
+	 * @param attributeStrs
+	 * 		the attribute strs
 	 *
 	 * @return the _ data_ fields
 	 */
@@ -353,8 +373,10 @@ public class CreateStatementParser
 	/**
 	 * Update_ data_ fields.
 	 *
-	 * @param fieldsMap      the d fs
-	 * @param constraintStrs the constraint strs
+	 * @param fieldsMap
+	 * 		the d fs
+	 * @param constraintStrs
+	 * 		the constraint strs
 	 */
 	public static void setFieldsConstraints(LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
 	{
@@ -376,7 +398,7 @@ public class CreateStatementParser
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
 
-				Invariant inv = new UniqueInvariant();
+				Constraint uniqueConstraint = new UniqueConstraint();
 
 				for(int j = 0; j < pKeys.length; j++)
 				{
@@ -384,14 +406,14 @@ public class CreateStatementParser
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[j]);
 
 					DataField field = fieldsMap.get(pKeys[j]);
-					inv.addField(field);
+					uniqueConstraint.addField(field);
 					if(isPrimaryKey)
 						field.setPrimaryKey();
-					field.addInvariant(inv);
+					field.addInvariant(uniqueConstraint);
 				}
 			} else if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
-				Invariant inv = new ForeignKeyInvariant();
+				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint();
 
 				int locationIndex = constraint.toUpperCase().indexOf("FOREIGN KEY");
 				int startIndex = constraint.indexOf("(", locationIndex);
@@ -428,10 +450,10 @@ public class CreateStatementParser
 								ExitCode.WRONGCREATTABLEFORMAT);
 
 					DataField originField = fieldsMap.get(fKeys[t]);
-					inv.addPair(originField, foreignAttributes[t]);
-					inv.setRemoteTable(foreignKeyTable);
+					fkConstraint.addPair(originField, foreignAttributes[t]);
+					fkConstraint.setRemoteTable(foreignKeyTable);
 					originField.setForeignKey();
-					originField.addInvariant(inv);
+					originField.addInvariant(fkConstraint);
 				}
 			} else if(constraint.toUpperCase().contains("CHECK"))
 			{
@@ -449,37 +471,109 @@ public class CreateStatementParser
 				{
 					String operands[] = conditionStr.split("<=");
 					DataField field = fieldsMap.get(operands[0]);
+					Constraint checkConstraint;
 
-					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
-					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
-					field.addInvariant(inv);
-					inv.setEqual();
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"", "");
+
+					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
+							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '3',
+								true);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
+							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '2',
+								true);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
+							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '4',
+								true);
+					else
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '1',
+								true);
+
+					checkConstraint.addField(field);
+					field.addInvariant(checkConstraint);
+
 				} else if(conditionStr.contains("<"))
 				{
 					String operands[] = conditionStr.split("<");
 					DataField field = fieldsMap.get(operands[0]);
 
-					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
-					LesserThanInvariant inv = new LesserThanInvariant(field, operands[1]);
-					field.addInvariant(inv);
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"", "");
+
+					Constraint checkConstraint;
+
+					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
+							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '3',
+								false);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
+							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '2',
+								false);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
+							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '4',
+								false);
+					else
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], (byte) '1',
+								false);
+
+					checkConstraint.addField(field);
+					field.addInvariant(checkConstraint);
 
 				} else if(conditionStr.contains(">="))
 				{
 					String operands[] = conditionStr.split(">=");
 					DataField field = fieldsMap.get(operands[0]);
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"", "");
+					Constraint checkConstraint;
 
-					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
-					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
-					field.addInvariant(inv);
-					inv.setEqual();
+					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
+							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '3',
+								true);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
+							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '2',
+								true);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
+							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '4',
+								true);
+					else
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '1',
+								true);
+
+					checkConstraint.addField(field);
+					field.addInvariant(checkConstraint);
+
 				} else if(conditionStr.contains(">"))
 				{
 					String operands[] = conditionStr.split(">");
 					DataField field = fieldsMap.get(operands[0]);
+					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"", "");
+					Constraint checkConstraint;
 
-					operands[1] = operands[1].replaceAll("`", "").replaceAll("\"","");
-					GreaterThanInvariant inv = new GreaterThanInvariant(field, operands[1]);
-					field.addInvariant(inv);
+					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
+							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '3',
+								false);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
+							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '2',
+								false);
+					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
+							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '4',
+								false);
+					else
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], (byte) '1',
+								false);
+
+					checkConstraint.addField(field);
+					field.addInvariant(checkConstraint);
+
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 
@@ -493,8 +587,10 @@ public class CreateStatementParser
 	/**
 	 * Gets the _ data_ field_ hash map.
 	 *
-	 * @param tableName the table name
-	 * @param bodyStr   the body str
+	 * @param tableName
+	 * 		the table name
+	 * @param bodyStr
+	 * 		the body str
 	 *
 	 * @return the _ data_ field_ hash map
 	 */
@@ -512,7 +608,8 @@ public class CreateStatementParser
 	/**
 	 * Throw_ wrong_ format_ exception.
 	 *
-	 * @param schemaStr the schema str
+	 * @param schemaStr
+	 * 		the schema str
 	 */
 	private static void throw_Wrong_Format_Exception(String schemaStr)
 	{

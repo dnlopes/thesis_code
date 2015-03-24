@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.util.*;
 import java.util.Map.Entry;
 
+import database.constraints.Constraint;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.ImmutableField;
 import database.util.field.hidden.LWWField;
@@ -30,6 +31,7 @@ public abstract class DatabaseTable
 	private boolean containsAutoIncrementField;
 	private int numOfHiddenFields;
 	private String primaryKeyString;
+	private List<Constraint> tableInvarists;
 
 	protected DataField deletedField;
 	protected DataField timestampField;
@@ -52,6 +54,7 @@ public abstract class DatabaseTable
 
 		this.primaryKeyMap = new LinkedHashMap<>();
 		this.sortedFieldsMap = new HashMap<>();
+		this.tableInvarists = new ArrayList<>();
 
 		this.name = name;
 		this.tag = tableType;
@@ -62,6 +65,8 @@ public abstract class DatabaseTable
 
 		for(Entry<String, DataField> entry : this.fieldsMap.entrySet())
 		{
+			this.tableInvarists.addAll(entry.getValue().getInvariants());
+
 			if(entry.getValue().getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
 				totalHiddenFields++;
 
@@ -76,7 +81,6 @@ public abstract class DatabaseTable
 
 		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
-
 
 	}
 
@@ -460,11 +464,6 @@ public abstract class DatabaseTable
 		return selectStr.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 
 	/**
 	 * To string.
@@ -604,4 +603,8 @@ public abstract class DatabaseTable
 		return this.immutableField;
 	}
 
+	public List<Constraint> getTableInvarists()
+	{
+		return this.tableInvarists;
+	}
 }

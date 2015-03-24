@@ -18,22 +18,34 @@ enum MessageType {
  VALIDATE = 3,
 }
 
-typedef list<String> TweetList
+struct ThriftCheckRequest
+{
+    1: required i32 requestId;
+    2: required list<ThriftCheckEntry> request;
+}
 
-struct CheckInvariantThrift {
+struct ThriftCheckResponse
+{
+    1: required i32 requestId;
+    2: required bool success;
+    3: list<ThriftCheckResult> result;
+}
+
+struct ThriftCheckResult {
+    1: required i32 id;
+    2: required bool success;
+    3: string resquestedValue;
+}
+
+struct ThriftCheckEntry {
     1: required CheckInvariantType type;
     2: required i32 id;
     3: required string fieldName;
     4: required string tableName;
     5: string value;
     6: string resquestedValue;
-    7: bool success;
+    7: bool success; // not using for now
 }
-
-struct InvariantMessage{
- 1: required list<CheckInvariantThrift> checkList;
-}
-
 
 struct ThriftOperation {
  1: required i64 txnId;
@@ -46,7 +58,8 @@ service ReplicatorRPC {
  oneway void commitOperationAsync(1:ThriftOperation op);
 }
 
-service CoordinatorRPC {
+service CoordinatorRPC
+{
 
-    list<CheckInvariantThrift> checkInvariants(1:list<CheckInvariantThrift> checkList);
+    ThriftCheckResponse checkInvariants(1:ThriftCheckRequest checkRequest);
 }

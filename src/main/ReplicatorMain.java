@@ -1,7 +1,7 @@
 package main;
 
 
-import network.node.Replicator;
+import network.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;

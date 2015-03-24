@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import network.node.Proxy;
+import network.proxy.Proxy;
 import org.apache.thrift.transport.TTransportException;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;

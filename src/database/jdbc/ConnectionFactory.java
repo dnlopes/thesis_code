@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import network.node.NodeMetadata;
+import network.NodeMetadata;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 

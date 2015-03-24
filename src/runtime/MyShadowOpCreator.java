@@ -18,7 +18,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
-import network.node.Proxy;
+import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.DBOpEntry;

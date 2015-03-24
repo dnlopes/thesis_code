@@ -1,8 +1,6 @@
 package network;
 
 
-import network.node.NodeMetadata;
-import network.node.Role;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;

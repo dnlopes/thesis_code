@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,33 +19,33 @@ public class DatabaseMetadata
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetadata.class);
 
-	private static Map<String, DatabaseTable> ALL_TABLES;
+	private Map<String, DatabaseTable> tablesMap;
 
 	public DatabaseMetadata()
 	{
-		ALL_TABLES = new HashMap<>();
+		tablesMap = new HashMap<>();
 	}
 
 	public DatabaseTable getTable(String tableName)
 	{
-		return ALL_TABLES.get(tableName);
+		return tablesMap.get(tableName);
 	}
 
 	public void addTable(DatabaseTable table)
 	{
-		if(ALL_TABLES.containsKey(table.getName()))
+		if(tablesMap.containsKey(table.getName()))
 		{
 			LOG.error("table {} already exists", table.getName());
 			RuntimeHelper.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
 		}
 
-		ALL_TABLES.put(table.getName(), table);
+		tablesMap.put(table.getName(), table);
 		LOG.trace("table {} added", table.getName());
 	}
 
-	public static DataField getField(String tableName, String fieldName)
+	public Collection<DatabaseTable> getAllTables()
 	{
-		return ALL_TABLES.get(tableName).getField(fieldName);
+		return this.tablesMap.values();
 	}
 
 }

@@ -2,8 +2,6 @@ package tests;
 
 import net.sf.appia.core.*;
 
-import network.node.Proxy;
-import network.node.Replicator;
 import org.apache.thrift.TException;
 
 

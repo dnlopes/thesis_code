@@ -4,7 +4,7 @@ package database.jdbc;
 import database.jdbc.util.DBUpdateResult;
 import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
-import network.node.Proxy;
+import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.txn.Transaction;

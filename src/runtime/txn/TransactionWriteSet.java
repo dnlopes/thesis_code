@@ -1,7 +1,8 @@
 package runtime.txn;
 
 
-import database.invariants.*;
+import database.constraints.*;
+import database.constraints.CheckInvariantItem;
 import database.util.DataField;
 import database.util.DatabaseTable;
 import runtime.RuntimeHelper;
@@ -185,7 +186,7 @@ public class TransactionWriteSet
 			if(!field.hasInvariants())
 				continue;
 
-			for(Invariant inv : field.getInvariants())
+			for(Constraint inv : field.getInvariants())
 			{
 				switch(inv.getType())
 				{
