@@ -599,4 +599,9 @@ public abstract class DatabaseTable
 
 	}
 
+	public DataField getImmutableField()
+	{
+		return this.immutableField;
+	}
+
 }

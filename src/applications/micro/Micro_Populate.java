@@ -149,7 +149,8 @@ public class Micro_Populate
 					"_SP_clock varchar(100) default '" + logicalClockStr + "', " +
 					"_SP_immut int(10) NOT NULL, " +
 					"PRIMARY KEY(a), " +
-					"UNIQUE(_SP_immut)" +
+					"UNIQUE(_SP_immut) " +
+					//"INDEX USING BTREE (id)" +
 					");";
 
 			stat.execute(statement);

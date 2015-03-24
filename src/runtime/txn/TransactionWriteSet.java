@@ -1,14 +1,15 @@
-package database.scratchpad;
+package runtime.txn;
 
 
-import database.invariants.InvariantChecker;
-import database.invariants.Value;
-import database.jdbc.util.DBOperationType;
+import database.invariants.*;
 import database.util.DataField;
-import database.util.DatabaseMetadata;
+
+import database.util.DatabaseTable;
+import runtime.RuntimeHelper;
+import util.ExitCode;
+import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -21,13 +22,15 @@ public class TransactionWriteSet
 
 	private Map<String, TableWriteSet> writeSet;
 	private List<String> statements;
-	private List<Value> invariantsToCheck;
+	private List<CheckInvariant> invariantsToCheck;
+	private List<TupleWriteSet> modifiedTuples;
 
 	public TransactionWriteSet()
 	{
 		this.writeSet = new HashMap<>();
 		this.statements = new ArrayList<>();
 		this.invariantsToCheck = new ArrayList<>();
+		this.modifiedTuples = new ArrayList<>();
 	}
 
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
@@ -52,6 +55,12 @@ public class TransactionWriteSet
 
 	private void generateUpdates(List<String> allStatements) throws SQLException
 	{
+
+		for(TupleWriteSet set: this.modifiedTuples)
+		{
+
+		}
+		/*
 		StringBuilder buffer = new StringBuilder();
 
 		for(TableWriteSet tableWriteSet : this.writeSet.values())
@@ -78,7 +87,8 @@ public class TransactionWriteSet
 					DataField field = DatabaseMetadata.getField(tableWriteSet.getTableName(), column);
 
 					if(field.hasInvariants())
-						InvariantChecker.checkInvariants(DBOperationType.UPDATE, field, newValue, this.invariantsToCheck);
+						InvariantChecker.checkInvariants(DBOperationType.UPDATE, field, newValue,
+								this.invariantsToCheck);
 
 					buffer.append(column);
 					buffer.append("=");
@@ -96,6 +106,7 @@ public class TransactionWriteSet
 				buffer.setLength(0);
 			}
 		}
+		*/
 	}
 
 	/**
@@ -142,5 +153,72 @@ public class TransactionWriteSet
 			}
 		}
 		buffer.append(")");
+	}
+
+	public void verifyInvariants()
+	{
+		for(TableWriteSet writeSet : this.writeSet.values())
+			this.verifyInvariantsForTable(writeSet);
+	}
+
+	private void verifyInvariantsForTable(TableWriteSet writeSet)
+	{
+		for(TupleWriteSet tupleWriteSet : writeSet.getTuplesWriteSet())
+			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTupleId());
+	}
+
+	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, int rowId)
+	{
+		this.modifiedTuples.add(tupleWriteSet);
+
+		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+		Map<String, String> newModifiedFields = tupleWriteSet.getModifiedValuesMap();
+		Map<String, String> oldFields = tupleWriteSet.getOldValuesMap();
+
+		for(String fieldName : newModifiedFields.keySet())
+		{
+			DataField field = table.getField(fieldName);
+			if(!field.hasInvariants())
+				continue;
+
+			for(Invariant inv : field.getInvariants())
+			{
+				switch(inv.getType())
+				{
+				case UNIQUE:
+					UniqueValue newInvReq = new UniqueValue(rowId, tableName, fieldName, newModifiedFields.get
+							(fieldName));
+					this.invariantsToCheck.add(newInvReq);
+					break;
+				case FOREIGN_KEY:
+					RuntimeHelper.throwRunTimeException("invariant not supported yet", ExitCode
+							.MISSING_IMPLEMENTATION);
+					break;
+				case GREATHER_THAN:
+					double delta1 = Double.parseDouble(newModifiedFields.get(fieldName)) - Double.parseDouble
+							(oldFields.get
+							(fieldName));
+					if(delta1 < 0)
+					//not safe to execute locally, must coordinate
+					{
+						DeltaValue deltaValue = new DeltaValue(rowId, tableName, fieldName, Double.toString(delta1));
+						this.invariantsToCheck.add(deltaValue);
+					}
+					break;
+				case LESSER_THAN:
+					double delta2 = Double.parseDouble(newModifiedFields.get(fieldName)) - Double.parseDouble
+							(oldFields.get
+									(fieldName));
+					if(delta2 > 0)
+					//not safe to execute locally, must coordinate
+					{
+						DeltaValue deltaValue = new DeltaValue(rowId, tableName, fieldName, Double.toString(delta2));
+						this.invariantsToCheck.add(deltaValue);
+					}
+					break;
+				}
+			}
+		}
+
 	}
 }

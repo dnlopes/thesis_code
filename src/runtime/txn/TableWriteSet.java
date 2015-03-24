@@ -1,4 +1,4 @@
-package database.scratchpad;
+package runtime.txn;
 
 
 import java.sql.ResultSet;
@@ -17,10 +17,7 @@ public class TableWriteSet
 	private Set<Integer> deletedTuples;
 	private Set<Integer> insertedTuples;
 	private Set<Integer> updatedTuples;
-	private Set<String> modifiedColumns;
-
-	private ResultSet updateResultSet;
-	private ResultSet insertResultSet;
+	private Map<Integer, TupleWriteSet> writeSet;
 
 	public TableWriteSet(String tableName)
 	{
@@ -28,7 +25,7 @@ public class TableWriteSet
 		this.deletedTuples = new HashSet<>();
 		this.insertedTuples = new HashSet<>();
 		this.updatedTuples = new HashSet<>();
-		this.modifiedColumns = new HashSet<>();
+		this.writeSet = new LinkedHashMap();
 	}
 
 	public void addDeletedRow(Integer id)
@@ -49,16 +46,6 @@ public class TableWriteSet
 	public void addUpdatedRow(Integer id)
 	{
 		this.updatedTuples.add(id);
-	}
-
-	public void addModifiedColumns(String column)
-	{
-		this.modifiedColumns.add(column);
-	}
-
-	public Set<String> getModifiedColumns()
-	{
-		return this.modifiedColumns;
 	}
 
 	public Set<Integer> getDeletedRows()
@@ -85,10 +72,8 @@ public class TableWriteSet
 	{
 		this.deletedTuples.clear();
 		this.insertedTuples.clear();
-		this.modifiedColumns.clear();
 		this.updatedTuples.clear();
-		this.updateResultSet = null;
-		this.insertResultSet = null;
+		this.writeSet.clear();
 	}
 
 	public String getTableName()
@@ -96,24 +81,13 @@ public class TableWriteSet
 		return this.tableName;
 	}
 
-	public void setUpdateResultSet(ResultSet rs)
+	public void setWriteSet(Map<Integer, TupleWriteSet> writeSet)
 	{
-		this.updateResultSet = rs;
+		this.writeSet = writeSet;
 	}
 
-	public ResultSet getUpdateResultSet()
+	public Collection<TupleWriteSet> getTuplesWriteSet()
 	{
-		return this.updateResultSet;
+		return this.writeSet.values();
 	}
-
-	public void setInsertResultSet(ResultSet rs)
-	{
-		this.insertResultSet = rs;
-	}
-
-	public ResultSet getInsertResultSet()
-	{
-		return this.insertResultSet;
-	}
-
 }

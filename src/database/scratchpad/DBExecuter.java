@@ -1,6 +1,9 @@
 package database.scratchpad;
 
 
+import database.invariants.GreaterThanInvariant;
+import database.invariants.Invariant;
+import database.invariants.LesserThanInvariant;
 import database.jdbc.Result;
 import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
@@ -16,6 +19,9 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.txn.TableWriteSet;
+import runtime.txn.TupleWriteSet;
+import util.CheckConstraintViolated;
 import util.defaults.Configuration;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
@@ -32,41 +38,32 @@ public class DBExecuter implements IExecuter
 
 	static final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
 
-	TableDefinition tableDefinition;
-	private DatabaseTable dbTable;
-	private Map<Integer, DataField> databaseFields;
-	// we save the _SP_immut field to verify which rows are duplicated in the scratchpad and main database
+	private TableDefinition tableDefinition;
+	private DatabaseTable databaseTable;
+	private String tempTableName;
+	private String tempTableNameAlias;
+	private int tableId;
+	private boolean modified;
+	private FromItem fromItemTemp;
+
 	private Set<Integer> duplicatedRows;
 	private Set<Integer> insertedRows;
 	private Set<Integer> deletedRows;
-	private Set<String> modifiedColumns;
-	private Map<Integer, String> deltaValues;
 
 	private TableWriteSet writeSet;
-
-	private FromItem fromItemTemp;
-	private String tempTableName;
-	String tempTableNameAlias;
-	int tableId;
-	private boolean modified;
+	private Map<Integer, TupleWriteSet> tuplesWriteSet;
 
 	public DBExecuter(int tableId, String tableName)
 	{
 		this.tableId = tableId;
-		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.modified = false;
-		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.dbTable.getName());
+		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
-		this.modifiedColumns = new HashSet<>();
 		this.insertedRows = new HashSet<>();
-		this.deltaValues = new HashMap<>();
-		this.writeSet = new TableWriteSet(this.dbTable.getName());
-
-		this.databaseFields = new HashMap<>();
-
-		for(DataField field : this.dbTable.getFieldsList())
-			this.databaseFields.put(field.getPosition(), field);
+		this.writeSet = new TableWriteSet(this.databaseTable.getName());
+		this.tuplesWriteSet = new HashMap<>();
 	}
 
 	/**
@@ -331,7 +328,8 @@ public class DBExecuter implements IExecuter
 	{
 		try
 		{
-			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.dbTable.getName() + "_" +
+			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.databaseTable.getName() +
+					"_" +
 					scratchpad.getScratchpadId();
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
@@ -355,9 +353,9 @@ public class DBExecuter implements IExecuter
 			ArrayList<String> tempAlias = new ArrayList<>();    // for columns with aliases
 			ArrayList<String> tempTempAlias = new ArrayList<>();    // for temp columns with aliases
 			ArrayList<String> uniqueIndices = new ArrayList<>(); // unique index
-			ResultSet colSet = metadata.getColumns(null, null, this.dbTable.getName(), "%");
+			ResultSet colSet = metadata.getColumns(null, null, this.databaseTable.getName(), "%");
 			boolean first = true;
-			LOG.debug("INFO scratchpad: read table:" + this.dbTable.getName());
+			LOG.debug("INFO scratchpad: read table:" + this.databaseTable.getName());
 
 			while(colSet.next())
 			{
@@ -425,7 +423,7 @@ public class DBExecuter implements IExecuter
 				colsIsStr[i] = tempIsStr.get(i);
 
 			//get all unique index
-			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.dbTable.getName(), true, true);
+			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.databaseTable.getName(), true, true);
 			while(uqIndices.next())
 			{
 				String indexName = uqIndices.getString("INDEX_NAME");
@@ -439,7 +437,7 @@ public class DBExecuter implements IExecuter
 			}
 			uqIndices.close();
 
-			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.dbTable.getName());
+			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.databaseTable.getName());
 			while(pkSet.next())
 			{
 				if(temp.size() == 0)
@@ -473,8 +471,8 @@ public class DBExecuter implements IExecuter
 
 			LOG.debug("Unique indices: " + Arrays.toString(uqIndicesPlain));
 
-			this.tableDefinition = new TableDefinition(this.dbTable.getName(), tableNameAlias, this.tableId, colsIsStr,
-					cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
+			this.tableDefinition = new TableDefinition(this.databaseTable.getName(), tableNameAlias, this.tableId,
+					colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
 
 			if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
 				buffer.append(") NOT PERSISTENT;");    // FOR H2
@@ -708,9 +706,8 @@ public class DBExecuter implements IExecuter
 		pad.addToBatchUpdate(buffer.toString());
 		this.deletedRows.clear();
 		this.duplicatedRows.clear();
-		this.modifiedColumns.clear();
 		this.insertedRows.clear();
-		this.deltaValues.clear();
+		this.tuplesWriteSet.clear();
 		this.modified = false;
 	}
 
@@ -868,6 +865,8 @@ public class DBExecuter implements IExecuter
 		// before writting in the scratchpad, add the missing rows
 		this.addMissingRowsToScratchpad(updateOp, db);
 
+		List<Integer> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
+
 		// now perform the actual update only in the scratchpad
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("UPDATE ");
@@ -880,9 +879,16 @@ public class DBExecuter implements IExecuter
 		{
 			String columnName = colIt.next().toString();
 			String newValue = expIt.next().toString();
+			DataField field = this.databaseTable.getField(columnName);
 
-			this.modifiedColumns.add(columnName);
-			this.writeSet.addModifiedColumns(columnName);
+			if(field.isImmutableField())
+				RuntimeHelper.throwRunTimeException("trying to modify an immutable field", ExitCode.UNEXPECTED_OP);
+
+			for(Integer rowId : affectedRows)
+				this.addNewEntry(rowId, columnName, newValue);
+
+			this.verifyCheckConstraints(field, newValue);
+
 			buffer.append(columnName);
 			buffer.append(" = ");
 			buffer.append(newValue);
@@ -910,7 +916,6 @@ public class DBExecuter implements IExecuter
 		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
 
 		StringBuffer whereClauseTemp = new StringBuffer();
-
 
 		if(plainSelect.getWhere() != null)
 		{
@@ -1159,16 +1164,16 @@ public class DBExecuter implements IExecuter
 
 			// immut field of this row
 			Integer immutablueValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+			this.createWriteSetEntry(immutablueValue);
 
 			buffer.setLength(0);
 			buffer.append("insert into ");
 			buffer.append(this.tempTableName);
 			buffer.append(" values (");
+
 			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
 			{
-				DataField currentField = this.dbTable.getField(i);
-				// if is delta just keep track of old value
-				boolean isDeltaField = currentField.isDeltaField();
+				DataField currentField = this.databaseTable.getField(i);
 
 				if(i > 0)
 					buffer.append(",");
@@ -1198,15 +1203,15 @@ public class DBExecuter implements IExecuter
 						buffer.append(res.getObject(i + 1) == null ? "NULL" : Integer.toString(res.getInt(i + 1)));
 						break;
 					default:
-						if(isDeltaField)
-							this.deltaValues.put(immutablueValue, res.getObject(i + 1).toString());
-						buffer.append(res.getObject(i + 1) == null ? "NULL" : res.getObject(i + 1).toString());
+						String oldValue = res.getObject(i + 1).toString();
+						this.addOldEntry(immutablueValue, currentField.getFieldName(), oldValue);
+						buffer.append(oldValue == null ? "NULL" : oldValue);
 						break;
 					}
 				}
 			}
 			buffer.append(");");
-			pad.addToBatchUpdate(buffer.toString());
+			pad.executeUpdate(buffer.toString());
 			rowsInserted++;
 
 		}
@@ -1324,68 +1329,76 @@ public class DBExecuter implements IExecuter
 			buffer.append("))");
 	}
 
-	private ResultSet getUpdateResultSet(IDBScratchpad pad) throws SQLException
-	{
-		if(this.duplicatedRows.size() <= 0)
-			return null;
-
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("SELECT ");
-
-		boolean first = true;
-
-		for(String column : this.modifiedColumns)
-		{
-			if(first)
-			{
-				first = false;
-				buffer.append(column);
-			} else
-			{
-				buffer.append(",");
-				buffer.append(column);
-			}
-		}
-
-		buffer.append(" FROM ");
-		buffer.append(this.tempTableName);
-		buffer.append(" WHERE ");
-		this.addInClause(buffer, false, true, false);
-
-		return pad.executeQuery(buffer.toString());
-	}
-
-	private ResultSet getInserteResultSet(IDBScratchpad pad) throws SQLException
-	{
-		if(this.insertedRows.size() <= 0)
-			return null;
-
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("SELECT * FROM ");
-		buffer.append(this.tempTableName);
-		buffer.append(" WHERE ");
-		this.addInClause(buffer, false, false, true);
-
-		return pad.executeQuery(buffer.toString());
-	}
-
 	@Override
-	public TableWriteSet createWriteSet(IDBScratchpad pad) throws SQLException
+	public TableWriteSet getWriteSet() throws SQLException
 	{
-		this.modifiedColumns.add(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-		this.writeSet.addModifiedColumns(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		this.writeSet.setWriteSet(this.tuplesWriteSet);
+		//ResultSet updateResultSet = this.getUpdateResultSet(pad);
+		//ResultSet insertResultSet = this.getInserteResultSet(pad);
 
-		ResultSet updateResultSet = this.getUpdateResultSet(pad);
-		ResultSet insertResultSet = this.getInserteResultSet(pad);
-
-		this.writeSet.setInsertResultSet(insertResultSet);
-		this.writeSet.setUpdateResultSet(updateResultSet);
+		//this.writeSet.setInsertResultSet(insertResultSet);
+		//this.writeSet.setUpdateResultSet(updateResultSet);
 
 		return this.writeSet;
 	}
 
-	private void prepareWhereClauseForSelect(StringBuffer buffer)
+	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolated
 	{
-
+		for(Invariant inv : field.getInvariants())
+		{
+			if(inv instanceof GreaterThanInvariant)
+				if(((GreaterThanInvariant) inv).isViolated(newValue))
+					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
+			if(inv instanceof LesserThanInvariant)
+				if(((LesserThanInvariant) inv).isViolated(newValue))
+					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
+		}
 	}
+
+	private List<Integer> getResultSelectBeforeUpdate(Update updateOp, IDBScratchpad pad) throws SQLException
+	{
+		Expression whereClause = updateOp.getWhere();
+		if(whereClause == null)
+			RuntimeHelper.throwRunTimeException("operation with no where clause not yey supported",
+					ExitCode.MISSING_IMPLEMENTATION);
+
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("SELECT ");
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(" from ");
+		buffer.append(this.tempTableName);
+		buffer.append(" where ");
+		buffer.append(whereClause);
+
+		ResultSet rs = pad.executeQuery(buffer.toString());
+
+		List<Integer> idsList = new LinkedList<>();
+
+		while(rs.next())
+			idsList.add(rs.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+
+		return idsList;
+	}
+
+	/**
+	 * Creates an write set entry for a tuple
+	 *
+	 * @param rowId
+	 */
+	private void createWriteSetEntry(Integer rowId)
+	{
+		TupleWriteSet set = new TupleWriteSet(rowId);
+		this.tuplesWriteSet.put(rowId, set);
+	}
+
+	private void addNewEntry(Integer rowId, String fieldName, String newValue)
+	{
+		this.tuplesWriteSet.get(rowId).addLwwEntry(fieldName, newValue);
+	}
+
+	private void addOldEntry(Integer rowId, String fieldName, String oldValue)
+	{
+		this.tuplesWriteSet.get(rowId).addOldEntry(fieldName, oldValue);
+	}
+
 }

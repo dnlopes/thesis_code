@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
+import runtime.txn.TransactionWriteSet;
 import util.ExitCode;
 import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
@@ -236,7 +237,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		TransactionWriteSet writeSet = new TransactionWriteSet();
 
 		for(IExecuter executer: this.executers.values())
-			writeSet.addTableWriteSet(executer.getTableName(), executer.createWriteSet(this));
+			writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
 
 		return writeSet;
 	}

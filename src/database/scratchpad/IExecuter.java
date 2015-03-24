@@ -3,6 +3,7 @@ package database.scratchpad;
 
 import database.jdbc.Result;
 import runtime.operation.DBSingleOperation;
+import runtime.txn.TableWriteSet;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -81,6 +82,6 @@ public interface IExecuter
 	 */
 	public void resetExecuter(IDBScratchpad pad) throws SQLException;
 
-	public TableWriteSet createWriteSet(IDBScratchpad pad) throws SQLException;
+	public TableWriteSet getWriteSet() throws SQLException;
 
 }

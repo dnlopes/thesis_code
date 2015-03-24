@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS `t1`;
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
 PRIMARY KEY  (`a`),
-CHECK(b>0)
+UNIQUE(c),
+CHECK(b>2)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t2`;

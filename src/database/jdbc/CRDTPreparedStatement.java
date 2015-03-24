@@ -8,7 +8,7 @@ import network.node.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
-import runtime.Transaction;
+import runtime.txn.Transaction;
 import runtime.operation.DBSingleOperation;
 import util.MissingImplementationException;
 

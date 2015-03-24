@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.*;
 import runtime.RuntimeHelper;
+import runtime.txn.Transaction;
 import util.ExitCode;
 import util.MissingImplementationException;
 import util.defaults.Configuration;

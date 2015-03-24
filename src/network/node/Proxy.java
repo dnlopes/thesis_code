@@ -5,7 +5,9 @@ import database.jdbc.Result;
 import database.scratchpad.ScratchpadFactory;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
-import database.scratchpad.TransactionWriteSet;
+import org.perf4j.LoggingStopWatch;
+import org.perf4j.StopWatch;
+import runtime.txn.TransactionWriteSet;
 import net.sf.jsqlparser.JSQLParserException;
 import network.IProxyNetwork;
 import network.ProxyNetwork;
@@ -13,8 +15,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
-import runtime.Transaction;
-import runtime.TransactionId;
+import runtime.txn.Transaction;
+import runtime.txn.TransactionId;
 import runtime.factory.TxnIdFactory;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
@@ -150,12 +152,15 @@ public class Proxy extends AbstractNode
 
 	public void prepareToCommit(TransactionId txnId)
 	{
+		StopWatch watch = new LoggingStopWatch("preparing stuff");
+		watch.start();
 		LOG.trace("preparing to commit txn {}", txnId.getId());
 
 		IDBScratchpad pad = this.scratchpad.get(txnId);
 		try
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
+			writeSet.verifyInvariants();
 			writeSet.generateMinimalStatements();
 			ShadowOperation shadowOp = new ShadowOperation(txnId.getId(), writeSet.getStatements());
 			this.transactions.get(txnId).setReadyToCommit(shadowOp);
@@ -166,5 +171,6 @@ public class Proxy extends AbstractNode
 			e.printStackTrace();
 		}
 
+		watch.stop();
 	}
 }

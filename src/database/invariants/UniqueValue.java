@@ -8,7 +8,7 @@ package database.invariants;
  * For instance, if the field is a unique field, the value represents the "desired" value.
  * The coordinator service will then verify if this value is already used and respond accordingly.
  */
-public class CheckValue extends Value
+public class UniqueValue extends CheckInvariant
 {
 
 	private String field;
@@ -16,11 +16,12 @@ public class CheckValue extends Value
 	private String table;
 	private boolean isValid;
 
-	public CheckValue(String tableName, String fieldName, String value)
+	public UniqueValue(int rowId, String tableName, String fieldName, String uniqueValue)
 	{
+		super(rowId);
 		this.field = fieldName;
 		this.table = tableName;
-		this.value = value;
+		this.value = uniqueValue;
 		this.isValid = false;
 	}
 }

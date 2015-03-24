@@ -20,7 +20,7 @@ package runtime.operation;
 
 import java.util.List;
 
-import database.invariants.Value;
+import database.invariants.CheckInvariant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class ShadowOperation
 	static final Logger LOG = LoggerFactory.getLogger(ShadowOperation.class);
 
 	private List<String> operationList;
-	private List<Value> checkList;
+	private List<CheckInvariant> checkList;
 	private long txnId;
 
 	public ShadowOperation(long txnId, List<String> operations)
@@ -48,7 +48,7 @@ public class ShadowOperation
 		return this.operationList;
 	}
 
-	public void addCheckValue(Value value)
+	public void addCheckValue(CheckInvariant value)
 	{
 		this.checkList.add(value);
 	}

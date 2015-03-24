@@ -6,6 +6,7 @@ import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import runtime.operation.DBSingleOperation;
+import runtime.txn.TransactionWriteSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

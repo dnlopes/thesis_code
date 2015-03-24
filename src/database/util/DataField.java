@@ -1,5 +1,6 @@
 package database.util;
 
+
 import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,7 +14,6 @@ import database.invariants.Invariant;
 public abstract class DataField
 {
 
-	private String originalDeclaration;
 	private List<Invariant> invariants;
 	private CrdtDataFieldType crdtDataType;
 	private String fieldName;
@@ -25,7 +25,6 @@ public abstract class DataField
 	private boolean isAutoIncremental;
 	private boolean isAllowedNULL;
 	private int position;
-
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos)
@@ -144,20 +143,19 @@ public abstract class DataField
 		return status;
 	}
 
-	public String getOriginalDeclaration()
-	{
-		return this.originalDeclaration;
-	}
-
-	public void setOriginalDeclaration(String decl)
-	{
-		this.originalDeclaration = decl;
-	}
-
 	public boolean isDeltaField()
 	{
 		return this.crdtDataType == CrdtDataFieldType.NUMDELTADATETIME || this.crdtDataType == CrdtDataFieldType
 				.NUMDELTADOUBLE || this.crdtDataType == CrdtDataFieldType.NUMDELTAFLOAT || this.crdtDataType ==
 				CrdtDataFieldType.NUMDELTAINTEGER;
+	}
+
+	public boolean isImmutableField()
+	{
+		return this.crdtDataType == CrdtDataFieldType.IMMUTABLE_FIELD || this.crdtDataType == CrdtDataFieldType
+				.NORMALBOOLEAN || this.crdtDataType == CrdtDataFieldType.NORMALDATETIME || this.crdtDataType ==
+				CrdtDataFieldType.NORMALDOUBLE || this.crdtDataType == CrdtDataFieldType.NORMALFLOAT || this
+				.crdtDataType == CrdtDataFieldType.NORMALINTEGER || this.crdtDataType == CrdtDataFieldType
+				.NORMALSTRING;
 	}
 }
