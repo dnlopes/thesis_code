@@ -26,6 +26,8 @@ public class MicroTest
 		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
 		Statement stat = conn.createStatement();
+		stat.executeUpdate("insert into t4 (a,c,d) values (15,5,6)");
+
 		int res = stat.executeUpdate("update t1 set c=20 where d>=7");
 		ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
 
@@ -37,7 +39,6 @@ public class MicroTest
 		conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
 		stat = conn.createStatement();
-
 
 		res = stat.executeUpdate("update t1 set c=643 where a=4");
 		conn.commit();

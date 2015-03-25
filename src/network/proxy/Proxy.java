@@ -41,7 +41,7 @@ public class Proxy extends AbstractNode
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
-	private static final IdentifierFactory ID_GENERATORS = new IdentifierFactory();
+	private static IdentifierFactory ID_GENERATORS;
 
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
@@ -60,6 +60,8 @@ public class Proxy extends AbstractNode
 		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
 		this.coordinator = Configuration.getInstance().getCoordinators().get(1);
 		this.networkInterface = new ProxyNetwork(this.getMetadata());
+
+		ID_GENERATORS = new IdentifierFactory(this.getMetadata());
 	}
 
 	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)

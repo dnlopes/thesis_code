@@ -1,7 +1,8 @@
 package runtime.txn;
 
 
-import java.sql.ResultSet;
+import crdtlib.datatypes.Tuple;
+
 import java.util.*;
 
 
@@ -26,6 +27,11 @@ public class TableWriteSet
 		this.insertedTuples = new HashSet<>();
 		this.updatedTuples = new HashSet<>();
 		this.writeSet = new LinkedHashMap();
+	}
+
+	public Map<Integer, TupleWriteSet> getTableWriteSetMap()
+	{
+		return this.writeSet;
 	}
 
 	public void addDeletedRow(Integer id)
@@ -53,19 +59,19 @@ public class TableWriteSet
 		return this.deletedTuples;
 	}
 
+	public Set<Integer> getUpdatedRows()
+	{
+		return this.updatedTuples;
+	}
+
+	public Set<Integer> getInsertedRows()
+	{
+		return this.insertedTuples;
+	}
+
 	public boolean hasDeletedRows()
 	{
 		return this.deletedTuples.size() > 0;
-	}
-
-	public boolean hasInsertedRows()
-	{
-		return this.insertedTuples.size() > 0;
-	}
-
-	public boolean hasUpdatedRows()
-	{
-		return this.updatedTuples.size() > 0;
 	}
 
 	public void reset()

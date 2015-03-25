@@ -21,6 +21,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.factory.IdentifierFactory;
 import runtime.operation.DBOpEntry;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
@@ -258,7 +259,12 @@ public class MyShadowOpCreator
 					}
 				} else
 				{
-					if(dF.getDefaultValue() == null)
+					if(dF.isAutoIncrement())
+					{
+						int nextId = IdentifierFactory.getNextId(dF);
+						valueList.add(String.valueOf(nextId));
+					}
+					else if(dF.getDefaultValue() == null)
 					{
 						valueList.add(CrdtFactory.getDefaultValueForDataField(this.getDateFormat(), dF));
 					} else

@@ -35,7 +35,7 @@ PRIMARY KEY  (`a`)
 DROP TABLE IF EXISTS `t4`;
 @ARSETTABLE CREATE TABLE `t4` (
 @LWWINTEGER `a` int(10) unsigned NOT NULL,
-@LWWINTEGER `b` int(10) unsigned,
+@LWWINTEGER `b` int(10) auto_increment,
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),

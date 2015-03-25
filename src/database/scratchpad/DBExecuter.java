@@ -58,11 +58,12 @@ public class DBExecuter implements IExecuter
 		this.tableId = tableId;
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.modified = false;
-		this.duplicatedRows = new HashSet<>();
-		this.deletedRows = new HashSet<>();
-		this.insertedRows = new HashSet<>();
+
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
-		this.tuplesWriteSet = new HashMap<>();
+		this.duplicatedRows = this.writeSet.getUpdatedRows();
+		this.deletedRows = this.writeSet.getDeletedRows();
+		this.insertedRows = this.writeSet.getInsertedRows();
+		this.tuplesWriteSet = this.writeSet.getTableWriteSetMap();
 
 		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.selectAllItems = this.databaseTable.getFieldsNamesList();
@@ -732,6 +733,7 @@ public class DBExecuter implements IExecuter
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
 		List s = insertOp.getColumns();
+
 		if(s == null)
 		{
 			buffer.append("(");
@@ -824,9 +826,7 @@ public class DBExecuter implements IExecuter
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
 			this.duplicatedRows.remove(immutValue);
-			this.writeSet.removeUpdatedRow(immutValue);
 			this.deletedRows.add(immutValue);
-			this.writeSet.addDeletedRow(immutValue);
 
 			int nPks = tableDefinition.getPksPlain().length;
 			if(nPks > 0)
@@ -866,6 +866,7 @@ public class DBExecuter implements IExecuter
 	{
 		LOG.trace("insert missing rows in temporary table before applying update");
 		// before writting in the scratchpad, add the missing rows
+		// we also use this method to capture all the tuples that will be affected by the update
 		this.addMissingRowsToScratchpad(updateOp, db);
 
 		List<Integer> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
@@ -1130,9 +1131,11 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws SQLException
+	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws
+			SQLException
 	{
-		int rowsInserted = 0;
+		List<Integer> affectedRows = new ArrayList<>();
+		int affected = 0;
 
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("(SELECT *, '" + updateOp.getTable().toString() + "' as tname FROM ");
@@ -1146,11 +1149,15 @@ public class DBExecuter implements IExecuter
 		ResultSet res = pad.executeQuery(buffer.toString());
 		while(res.next())
 		{
+			// since we must iterate all the result set to check which tuples must be added to the temp table,
+			// we can capture here what tuples will be affected and track theirs rowIds
+
 			if(!res.getString("tname").equals(this.tempTableName))
 			{
 				if(!res.next())
 				{
 					//Debug.println("record exists in real table but not temp table");
+					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 					res.previous();
 				} else
 				{
@@ -1167,12 +1174,14 @@ public class DBExecuter implements IExecuter
 			} else
 			{
 				//Debug.println("record exist in temporary table but not real table");
+				//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 				continue;
 			}
 
 			// immut field of this row
 			Integer immutablueValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 			this.createWriteSetEntry(immutablueValue);
+			affected++;
 
 			buffer.setLength(0);
 			buffer.append("insert into ");
@@ -1220,10 +1229,8 @@ public class DBExecuter implements IExecuter
 			}
 			buffer.append(");");
 			pad.executeUpdate(buffer.toString());
-			rowsInserted++;
-
 		}
-		LOG.trace("{} were missing in temporary table", rowsInserted);
+		LOG.trace("{} affected by this update", affected);
 		res.close();
 	}
 
