@@ -91,7 +91,7 @@ public class MyShadowOpCreator
 	{
 		if(!isInitialized)
 		{
-			Connection originalConn = ConnectionFactory.getDefaultConnection(proxy.getMetadata());
+			Connection originalConn = ConnectionFactory.getDefaultConnection(proxy.getConfig());
 			DDLParser sP = new DDLParser(schemaFilePath);
 			databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
 			sP.parseAnnotations();

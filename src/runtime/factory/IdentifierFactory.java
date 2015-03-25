@@ -1,11 +1,8 @@
 package runtime.factory;
 
 
-import database.constraints.Constraint;
-import database.constraints.ConstraintType;
 import database.util.DataField;
 import database.util.DatabaseTable;
-import network.NodeMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IDGenerator;
@@ -25,21 +22,29 @@ public class IdentifierFactory
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
-	private static Map<String, IDGenerator> ID_GENERATORS;
+	private static Map<String, IDGenerator> ID_GENERATORS_MAP;
 
-	public IdentifierFactory(NodeMetadata nodeMetadata)
+	public IdentifierFactory()
 	{
 		LOG.info("setup id generators for auto increment fields");
-		ID_GENERATORS = new HashMap<>();
-		this.setup(nodeMetadata);
+		ID_GENERATORS_MAP = new HashMap<>();
+		this.setup();
 	}
 
-	public static void createIdGenerator(DataField field, NodeMetadata nodeMetadata)
+	public static void createIdGenerator(DataField field)
 	{
-		IDGenerator newGenerator = new IDGenerator(field, nodeMetadata);
 		String key = field.getTableName() + "_" + field.getFieldName();
 
-		ID_GENERATORS.put(key, newGenerator);
+		if(ID_GENERATORS_MAP.containsKey(key))
+		{
+			LOG.warn("id generator already created. Silently ignoring");
+			return;
+		}
+
+		IDGenerator newGenerator = new IDGenerator(field);
+
+
+		ID_GENERATORS_MAP.put(key, newGenerator);
 		LOG.info("id generator for field {} created. Initial value {}", field.getFieldName(),
 				newGenerator.getCurrentValue());
 	}
@@ -48,13 +53,23 @@ public class IdentifierFactory
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 
-		if(!ID_GENERATORS.containsKey(key))
+		if(!ID_GENERATORS_MAP.containsKey(key))
 			RuntimeHelper.throwRunTimeException("id generator not found", ExitCode.ID_GENERATOR_ERROR);
 
-		return ID_GENERATORS.get(key).getNextId();
+		return ID_GENERATORS_MAP.get(key).getNextId();
 	}
 
-	private void setup(NodeMetadata nodeMetadata)
+	public static IDGenerator getIdGenerator(DataField field)
+	{
+		String key = field.getTableName() + "_" + field.getFieldName();
+
+		if(!ID_GENERATORS_MAP.containsKey(key))
+			RuntimeHelper.throwRunTimeException("id generator not found", ExitCode.ID_GENERATOR_ERROR);
+
+		return ID_GENERATORS_MAP.get(key);
+	}
+
+	private void setup()
 	{
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
@@ -63,7 +78,7 @@ public class IdentifierFactory
 			for(DataField field : fields)
 			{
 				if(field.isAutoIncrement())
-					createIdGenerator(field, nodeMetadata);
+					createIdGenerator(field);
 			}
 		}
 	}

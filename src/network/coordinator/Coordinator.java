@@ -10,7 +10,6 @@ import database.util.DataField;
 import database.util.DatabaseMetadata;
 import database.util.DatabaseTable;
 import network.AbstractNode;
-import network.NodeMetadata;
 import org.apache.thrift.transport.TTransportException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
@@ -41,14 +40,15 @@ public class Coordinator extends AbstractNode
 
 	private CoordinatorServerThread serverThread;
 
-	public Coordinator(NodeMetadata nodeInfo)
+	public Coordinator(CoordinatorConfig config)
 	{
-		super(nodeInfo);
+		super(config);
 
 		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
 		this.uniquesEnforcers = new HashMap<>();
 		this.autoIncrementsEnforcers = new HashMap<>();
 		this.checkEnforcers = new HashMap<>();
+
 		watch.setTag("setup-coordinator");
 		watch.start();
 		this.setup();
@@ -60,7 +60,7 @@ public class Coordinator extends AbstractNode
 			new Thread(this.serverThread).start();
 		} catch(TTransportException e)
 		{
-			LOG.error("failed to create background thread on coordinator {}", this.getName());
+			LOG.error("failed to create background thread on coordinator {}", this.getConfig().getName());
 			e.printStackTrace();
 		}
 	}
@@ -124,8 +124,6 @@ public class Coordinator extends AbstractNode
 
 	private void setup()
 	{
-		NodeMetadata replicatorMetadata = Configuration.getInstance().getReplicators().get(1);
-
 		for(DatabaseTable table : this.databaseMetadata.getAllTables())
 		{
 			List<Constraint> invariants = table.getTableInvarists();
@@ -137,20 +135,25 @@ public class Coordinator extends AbstractNode
 
 				switch(constraint.getType())
 				{
-				case UNIQUE: //if is unique we now there is only one field..kind awfull hack though :(
-					UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(field, replicatorMetadata);
-					this.uniquesEnforcers.put(key, uniqueEnforcer);
-					break;
-				case AUTO_INCREMENT:
-					AutoIncrementEnforcer autoIncrementEnforcer = new AutoIncrementEnforcer(field, replicatorMetadata);
-					this.autoIncrementsEnforcers.put(key, autoIncrementEnforcer);
+				case UNIQUE:
+					if(field.isAutoIncrement())
+					{
+						AutoIncrementEnforcer autoIncrementEnforcer = new AutoIncrementEnforcer(field,
+								this.getConfig());
+						this.autoIncrementsEnforcers.put(key, autoIncrementEnforcer);
+					} else
+					{
+						UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(field,
+								this.getConfig());
+						this.uniquesEnforcers.put(key, uniqueEnforcer);
+					}
 					break;
 				case FOREIGN_KEY:
 					LOG.warn("not yet implemented");
 					break;
 				case CHECK:
 					CheckConstraintEnforcer checkEnforcer = new CheckConstraintEnforcer(field,
-							(CheckConstraint) constraint, replicatorMetadata);
+							(CheckConstraint) constraint, this.getConfig());
 					this.checkEnforcers.put(key, checkEnforcer);
 					break;
 				default:
@@ -159,4 +162,10 @@ public class Coordinator extends AbstractNode
 			}
 		}
 	}
+
+	public CoordinatorConfig getConfig()
+	{
+		return (CoordinatorConfig) this.config;
+	}
+
 }

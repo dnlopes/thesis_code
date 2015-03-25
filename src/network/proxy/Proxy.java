@@ -6,19 +6,18 @@ import database.scratchpad.ScratchpadFactory;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
-import network.NodeMetadata;
+import network.coordinator.CoordinatorConfig;
+import network.replicator.ReplicatorConfig;
 import org.apache.thrift.TException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
-import runtime.factory.IdentifierFactory;
 import runtime.txn.TransactionWriteSet;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
-import util.defaults.Configuration;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionId;
 import runtime.factory.TxnIdFactory;
@@ -41,27 +40,30 @@ public class Proxy extends AbstractNode
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
-	private static IdentifierFactory ID_GENERATORS;
-
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
-	private NodeMetadata replicator;
-	private NodeMetadata coordinator;
+	private ReplicatorConfig replicator;
+	private CoordinatorConfig coordinator;
+
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> scratchpad;
 
-	public Proxy(NodeMetadata nodeInfo) throws TTransportException
+	public Proxy(ProxyConfig config) throws TTransportException
 	{
-		super(nodeInfo);
+		super(config);
 
 		this.transactions = new HashMap<>();
 		this.scratchpad = new HashMap<>();
-		this.replicator = Configuration.getInstance().getReplicators().get(nodeInfo.getId());
-		this.coordinator = Configuration.getInstance().getCoordinators().get(1);
-		this.networkInterface = new ProxyNetwork(this.getMetadata());
+		this.networkInterface = new ProxyNetwork(this.getConfig());
+		this.replicator = config.getReplicatorConfig();
+		this.coordinator = config.getCoordinatorConfig();
+	}
 
-		ID_GENERATORS = new IdentifierFactory(this.getMetadata());
+	@Override
+	public ProxyConfig getConfig()
+	{
+		return (ProxyConfig) this.config;
 	}
 
 	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)
@@ -192,4 +194,5 @@ public class Proxy extends AbstractNode
 
 		watch.stop();
 	}
+
 }

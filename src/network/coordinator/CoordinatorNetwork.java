@@ -1,9 +1,6 @@
 package network.coordinator;
 
-
 import network.AbstractNode;
-import network.NodeMetadata;
-
 
 /**
  * Created by dnlopes on 23/03/15.
@@ -11,10 +8,8 @@ import network.NodeMetadata;
 public class CoordinatorNetwork extends AbstractNode implements ICoordinatorNetwork
 {
 
-	public CoordinatorNetwork(NodeMetadata node)
+	public CoordinatorNetwork(CoordinatorConfig node)
 	{
 		super(node);
 	}
-
-	
 }

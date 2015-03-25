@@ -2,10 +2,11 @@ package network.replicator;
 
 
 import network.AbstractNetwork;
-import network.NodeMetadata;
+import network.AbstractConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
+
 
 /**
  * Created by dnlopes on 21/03/15.
@@ -15,13 +16,13 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
-	public ReplicatorNetwork(NodeMetadata node)
+	public ReplicatorNetwork(ReplicatorConfig node)
 	{
 		super(node);
 	}
 
 	@Override
-	public void sendOperationAsync(ShadowOperation shadowOp, NodeMetadata node)
+	public void sendOperationAsync(ShadowOperation shadowOp, AbstractConfig node)
 	{
 		//TODO
 	}

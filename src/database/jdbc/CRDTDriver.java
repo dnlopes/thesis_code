@@ -16,16 +16,15 @@ import java.util.logging.Logger;
  */
 public class CRDTDriver implements Driver
 {
-	private static final int MY_PROXY_ID = 1;
 
-	private static Proxy PROXY;
+	private static final int THIS_PROXY_ID = 1;
 
 	static
 	{
 		try
 		{
 			DriverManager.registerDriver(new CRDTDriver());
-			PROXY = new Proxy(Configuration.getInstance().getProxies().get(MY_PROXY_ID));
+			Configuration.PROXY = new Proxy(Configuration.getInstance().getProxies().get(THIS_PROXY_ID));
 
 		} catch(SQLException E)
 		{
@@ -42,7 +41,7 @@ public class CRDTDriver implements Driver
 		// verify URL again, because some apps call Driver.getConnection
 		// which tries directly to connect and do not check url before
 		if(this.acceptsURL(url))
-			return new CRDTConnection(PROXY);
+			return new CRDTConnection(Configuration.PROXY);
 
 		return null;
 	}

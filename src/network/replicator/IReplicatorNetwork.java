@@ -1,7 +1,7 @@
 package network.replicator;
 
 
-import network.NodeMetadata;
+import network.AbstractConfig;
 import runtime.operation.ShadowOperation;
 
 
@@ -10,5 +10,5 @@ import runtime.operation.ShadowOperation;
  */
 public interface IReplicatorNetwork
 {
-	public void sendOperationAsync(ShadowOperation shadowOp, NodeMetadata node);
+	public void sendOperationAsync(ShadowOperation shadowOp, AbstractConfig node);
 }

@@ -3,10 +3,10 @@ package runtime;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.NodeMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
+import util.defaults.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -28,15 +28,25 @@ public class IDGenerator
 	private int delta;
 
 
-	public IDGenerator(DataField field, NodeMetadata node)
+	public IDGenerator(DataField field)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
-		this.delta = node.getId();
-		this.setupGenerator(node);
+		this.delta = Configuration.getInstance().getProxies().size();
+		this.setupGenerator();
 	}
 
-	private void setupGenerator(NodeMetadata nodeMetadata)
+	public IDGenerator(DataField field, int delta)
+	{
+		this.field = field;
+		this.currentValue = new AtomicInteger();
+		this.delta = delta;
+		this.setupGenerator();
+	}
+
+
+
+	private void setupGenerator()
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");
@@ -48,7 +58,7 @@ public class IDGenerator
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(nodeMetadata);
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(Configuration.PROXY.getConfig());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

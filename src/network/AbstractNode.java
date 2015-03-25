@@ -9,27 +9,14 @@ import java.net.InetSocketAddress;
 public abstract class AbstractNode
 {
 
-	private Role role;
-	private int id;
 	private InetSocketAddress socketAddress;
-	private NodeMetadata metadata;
+	protected AbstractConfig config;
 
-	public AbstractNode(NodeMetadata nodeInfo)
-	{
-		this.metadata = nodeInfo;
-		this.id = nodeInfo.getId();
-		this.role = nodeInfo.getRole();
-		this.socketAddress = new InetSocketAddress(nodeInfo.getHost(), nodeInfo.getPort());
-	}
 
-	public Role getRole()
+	public AbstractNode(AbstractConfig config)
 	{
-		return this.role;
-	}
-
-	public int getId()
-	{
-		return this.id;
+		this.socketAddress = new InetSocketAddress(config.getHostName(), config.getPort());
+		this.config = config;
 	}
 
 	public InetSocketAddress getSocketAddress()
@@ -37,14 +24,9 @@ public abstract class AbstractNode
 		return this.socketAddress;
 	}
 
-	public String getName()
+	public AbstractConfig getConfig()
 	{
-		return this.role + "-" + this.id;
-	}
-
-	public NodeMetadata getMetadata()
-	{
-		return this.metadata;
+		return this.config;
 	}
 }
 

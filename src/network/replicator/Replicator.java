@@ -3,7 +3,7 @@ package network.replicator;
 
 import database.jdbc.ConnectionFactory;
 import network.AbstractNode;
-import network.NodeMetadata;
+import network.AbstractConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,25 +30,25 @@ public class Replicator extends AbstractNode
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
 	private Connection originalConn;
-	private Map<String, NodeMetadata> otherReplicators;
+	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
-	private Set<Long> committed;
+	private Set<Long> committedTxns;
 	
-	public Replicator(NodeMetadata nodeInfo)
+	public Replicator(ReplicatorConfig config)
 	{
-		super(nodeInfo);
+		super(config);
 
 		this.otherReplicators = new HashMap<>();
-		for(NodeMetadata allReplicators : Configuration.getInstance().getReplicators().values())
+		this.networkInterface = new ReplicatorNetwork(this.getConfig());
+
+		for(ReplicatorConfig allReplicators : Configuration.getInstance().getReplicators().values())
 			this.otherReplicators.put(allReplicators.getName(), allReplicators);
 
-		this.committed = new HashSet<>();
-
-		this.networkInterface = new ReplicatorNetwork(this.getMetadata());
+		this.committedTxns = new HashSet<>();
 
 		try
 		{
-			this.originalConn = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
+			this.originalConn = ConnectionFactory.getDefaultConnection(this.getConfig());
 		} catch(SQLException e)
 		{
 			e.printStackTrace();
@@ -60,10 +60,15 @@ public class Replicator extends AbstractNode
 			new Thread(this.serverThread).start();
 		} catch(TTransportException e)
 		{
-			LOG.error("failed to create background thread on replicator {}", this.getName());
+			LOG.error("failed to create background thread on replicator {}", this.getConfig().getName());
 			e.printStackTrace();
 		}
+	}
 
+	@Override
+	public ReplicatorConfig getConfig()
+	{
+		return (ReplicatorConfig) this.config;
 	}
 
 	/**
@@ -88,7 +93,7 @@ public class Replicator extends AbstractNode
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
-		for(NodeMetadata node : otherReplicators.values())
+		for(AbstractConfig node : otherReplicators.values())
 			this.networkInterface.sendOperationAsync(shadowOperation, node);
 
 		return commitDecision;
@@ -96,7 +101,7 @@ public class Replicator extends AbstractNode
 
 	public boolean alreadyCommitted(Long txnId)
 	{
-		return this.committed.contains(txnId);
+		return this.committedTxns.contains(txnId);
 	}
 
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
@@ -119,7 +124,7 @@ public class Replicator extends AbstractNode
 			e.printStackTrace();
 			return false;
 		}
-		this.committed.add(shadowOp.getTxnId());
+		this.committedTxns.add(shadowOp.getTxnId());
 
 		LOG.info("txn {} committed", shadowOp.getTxnId());
 		return true;

@@ -598,6 +598,7 @@ public abstract class DatabaseTable
 		DataField clockField = new LogicalClockField(name, fieldsMap.size());
 		this.fieldsMap.put(clockField.getFieldName(), clockField);
 		DataField immutableField = new ImmutableField(name, fieldsMap.size());
+		immutableField.setAutoIncremental();
 		this.fieldsMap.put(immutableField.getFieldName(), immutableField);
 
 		this.timestampField = clockField;

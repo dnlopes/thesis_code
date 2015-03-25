@@ -2,20 +2,20 @@ package util.defaults;
 
 
 import database.util.DatabaseMetadata;
-import network.NodeMetadata;
-import network.Role;
+import network.coordinator.CoordinatorConfig;
+import network.proxy.Proxy;
+import network.proxy.ProxyConfig;
+import network.replicator.ReplicatorConfig;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
-import org.xml.sax.SAXException;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.parser.DDLParser;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,13 +29,14 @@ public final class Configuration
 {
 
 	private static Configuration ourInstance = new Configuration();
+	public static Proxy PROXY;
 	private static Logger LOG;
 
-	private String CONFIG_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/resources/config.xml";
+	private static final String CONFIG_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/resources/config.xml";
 
-	private Map<Integer, NodeMetadata> replicators;
-	private Map<Integer, NodeMetadata> proxies;
-	private Map<Integer, NodeMetadata> coordinators;
+	private Map<Integer, ReplicatorConfig> replicators;
+	private Map<Integer, ProxyConfig> proxies;
+	private Map<Integer, CoordinatorConfig> coordinators;
 	private DatabaseMetadata databaseMetadata;
 	private String databaseName;
 	private String schemaFile;
@@ -54,7 +55,7 @@ public final class Configuration
 		{
 			watch.start();
 			loadConfigurationFile();
-		} catch(IOException | SAXException | ParserConfigurationException e)
+		} catch(IOException e)
 		{
 			LOG.error("failed to load config file");
 			e.printStackTrace();
@@ -79,7 +80,7 @@ public final class Configuration
 		return ourInstance;
 	}
 
-	private void loadConfigurationFile() throws IOException, SAXException, ParserConfigurationException
+	private void loadConfigurationFile() throws IOException
 	{
 		try
 		{
@@ -136,10 +137,10 @@ public final class Configuration
 
 			if(n.getNodeName().compareTo("replicators") == 0)
 				parseReplicators(n);
-			if(n.getNodeName().compareTo("proxies") == 0)
-				parseProxies(n);
 			if(n.getNodeName().compareTo("coordinators") == 0)
 				parseCoordinators(n);
+			if(n.getNodeName().compareTo("proxies") == 0)
+				parseProxies(n);
 		}
 	}
 
@@ -194,9 +195,12 @@ public final class Configuration
 		String id = map.getNamedItem("id").getNodeValue();
 		String hostName = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
+		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
+		ReplicatorConfig replicatorConfig = this.getReplicators().get(Integer.parseInt(refReplicator));
 
-		NodeMetadata newCoordinator = new NodeMetadata(Integer.parseInt(id), hostName, Integer.parseInt(port),
-				Role.COORDINATOR);
+		CoordinatorConfig newCoordinator = new CoordinatorConfig(Integer.parseInt(id), hostName, Integer.parseInt
+				(port),
+				replicatorConfig);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -212,8 +216,8 @@ public final class Configuration
 		String dbUser = map.getNamedItem("dbUser").getNodeValue();
 		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
 
-		NodeMetadata newReplicator = new NodeMetadata(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
-				Integer.parseInt(dbPort), dbUser, dbPwd, Role.REPLICATOR);
+		ReplicatorConfig newReplicator = new ReplicatorConfig(Integer.parseInt(id), hostName, Integer.parseInt(port),
+				dbHost, Integer.parseInt(dbPort), dbUser, dbPwd);
 
 		replicators.put(Integer.parseInt(id), newReplicator);
 	}
@@ -228,25 +232,29 @@ public final class Configuration
 		String dbPort = map.getNamedItem("dbPort").getNodeValue();
 		String dbUser = map.getNamedItem("dbUser").getNodeValue();
 		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
-		String refExecutor = map.getNamedItem("refExecutor").getNodeValue();
+		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
+		String refCoordinator = map.getNamedItem("refCoordinator").getNodeValue();
 
-		NodeMetadata newProxy = new NodeMetadata(Integer.parseInt(refExecutor), Integer.parseInt(id), hostName,
-				Integer.parseInt(port), dbHost, Integer.parseInt(dbPort), dbUser, dbPwd, Role.PROXY);
+		ReplicatorConfig replicatorConfig = this.getReplicators().get(Integer.parseInt(refReplicator));
+		CoordinatorConfig coordinatorConfig = this.getCoordinators().get(Integer.parseInt(refCoordinator));
+
+		ProxyConfig newProxy = new ProxyConfig(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
+				Integer.parseInt(dbPort), dbUser, dbPwd, replicatorConfig, coordinatorConfig);
 
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public Map<Integer, NodeMetadata> getReplicators()
+	public Map<Integer, ReplicatorConfig> getReplicators()
 	{
 		return replicators;
 	}
 
-	public Map<Integer, NodeMetadata> getProxies()
+	public Map<Integer, ProxyConfig> getProxies()
 	{
 		return proxies;
 	}
 
-	public Map<Integer, NodeMetadata> getCoordinators()
+	public Map<Integer, CoordinatorConfig> getCoordinators()
 	{
 		return coordinators;
 	}
@@ -273,8 +281,7 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
-				.size() == 0 || this.coordinators.size() == 0);
+		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0);
 	}
 }
 

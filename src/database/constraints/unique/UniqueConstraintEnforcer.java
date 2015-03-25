@@ -3,7 +3,7 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.NodeMetadata;
+import network.coordinator.CoordinatorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -28,14 +28,14 @@ public class UniqueConstraintEnforcer
 	private Set<String> currentValues;
 	private DataField field;
 
-	public UniqueConstraintEnforcer(DataField field, NodeMetadata nodeMetadata)
+	public UniqueConstraintEnforcer(DataField field, CoordinatorConfig config)
 	{
 		this.field = field;
 		this.currentValues = new HashSet<>();
-		this.setup(nodeMetadata);
+		this.setup(config);
 	}
 
-	private void setup(NodeMetadata nodeMetadata)
+	private void setup(CoordinatorConfig config)
 	{
 		LOG.trace("scanning all used values");
 
@@ -47,7 +47,7 @@ public class UniqueConstraintEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(nodeMetadata);
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getReplicatorConfig());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

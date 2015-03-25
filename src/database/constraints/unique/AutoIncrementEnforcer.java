@@ -3,7 +3,7 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.NodeMetadata;
+import network.coordinator.CoordinatorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -26,13 +26,13 @@ public class AutoIncrementEnforcer
 	private int currentId;
 	private DataField field;
 
-	public AutoIncrementEnforcer(DataField field, NodeMetadata nodeMetadata)
+	public AutoIncrementEnforcer(DataField field, CoordinatorConfig config)
 	{
 		this.field = field;
-		this.setup(nodeMetadata);
+		this.setup(config);
 	}
 
-	private void setup(NodeMetadata nodeMetadata)
+	private void setup(CoordinatorConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");
@@ -44,7 +44,7 @@ public class AutoIncrementEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(nodeMetadata);
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getReplicatorConfig());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

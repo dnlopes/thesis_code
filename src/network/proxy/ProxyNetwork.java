@@ -2,7 +2,7 @@ package network.proxy;
 
 
 import network.AbstractNetwork;
-import network.NodeMetadata;
+import network.AbstractConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -24,14 +24,14 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 	private int requestId;
 
-	public ProxyNetwork(NodeMetadata node)
+	public ProxyNetwork(ProxyConfig node)
 	{
 		super(node);
 		this.requestId = 0;
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, NodeMetadata node)
+	public boolean commitOperation(ShadowOperation shadowOp, AbstractConfig node)
 	{
 		if(!this.replicatorsClients.containsKey(node.getName()))
 			try
@@ -58,7 +58,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, NodeMetadata node) throws TException
+	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, AbstractConfig node) throws TException
 	{
 		if(!this.coordinatorsClients.containsKey(node.getName()))
 			try

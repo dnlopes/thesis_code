@@ -1,7 +1,8 @@
 package database.jdbc;
 
 
-import network.NodeMetadata;
+import network.proxy.ProxyConfig;
+import network.replicator.ReplicatorConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
@@ -35,7 +36,7 @@ public class ConnectionFactory
 		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
-	public static Connection getCRDTConnection(NodeMetadata nodeInfo) throws SQLException
+	public static Connection getCRDTConnection(ProxyConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
 		url.append(nodeInfo.getDbHost());
@@ -50,16 +51,21 @@ public class ConnectionFactory
 		return c;
 	}
 
-	/**
-	 * @param database
-	 * 		host:port
-	 * @param user
-	 * @param password
-	 *
-	 * @return a new connection to the database
-	 *
-	 * @throws SQLException
-	 */
+	public static Connection getCRDTConnection(ReplicatorConfig nodeInfo) throws SQLException
+	{
+		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+		url.append(nodeInfo.getDbHost());
+		url.append(":");
+		url.append(nodeInfo.getDbPort());
+		url.append("/");
+		url.append(Configuration.getInstance().getDatabaseName());
+
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
+	}
+
 	private static Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
 		Connection c = DriverManager.getConnection(database, user, password);
@@ -73,7 +79,7 @@ public class ConnectionFactory
 		return getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
-	public static Connection getDefaultConnection(NodeMetadata nodeInfo) throws SQLException
+	public static Connection getDefaultConnection(ProxyConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
 		url.append(nodeInfo.getDbHost());
@@ -88,16 +94,21 @@ public class ConnectionFactory
 		return c;
 	}
 
-	/**
-	 * @param database
-	 * 		host:port
-	 * @param user
-	 * @param password
-	 *
-	 * @return a new connection to the database
-	 *
-	 * @throws SQLException
-	 */
+	public static Connection getDefaultConnection(ReplicatorConfig nodeInfo) throws SQLException
+	{
+		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		url.append(nodeInfo.getDbHost());
+		url.append(":");
+		url.append(nodeInfo.getDbPort());
+		url.append("/");
+		url.append(Configuration.getInstance().getDatabaseName());
+
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
+	}
+
 	private static Connection getDefaultConnection(String database, String user, String password) throws SQLException
 	{
 		StringBuilder url = new StringBuilder(DBDefaults.DEFAULT_URL);

@@ -204,10 +204,17 @@ public class TransactionWriteSet
 				switch(constraint.getType())
 				{
 				case UNIQUE:
-					newEntry.setType(CheckTypeRequest.UNIQUE);
-					newEntry.setValue(newModifiedFields.get(fieldName));
+					if(!field.isAutoIncrement())
+					{
+						newEntry.setType(CheckTypeRequest.UNIQUE);
+						newEntry.setValue(newModifiedFields.get(fieldName));
+						LOG.trace("new unique check entry added for field {}", fieldName);
+					} else
+					{
+						newEntry.setType(CheckTypeRequest.REQUEST_ID);
+						LOG.trace("new request Id check entry added for field {}", fieldName);
+					}
 					checkList.add(newEntry);
-					LOG.trace("new unique check entry added for field {}", fieldName);
 					break;
 				case CHECK:
 					String newValue = newModifiedFields.get(fieldName);

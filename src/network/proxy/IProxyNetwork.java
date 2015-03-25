@@ -1,7 +1,7 @@
 package network.proxy;
 
 
-import network.NodeMetadata;
+import network.AbstractConfig;
 import org.apache.thrift.TException;
 import runtime.operation.ShadowOperation;
 import util.thrift.ThriftCheckEntry;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface IProxyNetwork
 {
-	public boolean commitOperation(ShadowOperation shadowOp, NodeMetadata node);
+	public boolean commitOperation(ShadowOperation shadowOp, AbstractConfig node);
 
-	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, NodeMetadata node) throws TException;
+	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, AbstractConfig node) throws TException;
 }

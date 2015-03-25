@@ -20,17 +20,17 @@ import java.util.Map;
 /**
  * Created by dnlopes on 21/03/15.
  */
-public class AbstractNetwork
+public abstract class AbstractNetwork
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
-	protected NodeMetadata me;
+	protected AbstractConfig me;
 	protected Map<String, ReplicatorRPC.Client> replicatorsClients;
 	protected Map<String, CoordinatorRPC.Client> coordinatorsClients;
 
 
-	public AbstractNetwork(NodeMetadata node)
+	public AbstractNetwork(AbstractConfig node)
 	{
 		this.me = node;
 		this.replicatorsClients = new HashMap<>();
@@ -38,7 +38,7 @@ public class AbstractNetwork
 
 	}
 
-	protected void addNode(NodeMetadata newNode) throws TTransportException
+	protected void addNode(AbstractConfig newNode) throws TTransportException
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -56,7 +56,7 @@ public class AbstractNetwork
 		LOG.trace("new node added {}", newNode.getName());
 	}
 
-	private void addReplicatorNode(NodeMetadata newNode) throws TTransportException
+	private void addReplicatorNode(AbstractConfig newNode) throws TTransportException
 	{
 		if(this.replicatorsClients.containsKey(newNode.getName()))
 		{
@@ -64,7 +64,7 @@ public class AbstractNetwork
 			return;
 		}
 
-		TTransport newTransport = new TSocket(newNode.getHost(), newNode.getPort());
+		TTransport newTransport = new TSocket(newNode.getHostName(), newNode.getPort());
 
 		newTransport.open();
 		TProtocol protocol = new TBinaryProtocol(newTransport);
@@ -72,7 +72,7 @@ public class AbstractNetwork
 		this.replicatorsClients.put(newNode.getName(), newClient);
 	}
 
-	private void addCoordinatorNode(NodeMetadata newNode) throws TTransportException
+	private void addCoordinatorNode(AbstractConfig newNode) throws TTransportException
 	{
 		if(this.coordinatorsClients.containsKey(newNode.getName()))
 		{
@@ -80,7 +80,7 @@ public class AbstractNetwork
 			return;
 		}
 
-		TTransport newTransport = new TSocket(newNode.getHost(), newNode.getPort());
+		TTransport newTransport = new TSocket(newNode.getHostName(), newNode.getPort());
 
 		newTransport.open();
 		TProtocol protocol = new TBinaryProtocol(newTransport);
