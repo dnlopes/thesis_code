@@ -30,7 +30,7 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	@Override
 	public ThriftCheckResponse checkInvariants(ThriftCheckRequest checkRequest) throws TException
 	{
-		LOG.trace("request {} received");
+		LOG.trace("request {} received", checkRequest.getRequestId());
 		ThriftCheckResponse newResponse = new ThriftCheckResponse();
 		newResponse.setResponseId(checkRequest.getRequestId());
 

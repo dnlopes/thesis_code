@@ -29,10 +29,24 @@ public class MicroTest
 		//ResultSet rs = stat.executeQuery("SELECT a from t1 where d=9 OR c=10");
 
 
-		int res = stat.executeUpdate("update t1 set c=9 where a=8");
 //		res = stat.executeUpdate("update t1 set b=7 where a=4");
 //		res = stat.executeUpdate("update t1 set c=20 where d>=7");
+		int res = stat.executeUpdate("update t1 set c=434 where a=7");
 		conn.commit();
+
+
+		conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
+
+		stat = conn.createStatement();
+
+
+		res = stat.executeUpdate("update t1 set c=643 where a=4");
+		conn.commit();
+		res = stat.executeUpdate("update t1 set c=283 where a=2");
+		//res = stat.executeUpdate("select a,b from t2 where a>0");
+		res = stat.executeUpdate("update t1 set c=9199 where a=1");
+		conn.commit();
+
 		//int res = stat.executeUpdate("update t1 set b=22 where a>4");
 		//res = stat.executeUpdate("update t1 set c=222 where d<=7");
 		//conn.commit();

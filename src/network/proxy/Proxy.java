@@ -87,6 +87,7 @@ public class Proxy extends AbstractNode
 	 */
 	public boolean commit(TransactionId txnId)
 	{
+		StopWatch watch = new LoggingStopWatch("commit time");
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
 		if(!this.transactions.containsKey(txnId))
@@ -122,7 +123,9 @@ public class Proxy extends AbstractNode
 		} else
 			LOG.error("txn {} failed to commit", txn.getTxnId().getId());
 
+		watch.start();
 		this.resetTransactionInfo(txnId);
+		watch.stop();
 		return commitDecision;
 	}
 
