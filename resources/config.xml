@@ -2,18 +2,18 @@
 <config>
 	<topology replicatorNum="2" executorsNum="2">
 		<replicators>
-			<replicator id="1" host="localhost" port="50000" dbHost="172.16.24.156" dbPort="3306" dbUser="sa"
+			<replicator id="1" host="localhost" port="50000" dbHost="172.16.24.157" dbPort="3306" dbUser="sa"
 						dbPwd="101010" />
-			<replicator id="2" host="localhost" port="50001" dbHost="172.16.24.156" dbPort="3306" dbUser="sa"
+			<replicator id="2" host="localhost" port="50001" dbHost="172.16.24.157" dbPort="3306" dbUser="sa"
 						dbPwd="101010" />
 		</replicators>
 		<coordinators>
 			<coordinator id="1" host="localhost" port="50011" refReplicator="1" />
 		</coordinators>
 		<proxies>
-			<proxy id="1" host="localhost" port="50005" dbHost="172.16.24.156" dbPort="3306" dbUser="sa"
-				   dbPwd="101010" refReplicator="1" />
-			<proxy id="2" host="localhost" port="50006" dbHost="172.16.24.156" dbPort="3306" dbUser="sa"
+			<proxy id="1" host="localhost" port="50005" dbHost="172.16.24.157" dbPort="3306" dbUser="sa"
+				   dbPwd="101010" refReplicator="1" refCoordinator="1" />
+			<proxy id="2" host="localhost" port="50006" dbHost="172.16.24.157" dbPort="3306" dbUser="sa"
 				   dbPwd="101010" refReplicator="2" refCoordinator="1" />
 		</proxies>
 	</topology>

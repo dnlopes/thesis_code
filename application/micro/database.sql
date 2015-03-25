@@ -5,11 +5,10 @@ DROP TABLE IF EXISTS `t1`;
 @ARSETTABLE CREATE TABLE `t1` (
 @LWWINTEGER `a` int(10) unsigned NOT NULL,
 @NUMDELTAINTEGER `b` int(10) unsigned,
-@LWWINTEGER `c` int(10) unsigned,
+@LWWINTEGER `c` int(10) auto_increment,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-PRIMARY KEY  (`a`),
-UNIQUE(c),
+PRIMARY KEY  (`a`)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t2`;

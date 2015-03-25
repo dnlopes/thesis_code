@@ -25,6 +25,8 @@ struct ThriftCheckResult {
     1: required i32 id;
     2: required bool success;
     3: string resquestedValue;
+    4: string fieldName;
+
 }
 
 struct ThriftCheckEntry {

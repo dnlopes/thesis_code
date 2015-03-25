@@ -100,6 +100,7 @@ public class Coordinator extends AbstractNode
 		case REQUEST_ID:
 			int newId = this.autoIncrementsEnforcers.get(key).getNextId();
 			newResult.setResquestedValue(String.valueOf(newId));
+			newResult.setFieldName(entry.getFieldName());
 			newResult.setSuccess(true);
 			return newResult;
 		case APPLY_DELTA:
@@ -109,7 +110,6 @@ public class Coordinator extends AbstractNode
 				newResult.setSuccess(true);
 			else
 				newResult.setSuccess(false);
-
 			return newResult;
 		case FOREIGN_KEY:
 			LOG.warn("not yet implemented");

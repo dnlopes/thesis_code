@@ -2,8 +2,6 @@ package runtime.txn;
 
 
 import org.perf4j.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
 import util.LogicalClock;
 import util.TimeStamp;
@@ -14,8 +12,6 @@ import util.TimeStamp;
  */
 public class Transaction
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
 
 	private TransactionId txnId;
 	private long latency;

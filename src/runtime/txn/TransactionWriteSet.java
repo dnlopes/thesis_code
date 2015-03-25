@@ -13,6 +13,7 @@ import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
 import util.thrift.CheckTypeRequest;
 import util.thrift.ThriftCheckEntry;
+import util.thrift.ThriftCheckResult;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -31,13 +32,13 @@ public class TransactionWriteSet
 
 	// list of tuples that will be modified after contacting the coordinator
 	// for instance when requesting a new id
-	private List<TupleWriteSet> modifiedTuples;
+	private Map<Integer, TupleWriteSet> modifiedTuples;
 
 	public TransactionWriteSet()
 	{
 		this.txnWriteSet = new HashMap<>();
 		this.statements = new ArrayList<>();
-		this.modifiedTuples = new ArrayList<>();
+		this.modifiedTuples = new HashMap<>();
 	}
 
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
@@ -62,10 +63,9 @@ public class TransactionWriteSet
 
 	private void generateUpdates(List<String> allStatements) throws SQLException
 	{
-
-		for(TupleWriteSet set : this.modifiedTuples)
+		// gerar aqui os comandos sql ou dar o write set inteiro ao replicator?
+		for(TupleWriteSet set : this.modifiedTuples.values())
 		{
-
 		}
 		/*
 		StringBuilder buffer = new StringBuilder();
@@ -172,6 +172,20 @@ public class TransactionWriteSet
 		return checkEntryList;
 	}
 
+	public void processCoordinatorResponse(List<ThriftCheckResult> results)
+	{
+		for(ThriftCheckResult result: results)
+		{
+			if(result.getResquestedValue() != null)
+			{
+				int rowId = result.getId();
+				String fieldName = result.getFieldName();
+				this.modifiedTuples.get(rowId).addLwwEntry(fieldName, result.getResquestedValue());
+				LOG.trace("tuple updated with value received from coordinator");
+			}
+		}
+	}
+
 	private void verifyInvariantsForTable(TableWriteSet writeSet, List<ThriftCheckEntry> checkList)
 	{
 		for(TupleWriteSet tupleWriteSet : writeSet.getTuplesWriteSet())
@@ -182,8 +196,6 @@ public class TransactionWriteSet
 	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, int rowId,
 										  List<ThriftCheckEntry> checkList)
 	{
-		this.modifiedTuples.add(tupleWriteSet);
-
 		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		Map<String, String> newModifiedFields = tupleWriteSet.getModifiedValuesMap();
 		Map<String, String> oldFields = tupleWriteSet.getOldValuesMap();
@@ -212,6 +224,7 @@ public class TransactionWriteSet
 					} else
 					{
 						newEntry.setType(CheckTypeRequest.REQUEST_ID);
+						this.modifiedTuples.put(rowId, tupleWriteSet);
 						LOG.trace("new request Id check entry added for field {}", fieldName);
 					}
 					checkList.add(newEntry);

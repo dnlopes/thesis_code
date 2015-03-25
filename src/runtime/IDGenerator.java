@@ -3,6 +3,7 @@ package runtime;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
+import network.proxy.ProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -28,25 +29,16 @@ public class IDGenerator
 	private int delta;
 
 
-	public IDGenerator(DataField field)
+	public IDGenerator(DataField field, ProxyConfig config)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
 		this.delta = Configuration.getInstance().getProxies().size();
-		this.setupGenerator();
+
+		this.setupGenerator(config);
 	}
 
-	public IDGenerator(DataField field, int delta)
-	{
-		this.field = field;
-		this.currentValue = new AtomicInteger();
-		this.delta = delta;
-		this.setupGenerator();
-	}
-
-
-
-	private void setupGenerator()
+	private void setupGenerator(ProxyConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");
@@ -58,14 +50,14 @@ public class IDGenerator
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(Configuration.PROXY.getConfig());
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config);
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 
 			if(rs.next())
 			{
 				int lastId = rs.getInt(this.field.getFieldName());
-				this.currentValue.set(lastId);
+				this.currentValue.set(lastId + config.getId());
 
 				rs.close();
 				stmt.close();

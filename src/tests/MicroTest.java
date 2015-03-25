@@ -3,6 +3,7 @@ package tests;
 
 import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
+import network.proxy.ProxyConfig;
 import org.xml.sax.SAXException;
 import util.defaults.Configuration;
 
@@ -19,29 +20,39 @@ import java.sql.Statement;
 public class MicroTest
 {
 
+
 	public static void main(String args[]) throws SQLException, IOException, SAXException, ClassNotFoundException
 	{
-		Micro_Populate db = new Micro_Populate();
+		ProxyConfig config = Configuration.getInstance().getProxies().get(1);
 
-		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
+		//Micro_Populate db = new Micro_Populate();
+
+		Connection conn = ConnectionFactory.getCRDTConnection(config);
 
 		Statement stat = conn.createStatement();
-		stat.executeUpdate("insert into t4 (a,c,d,e) values (15,5,6, 'ola')");
+		int res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
 		conn.commit();
 
-		int res = stat.executeUpdate("update t1 set c=20 where d>=7");
-		ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
+		/*ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
+		res = stat.executeUpdate("update t1 set c=643 where a=4");
 
-
-		//int res = stat.executeUpdate("update t1 set c=434 where a=7");
 		conn.commit();
 
+		res = stat.executeUpdate("update t2 set c=20 where d>=7");
+		rs = stat.executeQuery("SELECT * from t2 where d=9 OR c=10");
+		res = stat.executeUpdate("update t2 set c=643 where a=4");
+		conn.commit();
 
+		res = stat.executeUpdate("update t3 set c=20 where d>=7");
+		rs = stat.executeQuery("SELECT * from t3 where d=9 OR c=10");
+		res = stat.executeUpdate("update t3 set c=643 where a=4");
+		conn.commit();
+
+/*
 		conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
 		stat = conn.createStatement();
 
-		res = stat.executeUpdate("update t1 set c=643 where a=4");
 		conn.commit();
 		res = stat.executeUpdate("update t1 set c=283 where a=2");
 		//res = stat.executeUpdate("select a,b from t2 where a>0");

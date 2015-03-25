@@ -3,6 +3,7 @@ package runtime.factory;
 
 import database.util.DataField;
 import database.util.DatabaseTable;
+import network.proxy.ProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IDGenerator;
@@ -22,16 +23,24 @@ public class IdentifierFactory
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
-	private static Map<String, IDGenerator> ID_GENERATORS_MAP;
+	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 
-	public IdentifierFactory()
+	public static void setupIdentifiersGenerators(ProxyConfig config)
 	{
-		LOG.info("setup id generators for auto increment fields");
-		ID_GENERATORS_MAP = new HashMap<>();
-		this.setup();
+		LOG.info("bootstrap id generators for auto increment fields");
+		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
+		{
+			List<DataField> fields = table.getFieldsList();
+
+			for(DataField field : fields)
+			{
+				if(field.isAutoIncrement())
+					createIdGenerator(field, config);
+			}
+		}
 	}
 
-	public static void createIdGenerator(DataField field)
+	public static void createIdGenerator(DataField field, ProxyConfig config)
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 
@@ -41,8 +50,7 @@ public class IdentifierFactory
 			return;
 		}
 
-		IDGenerator newGenerator = new IDGenerator(field);
-
+		IDGenerator newGenerator = new IDGenerator(field, config);
 
 		ID_GENERATORS_MAP.put(key, newGenerator);
 		LOG.info("id generator for field {} created. Initial value {}", field.getFieldName(),
@@ -67,20 +75,6 @@ public class IdentifierFactory
 			RuntimeHelper.throwRunTimeException("id generator not found", ExitCode.ID_GENERATOR_ERROR);
 
 		return ID_GENERATORS_MAP.get(key);
-	}
-
-	private void setup()
-	{
-		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
-		{
-			List<DataField> fields = table.getFieldsList();
-
-			for(DataField field : fields)
-			{
-				if(field.isAutoIncrement())
-					createIdGenerator(field);
-			}
-		}
 	}
 
 }

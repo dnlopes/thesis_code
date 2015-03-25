@@ -1,5 +1,6 @@
 package database.jdbc;
 
+
 import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,15 +23,17 @@ import java.util.concurrent.Executor;
 public class CRDTConnection implements Connection
 {
 
+	private static final int THIS_PROXY_ID = 1;
 	static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
+	private static final Proxy THIS_PROXY = new Proxy(Configuration.getInstance().getProxies().get(THIS_PROXY_ID));
 
 	private Proxy proxy;
 	private MyShadowOpCreator shdOpCreator;
 	private Transaction transaction;
 
-	public CRDTConnection(Proxy proxy) throws SQLException
+	public CRDTConnection() throws SQLException
 	{
-		this.proxy = proxy;
+		this.proxy = THIS_PROXY;
 		this.shdOpCreator = new MyShadowOpCreator(Configuration.getInstance().getSchemaFile(), this.proxy, 1, 1);
 		this.transaction = new Transaction();
 	}

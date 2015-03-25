@@ -1,9 +1,6 @@
 package database.jdbc;
 
 
-import network.proxy.Proxy;
-import org.apache.thrift.transport.TTransportException;
-import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.*;
@@ -17,21 +14,15 @@ import java.util.logging.Logger;
 public class CRDTDriver implements Driver
 {
 
-	private static final int THIS_PROXY_ID = 1;
-
 	static
 	{
 		try
 		{
 			DriverManager.registerDriver(new CRDTDriver());
-			Configuration.PROXY = new Proxy(Configuration.getInstance().getProxies().get(THIS_PROXY_ID));
 
 		} catch(SQLException E)
 		{
 			throw new RuntimeException("Error: failed to register CRDT:Driver");
-		} catch(TTransportException e)
-		{
-			e.printStackTrace();
 		}
 	}
 
@@ -41,7 +32,7 @@ public class CRDTDriver implements Driver
 		// verify URL again, because some apps call Driver.getConnection
 		// which tries directly to connect and do not check url before
 		if(this.acceptsURL(url))
-			return new CRDTConnection(Configuration.PROXY);
+			return new CRDTConnection();
 
 		return null;
 	}

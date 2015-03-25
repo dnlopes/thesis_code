@@ -130,8 +130,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public ResultSet executeQuery(String op) throws SQLException
 	{
-		//TODO
-		LOG.debug("executing operation: {}", op);
+		LOG.trace("executing operation: {}", op);
 		return this.statQ.executeQuery(op);
 	}
 

@@ -3,7 +3,6 @@ package util.defaults;
 
 import database.util.DatabaseMetadata;
 import network.coordinator.CoordinatorConfig;
-import network.proxy.Proxy;
 import network.proxy.ProxyConfig;
 import network.replicator.ReplicatorConfig;
 import org.perf4j.StopWatch;
@@ -29,7 +28,6 @@ public final class Configuration
 {
 
 	private static Configuration ourInstance = new Configuration();
-	public static Proxy PROXY;
 	private static Logger LOG;
 
 	private static final String CONFIG_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/resources/config.xml";
@@ -281,7 +279,8 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0);
+		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
+				.size() == 0 || this.coordinators.size() == 0);
 	}
 }
 

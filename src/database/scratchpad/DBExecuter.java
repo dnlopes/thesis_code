@@ -739,6 +739,8 @@ public class DBExecuter implements IExecuter
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
 		List s = insertOp.getColumns();
+		int newRowId = generator.getNextId();
+
 		ExpressionList valuesList  = new ExpressionList();
 		//valuesList.get
 		//TODO: acrescentar os fields do _SPT

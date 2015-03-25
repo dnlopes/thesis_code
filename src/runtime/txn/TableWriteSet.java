@@ -1,8 +1,6 @@
 package runtime.txn;
 
 
-import crdtlib.datatypes.Tuple;
-
 import java.util.*;
 
 
@@ -14,7 +12,7 @@ public class TableWriteSet
 
 	// original name, not temporary
 	private String tableName;
-	// list of tupleId that were deleted
+	// list of tupleId that were deleted, inserted and updates
 	private Set<Integer> deletedTuples;
 	private Set<Integer> insertedTuples;
 	private Set<Integer> updatedTuples;
@@ -32,21 +30,6 @@ public class TableWriteSet
 	public Map<Integer, TupleWriteSet> getTableWriteSetMap()
 	{
 		return this.writeSet;
-	}
-
-	public void addDeletedRow(Integer id)
-	{
-		this.deletedTuples.add(id);
-	}
-
-	public void addInsertedRow(Integer id)
-	{
-		this.insertedTuples.add(id);
-	}
-
-	public void removeUpdatedRow(Integer id)
-	{
-		this.updatedTuples.remove(id);
 	}
 
 	public void addUpdatedRow(Integer id)

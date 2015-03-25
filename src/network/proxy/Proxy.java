@@ -12,9 +12,9 @@ import org.apache.thrift.TException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
+import runtime.factory.IdentifierFactory;
 import runtime.txn.TransactionWriteSet;
 import net.sf.jsqlparser.JSQLParserException;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -24,6 +24,7 @@ import runtime.factory.TxnIdFactory;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
 import util.thrift.ThriftCheckEntry;
+import util.thrift.ThriftCheckResponse;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,7 +50,7 @@ public class Proxy extends AbstractNode
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> scratchpad;
 
-	public Proxy(ProxyConfig config) throws TTransportException
+	public Proxy(ProxyConfig config)
 	{
 		super(config);
 
@@ -58,6 +59,8 @@ public class Proxy extends AbstractNode
 		this.networkInterface = new ProxyNetwork(this.getConfig());
 		this.replicator = config.getReplicatorConfig();
 		this.coordinator = config.getCoordinatorConfig();
+
+		IdentifierFactory.setupIdentifiersGenerators(this.getConfig());
 	}
 
 	@Override
@@ -169,8 +172,6 @@ public class Proxy extends AbstractNode
 
 	private void prepareToCommit(TransactionId txnId)
 	{
-		StopWatch watch = new LoggingStopWatch("preparing to commit time");
-		watch.start();
 		LOG.trace("preparing to commit txn {}", txnId.getId());
 
 		IDBScratchpad pad = this.scratchpad.get(txnId);
@@ -181,7 +182,15 @@ public class Proxy extends AbstractNode
 
 			//if we must coordinate then do it here. this is a blocking call
 			if(checkList.size() > 0)
-				this.networkInterface.checkInvariants(checkList, this.coordinator);
+			{
+				ThriftCheckResponse response = this.networkInterface.checkInvariants(checkList, this.coordinator);
+				if(!response.isSuccess())
+				{
+					LOG.error("coordinator didnt allow txn to commit.");
+					return;
+				}
+				writeSet.processCoordinatorResponse(response.getResult());
+			}
 
 			writeSet.generateMinimalStatements();
 			ShadowOperation shadowOp = new ShadowOperation(txnId.getId(), writeSet.getStatements());
@@ -191,8 +200,6 @@ public class Proxy extends AbstractNode
 		{
 			LOG.error("failed to prepare operation {} for commit", txnId.getId(), e);
 		}
-
-		watch.stop();
 	}
 
 }

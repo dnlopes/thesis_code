@@ -24,7 +24,7 @@ public class ProxyConfig extends AbstractConfig
 	public ProxyConfig(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
 					   ReplicatorConfig replicatorConfig, CoordinatorConfig coordinatorConfig)
 	{
-		super(Role.REPLICATOR, id, host, port);
+		super(Role.PROXY, id, host, port);
 
 		this.dbHost = dbHost;
 		this.dbPort = dbPort;
