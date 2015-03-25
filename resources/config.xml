@@ -14,7 +14,7 @@
                       dbPwd="101010" refExecutor="2"/>
         </proxies>
 		<coordinators>
-			<coordinator id="1" host="localhost" port="50010"/>
+			<coordinator id="1" host="localhost" port="50011"/>
 		</coordinators>
     </topology>
     <variables padPoolSize="20" dbName="micro"

@@ -1,32 +1,22 @@
 namespace java util.thrift
 
 
-enum CheckInvariantType {
+enum CheckTypeRequest {
     UNIQUE,
     FOREIGN_KEY,
-    GREATHER_THAN,
-    LESSER_THAN,
-    DELETE_VALUE,
-    DELTA,
-    REQUEST_VALUE
-}
-
-
-enum MessageType {
- COMMIT = 1,
- REQUEST_TXN = 2,
- VALIDATE = 3,
+    REQUEST_ID,
+    APPLY_DELTA
 }
 
 struct ThriftCheckRequest
 {
-    1: required i32 requestId;
+    1: required string requestId;
     2: required list<ThriftCheckEntry> request;
 }
 
 struct ThriftCheckResponse
 {
-    1: required i32 requestId;
+    1: required string responseId;
     2: required bool success;
     3: list<ThriftCheckResult> result;
 }
@@ -38,13 +28,11 @@ struct ThriftCheckResult {
 }
 
 struct ThriftCheckEntry {
-    1: required CheckInvariantType type;
+    1: required CheckTypeRequest type;
     2: required i32 id;
     3: required string fieldName;
     4: required string tableName;
     5: string value;
-    6: string resquestedValue;
-    7: bool success; // not using for now
 }
 
 struct ThriftOperation {

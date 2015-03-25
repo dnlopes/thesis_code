@@ -21,15 +21,15 @@ public class MicroTest
 
 	public static void main(String args[]) throws SQLException, IOException, SAXException, ClassNotFoundException
 	{
-		Micro_Populate db = new Micro_Populate();
+		//Micro_Populate db = new Micro_Populate();
 
 		Connection conn = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getProxies().get(1));
 
 		Statement stat = conn.createStatement();
-		ResultSet rs = stat.executeQuery("SELECT a from t1 where d=9 OR c=10");
+		//ResultSet rs = stat.executeQuery("SELECT a from t1 where d=9 OR c=10");
 
 
-//		int res = stat.executeUpdate("update t1 set b=9 where a=8");
+		int res = stat.executeUpdate("update t1 set c=9 where a=8");
 //		res = stat.executeUpdate("update t1 set b=7 where a=4");
 //		res = stat.executeUpdate("update t1 set c=20 where d>=7");
 		conn.commit();
@@ -38,9 +38,9 @@ public class MicroTest
 		//conn.commit();
 		//res = stat.executeUpdate("update t3 set b=22 where a>4");
 		//res = stat.executeUpdate("update t3 set c=222 where d<=7 OR c>1");
-		rs = stat.executeQuery("SELECT a from t1 where d=9 OR c=10");
+		//rs = stat.executeQuery("SELECT a from t1 where d=9 OR c=10");
 
-		conn.commit();
+		//conn.commit();
 
 		//alterou o ID=9 (b=15)
 		//int res2 = stat.executeUpdate("update t1 set b=10 where a=2");

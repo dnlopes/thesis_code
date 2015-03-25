@@ -1,7 +1,6 @@
 package network.proxy;
 
 
-import database.constraints.CheckInvariantItem;
 import database.jdbc.Result;
 import database.scratchpad.ScratchpadFactory;
 import database.scratchpad.IDBScratchpad;
@@ -11,6 +10,7 @@ import network.NodeMetadata;
 import org.apache.thrift.TException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
+import runtime.factory.IdentifierFactory;
 import runtime.txn.TransactionWriteSet;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.thrift.transport.TTransportException;
@@ -22,6 +22,7 @@ import runtime.txn.TransactionId;
 import runtime.factory.TxnIdFactory;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
+import util.thrift.ThriftCheckEntry;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,6 +39,8 @@ public class Proxy extends AbstractNode
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
+	private static final IdentifierFactory ID_GENERATORS = new IdentifierFactory();
+
 	private IProxyNetwork networkInterface;
 	//this is the replicator in which we will execute RPCs
 	private NodeMetadata replicator;
@@ -45,6 +48,7 @@ public class Proxy extends AbstractNode
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> scratchpad;
+
 
 	public Proxy(NodeMetadata nodeInfo) throws TTransportException
 	{
@@ -157,7 +161,7 @@ public class Proxy extends AbstractNode
 
 	public void prepareToCommit(TransactionId txnId)
 	{
-		StopWatch watch = new LoggingStopWatch("preparing stuff");
+		StopWatch watch = new LoggingStopWatch("preparing to commit time");
 		watch.start();
 		LOG.trace("preparing to commit txn {}", txnId.getId());
 
@@ -165,8 +169,7 @@ public class Proxy extends AbstractNode
 		try
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
-			writeSet.verifyInvariants();
-			List<CheckInvariantItem> checkList = writeSet.getInvariantsList();
+			List<ThriftCheckEntry> checkList = writeSet.verifyInvariants();
 			//if we must coordinate then do it here. this is a blocking call
 			if(checkList.size() > 0)
 				this.networkInterface.checkInvariants(checkList, this.coordinator);

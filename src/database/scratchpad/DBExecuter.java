@@ -1346,7 +1346,8 @@ public class DBExecuter implements IExecuter
 	{
 		for(Constraint constraint: field.getInvariants())
 		{
-			if(!((CheckConstraint) constraint).isValidValue(newValue))
+			if(constraint instanceof CheckConstraint)
+				if(!((CheckConstraint) constraint).isValidValue(newValue))
 					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
 		}
 	}

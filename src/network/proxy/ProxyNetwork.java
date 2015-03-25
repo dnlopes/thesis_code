@@ -1,7 +1,6 @@
 package network.proxy;
 
 
-import database.constraints.CheckInvariantItem;
 import network.AbstractNetwork;
 import network.NodeMetadata;
 import org.apache.thrift.TException;
@@ -23,11 +22,12 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
-
+	private int requestId;
 
 	public ProxyNetwork(NodeMetadata node)
 	{
 		super(node);
+		this.requestId = 0;
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public List<CheckInvariantItem> checkInvariants(List<CheckInvariantItem> checkList, NodeMetadata node) throws TException
+	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, NodeMetadata node) throws TException
 	{
 		if(!this.coordinatorsClients.containsKey(node.getName()))
 			try
@@ -71,10 +71,10 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			}
 
 		CoordinatorRPC.Client client = this.coordinatorsClients.get(node.getName());
+		ThriftCheckRequest newRequest = new ThriftCheckRequest(this.me.getName() + "(" + this.requestId++ + ")",
+				checkList);
 
-		//List<CheckInvariantThrift> thriftCheckList = Utils.encodeInvariantList(checkList);
-		//thriftCheckList = client.checkInvariants(thriftCheckList);
-		//return Utils.decodeInvariantList(thriftCheckList);
+		ThriftCheckResponse checkResponse = client.checkInvariants(newRequest);
 		return null;
 	}
 

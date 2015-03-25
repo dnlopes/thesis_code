@@ -96,7 +96,7 @@ public class MyShadowOpCreator
 			sP.parseAnnotations();
 			annotatedTableSchema = sP.getTableCrdtFormMap();
 			cJsqlParser = new CCJSqlParserManager();
-			iDFactory = new IDFactories();
+			//iDFactory = new IDFactories();
 			globalProxyId = gPId;
 			totalProxyNum = numOfProxies;
 			this.initIDFactories(globalProxyId, totalProxyNum, originalConn);

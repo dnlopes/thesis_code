@@ -1,4 +1,7 @@
-package database.constraints;
+package network.messages;
+
+
+import database.constraints.ConstraintType;
 
 
 /**

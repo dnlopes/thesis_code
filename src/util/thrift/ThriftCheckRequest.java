@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRequest, ThriftCheckRequest._Fields>, java.io.Serializable, Cloneable, Comparable<ThriftCheckRequest> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ThriftCheckRequest");
 
-  private static final org.apache.thrift.protocol.TField REQUEST_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("requestId", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField REQUEST_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("requestId", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField REQUEST_FIELD_DESC = new org.apache.thrift.protocol.TField("request", org.apache.thrift.protocol.TType.LIST, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -47,7 +47,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
     schemes.put(TupleScheme.class, new ThriftCheckRequestTupleSchemeFactory());
   }
 
-  public int requestId; // required
+  public String requestId; // required
   public List<ThriftCheckEntry> request; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -112,13 +112,11 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
   }
 
   // isset id assignments
-  private static final int __REQUESTID_ISSET_ID = 0;
-  private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.REQUEST_ID, new org.apache.thrift.meta_data.FieldMetaData("requestId", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.REQUEST, new org.apache.thrift.meta_data.FieldMetaData("request", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "ThriftCheckEntry"))));
@@ -130,12 +128,11 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
   }
 
   public ThriftCheckRequest(
-    int requestId,
+    String requestId,
     List<ThriftCheckEntry> request)
   {
     this();
     this.requestId = requestId;
-    setRequestIdIsSet(true);
     this.request = request;
   }
 
@@ -143,8 +140,9 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
    * Performs a deep copy on <i>other</i>.
    */
   public ThriftCheckRequest(ThriftCheckRequest other) {
-    __isset_bitfield = other.__isset_bitfield;
-    this.requestId = other.requestId;
+    if (other.isSetRequestId()) {
+      this.requestId = other.requestId;
+    }
     if (other.isSetRequest()) {
       List<ThriftCheckEntry> __this__request = new ArrayList<ThriftCheckEntry>(other.request.size());
       for (ThriftCheckEntry other_element : other.request) {
@@ -160,32 +158,32 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
 
   @Override
   public void clear() {
-    setRequestIdIsSet(false);
-    this.requestId = 0;
+    this.requestId = null;
     this.request = null;
   }
 
-  public int getRequestId() {
+  public String getRequestId() {
     return this.requestId;
   }
 
-  public ThriftCheckRequest setRequestId(int requestId) {
+  public ThriftCheckRequest setRequestId(String requestId) {
     this.requestId = requestId;
-    setRequestIdIsSet(true);
     return this;
   }
 
   public void unsetRequestId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REQUESTID_ISSET_ID);
+    this.requestId = null;
   }
 
   /** Returns true if field requestId is set (has been assigned a value) and false otherwise */
   public boolean isSetRequestId() {
-    return EncodingUtils.testBit(__isset_bitfield, __REQUESTID_ISSET_ID);
+    return this.requestId != null;
   }
 
   public void setRequestIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REQUESTID_ISSET_ID, value);
+    if (!value) {
+      this.requestId = null;
+    }
   }
 
   public int getRequestSize() {
@@ -233,7 +231,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
       if (value == null) {
         unsetRequestId();
       } else {
-        setRequestId((Integer)value);
+        setRequestId((String)value);
       }
       break;
 
@@ -251,7 +249,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
   public Object getFieldValue(_Fields field) {
     switch (field) {
     case REQUEST_ID:
-      return Integer.valueOf(getRequestId());
+      return getRequestId();
 
     case REQUEST:
       return getRequest();
@@ -288,12 +286,12 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
     if (that == null)
       return false;
 
-    boolean this_present_requestId = true;
-    boolean that_present_requestId = true;
+    boolean this_present_requestId = true && this.isSetRequestId();
+    boolean that_present_requestId = true && that.isSetRequestId();
     if (this_present_requestId || that_present_requestId) {
       if (!(this_present_requestId && that_present_requestId))
         return false;
-      if (this.requestId != that.requestId)
+      if (!this.requestId.equals(that.requestId))
         return false;
     }
 
@@ -313,7 +311,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_requestId = true;
+    boolean present_requestId = true && (isSetRequestId());
     list.add(present_requestId);
     if (present_requestId)
       list.add(requestId);
@@ -375,7 +373,11 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
     boolean first = true;
 
     sb.append("requestId:");
-    sb.append(this.requestId);
+    if (this.requestId == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.requestId);
+    }
     first = false;
     if (!first) sb.append(", ");
     sb.append("request:");
@@ -391,7 +393,9 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    // alas, we cannot check 'requestId' because it's a primitive and you chose the non-beans generator.
+    if (requestId == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'requestId' was not present! Struct: " + toString());
+    }
     if (request == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'request' was not present! Struct: " + toString());
     }
@@ -408,8 +412,6 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
 
   private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
     try {
-      // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-      __isset_bitfield = 0;
       read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
     } catch (org.apache.thrift.TException te) {
       throw new java.io.IOException(te);
@@ -435,8 +437,8 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
         }
         switch (schemeField.id) {
           case 1: // REQUEST_ID
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.requestId = iprot.readI32();
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.requestId = iprot.readString();
               struct.setRequestIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -469,9 +471,6 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
-      if (!struct.isSetRequestId()) {
-        throw new org.apache.thrift.protocol.TProtocolException("Required field 'requestId' was not found in serialized data! Struct: " + toString());
-      }
       struct.validate();
     }
 
@@ -479,9 +478,11 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(REQUEST_ID_FIELD_DESC);
-      oprot.writeI32(struct.requestId);
-      oprot.writeFieldEnd();
+      if (struct.requestId != null) {
+        oprot.writeFieldBegin(REQUEST_ID_FIELD_DESC);
+        oprot.writeString(struct.requestId);
+        oprot.writeFieldEnd();
+      }
       if (struct.request != null) {
         oprot.writeFieldBegin(REQUEST_FIELD_DESC);
         {
@@ -511,7 +512,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, ThriftCheckRequest struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeI32(struct.requestId);
+      oprot.writeString(struct.requestId);
       {
         oprot.writeI32(struct.request.size());
         for (ThriftCheckEntry _iter4 : struct.request)
@@ -524,7 +525,7 @@ public class ThriftCheckRequest implements org.apache.thrift.TBase<ThriftCheckRe
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ThriftCheckRequest struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.requestId = iprot.readI32();
+      struct.requestId = iprot.readString();
       struct.setRequestIdIsSet(true);
       {
         org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());

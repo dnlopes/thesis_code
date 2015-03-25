@@ -43,8 +43,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
   private static final org.apache.thrift.protocol.TField FIELD_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("fieldName", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField TABLE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("tableName", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.STRING, (short)5);
-  private static final org.apache.thrift.protocol.TField RESQUESTED_VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("resquestedValue", org.apache.thrift.protocol.TType.STRING, (short)6);
-  private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,29 +52,25 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
 
   /**
    * 
-   * @see CheckInvariantType
+   * @see CheckTypeRequest
    */
-  public CheckInvariantType type; // required
+  public CheckTypeRequest type; // required
   public int id; // required
   public String fieldName; // required
   public String tableName; // required
   public String value; // required
-  public String resquestedValue; // required
-  public boolean success; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     /**
      * 
-     * @see CheckInvariantType
+     * @see CheckTypeRequest
      */
     TYPE((short)1, "type"),
     ID((short)2, "id"),
     FIELD_NAME((short)3, "fieldName"),
     TABLE_NAME((short)4, "tableName"),
-    VALUE((short)5, "value"),
-    RESQUESTED_VALUE((short)6, "resquestedValue"),
-    SUCCESS((short)7, "success");
+    VALUE((short)5, "value");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -101,10 +95,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
           return TABLE_NAME;
         case 5: // VALUE
           return VALUE;
-        case 6: // RESQUESTED_VALUE
-          return RESQUESTED_VALUE;
-        case 7: // SUCCESS
-          return SUCCESS;
         default:
           return null;
       }
@@ -146,13 +136,12 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
 
   // isset id assignments
   private static final int __ID_ISSET_ID = 0;
-  private static final int __SUCCESS_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData("type", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CheckInvariantType.class)));
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CheckTypeRequest.class)));
     tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.FIELD_NAME, new org.apache.thrift.meta_data.FieldMetaData("fieldName", org.apache.thrift.TFieldRequirementType.REQUIRED, 
@@ -161,10 +150,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.RESQUESTED_VALUE, new org.apache.thrift.meta_data.FieldMetaData("resquestedValue", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ThriftCheckEntry.class, metaDataMap);
   }
@@ -173,13 +158,11 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
   }
 
   public ThriftCheckEntry(
-    CheckInvariantType type,
+    CheckTypeRequest type,
     int id,
     String fieldName,
     String tableName,
-    String value,
-    String resquestedValue,
-    boolean success)
+    String value)
   {
     this();
     this.type = type;
@@ -188,9 +171,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     this.fieldName = fieldName;
     this.tableName = tableName;
     this.value = value;
-    this.resquestedValue = resquestedValue;
-    this.success = success;
-    setSuccessIsSet(true);
   }
 
   /**
@@ -211,10 +191,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     if (other.isSetValue()) {
       this.value = other.value;
     }
-    if (other.isSetResquestedValue()) {
-      this.resquestedValue = other.resquestedValue;
-    }
-    this.success = other.success;
   }
 
   public ThriftCheckEntry deepCopy() {
@@ -229,24 +205,21 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     this.fieldName = null;
     this.tableName = null;
     this.value = null;
-    this.resquestedValue = null;
-    setSuccessIsSet(false);
-    this.success = false;
   }
 
   /**
    * 
-   * @see CheckInvariantType
+   * @see CheckTypeRequest
    */
-  public CheckInvariantType getType() {
+  public CheckTypeRequest getType() {
     return this.type;
   }
 
   /**
    * 
-   * @see CheckInvariantType
+   * @see CheckTypeRequest
    */
-  public ThriftCheckEntry setType(CheckInvariantType type) {
+  public ThriftCheckEntry setType(CheckTypeRequest type) {
     this.type = type;
     return this;
   }
@@ -361,60 +334,13 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     }
   }
 
-  public String getResquestedValue() {
-    return this.resquestedValue;
-  }
-
-  public ThriftCheckEntry setResquestedValue(String resquestedValue) {
-    this.resquestedValue = resquestedValue;
-    return this;
-  }
-
-  public void unsetResquestedValue() {
-    this.resquestedValue = null;
-  }
-
-  /** Returns true if field resquestedValue is set (has been assigned a value) and false otherwise */
-  public boolean isSetResquestedValue() {
-    return this.resquestedValue != null;
-  }
-
-  public void setResquestedValueIsSet(boolean value) {
-    if (!value) {
-      this.resquestedValue = null;
-    }
-  }
-
-  public boolean isSuccess() {
-    return this.success;
-  }
-
-  public ThriftCheckEntry setSuccess(boolean success) {
-    this.success = success;
-    setSuccessIsSet(true);
-    return this;
-  }
-
-  public void unsetSuccess() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-  }
-
-  /** Returns true if field success is set (has been assigned a value) and false otherwise */
-  public boolean isSetSuccess() {
-    return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-  }
-
-  public void setSuccessIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case TYPE:
       if (value == null) {
         unsetType();
       } else {
-        setType((CheckInvariantType)value);
+        setType((CheckTypeRequest)value);
       }
       break;
 
@@ -450,22 +376,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
       }
       break;
 
-    case RESQUESTED_VALUE:
-      if (value == null) {
-        unsetResquestedValue();
-      } else {
-        setResquestedValue((String)value);
-      }
-      break;
-
-    case SUCCESS:
-      if (value == null) {
-        unsetSuccess();
-      } else {
-        setSuccess((Boolean)value);
-      }
-      break;
-
     }
   }
 
@@ -485,12 +395,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
 
     case VALUE:
       return getValue();
-
-    case RESQUESTED_VALUE:
-      return getResquestedValue();
-
-    case SUCCESS:
-      return Boolean.valueOf(isSuccess());
 
     }
     throw new IllegalStateException();
@@ -513,10 +417,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
       return isSetTableName();
     case VALUE:
       return isSetValue();
-    case RESQUESTED_VALUE:
-      return isSetResquestedValue();
-    case SUCCESS:
-      return isSetSuccess();
     }
     throw new IllegalStateException();
   }
@@ -579,24 +479,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
         return false;
     }
 
-    boolean this_present_resquestedValue = true && this.isSetResquestedValue();
-    boolean that_present_resquestedValue = true && that.isSetResquestedValue();
-    if (this_present_resquestedValue || that_present_resquestedValue) {
-      if (!(this_present_resquestedValue && that_present_resquestedValue))
-        return false;
-      if (!this.resquestedValue.equals(that.resquestedValue))
-        return false;
-    }
-
-    boolean this_present_success = true;
-    boolean that_present_success = true;
-    if (this_present_success || that_present_success) {
-      if (!(this_present_success && that_present_success))
-        return false;
-      if (this.success != that.success)
-        return false;
-    }
-
     return true;
   }
 
@@ -628,16 +510,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     list.add(present_value);
     if (present_value)
       list.add(value);
-
-    boolean present_resquestedValue = true && (isSetResquestedValue());
-    list.add(present_resquestedValue);
-    if (present_resquestedValue)
-      list.add(resquestedValue);
-
-    boolean present_success = true;
-    list.add(present_success);
-    if (present_success)
-      list.add(success);
 
     return list.hashCode();
   }
@@ -700,26 +572,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetResquestedValue()).compareTo(other.isSetResquestedValue());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetResquestedValue()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.resquestedValue, other.resquestedValue);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetSuccess()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -774,18 +626,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
     } else {
       sb.append(this.value);
     }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("resquestedValue:");
-    if (this.resquestedValue == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.resquestedValue);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("success:");
-    sb.append(this.success);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -844,7 +684,7 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
         switch (schemeField.id) {
           case 1: // TYPE
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.type = util.thrift.CheckInvariantType.findByValue(iprot.readI32());
+              struct.type = util.thrift.CheckTypeRequest.findByValue(iprot.readI32());
               struct.setTypeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -878,22 +718,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.value = iprot.readString();
               struct.setValueIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 6: // RESQUESTED_VALUE
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.resquestedValue = iprot.readString();
-              struct.setResquestedValueIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 7: // SUCCESS
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.success = iprot.readBool();
-              struct.setSuccessIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -939,14 +763,6 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
         oprot.writeString(struct.value);
         oprot.writeFieldEnd();
       }
-      if (struct.resquestedValue != null) {
-        oprot.writeFieldBegin(RESQUESTED_VALUE_FIELD_DESC);
-        oprot.writeString(struct.resquestedValue);
-        oprot.writeFieldEnd();
-      }
-      oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-      oprot.writeBool(struct.success);
-      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -972,28 +788,16 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
       if (struct.isSetValue()) {
         optionals.set(0);
       }
-      if (struct.isSetResquestedValue()) {
-        optionals.set(1);
-      }
-      if (struct.isSetSuccess()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 1);
       if (struct.isSetValue()) {
         oprot.writeString(struct.value);
-      }
-      if (struct.isSetResquestedValue()) {
-        oprot.writeString(struct.resquestedValue);
-      }
-      if (struct.isSetSuccess()) {
-        oprot.writeBool(struct.success);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ThriftCheckEntry struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.type = util.thrift.CheckInvariantType.findByValue(iprot.readI32());
+      struct.type = util.thrift.CheckTypeRequest.findByValue(iprot.readI32());
       struct.setTypeIsSet(true);
       struct.id = iprot.readI32();
       struct.setIdIsSet(true);
@@ -1001,18 +805,10 @@ public class ThriftCheckEntry implements org.apache.thrift.TBase<ThriftCheckEntr
       struct.setFieldNameIsSet(true);
       struct.tableName = iprot.readString();
       struct.setTableNameIsSet(true);
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         struct.value = iprot.readString();
         struct.setValueIsSet(true);
-      }
-      if (incoming.get(1)) {
-        struct.resquestedValue = iprot.readString();
-        struct.setResquestedValueIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.success = iprot.readBool();
-        struct.setSuccessIsSet(true);
       }
     }
   }

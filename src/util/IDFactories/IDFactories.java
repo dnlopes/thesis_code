@@ -44,12 +44,12 @@ public class IDFactories {
 			}
 		}
 
-		if (IDGeneratorList.containsKey(tableName) == false) {
-			HashMap<String, IDGenerator> IDM = new HashMap<String, IDGenerator>();
+		if (!IDGeneratorList.containsKey(tableName)) {
+			HashMap<String, IDGenerator> IDM = new HashMap<>();
 			IDGeneratorList.put(tableName, IDM);
 		} else {
 			HashMap<String, IDGenerator> IDM = IDGeneratorList.get(tableName);
-			if (IDM.containsKey(dataFieldName) == true) {
+			if (IDM.containsKey(dataFieldName)) {
 				try {
 					throw new RuntimeException("IDGenerator already exists "
 							+ tableName + " " + dataFieldName);

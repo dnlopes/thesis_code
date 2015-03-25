@@ -38,10 +38,9 @@ import org.slf4j.LoggerFactory;
 public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckResult, ThriftCheckResult._Fields>, java.io.Serializable, Cloneable, Comparable<ThriftCheckResult> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ThriftCheckResult");
 
-  private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("type", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)3);
-  private static final org.apache.thrift.protocol.TField RESQUESTED_VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("resquestedValue", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)2);
+  private static final org.apache.thrift.protocol.TField RESQUESTED_VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("resquestedValue", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,25 +48,15 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
     schemes.put(TupleScheme.class, new ThriftCheckResultTupleSchemeFactory());
   }
 
-  /**
-   * 
-   * @see CheckInvariantType
-   */
-  public CheckInvariantType type; // required
   public int id; // required
   public boolean success; // required
   public String resquestedValue; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    /**
-     * 
-     * @see CheckInvariantType
-     */
-    TYPE((short)1, "type"),
-    ID((short)2, "id"),
-    SUCCESS((short)3, "success"),
-    RESQUESTED_VALUE((short)4, "resquestedValue");
+    ID((short)1, "id"),
+    SUCCESS((short)2, "success"),
+    RESQUESTED_VALUE((short)3, "resquestedValue");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -82,13 +71,11 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // TYPE
-          return TYPE;
-        case 2: // ID
+        case 1: // ID
           return ID;
-        case 3: // SUCCESS
+        case 2: // SUCCESS
           return SUCCESS;
-        case 4: // RESQUESTED_VALUE
+        case 3: // RESQUESTED_VALUE
           return RESQUESTED_VALUE;
         default:
           return null;
@@ -136,8 +123,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData("type", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CheckInvariantType.class)));
     tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.REQUIRED, 
@@ -152,13 +137,11 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
   }
 
   public ThriftCheckResult(
-    CheckInvariantType type,
     int id,
     boolean success,
     String resquestedValue)
   {
     this();
-    this.type = type;
     this.id = id;
     setIdIsSet(true);
     this.success = success;
@@ -171,9 +154,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
    */
   public ThriftCheckResult(ThriftCheckResult other) {
     __isset_bitfield = other.__isset_bitfield;
-    if (other.isSetType()) {
-      this.type = other.type;
-    }
     this.id = other.id;
     this.success = other.success;
     if (other.isSetResquestedValue()) {
@@ -187,44 +167,11 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
 
   @Override
   public void clear() {
-    this.type = null;
     setIdIsSet(false);
     this.id = 0;
     setSuccessIsSet(false);
     this.success = false;
     this.resquestedValue = null;
-  }
-
-  /**
-   * 
-   * @see CheckInvariantType
-   */
-  public CheckInvariantType getType() {
-    return this.type;
-  }
-
-  /**
-   * 
-   * @see CheckInvariantType
-   */
-  public ThriftCheckResult setType(CheckInvariantType type) {
-    this.type = type;
-    return this;
-  }
-
-  public void unsetType() {
-    this.type = null;
-  }
-
-  /** Returns true if field type is set (has been assigned a value) and false otherwise */
-  public boolean isSetType() {
-    return this.type != null;
-  }
-
-  public void setTypeIsSet(boolean value) {
-    if (!value) {
-      this.type = null;
-    }
   }
 
   public int getId() {
@@ -299,14 +246,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case TYPE:
-      if (value == null) {
-        unsetType();
-      } else {
-        setType((CheckInvariantType)value);
-      }
-      break;
-
     case ID:
       if (value == null) {
         unsetId();
@@ -336,9 +275,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case TYPE:
-      return getType();
-
     case ID:
       return Integer.valueOf(getId());
 
@@ -359,8 +295,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
     }
 
     switch (field) {
-    case TYPE:
-      return isSetType();
     case ID:
       return isSetId();
     case SUCCESS:
@@ -383,15 +317,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
   public boolean equals(ThriftCheckResult that) {
     if (that == null)
       return false;
-
-    boolean this_present_type = true && this.isSetType();
-    boolean that_present_type = true && that.isSetType();
-    if (this_present_type || that_present_type) {
-      if (!(this_present_type && that_present_type))
-        return false;
-      if (!this.type.equals(that.type))
-        return false;
-    }
 
     boolean this_present_id = true;
     boolean that_present_id = true;
@@ -427,11 +352,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_type = true && (isSetType());
-    list.add(present_type);
-    if (present_type)
-      list.add(type.getValue());
-
     boolean present_id = true;
     list.add(present_id);
     if (present_id)
@@ -458,16 +378,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetType()).compareTo(other.isSetType());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetType()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.type, other.type);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
     if (lastComparison != 0) {
       return lastComparison;
@@ -518,14 +428,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
     StringBuilder sb = new StringBuilder("ThriftCheckResult(");
     boolean first = true;
 
-    sb.append("type:");
-    if (this.type == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.type);
-    }
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("id:");
     sb.append(this.id);
     first = false;
@@ -547,9 +449,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (type == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'type' was not present! Struct: " + toString());
-    }
     // alas, we cannot check 'id' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'success' because it's a primitive and you chose the non-beans generator.
     // check for sub-struct validity
@@ -591,15 +490,7 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
           break;
         }
         switch (schemeField.id) {
-          case 1: // TYPE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.type = util.thrift.CheckInvariantType.findByValue(iprot.readI32());
-              struct.setTypeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // ID
+          case 1: // ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.id = iprot.readI32();
               struct.setIdIsSet(true);
@@ -607,7 +498,7 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // SUCCESS
+          case 2: // SUCCESS
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.success = iprot.readBool();
               struct.setSuccessIsSet(true);
@@ -615,7 +506,7 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // RESQUESTED_VALUE
+          case 3: // RESQUESTED_VALUE
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.resquestedValue = iprot.readString();
               struct.setResquestedValueIsSet(true);
@@ -644,11 +535,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.type != null) {
-        oprot.writeFieldBegin(TYPE_FIELD_DESC);
-        oprot.writeI32(struct.type.getValue());
-        oprot.writeFieldEnd();
-      }
       oprot.writeFieldBegin(ID_FIELD_DESC);
       oprot.writeI32(struct.id);
       oprot.writeFieldEnd();
@@ -677,7 +563,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, ThriftCheckResult struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeI32(struct.type.getValue());
       oprot.writeI32(struct.id);
       oprot.writeBool(struct.success);
       BitSet optionals = new BitSet();
@@ -693,8 +578,6 @@ public class ThriftCheckResult implements org.apache.thrift.TBase<ThriftCheckRes
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ThriftCheckResult struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.type = util.thrift.CheckInvariantType.findByValue(iprot.readI32());
-      struct.setTypeIsSet(true);
       struct.id = iprot.readI32();
       struct.setIdIsSet(true);
       struct.success = iprot.readBool();

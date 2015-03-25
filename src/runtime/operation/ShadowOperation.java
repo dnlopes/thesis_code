@@ -20,7 +20,7 @@ package runtime.operation;
 
 import java.util.List;
 
-import database.constraints.CheckInvariantItem;
+import network.messages.CheckInvariantItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +46,6 @@ public class ShadowOperation
 	public List<String> getOperationList()
 	{
 		return this.operationList;
-	}
-
-	public void addCheckValue(CheckInvariantItem value)
-	{
-		this.checkList.add(value);
 	}
 
 	public long getTxnId()

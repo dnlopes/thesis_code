@@ -38,8 +38,9 @@ import org.slf4j.LoggerFactory;
 public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckResponse, ThriftCheckResponse._Fields>, java.io.Serializable, Cloneable, Comparable<ThriftCheckResponse> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ThriftCheckResponse");
 
-  private static final org.apache.thrift.protocol.TField REQUEST_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("requestId", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField REQUEST_FIELD_DESC = new org.apache.thrift.protocol.TField("request", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField RESPONSE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("responseId", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)2);
+  private static final org.apache.thrift.protocol.TField RESULT_FIELD_DESC = new org.apache.thrift.protocol.TField("result", org.apache.thrift.protocol.TType.LIST, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,13 +48,15 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     schemes.put(TupleScheme.class, new ThriftCheckResponseTupleSchemeFactory());
   }
 
-  public int requestId; // required
-  public List<ThriftCheckResult> request; // required
+  public String responseId; // required
+  public boolean success; // required
+  public List<ThriftCheckResult> result; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    REQUEST_ID((short)1, "requestId"),
-    REQUEST((short)2, "request");
+    RESPONSE_ID((short)1, "responseId"),
+    SUCCESS((short)2, "success"),
+    RESULT((short)3, "result");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -68,10 +71,12 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // REQUEST_ID
-          return REQUEST_ID;
-        case 2: // REQUEST
-          return REQUEST;
+        case 1: // RESPONSE_ID
+          return RESPONSE_ID;
+        case 2: // SUCCESS
+          return SUCCESS;
+        case 3: // RESULT
+          return RESULT;
         default:
           return null;
       }
@@ -112,14 +117,16 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
   }
 
   // isset id assignments
-  private static final int __REQUESTID_ISSET_ID = 0;
+  private static final int __SUCCESS_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.REQUEST_ID, new org.apache.thrift.meta_data.FieldMetaData("requestId", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.REQUEST, new org.apache.thrift.meta_data.FieldMetaData("request", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.RESPONSE_ID, new org.apache.thrift.meta_data.FieldMetaData("responseId", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.RESULT, new org.apache.thrift.meta_data.FieldMetaData("result", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "ThriftCheckResult"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -130,13 +137,15 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
   }
 
   public ThriftCheckResponse(
-    int requestId,
-    List<ThriftCheckResult> request)
+    String responseId,
+    boolean success,
+    List<ThriftCheckResult> result)
   {
     this();
-    this.requestId = requestId;
-    setRequestIdIsSet(true);
-    this.request = request;
+    this.responseId = responseId;
+    this.success = success;
+    setSuccessIsSet(true);
+    this.result = result;
   }
 
   /**
@@ -144,13 +153,16 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
    */
   public ThriftCheckResponse(ThriftCheckResponse other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.requestId = other.requestId;
-    if (other.isSetRequest()) {
-      List<ThriftCheckResult> __this__request = new ArrayList<ThriftCheckResult>(other.request.size());
-      for (ThriftCheckResult other_element : other.request) {
-        __this__request.add(other_element);
+    if (other.isSetResponseId()) {
+      this.responseId = other.responseId;
+    }
+    this.success = other.success;
+    if (other.isSetResult()) {
+      List<ThriftCheckResult> __this__result = new ArrayList<ThriftCheckResult>(other.result.size());
+      for (ThriftCheckResult other_element : other.result) {
+        __this__result.add(other_element);
       }
-      this.request = __this__request;
+      this.result = __this__result;
     }
   }
 
@@ -160,88 +172,121 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
 
   @Override
   public void clear() {
-    setRequestIdIsSet(false);
-    this.requestId = 0;
-    this.request = null;
+    this.responseId = null;
+    setSuccessIsSet(false);
+    this.success = false;
+    this.result = null;
   }
 
-  public int getRequestId() {
-    return this.requestId;
+  public String getResponseId() {
+    return this.responseId;
   }
 
-  public ThriftCheckResponse setRequestId(int requestId) {
-    this.requestId = requestId;
-    setRequestIdIsSet(true);
+  public ThriftCheckResponse setResponseId(String responseId) {
+    this.responseId = responseId;
     return this;
   }
 
-  public void unsetRequestId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REQUESTID_ISSET_ID);
+  public void unsetResponseId() {
+    this.responseId = null;
   }
 
-  /** Returns true if field requestId is set (has been assigned a value) and false otherwise */
-  public boolean isSetRequestId() {
-    return EncodingUtils.testBit(__isset_bitfield, __REQUESTID_ISSET_ID);
+  /** Returns true if field responseId is set (has been assigned a value) and false otherwise */
+  public boolean isSetResponseId() {
+    return this.responseId != null;
   }
 
-  public void setRequestIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REQUESTID_ISSET_ID, value);
-  }
-
-  public int getRequestSize() {
-    return (this.request == null) ? 0 : this.request.size();
-  }
-
-  public java.util.Iterator<ThriftCheckResult> getRequestIterator() {
-    return (this.request == null) ? null : this.request.iterator();
-  }
-
-  public void addToRequest(ThriftCheckResult elem) {
-    if (this.request == null) {
-      this.request = new ArrayList<ThriftCheckResult>();
-    }
-    this.request.add(elem);
-  }
-
-  public List<ThriftCheckResult> getRequest() {
-    return this.request;
-  }
-
-  public ThriftCheckResponse setRequest(List<ThriftCheckResult> request) {
-    this.request = request;
-    return this;
-  }
-
-  public void unsetRequest() {
-    this.request = null;
-  }
-
-  /** Returns true if field request is set (has been assigned a value) and false otherwise */
-  public boolean isSetRequest() {
-    return this.request != null;
-  }
-
-  public void setRequestIsSet(boolean value) {
+  public void setResponseIdIsSet(boolean value) {
     if (!value) {
-      this.request = null;
+      this.responseId = null;
+    }
+  }
+
+  public boolean isSuccess() {
+    return this.success;
+  }
+
+  public ThriftCheckResponse setSuccess(boolean success) {
+    this.success = success;
+    setSuccessIsSet(true);
+    return this;
+  }
+
+  public void unsetSuccess() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+  }
+
+  /** Returns true if field success is set (has been assigned a value) and false otherwise */
+  public boolean isSetSuccess() {
+    return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+  }
+
+  public void setSuccessIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+  }
+
+  public int getResultSize() {
+    return (this.result == null) ? 0 : this.result.size();
+  }
+
+  public java.util.Iterator<ThriftCheckResult> getResultIterator() {
+    return (this.result == null) ? null : this.result.iterator();
+  }
+
+  public void addToResult(ThriftCheckResult elem) {
+    if (this.result == null) {
+      this.result = new ArrayList<ThriftCheckResult>();
+    }
+    this.result.add(elem);
+  }
+
+  public List<ThriftCheckResult> getResult() {
+    return this.result;
+  }
+
+  public ThriftCheckResponse setResult(List<ThriftCheckResult> result) {
+    this.result = result;
+    return this;
+  }
+
+  public void unsetResult() {
+    this.result = null;
+  }
+
+  /** Returns true if field result is set (has been assigned a value) and false otherwise */
+  public boolean isSetResult() {
+    return this.result != null;
+  }
+
+  public void setResultIsSet(boolean value) {
+    if (!value) {
+      this.result = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case REQUEST_ID:
+    case RESPONSE_ID:
       if (value == null) {
-        unsetRequestId();
+        unsetResponseId();
       } else {
-        setRequestId((Integer)value);
+        setResponseId((String)value);
       }
       break;
 
-    case REQUEST:
+    case SUCCESS:
       if (value == null) {
-        unsetRequest();
+        unsetSuccess();
       } else {
-        setRequest((List<ThriftCheckResult>)value);
+        setSuccess((Boolean)value);
+      }
+      break;
+
+    case RESULT:
+      if (value == null) {
+        unsetResult();
+      } else {
+        setResult((List<ThriftCheckResult>)value);
       }
       break;
 
@@ -250,11 +295,14 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case REQUEST_ID:
-      return Integer.valueOf(getRequestId());
+    case RESPONSE_ID:
+      return getResponseId();
 
-    case REQUEST:
-      return getRequest();
+    case SUCCESS:
+      return Boolean.valueOf(isSuccess());
+
+    case RESULT:
+      return getResult();
 
     }
     throw new IllegalStateException();
@@ -267,10 +315,12 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     }
 
     switch (field) {
-    case REQUEST_ID:
-      return isSetRequestId();
-    case REQUEST:
-      return isSetRequest();
+    case RESPONSE_ID:
+      return isSetResponseId();
+    case SUCCESS:
+      return isSetSuccess();
+    case RESULT:
+      return isSetResult();
     }
     throw new IllegalStateException();
   }
@@ -288,21 +338,30 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     if (that == null)
       return false;
 
-    boolean this_present_requestId = true;
-    boolean that_present_requestId = true;
-    if (this_present_requestId || that_present_requestId) {
-      if (!(this_present_requestId && that_present_requestId))
+    boolean this_present_responseId = true && this.isSetResponseId();
+    boolean that_present_responseId = true && that.isSetResponseId();
+    if (this_present_responseId || that_present_responseId) {
+      if (!(this_present_responseId && that_present_responseId))
         return false;
-      if (this.requestId != that.requestId)
+      if (!this.responseId.equals(that.responseId))
         return false;
     }
 
-    boolean this_present_request = true && this.isSetRequest();
-    boolean that_present_request = true && that.isSetRequest();
-    if (this_present_request || that_present_request) {
-      if (!(this_present_request && that_present_request))
+    boolean this_present_success = true;
+    boolean that_present_success = true;
+    if (this_present_success || that_present_success) {
+      if (!(this_present_success && that_present_success))
         return false;
-      if (!this.request.equals(that.request))
+      if (this.success != that.success)
+        return false;
+    }
+
+    boolean this_present_result = true && this.isSetResult();
+    boolean that_present_result = true && that.isSetResult();
+    if (this_present_result || that_present_result) {
+      if (!(this_present_result && that_present_result))
+        return false;
+      if (!this.result.equals(that.result))
         return false;
     }
 
@@ -313,15 +372,20 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_requestId = true;
-    list.add(present_requestId);
-    if (present_requestId)
-      list.add(requestId);
+    boolean present_responseId = true && (isSetResponseId());
+    list.add(present_responseId);
+    if (present_responseId)
+      list.add(responseId);
 
-    boolean present_request = true && (isSetRequest());
-    list.add(present_request);
-    if (present_request)
-      list.add(request);
+    boolean present_success = true;
+    list.add(present_success);
+    if (present_success)
+      list.add(success);
+
+    boolean present_result = true && (isSetResult());
+    list.add(present_result);
+    if (present_result)
+      list.add(result);
 
     return list.hashCode();
   }
@@ -334,22 +398,32 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetRequestId()).compareTo(other.isSetRequestId());
+    lastComparison = Boolean.valueOf(isSetResponseId()).compareTo(other.isSetResponseId());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetRequestId()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.requestId, other.requestId);
+    if (isSetResponseId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.responseId, other.responseId);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetRequest()).compareTo(other.isSetRequest());
+    lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetRequest()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.request, other.request);
+    if (isSetSuccess()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetResult()).compareTo(other.isSetResult());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetResult()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.result, other.result);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -374,15 +448,23 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     StringBuilder sb = new StringBuilder("ThriftCheckResponse(");
     boolean first = true;
 
-    sb.append("requestId:");
-    sb.append(this.requestId);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("request:");
-    if (this.request == null) {
+    sb.append("responseId:");
+    if (this.responseId == null) {
       sb.append("null");
     } else {
-      sb.append(this.request);
+      sb.append(this.responseId);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("success:");
+    sb.append(this.success);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("result:");
+    if (this.result == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.result);
     }
     first = false;
     sb.append(")");
@@ -391,10 +473,10 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    // alas, we cannot check 'requestId' because it's a primitive and you chose the non-beans generator.
-    if (request == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'request' was not present! Struct: " + toString());
+    if (responseId == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'responseId' was not present! Struct: " + toString());
     }
+    // alas, we cannot check 'success' because it's a primitive and you chose the non-beans generator.
     // check for sub-struct validity
   }
 
@@ -434,29 +516,37 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
           break;
         }
         switch (schemeField.id) {
-          case 1: // REQUEST_ID
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.requestId = iprot.readI32();
-              struct.setRequestIdIsSet(true);
+          case 1: // RESPONSE_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.responseId = iprot.readString();
+              struct.setResponseIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // REQUEST
+          case 2: // SUCCESS
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.success = iprot.readBool();
+              struct.setSuccessIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // RESULT
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-                struct.request = new ArrayList<ThriftCheckResult>(_list8.size);
+                struct.result = new ArrayList<ThriftCheckResult>(_list8.size);
                 ThriftCheckResult _elem9;
                 for (int _i10 = 0; _i10 < _list8.size; ++_i10)
                 {
                   _elem9 = new ThriftCheckResult();
                   _elem9.read(iprot);
-                  struct.request.add(_elem9);
+                  struct.result.add(_elem9);
                 }
                 iprot.readListEnd();
               }
-              struct.setRequestIsSet(true);
+              struct.setResultIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -469,8 +559,8 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
-      if (!struct.isSetRequestId()) {
-        throw new org.apache.thrift.protocol.TProtocolException("Required field 'requestId' was not found in serialized data! Struct: " + toString());
+      if (!struct.isSetSuccess()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'success' was not found in serialized data! Struct: " + toString());
       }
       struct.validate();
     }
@@ -479,14 +569,19 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(REQUEST_ID_FIELD_DESC);
-      oprot.writeI32(struct.requestId);
+      if (struct.responseId != null) {
+        oprot.writeFieldBegin(RESPONSE_ID_FIELD_DESC);
+        oprot.writeString(struct.responseId);
+        oprot.writeFieldEnd();
+      }
+      oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+      oprot.writeBool(struct.success);
       oprot.writeFieldEnd();
-      if (struct.request != null) {
-        oprot.writeFieldBegin(REQUEST_FIELD_DESC);
+      if (struct.result != null) {
+        oprot.writeFieldBegin(RESULT_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.request.size()));
-          for (ThriftCheckResult _iter11 : struct.request)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.result.size()));
+          for (ThriftCheckResult _iter11 : struct.result)
           {
             _iter11.write(oprot);
           }
@@ -511,12 +606,20 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, ThriftCheckResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeI32(struct.requestId);
-      {
-        oprot.writeI32(struct.request.size());
-        for (ThriftCheckResult _iter12 : struct.request)
+      oprot.writeString(struct.responseId);
+      oprot.writeBool(struct.success);
+      BitSet optionals = new BitSet();
+      if (struct.isSetResult()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetResult()) {
         {
-          _iter12.write(oprot);
+          oprot.writeI32(struct.result.size());
+          for (ThriftCheckResult _iter12 : struct.result)
+          {
+            _iter12.write(oprot);
+          }
         }
       }
     }
@@ -524,20 +627,25 @@ public class ThriftCheckResponse implements org.apache.thrift.TBase<ThriftCheckR
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ThriftCheckResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.requestId = iprot.readI32();
-      struct.setRequestIdIsSet(true);
-      {
-        org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.request = new ArrayList<ThriftCheckResult>(_list13.size);
-        ThriftCheckResult _elem14;
-        for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+      struct.responseId = iprot.readString();
+      struct.setResponseIdIsSet(true);
+      struct.success = iprot.readBool();
+      struct.setSuccessIsSet(true);
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
         {
-          _elem14 = new ThriftCheckResult();
-          _elem14.read(iprot);
-          struct.request.add(_elem14);
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.result = new ArrayList<ThriftCheckResult>(_list13.size);
+          ThriftCheckResult _elem14;
+          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+          {
+            _elem14 = new ThriftCheckResult();
+            _elem14.read(iprot);
+            struct.result.add(_elem14);
+          }
         }
+        struct.setResultIsSet(true);
       }
-      struct.setRequestIsSet(true);
     }
   }
 

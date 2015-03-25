@@ -6,5 +6,5 @@ package database.constraints;
  */
 public enum ConstraintType
 {
-	UNIQUE, FOREIGN_KEY, CHECK
+	UNIQUE, FOREIGN_KEY, CHECK, AUTO_INCREMENT
 }

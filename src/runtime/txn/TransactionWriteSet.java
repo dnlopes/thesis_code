@@ -2,13 +2,17 @@ package runtime.txn;
 
 
 import database.constraints.*;
-import database.constraints.CheckInvariantItem;
+import database.constraints.check.CheckConstraint;
 import database.util.DataField;
 import database.util.DatabaseTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
+import util.thrift.CheckTypeRequest;
+import util.thrift.ThriftCheckEntry;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -20,22 +24,25 @@ import java.util.*;
 public class TransactionWriteSet
 {
 
-	private Map<String, TableWriteSet> writeSet;
+	private static final Logger LOG = LoggerFactory.getLogger(TransactionWriteSet.class);
+
+	private Map<String, TableWriteSet> txnWriteSet;
 	private List<String> statements;
-	private List<CheckInvariantItem> invariantsToCheck;
+
+	// list of tuples that will be modified after contacting the coordinator
+	// for instance when requesting a new id
 	private List<TupleWriteSet> modifiedTuples;
 
 	public TransactionWriteSet()
 	{
-		this.writeSet = new HashMap<>();
+		this.txnWriteSet = new HashMap<>();
 		this.statements = new ArrayList<>();
-		this.invariantsToCheck = new ArrayList<>();
 		this.modifiedTuples = new ArrayList<>();
 	}
 
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
 	{
-		this.writeSet.put(tableName, writeSet);
+		this.txnWriteSet.put(tableName, writeSet);
 	}
 
 	public void generateMinimalStatements() throws SQLException
@@ -53,15 +60,10 @@ public class TransactionWriteSet
 		return this.statements;
 	}
 
-	public List<CheckInvariantItem> getInvariantsList()
-	{
-		return this.invariantsToCheck;
-	}
-
 	private void generateUpdates(List<String> allStatements) throws SQLException
 	{
 
-		for(TupleWriteSet set: this.modifiedTuples)
+		for(TupleWriteSet set : this.modifiedTuples)
 		{
 
 		}
@@ -123,7 +125,7 @@ public class TransactionWriteSet
 	{
 		StringBuilder buffer = new StringBuilder();
 
-		for(TableWriteSet tableWriteSet : this.writeSet.values())
+		for(TableWriteSet tableWriteSet : this.txnWriteSet.values())
 		{
 			if(!tableWriteSet.hasDeletedRows())
 				continue;
@@ -160,19 +162,25 @@ public class TransactionWriteSet
 		buffer.append(")");
 	}
 
-	public void verifyInvariants()
+	public List<ThriftCheckEntry> verifyInvariants()
 	{
-		for(TableWriteSet writeSet : this.writeSet.values())
-			this.verifyInvariantsForTable(writeSet);
+		List<ThriftCheckEntry> checkEntryList = new ArrayList<>();
+
+		for(TableWriteSet writeSet : this.txnWriteSet.values())
+			this.verifyInvariantsForTable(writeSet, checkEntryList);
+
+		return checkEntryList;
 	}
 
-	private void verifyInvariantsForTable(TableWriteSet writeSet)
+	private void verifyInvariantsForTable(TableWriteSet writeSet, List<ThriftCheckEntry> checkList)
 	{
 		for(TupleWriteSet tupleWriteSet : writeSet.getTuplesWriteSet())
-			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTupleId());
+			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTupleId(),
+					checkList);
 	}
 
-	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, int rowId)
+	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, int rowId,
+										  List<ThriftCheckEntry> checkList)
 	{
 		this.modifiedTuples.add(tupleWriteSet);
 
@@ -186,42 +194,40 @@ public class TransactionWriteSet
 			if(!field.hasInvariants())
 				continue;
 
-			for(Constraint inv : field.getInvariants())
+			ThriftCheckEntry newEntry = new ThriftCheckEntry();
+			newEntry.setId(rowId);
+			newEntry.setTableName(tableName);
+			newEntry.setFieldName(fieldName);
+
+			for(Constraint constraint : field.getInvariants())
 			{
-				switch(inv.getType())
+				switch(constraint.getType())
 				{
 				case UNIQUE:
-					UniqueValue newInvReq = new UniqueValue(rowId, this.invariantsToCheck.size(), tableName, fieldName,
-							newModifiedFields.get
-							(fieldName));
-					this.invariantsToCheck.add(newInvReq);
+					newEntry.setType(CheckTypeRequest.UNIQUE);
+					newEntry.setValue(newModifiedFields.get(fieldName));
+					checkList.add(newEntry);
+					LOG.trace("new unique check entry added for field {}", fieldName);
+					break;
+				case CHECK:
+					String newValue = newModifiedFields.get(fieldName);
+					String oldValue = oldFields.get(fieldName);
+					if(((CheckConstraint) constraint).mustCoordinate(newValue, oldValue))
+					{
+						newEntry.setType(CheckTypeRequest.APPLY_DELTA);
+						//FIXME: use delta instead of final result?
+						newEntry.setValue(((CheckConstraint) constraint).calculateDelta(newValue, oldValue));
+						checkList.add(newEntry);
+						LOG.trace("new delta check entry added for field {}", fieldName);
+					}
 					break;
 				case FOREIGN_KEY:
 					RuntimeHelper.throwRunTimeException("invariant not supported yet", ExitCode
 							.MISSING_IMPLEMENTATION);
 					break;
-				case GREATHER_THAN:
-					double delta1 = Double.parseDouble(newModifiedFields.get(fieldName)) - Double.parseDouble
-							(oldFields.get
-							(fieldName));
-					if(delta1 < 0)
-					//not safe to execute locally, must coordinate
-					{
-						DeltaValue deltaValue = new DeltaValue(rowId, this.invariantsToCheck.size(), tableName, fieldName, Double.toString(delta1));
-						this.invariantsToCheck.add(deltaValue);
-					}
-					break;
-				case LESSER_THAN:
-					double delta2 = Double.parseDouble(newModifiedFields.get(fieldName)) - Double.parseDouble
-							(oldFields.get
-									(fieldName));
-					if(delta2 > 0)
-					//not safe to execute locally, must coordinate
-					{
-						DeltaValue deltaValue = new DeltaValue(rowId, this.invariantsToCheck.size(), tableName, fieldName, Double.toString(delta2));
-						this.invariantsToCheck.add(deltaValue);
-					}
-					break;
+				default:
+					LOG.error("unexpected constraint ");
+					RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
 				}
 			}
 		}
