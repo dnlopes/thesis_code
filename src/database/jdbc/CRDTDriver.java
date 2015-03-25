@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 public class CRDTDriver implements Driver
 {
 	private static final int MY_PROXY_ID = 1;
-	private static final int MY_REPLICATOR_ID = 1;
 
 	private static Proxy PROXY;
 

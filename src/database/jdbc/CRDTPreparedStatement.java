@@ -115,8 +115,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements for txn {}", this.transaction.getTxnId());
-			throw new SQLException(e.getMessage());
+			LOG.error("failed to generate deterministic statements: {}", arg0, e);
+			throw new SQLException(e);
 		}
 
 		int result = 0;
@@ -134,20 +134,17 @@ public class CRDTPreparedStatement implements PreparedStatement
 
 			} catch(JSQLParserException | ScratchpadException e)
 			{
-				e.printStackTrace();
-				LOG.error("failed to execute: {}", arg0);
-				throw new SQLException(e.getMessage());
+				LOG.error("failed to execute: {}", arg0, e);
+				throw new SQLException(e);
 			}
 
 		}
 
-		if(this.transaction.isInternalAborted())
-			throw new SQLException(this.transaction.getAbortMessage());
-
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
-		this.transaction.setNotReadOnly();
 
 		LOG.trace("update statement executed properly");
+
+		this.transaction.setNotReadOnly();
 		return finalRes.getUpdateResult();
 	}
 

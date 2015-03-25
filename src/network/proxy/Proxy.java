@@ -10,12 +10,14 @@ import network.NodeMetadata;
 import org.apache.thrift.TException;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
+import runtime.RuntimeHelper;
 import runtime.factory.IdentifierFactory;
 import runtime.txn.TransactionWriteSet;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.ExitCode;
 import util.defaults.Configuration;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionId;
@@ -48,7 +50,6 @@ public class Proxy extends AbstractNode
 	// records all active transactions along with their respective scratchpads
 	private Map<TransactionId, Transaction> transactions;
 	private Map<TransactionId, IDBScratchpad> scratchpad;
-
 
 	public Proxy(NodeMetadata nodeInfo) throws TTransportException
 	{
@@ -98,7 +99,7 @@ public class Proxy extends AbstractNode
 		if(txn.isReadOnly())
 		{
 			txn.finish();
-			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
+			LOG.info("txn {} committed in {} ms", txnId.getId(), txn.getLatency());
 			this.resetTransactionInfo(txnId);
 			return true;
 		}
@@ -151,18 +152,18 @@ public class Proxy extends AbstractNode
 			pad.resetScratchpad();
 		} catch(SQLException e)
 		{
-			LOG.warn("failed to clean scratchpad state {}. Reason: {}", pad.getScratchpadId(), e.getMessage());
-			e.printStackTrace();
+			LOG.error("failed to clean scratchpad state {}", pad.getScratchpadId(), e);
+			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
 		}
 
 		this.transactions.remove(txn);
 		this.scratchpad.remove(txn);
-		ScratchpadFactory.getInstante().releaseScratchpad(pad);
 
-		LOG.trace("txn state cleaned");
+		LOG.trace("scratchpad {} cleaned", pad.getScratchpadId());
+		ScratchpadFactory.getInstante().releaseScratchpad(pad);
 	}
 
-	public void prepareToCommit(TransactionId txnId)
+	private void prepareToCommit(TransactionId txnId)
 	{
 		StopWatch watch = new LoggingStopWatch("preparing to commit time");
 		watch.start();
@@ -173,6 +174,7 @@ public class Proxy extends AbstractNode
 		{
 			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
 			List<ThriftCheckEntry> checkList = writeSet.verifyInvariants();
+
 			//if we must coordinate then do it here. this is a blocking call
 			if(checkList.size() > 0)
 				this.networkInterface.checkInvariants(checkList, this.coordinator);
@@ -183,8 +185,7 @@ public class Proxy extends AbstractNode
 
 		} catch(SQLException | TException e)
 		{
-			LOG.error("failed to prepare operation {} for commit. Reason: {}", txnId.getId(), e.getMessage());
-			e.printStackTrace();
+			LOG.error("failed to prepare operation {} for commit", txnId.getId(), e);
 		}
 
 		watch.stop();

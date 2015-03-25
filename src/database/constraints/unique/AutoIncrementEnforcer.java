@@ -61,11 +61,8 @@ public class AutoIncrementEnforcer
 			}
 		} catch(SQLException e)
 		{
-			LOG.error("could not fetch the last id for field {}. Reason: {}", this.field.getFieldName(),
-					e.getMessage());
-			e.printStackTrace();
-			RuntimeHelper.throwRunTimeException("coordinator id generator failed to initialize properly",
-					ExitCode.ID_GENERATOR_ERROR);
+			LOG.error("could not fetch the last id for field {}", this.field.getFieldName(), e);
+			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
 		}
 
 		LOG.info("current id for field {} is {}", this.field.getFieldName(), this.currentId);

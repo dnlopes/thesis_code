@@ -118,5 +118,6 @@ public final class ExitCode
 	public static final int DUPLICATED_FIELD = 39;
 	public static final int FETCH_RESULTS_ERROR = 40;
 	public static final int ID_GENERATOR_ERROR = 41;
+	public static final int SCRATCHPAD_CLEANUP_ERROR = 41;
 
 }

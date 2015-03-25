@@ -40,12 +40,14 @@ public abstract class DatabaseTable
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected HashMap<Integer, DataField> sortedFieldsMap;
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
+	protected List<String> fieldsNamesList;
 
 	protected static LWWField timestampLWW;
 
 	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
 	{
 		this.fieldsMap = fieldsMap;
+		this.fieldsNamesList = new ArrayList<>();
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
 			this.addScratchpadFields(name, tableType);
@@ -69,6 +71,8 @@ public abstract class DatabaseTable
 
 			if(entry.getValue().getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
 				totalHiddenFields++;
+			else
+				this.fieldsNamesList.add(entry.getValue().getFieldName());
 
 			if(entry.getValue().isPrimaryKey())
 				this.addPrimaryKey(entry.getValue());
@@ -438,6 +442,11 @@ public abstract class DatabaseTable
 		return false;
 	}
 
+	public List<String> getFieldsNamesList()
+	{
+		return this.fieldsNamesList;
+	}
+
 	/*
 	 * If an update or delete are not specified by all primary keys, we need to
 	 * first fetch them from database
@@ -463,7 +472,6 @@ public abstract class DatabaseTable
 		Debug.println("Primary key selection is " + selectStr.toString());
 		return selectStr.toString();
 	}
-
 
 	/**
 	 * To string.
@@ -594,7 +602,6 @@ public abstract class DatabaseTable
 
 		this.timestampField = clockField;
 		this.immutableField = immutableField;
-
 
 	}
 

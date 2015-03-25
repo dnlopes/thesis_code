@@ -69,11 +69,8 @@ public class CheckConstraintEnforcer
 
 		} catch(SQLException e)
 		{
-			LOG.error("error while fetching all current values for field {}. Reason: {}", this.field.getFieldName(),
-					e.getMessage());
-			e.printStackTrace();
-			RuntimeHelper.throwRunTimeException("error while fetching values from main database",
-					ExitCode.FETCH_RESULTS_ERROR);
+			LOG.error("error while fetching all current values for field {}", this.field.getFieldName(), e);
+			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
 		LOG.trace("{} values inserted", this.currentValues.size());

@@ -1,7 +1,6 @@
 package database.scratchpad;
 
 
-import database.constraints.AbstractConstraint;
 import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.jdbc.Result;
@@ -45,6 +44,7 @@ public class DBExecuter implements IExecuter
 	private int tableId;
 	private boolean modified;
 	private FromItem fromItemTemp;
+	private List<String> selectAllItems;
 
 	private Set<Integer> duplicatedRows;
 	private Set<Integer> insertedRows;
@@ -58,12 +58,15 @@ public class DBExecuter implements IExecuter
 		this.tableId = tableId;
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.modified = false;
-		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.insertedRows = new HashSet<>();
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
 		this.tuplesWriteSet = new HashMap<>();
+
+		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
+		this.selectAllItems = this.databaseTable.getFieldsNamesList();
+
 	}
 
 	/**
@@ -884,10 +887,11 @@ public class DBExecuter implements IExecuter
 			if(field.isImmutableField())
 				RuntimeHelper.throwRunTimeException("trying to modify an immutable field", ExitCode.UNEXPECTED_OP);
 
+			// we are updating this field, lets check if it is a valid value
+			this.verifyCheckConstraints(field, newValue);
+
 			for(Integer rowId : affectedRows)
 				this.addNewEntry(rowId, columnName, newValue);
-
-			this.verifyCheckConstraints(field, newValue);
 
 			buffer.append(columnName);
 			buffer.append(" = ");
@@ -897,12 +901,12 @@ public class DBExecuter implements IExecuter
 		}
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
-		buffer.append(";");
 
 		db.addToBatchUpdate(buffer.toString());
 		db.executeBatch();
 		this.modified = true;
-		return DBUpdateResult.createResult(1);
+
+		return DBUpdateResult.createResult(affectedRows.size());
 	}
 
 	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db) throws SQLException, ScratchpadException
@@ -914,6 +918,10 @@ public class DBExecuter implements IExecuter
 		StringBuffer buffer = new StringBuffer();
 
 		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+		List columnsToFetch = plainSelect.getSelectItems();
+
+		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
+			plainSelect.setSelectItems(this.selectAllItems);
 
 		StringBuffer whereClauseTemp = new StringBuffer();
 
@@ -1251,6 +1259,14 @@ public class DBExecuter implements IExecuter
 		return true;
 	}
 
+	/**
+	 * Adds the 'NOT IN' clause to the buffer.
+	 * Does not add the prefix 'AND' to the buffer
+	 *
+	 * @param buffer
+	 * @param filterDeleted
+	 * @param filterDuplicated
+	 */
 	private void addNotInClause(StringBuffer buffer, boolean filterDeleted, boolean filterDuplicated)
 	{
 		boolean notInClauseAdded = false;
@@ -1283,6 +1299,15 @@ public class DBExecuter implements IExecuter
 			buffer.append("))");
 	}
 
+	/**
+	 * Adds the 'IN' clause to the buffer.
+	 * Does not add the prefix 'AND' to the buffer
+	 *
+	 * @param buffer
+	 * @param includeDeleted
+	 * @param includeDuplicated
+	 * @param includeInserted
+	 */
 	private void addInClause(StringBuffer buffer, boolean includeDeleted, boolean includeDuplicated,
 							 boolean includeInserted)
 	{
@@ -1329,6 +1354,15 @@ public class DBExecuter implements IExecuter
 			buffer.append("))");
 	}
 
+	private String createWhereClause(String defaultClause, boolean includeHiddenFlag, boolean includeDeleted,
+									 boolean includeDuplicated, boolean includeInserted)
+	{
+		StringBuilder buffer = new StringBuilder(defaultClause);
+
+		return buffer.toString();
+
+	}
+
 	@Override
 	public TableWriteSet getWriteSet() throws SQLException
 	{
@@ -1344,7 +1378,7 @@ public class DBExecuter implements IExecuter
 
 	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolated
 	{
-		for(Constraint constraint: field.getInvariants())
+		for(Constraint constraint : field.getInvariants())
 		{
 			if(constraint instanceof CheckConstraint)
 				if(!((CheckConstraint) constraint).isValidValue(newValue))
@@ -1352,6 +1386,17 @@ public class DBExecuter implements IExecuter
 		}
 	}
 
+	/**
+	 * Returns a list of _SP_immut values that matches
+	 * the tuples that will be affected by the update operation
+	 *
+	 * @param updateOp
+	 * @param pad
+	 *
+	 * @return
+	 *
+	 * @throws SQLException
+	 */
 	private List<Integer> getResultSelectBeforeUpdate(Update updateOp, IDBScratchpad pad) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();
@@ -1359,6 +1404,8 @@ public class DBExecuter implements IExecuter
 			RuntimeHelper.throwRunTimeException("operation with no where clause not yey supported",
 					ExitCode.MISSING_IMPLEMENTATION);
 
+		// just selec the _SP_immut field.
+		// its all we need to keep track of changes
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
 		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
