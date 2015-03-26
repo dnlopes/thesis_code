@@ -24,7 +24,7 @@ public class CRDTConnection implements Connection
 {
 
 	private static final int THIS_PROXY_ID = 1;
-	static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
 	private static final Proxy THIS_PROXY = new Proxy(Configuration.getInstance().getProxies().get(THIS_PROXY_ID));
 
 	private Proxy proxy;
