@@ -5,7 +5,9 @@ import database.jdbc.Result;
 import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
+import network.proxy.IProxyNetwork;
 import runtime.operation.DBSingleOperation;
+import runtime.txn.TransactionIdentifier;
 import runtime.txn.TransactionWriteSet;
 
 import java.sql.ResultSet;
@@ -18,9 +20,15 @@ import java.sql.SQLException;
 public interface IDBScratchpad
 {
 
+	public void startTransaction(TransactionIdentifier txnId);
+
+	public boolean commitTransaction(IProxyNetwork proxy);
+
 	public int getScratchpadId();
 
 	public boolean isReadOnly();
+
+	public void setNotReadOnly();
 
 	public Result executeUpdate(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException;
 

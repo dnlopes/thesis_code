@@ -1,5 +1,6 @@
 package network;
 
+
 import java.net.InetSocketAddress;
 
 
@@ -11,7 +12,6 @@ public abstract class AbstractNode
 
 	private InetSocketAddress socketAddress;
 	protected AbstractConfig config;
-
 
 	public AbstractNode(AbstractConfig config)
 	{

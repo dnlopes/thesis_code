@@ -36,6 +36,11 @@ public class ConnectionFactory
 		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
 	}
 
+	public static Connection getCRDTConnection() throws SQLException
+	{
+		return getCRDTConnection(CRDTConnection.THIS_PROXY.getConfig());
+	}
+
 	public static Connection getCRDTConnection(ProxyConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);

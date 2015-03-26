@@ -13,30 +13,25 @@ import util.TimeStamp;
 public class Transaction
 {
 
-	private TransactionId txnId;
+	private TransactionIdentifier txnId;
 	private long latency;
-	private boolean hasBegun;
 
 	private TimeStamp timestamp;
 	private LogicalClock lc;
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
-	private String abortMessage;
-	private boolean internalAborted;
 	private boolean readOnly;
 	private boolean readyToCommit;
 
-	public Transaction()
+	public Transaction(TransactionIdentifier txnId)
 	{
-		this.txnId = new TransactionId(0);
+		this.txnId = txnId;
 		this.latency = 0;
-		this.hasBegun = false;
 		this.readOnly = true;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
-		this.internalAborted = false;
 		this.readyToCommit = false;
 	}
 
@@ -45,7 +40,7 @@ public class Transaction
 		return this.readOnly;
 	}
 
-	public TransactionId getTxnId()
+	public TransactionIdentifier getTxnId()
 	{
 		return this.txnId;
 	}
@@ -80,10 +75,8 @@ public class Transaction
 		return this.latency;
 	}
 
-	public void start(long txnId)
+	public void start()
 	{
-		this.txnId.setId(txnId);
-		this.hasBegun = true;
 		this.timer.start();
 	}
 
@@ -95,36 +88,13 @@ public class Transaction
 
 	public void resetState()
 	{
-		this.txnId.setId(0);
+		this.txnId.resetValue();
 		this.timer.stop();
 		this.latency = 0;
-		this.hasBegun = false;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
-		this.abortMessage = null;
 		this.readyToCommit = false;
-	}
-
-	public boolean hasBegun()
-	{
-		return this.hasBegun;
-	}
-
-	public boolean isInternalAborted()
-	{
-		return this.internalAborted;
-	}
-
-	public void setInternalAborted(String errorMessage)
-	{
-		this.internalAborted = true;
-		this.abortMessage = errorMessage;
-	}
-
-	public String getAbortMessage()
-	{
-		return this.abortMessage;
 	}
 
 	/**
@@ -142,6 +112,7 @@ public class Transaction
 	{
 		this.readOnly = false;
 	}
+
 	public boolean isReadyToCommit()
 	{
 		return this.readyToCommit;

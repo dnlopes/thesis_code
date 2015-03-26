@@ -47,12 +47,11 @@ public class DBExecuter implements IExecuter
 	private int tableId;
 	private boolean modified;
 	private FromItem fromItemTemp;
-	private List<String> selectAllItems;
 
+	private List<String> selectAllItems;
 	private Set<Integer> duplicatedRows;
 	private Set<Integer> insertedRows;
 	private Set<Integer> deletedRows;
-
 	private TableWriteSet writeSet;
 	private Map<Integer, TupleWriteSet> tuplesWriteSet;
 

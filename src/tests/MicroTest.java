@@ -23,22 +23,21 @@ public class MicroTest
 
 	public static void main(String args[]) throws SQLException, IOException, SAXException, ClassNotFoundException
 	{
-		ProxyConfig config = Configuration.getInstance().getProxies().get(1);
-
 		//Micro_Populate db = new Micro_Populate();
 
-		Connection conn = ConnectionFactory.getCRDTConnection(config);
+		Connection conn = ConnectionFactory.getCRDTConnection();
 
 		Statement stat = conn.createStatement();
-		int res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+		int res = stat.executeUpdate("update t3 set c=643 where a=4");
+
+		//int res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
 		conn.commit();
 
-		/*ResultSet rs = stat.executeQuery("SELECT * from t1 where d=9 OR c=10");
-		res = stat.executeUpdate("update t1 set c=643 where a=4");
+		res = stat.executeUpdate("update t1 set c=20 where d>=7");
+		res = stat.executeUpdate("update t2 set c=20 where a>=2");
 
 		conn.commit();
-
-		res = stat.executeUpdate("update t2 set c=20 where d>=7");
+/*
 		rs = stat.executeQuery("SELECT * from t2 where d=9 OR c=10");
 		res = stat.executeUpdate("update t2 set c=643 where a=4");
 		conn.commit();

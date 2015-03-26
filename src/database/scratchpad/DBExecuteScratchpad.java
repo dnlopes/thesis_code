@@ -7,14 +7,23 @@ import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import network.proxy.IProxyNetwork;
+import network.proxy.ProxyConfig;
+import org.apache.thrift.TException;
+import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
+import runtime.operation.ShadowOperation;
+import runtime.txn.Transaction;
+import runtime.txn.TransactionIdentifier;
 import runtime.txn.TransactionWriteSet;
 import util.ExitCode;
 import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
+import util.thrift.ThriftCheckEntry;
+import util.thrift.ThriftCheckResponse;
 
 import java.sql.*;
 import java.sql.Statement;
@@ -27,21 +36,27 @@ import java.util.*;
 public class DBExecuteScratchpad implements IDBScratchpad
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
+	private final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
 
-	private Map<String, IExecuter> executers;
-	private boolean readOnly;
+	private ProxyConfig proxyConfig;
+
+	private Transaction activeTransaction;
 	private int id;
+	private Map<String, IExecuter> executers;
+
+	private boolean readOnly;
+	private CCJSqlParserManager parser;
+
 	private Connection defaultConnection;
 	private Statement statQ;
 	private Statement statU;
 	private Statement statBU;
 	private boolean batchEmpty;
-	private CCJSqlParserManager parser;
 
-	public DBExecuteScratchpad(int id) throws SQLException, ScratchpadException
+	public DBExecuteScratchpad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
 	{
 		this.id = id;
+		this.proxyConfig = proxyConfig;
 		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 		this.executers = new HashMap<>();
 		this.readOnly = false;
@@ -54,6 +69,62 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
+	public void startTransaction(TransactionIdentifier txnId)
+	{
+		try
+		{
+			this.resetScratchpad();
+		} catch(SQLException e)
+		{
+			LOG.error("failed to clean scratchpad before starting transaction", e);
+			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
+		}
+		this.activeTransaction = new Transaction(txnId);
+		this.activeTransaction.start();
+
+		LOG.info("Beggining txn {}", activeTransaction.getTxnId().getValue());
+	}
+
+	@Override
+	public boolean commitTransaction(IProxyNetwork network)
+	{
+		if(this.readOnly)
+		{
+			this.activeTransaction.finish();
+			LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+					this.activeTransaction.getLatency());
+			return true;
+		} else
+		{
+			StopWatch commitTimeWatcher = new StopWatch("commit time watcher");
+			commitTimeWatcher.start();
+			this.prepareToCommit(network);
+
+			// something went wrong
+			// commit fails
+			if(!this.activeTransaction.isReadyToCommit())
+				return false;
+
+			// FIXME: this call MUST NOT block, but for now it DOES
+			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
+					this.proxyConfig.getReplicatorConfig());
+
+			this.activeTransaction.finish();
+			commitTimeWatcher.stop();
+			LOG.trace("txn commit time {}", commitTimeWatcher.getElapsedTime());
+
+			if(commitDecision)
+				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+						this.activeTransaction.getLatency());
+			else
+				LOG.warn("replicator failed to commit txn {}", this.activeTransaction.getTxnId().getValue());
+
+			return commitDecision;
+		}
+
+	}
+
+	@Override
 	public int getScratchpadId()
 	{
 		return this.id;
@@ -63,6 +134,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public boolean isReadOnly()
 	{
 		return this.readOnly;
+	}
+
+
+	public void setNotReadOnly()
+	{
+		this.readOnly = false;
 	}
 
 	@Override
@@ -174,9 +251,32 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public void abort() throws SQLException
 	{
-		LOG.trace("cleaning scratchpad {}", this.id);
 		this.defaultConnection.rollback();
-		LOG.trace("scratchpad {} cleaned", this.id);
+	}
+
+	@Override
+	public void resetScratchpad() throws SQLException
+	{
+		this.activeTransaction = null;
+		this.readOnly = true;
+		this.statBU.clearBatch();
+
+		for(IExecuter executer : this.executers.values())
+			executer.resetExecuter(this);
+
+		this.executeBatch();
+		this.batchEmpty = true;
+	}
+
+	@Override
+	public TransactionWriteSet createTransactionWriteSet() throws SQLException
+	{
+		TransactionWriteSet writeSet = new TransactionWriteSet();
+
+		for(IExecuter executer : this.executers.values())
+			writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
+
+		return writeSet;
 	}
 
 	@Override
@@ -221,24 +321,35 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		}
 	}
 
-	@Override
-	public void resetScratchpad() throws SQLException
+	private void prepareToCommit(IProxyNetwork network)
 	{
-		for(IExecuter executer : this.executers.values())
-			executer.resetExecuter(this);
+		LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId().getValue());
 
-		this.executeBatch();
-	}
+		try
+		{
+			TransactionWriteSet writeSet = this.createTransactionWriteSet();
+			List<ThriftCheckEntry> checkList = writeSet.verifyInvariants();
 
-	@Override
-	public TransactionWriteSet createTransactionWriteSet() throws SQLException
-	{
-		TransactionWriteSet writeSet = new TransactionWriteSet();
+			//if we must coordinate then do it here. this is a blocking call
+			if(checkList.size() > 0)
+			{
+				ThriftCheckResponse response = network.checkInvariants(checkList, proxyConfig.getCoordinatorConfig());
+				if(!response.isSuccess())
+				{
+					LOG.warn("coordinator didnt allow txn to commit. Aborting.");
+					return;
+				}
+				writeSet.processCoordinatorResponse(response.getResult());
+			}
 
-		for(IExecuter executer: this.executers.values())
-			writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
-
-		return writeSet;
+			writeSet.generateMinimalStatements();
+			ShadowOperation shadowOp = new ShadowOperation(this.activeTransaction.getTxnId().getValue(),
+					writeSet.getStatements());
+			this.activeTransaction.setReadyToCommit(shadowOp);
+		} catch(SQLException | TException e)
+		{
+			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId().getValue(), e);
+		}
 	}
 
 }

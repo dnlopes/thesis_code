@@ -1,9 +1,7 @@
 package tests;
 
 import database.jdbc.ConnectionFactory;
-import database.scratchpad.IDBScratchpad;
 import util.defaults.Configuration;
-import database.scratchpad.ScratchpadFactory;
 import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 
@@ -23,6 +21,7 @@ public class PadTest
 	{
 		//Micro_Populate db = new Micro_Populate();
 
+		/*
 		StopWatch watch = new LoggingStopWatch("firstPad");
 		watch.start();
 		IDBScratchpad pad = ScratchpadFactory.getInstante().getScratchpad();
@@ -31,7 +30,7 @@ public class PadTest
 		watch.start();
 		IDBScratchpad pad2 = ScratchpadFactory.getInstante().getScratchpad();
 		watch.stop();
-
+		                     */
 		Connection con = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getDatabaseName());
 		Statement stat = con.createStatement();
 

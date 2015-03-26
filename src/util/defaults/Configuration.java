@@ -68,6 +68,7 @@ public final class Configuration
 
 		DDLParser parser = new DDLParser(this.schemaFile);
 		this.databaseMetadata = parser.parseAnnotations();
+		this.setupMissingConfigs();
 		this.watch.stop();
 
 		LOG.info("config file successfull loaded in {} ms", watch.getElapsedTime());
@@ -281,6 +282,14 @@ public final class Configuration
 	{
 		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
 				.size() == 0 || this.coordinators.size() == 0);
+	}
+
+	private void setupMissingConfigs()
+	{
+		for(ProxyConfig config: this.proxies.values())
+		{
+			config.setScratchpadPoolSize(this.scratchpadPoolSize);
+		}
 	}
 }
 

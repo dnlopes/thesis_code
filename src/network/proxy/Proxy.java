@@ -2,35 +2,26 @@ package network.proxy;
 
 
 import database.jdbc.Result;
-import database.scratchpad.ScratchpadFactory;
+import database.scratchpad.DBExecuteScratchpad;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
-import network.coordinator.CoordinatorConfig;
-import network.replicator.ReplicatorConfig;
-import org.apache.thrift.TException;
-import org.perf4j.LoggingStopWatch;
 import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
 import runtime.factory.IdentifierFactory;
-import runtime.txn.TransactionWriteSet;
+
 import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
-import runtime.txn.Transaction;
-import runtime.txn.TransactionId;
-import runtime.factory.TxnIdFactory;
+import runtime.txn.TransactionIdentifier;
 import runtime.operation.DBSingleOperation;
-import runtime.operation.ShadowOperation;
-import util.thrift.ThriftCheckEntry;
-import util.thrift.ThriftCheckResponse;
+import util.ObjectPool;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -41,26 +32,25 @@ public class Proxy extends AbstractNode
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
+	private ObjectPool<IDBScratchpad> scratchpadsPool;
+	private ConcurrentHashMap<TransactionIdentifier, IDBScratchpad> activeScratchpads;
 	private IProxyNetwork networkInterface;
-	//this is the replicator in which we will execute RPCs
-	private ReplicatorConfig replicator;
-	private CoordinatorConfig coordinator;
-
-	// records all active transactions along with their respective scratchpads
-	private Map<TransactionId, Transaction> transactions;
-	private Map<TransactionId, IDBScratchpad> scratchpad;
+	private AtomicInteger transactionsCounter;
+	private AtomicInteger scratchpadsCount;
 
 	public Proxy(ProxyConfig config)
 	{
 		super(config);
 
-		this.transactions = new HashMap<>();
-		this.scratchpad = new HashMap<>();
+		this.scratchpadsPool = new ObjectPool<>();
+		this.activeScratchpads = new ConcurrentHashMap<>();
 		this.networkInterface = new ProxyNetwork(this.getConfig());
-		this.replicator = config.getReplicatorConfig();
-		this.coordinator = config.getCoordinatorConfig();
+		this.transactionsCounter = new AtomicInteger();
+		this.scratchpadsCount = new AtomicInteger();
 
-		IdentifierFactory.setupIdentifiersGenerators(this.getConfig());
+		IdentifierFactory.createGenerators(this.getConfig());
+
+		this.setup();
 	}
 
 	@Override
@@ -69,137 +59,101 @@ public class Proxy extends AbstractNode
 		return (ProxyConfig) this.config;
 	}
 
-	public ResultSet executeQuery(DBSingleOperation op, TransactionId txnId)
+	public ResultSet executeQuery(DBSingleOperation op, TransactionIdentifier txnId)
 			throws SQLException, ScratchpadException, JSQLParserException
 	{
 
-		return this.scratchpad.get(txnId).executeQuery(op);
+		return this.activeScratchpads.get(txnId).executeQuery(op);
 	}
 
-	public Result executeUpdate(DBSingleOperation op, TransactionId txnId)
+	public Result executeUpdate(DBSingleOperation op, TransactionIdentifier txnId)
 			throws JSQLParserException, SQLException, ScratchpadException
 	{
-
-		return this.scratchpad.get(txnId).executeUpdate(op);
+		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+		pad.setNotReadOnly();
+		return this.activeScratchpads.get(txnId).executeUpdate(op);
 	}
 
-	/**
-	 * Atempts to commit a transaction.
-	 * This method does not actually commit the transaction.
-	 * Instead, it sends the shadow operation to the replicator and waits for the acknowledge
-	 *
-	 * @param txnId
-	 * 		the id of the transaction to commit
-	 *
-	 * @return - the commit decision
-	 */
-	public boolean commit(TransactionId txnId)
+	public boolean commit(TransactionIdentifier txnId)
 	{
-		StopWatch watch = new LoggingStopWatch("commit time");
+		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
-		if(!this.transactions.containsKey(txnId))
+		if(pad == null)
 			return true;
 
-		Transaction txn = this.transactions.get(txnId);
+		//TODO: maybe assign logical clocks and timestamp here?
+		boolean commitResult = pad.commitTransaction(this.networkInterface);
 
-		if(txn.isReadOnly())
-		{
-			txn.finish();
-			LOG.info("txn {} committed in {} ms", txnId.getId(), txn.getLatency());
-			this.resetTransactionInfo(txnId);
-			return true;
-		}
+		this.activeScratchpads.remove(txnId);
+		// TODO: should we clean pad at this point?
+		// for now we clean at transaction startup
+		this.scratchpadsPool.returnObject(pad);
+		txnId.resetValue();
 
-		this.prepareToCommit(txnId);
-
-		if(!txn.isReadyToCommit())
-		{
-			// something went wrong
-			// commit fails
-			this.resetTransactionInfo(txnId);
-			return false;
-		}
-
-		// FIXME: this call MUST NOT block, but for now it DOES
-		boolean commitDecision = this.networkInterface.commitOperation(txn.getShadowOp(), this.replicator);
-
-		if(commitDecision)
-		{
-			txn.finish();
-			LOG.info("txn {} committed in {} ms", txn.getTxnId().getId(), txn.getLatency());
-		} else
-			LOG.error("txn {} failed to commit", txn.getTxnId().getId());
-
-		watch.start();
-		this.resetTransactionInfo(txnId);
-		watch.stop();
-		return commitDecision;
+		return commitResult;
 	}
 
-	public void beginTransaction(Transaction txn)
+	public void abort(TransactionIdentifier txnId)
 	{
-		long txnId = TxnIdFactory.getNextId();
-		IDBScratchpad pad = ScratchpadFactory.getInstante().getScratchpad();
+		IDBScratchpad pad = this.activeScratchpads.get(txnId);
 
-		this.transactions.put(txn.getTxnId(), txn);
-		this.scratchpad.put(txn.getTxnId(), pad);
-		txn.start(txnId);
+		if(pad == null)
+			return;
 
-		LOG.info("Beggining txn {}", txnId);
+		this.activeScratchpads.remove(txnId);
+		this.scratchpadsPool.returnObject(pad);
+
+		LOG.info("txn {} aborted by user request", txnId.getValue());
+		txnId.resetValue();
 	}
 
-	public void resetTransactionInfo(TransactionId txn)
+	public void beginTransaction(TransactionIdentifier txnId)
 	{
-		Transaction transaction = this.transactions.get(txn);
-		transaction.resetState();
-		IDBScratchpad pad = this.scratchpad.get(txn);
-		try
+		txnId.setValue(this.transactionsCounter.incrementAndGet());
+
+		IDBScratchpad pad;
+		pad = this.scratchpadsPool.borrowObject();
+
+		if(pad == null)
 		{
-			pad.resetScratchpad();
-		} catch(SQLException e)
-		{
-			LOG.error("failed to clean scratchpad state {}", pad.getScratchpadId(), e);
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
-		}
-
-		this.transactions.remove(txn);
-		this.scratchpad.remove(txn);
-
-		LOG.trace("scratchpad {} cleaned", pad.getScratchpadId());
-		ScratchpadFactory.getInstante().releaseScratchpad(pad);
-	}
-
-	private void prepareToCommit(TransactionId txnId)
-	{
-		LOG.trace("preparing to commit txn {}", txnId.getId());
-
-		IDBScratchpad pad = this.scratchpad.get(txnId);
-		try
-		{
-			TransactionWriteSet writeSet = pad.createTransactionWriteSet();
-			List<ThriftCheckEntry> checkList = writeSet.verifyInvariants();
-
-			//if we must coordinate then do it here. this is a blocking call
-			if(checkList.size() > 0)
+			LOG.warn("scratchpad pool was empty");
+			try
 			{
-				ThriftCheckResponse response = this.networkInterface.checkInvariants(checkList, this.coordinator);
-				if(!response.isSuccess())
-				{
-					LOG.error("coordinator didnt allow txn to commit.");
-					return;
-				}
-				writeSet.processCoordinatorResponse(response.getResult());
+				pad = new DBExecuteScratchpad(this.scratchpadsCount.incrementAndGet(), this.getConfig());
+			} catch(SQLException | ScratchpadException e)
+			{
+				LOG.error("failed to init scratchpad", e);
+				RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
+			}
+		}
+
+		this.activeScratchpads.put(txnId, pad);
+		pad.startTransaction(txnId);
+	}
+
+	private void setup()
+	{
+		StopWatch watch = new StopWatch();
+		watch.start();
+
+		for(int i = 1; i <= this.getConfig().getScratchPadPoolSize(); i++)
+		{
+			try
+			{
+				IDBScratchpad scratchpad = new DBExecuteScratchpad(i, this.getConfig());
+				this.scratchpadsPool.addObject(scratchpad);
+				this.scratchpadsCount.incrementAndGet();
+			} catch(ScratchpadException | SQLException e)
+			{
+				LOG.error("failed to create scratchpad pool", e);
+				RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
 
-			writeSet.generateMinimalStatements();
-			ShadowOperation shadowOp = new ShadowOperation(txnId.getId(), writeSet.getStatements());
-			this.transactions.get(txnId).setReadyToCommit(shadowOp);
-
-		} catch(SQLException | TException e)
-		{
-			LOG.error("failed to prepare operation {} for commit", txnId.getId(), e);
 		}
+		watch.stop();
+		LOG.info("{} scratchpads created in {} ms", this.getConfig().getScratchPadPoolSize(), watch.getElapsedTime());
 	}
 
 }

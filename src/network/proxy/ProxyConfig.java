@@ -21,6 +21,8 @@ public class ProxyConfig extends AbstractConfig
 	private final ReplicatorConfig replicatorConfig;
 	private final CoordinatorConfig coordinatorConfig;
 
+	private int scratchpadPoolSize;
+
 	public ProxyConfig(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
 					   ReplicatorConfig replicatorConfig, CoordinatorConfig coordinatorConfig)
 	{
@@ -63,5 +65,15 @@ public class ProxyConfig extends AbstractConfig
 	public String getDbPwd()
 	{
 		return this.dbPwd;
+	}
+
+	public void setScratchpadPoolSize(int scratchpadPoolSize)
+	{
+		this.scratchpadPoolSize = scratchpadPoolSize;
+	}
+
+	public int getScratchPadPoolSize()
+	{
+		return this.scratchpadPoolSize;
 	}
 }

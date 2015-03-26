@@ -8,8 +8,8 @@ import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
-import runtime.txn.Transaction;
 import runtime.operation.DBSingleOperation;
+import runtime.txn.TransactionIdentifier;
 import util.MissingImplementationException;
 
 import java.io.InputStream;
@@ -33,16 +33,16 @@ public class CRDTPreparedStatement implements PreparedStatement
 	int[] argPos;
 	String[] vals;
 	private MyShadowOpCreator shdOpCreator;
-	private Transaction transaction;
+	private TransactionIdentifier txnId;
 
 	private Proxy proxy;
 
-	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator, Transaction txn)
+	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator, TransactionIdentifier txnId)
 	{
 		this.proxy = proxy;
 		this.sql = sql;
 		this.shdOpCreator = creator;
-		this.transaction = txn;
+		this.txnId = txnId;
 		init(0, 0);
 	}
 
@@ -77,25 +77,22 @@ public class CRDTPreparedStatement implements PreparedStatement
 	{
 		String arg0 = this.generateStatement();
 
-		if(!this.transaction.hasBegun())
-			this.proxy.beginTransaction(transaction);
+		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
+			this.proxy.beginTransaction(txnId);
 
 		ResultSet rs;
 		try
 		{
 			DBSingleOperation dbOp = new DBSingleOperation(arg0);
-			rs = proxy.executeQuery(dbOp, this.transaction.getTxnId());
+			rs = proxy.executeQuery(dbOp, this.txnId);
 			shdOpCreator.setCachedResultSetForDelta(rs);
 
 		} catch(JSQLParserException | ScratchpadException e)
 		{
 			e.printStackTrace();
-			LOG.error("failed to execute: {}", arg0);
+			LOG.error("failed to execute: {}", arg0, e);
 			throw new SQLException(e);
 		}
-
-		if(this.transaction.isInternalAborted())
-			throw new SQLException(this.transaction.getAbortMessage());
 
 		LOG.trace("query statement executed properly");
 		return rs;
@@ -106,8 +103,8 @@ public class CRDTPreparedStatement implements PreparedStatement
 	{
 		String arg0 = this.generateStatement();
 
-		if(!this.transaction.hasBegun())
-			this.proxy.beginTransaction(transaction);
+		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
+			this.proxy.beginTransaction(txnId);
 
 		String[] deterStatements;
 		try
@@ -128,7 +125,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 			try
 			{
 				dbOp = new DBSingleOperation(updateStr);
-				Result tempRes = this.proxy.executeUpdate(dbOp, this.transaction.getTxnId());
+				Result tempRes = this.proxy.executeUpdate(dbOp, this.txnId);
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
@@ -143,8 +140,6 @@ public class CRDTPreparedStatement implements PreparedStatement
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
 
 		LOG.trace("update statement executed properly");
-
-		this.transaction.setNotReadOnly();
 		return finalRes.getUpdateResult();
 	}
 

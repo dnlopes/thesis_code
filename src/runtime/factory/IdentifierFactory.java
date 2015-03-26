@@ -25,7 +25,7 @@ public class IdentifierFactory
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 
-	public static void setupIdentifiersGenerators(ProxyConfig config)
+	public static void createGenerators(ProxyConfig config)
 	{
 		LOG.info("bootstrap id generators for auto increment fields");
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())

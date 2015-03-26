@@ -7,9 +7,9 @@ import net.sf.jsqlparser.JSQLParserException;
 import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.txn.Transaction;
 import runtime.operation.DBSingleOperation;
 import runtime.MyShadowOpCreator;
+import runtime.txn.TransactionIdentifier;
 import util.MissingImplementationException;
 
 import java.sql.*;
@@ -24,27 +24,27 @@ public class CRDTStatement implements Statement
 	static final Logger LOG = LoggerFactory.getLogger(CRDTStatement.class);
 
 	private MyShadowOpCreator shdOpCreator;
-	private Transaction transaction;
+	private TransactionIdentifier txnId;
 	private Proxy proxy;
 
-	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, Transaction transaction)
+	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, TransactionIdentifier txiId)
 	{
 		this.proxy = proxy;
 		this.shdOpCreator = creator;
-		this.transaction = transaction;
+		this.txnId = txiId;
 	}
 
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		if(!this.transaction.hasBegun())
-			this.proxy.beginTransaction(transaction);
+		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
+			this.proxy.beginTransaction(txnId);
 
 		ResultSet rs;
 		try
 		{
 			DBSingleOperation dbOp = new DBSingleOperation(arg0);
-			rs = proxy.executeQuery(dbOp, this.transaction.getTxnId());
+			rs = proxy.executeQuery(dbOp, this.txnId);
 			shdOpCreator.setCachedResultSetForDelta(rs);
 
 		} catch(JSQLParserException | ScratchpadException e)
@@ -60,8 +60,8 @@ public class CRDTStatement implements Statement
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-		if(!this.transaction.hasBegun())
-			this.proxy.beginTransaction(transaction);
+		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
+			this.proxy.beginTransaction(txnId);
 
 		String[] deterStatements;
 		try
@@ -83,7 +83,7 @@ public class CRDTStatement implements Statement
 			try
 			{
 				dbOp = new DBSingleOperation(updateStr);
-				Result tempRes = this.proxy.executeUpdate(dbOp, this.transaction.getTxnId());
+				Result tempRes = this.proxy.executeUpdate(dbOp, this.txnId);
 				res = DBUpdateResult.createResult(tempRes.getResult());
 				result += res.getUpdateResult();
 
@@ -97,8 +97,6 @@ public class CRDTStatement implements Statement
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
 
 		LOG.trace("update statement executed properly");
-
-		this.transaction.setNotReadOnly();
 		return finalRes.getUpdateResult();
 	}
 

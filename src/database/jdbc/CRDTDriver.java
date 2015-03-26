@@ -13,7 +13,6 @@ import java.util.logging.Logger;
  */
 public class CRDTDriver implements Driver
 {
-
 	static
 	{
 		try

@@ -7,7 +7,7 @@ public class ObjectPool<T> {
 	public ConcurrentLinkedQueue<T> objectList;
 	
 	public ObjectPool(){
-		objectList = new ConcurrentLinkedQueue<T>();
+		objectList = new ConcurrentLinkedQueue<>();
 	}
 	
 	public void addObject(T obj){
