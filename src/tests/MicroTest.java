@@ -3,6 +3,7 @@ package tests;
 
 import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
+import database.jdbc.Result;
 import network.proxy.ProxyConfig;
 import util.defaults.Configuration;
 
@@ -20,30 +21,56 @@ public class MicroTest
 {
 
 
-	public static void main(String args[]) throws SQLException, IOException, ClassNotFoundException
+	public static void main(String args[]) throws IOException, ClassNotFoundException
 	{
-		Micro_Populate db = new Micro_Populate();
+		//Micro_Populate db = new Micro_Populate();
 
-		Connection conn = ConnectionFactory.getCRDTConnection();
+		Connection conn = null;
+		Statement stat = null;
+		try
+		{
+			conn = ConnectionFactory.getCRDTConnection();
 
-		Statement stat = conn.createStatement();
+			stat = conn.createStatement();
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+		int res;
+		ResultSet rs;
+		try
+		{
 
-		int res = stat.executeUpdate("update t2 set d=20 where a=1");
-		res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
-		ResultSet rs = stat.executeQuery("SELECT * from t2 where a=5");
+			res = stat.executeUpdate("update t2 set d=20 where a=1");
+			res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
+			rs = stat.executeQuery("SELECT * from t2 where a=5");
 
-		res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
-		res = stat.executeUpdate("update t2 set d=21 where a=2");
-		//res = stat.executeUpdate("update t1 set b=20 where a=3");
+			res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+			res = stat.executeUpdate("update t2 set d=21 where a=2");
+			//res = stat.executeUpdate("update t1 set b=20 where a=3");
 
-		conn.commit();
-		res = stat.executeUpdate("update t4 set d=20 where a=1");
-		rs = stat.executeQuery("SELECT * from t3 where a=5");
+			conn.commit();
 
-		//res = stat.executeUpdate("insert into t2 (a,b,d,e) values(54,6,1,'OLA')");
-		res = stat.executeUpdate("update t2 set d=21 where a=2");
-		res = stat.executeUpdate("update t2 set b=20 where a=3");
-		conn.commit();
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+
+
+
+		try
+		{
+			res = stat.executeUpdate("update t4 set d=20 where a=1");
+			rs = stat.executeQuery("SELECT * from t3 where a=5");
+
+			//res = stat.executeUpdate("insert into t2 (a,b,d,e) values(54,6,1,'OLA')");
+			res = stat.executeUpdate("update t2 set d=21 where a=2");
+			res = stat.executeUpdate("update t2 set b=20 where a=3");
+			conn.commit();
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
 
 /*
 		res = stat.executeUpdate("update t2 set c=643 where a=4");

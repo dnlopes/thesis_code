@@ -72,11 +72,6 @@ public class IdentifierFactory
 		return ID_GENERATORS_MAP.get(key).getNextId();
 	}
 
-	public static IDGenerator getIdGenerator(DataField field)
-	{
-		return getIdGenerator(field.getTableName(), field.getFieldName());
-	}
-
 	public static IDGenerator getIdGenerator(String tableName, String fieldName)
 	{
 		String key = tableName + "_" + fieldName;

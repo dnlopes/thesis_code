@@ -10,7 +10,6 @@ import database.jdbc.util.DBWriteSetEntry;
 import database.util.DataField;
 import database.util.DatabaseTable;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -19,7 +18,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.IDGenerator;
 import util.IDFactories.IdentifierFactory;
 import runtime.txn.TableWriteSet;
 import runtime.txn.TupleWriteSet;
@@ -55,8 +53,6 @@ public class DBExecuter implements IExecuter
 	private TableWriteSet writeSet;
 	private Map<Integer, TupleWriteSet> tuplesWriteSet;
 
-	private IDGenerator generator;
-
 	public DBExecuter(int tableId, String tableName)
 	{
 		this.tableId = tableId;
@@ -71,8 +67,6 @@ public class DBExecuter implements IExecuter
 
 		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.selectAllItems = this.databaseTable.getFieldsNamesList();
-
-		this.generator = IdentifierFactory.getIdGenerator(this.databaseTable.getImmutableField());
 	}
 
 	/**

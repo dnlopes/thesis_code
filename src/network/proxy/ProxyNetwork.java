@@ -52,7 +52,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			return client.commitOperation(thriftOp);
 		} catch(TException e)
 		{
-			LOG.error("failed to commit shadow op {}", shadowOp.getTxnId());
+			LOG.error("thrift connection problem. Txn will abort");
 			return false;
 		}
 	}

@@ -118,13 +118,14 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 			this.activeTransaction.finish();
 			commitTimeWatcher.stop();
-			LOG.info("txn commit time {}", commitTimeWatcher.getElapsedTime());
 
 			if(commitDecision)
-				LOG.info("txn {} latency: {} ms", this.activeTransaction.getTxnId().getValue(),
+			{
+				LOG.info("txn commit time {}", commitTimeWatcher.getElapsedTime());
+				LOG.info("txn {} full latency: {} ms", this.activeTransaction.getTxnId().getValue(),
 						this.activeTransaction.getLatency());
-			else
-				LOG.warn("replicator failed to commit txn {}", this.activeTransaction.getTxnId().getValue());
+			} else
+				LOG.warn("txn {} failed to commit", this.activeTransaction.getTxnId().getValue());
 
 			return commitDecision;
 		}
@@ -142,7 +143,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	{
 		return this.readOnly;
 	}
-
 
 	public void setNotReadOnly()
 	{
