@@ -74,8 +74,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 		ThriftCheckRequest newRequest = new ThriftCheckRequest(this.me.getName() + "(" + this.requestId++ + ")",
 				checkList);
 
-		ThriftCheckResponse checkResponse = client.checkInvariants(newRequest);
-		return null;
+		return client.checkInvariants(newRequest);
 	}
 
 }

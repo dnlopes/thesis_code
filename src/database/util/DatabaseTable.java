@@ -47,23 +47,19 @@ public abstract class DatabaseTable
 	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
 	{
 		this.fieldsMap = fieldsMap;
+		this.name = name;
+		this.tag = tableType;
 		this.fieldsNamesList = new ArrayList<>();
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
 			this.addScratchpadFields(name, tableType);
 
 		this.containsAutoIncrementField = false;
-
 		this.primaryKeyMap = new LinkedHashMap<>();
 		this.sortedFieldsMap = new HashMap<>();
 		this.tableInvarists = new ArrayList<>();
 
-		this.name = name;
-		this.tag = tableType;
-
 		int totalHiddenFields = 0;
-		timestampLWW = new LWWField(name, this.fieldsMap.size());
-		this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
 
 		for(Entry<String, DataField> entry : this.fieldsMap.entrySet())
 		{
@@ -594,6 +590,8 @@ public abstract class DatabaseTable
 			this.deletedField = deletedField;
 			this.deletedField.setDefaultValue("FALSE");
 		}
+		timestampLWW = new LWWField(name, this.fieldsMap.size());
+		this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
 
 		DataField clockField = new LogicalClockField(name, fieldsMap.size());
 		this.fieldsMap.put(clockField.getFieldName(), clockField);

@@ -59,7 +59,7 @@ public class UniqueConstraintEnforcer
 
 			rs.close();
 			stmt.close();
-
+			tempConnection.close();
 		} catch(SQLException e)
 		{
 			LOG.error("error while fetching all used values for field {}", this.field.getFieldName(), e);

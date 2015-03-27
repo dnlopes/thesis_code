@@ -49,10 +49,7 @@ public class Coordinator extends AbstractNode
 		this.autoIncrementsEnforcers = new HashMap<>();
 		this.checkEnforcers = new HashMap<>();
 
-		watch.setTag("setup-coordinator");
-		watch.start();
 		this.setup();
-		watch.stop();
 
 		try
 		{
@@ -63,6 +60,8 @@ public class Coordinator extends AbstractNode
 			LOG.error("failed to create background thread on coordinator {}", this.getConfig().getName());
 			e.printStackTrace();
 		}
+
+		LOG.info("coordinator {} online", this.config.getId());
 	}
 
 	public List<ThriftCheckResult> processInvariants(List<ThriftCheckEntry> checkList)
@@ -93,23 +92,36 @@ public class Coordinator extends AbstractNode
 		case UNIQUE:
 			String desiredValue = entry.getValue();
 			if(this.uniquesEnforcers.get(key).reserveValue(desiredValue))
+			{
+				LOG.debug("new unique value reserved: {} for table-field {}", desiredValue, key);
 				newResult.setSuccess(true);
+			}
 			else
+			{
+				LOG.debug("unique value already in use {} for table-field {}", desiredValue, key);
 				newResult.setSuccess(false);
+			}
 			return newResult;
 		case REQUEST_ID:
 			int newId = this.autoIncrementsEnforcers.get(key).getNextId();
 			newResult.setResquestedValue(String.valueOf(newId));
 			newResult.setFieldName(entry.getFieldName());
 			newResult.setSuccess(true);
+			LOG.debug("providing new auto incremented value {} for table-field {}", newId, key);
 			return newResult;
 		case APPLY_DELTA:
 			String delta = entry.getValue();
 			int rowId = entry.getId();
 			if(this.checkEnforcers.get(key).applyDelta(rowId, delta))
+			{
+				LOG.debug("delta value {} applied sucessfully", delta);
 				newResult.setSuccess(true);
+			}
 			else
+			{
+				LOG.debug("delta value {} not valid", delta);
 				newResult.setSuccess(false);
+			}
 			return newResult;
 		case FOREIGN_KEY:
 			LOG.warn("not yet implemented");

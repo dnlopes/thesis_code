@@ -20,24 +20,17 @@ public class Transaction
 	private LogicalClock lc;
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
-	private boolean readOnly;
 	private boolean readyToCommit;
 
 	public Transaction(TransactionIdentifier txnId)
 	{
 		this.txnId = txnId;
 		this.latency = 0;
-		this.readOnly = true;
 		this.shadowOp = null;
 		this.timestamp = null;
 		this.lc = null;
 		this.timer = new StopWatch();
 		this.readyToCommit = false;
-	}
-
-	public boolean isReadOnly()
-	{
-		return this.readOnly;
 	}
 
 	public TransactionIdentifier getTxnId()
@@ -86,17 +79,6 @@ public class Transaction
 		this.latency = this.timer.getElapsedTime();
 	}
 
-	public void resetState()
-	{
-		this.txnId.resetValue();
-		this.timer.stop();
-		this.latency = 0;
-		this.shadowOp = null;
-		this.timestamp = null;
-		this.lc = null;
-		this.readyToCommit = false;
-	}
-
 	/**
 	 * Called before commit.
 	 * This method looks at the txn write set and generates a minimal sequence of sql operations
@@ -106,11 +88,6 @@ public class Transaction
 	{
 		this.shadowOp = shadowOp;
 		this.readyToCommit = true;
-	}
-
-	public void setNotReadOnly()
-	{
-		this.readOnly = false;
 	}
 
 	public boolean isReadyToCommit()

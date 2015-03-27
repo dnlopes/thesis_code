@@ -63,6 +63,8 @@ public class Replicator extends AbstractNode
 			LOG.error("failed to create background thread on replicator {}", this.getConfig().getName());
 			e.printStackTrace();
 		}
+
+		LOG.info("replicator {} online", this.config.getId());
 	}
 
 	@Override

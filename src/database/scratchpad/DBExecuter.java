@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IDGenerator;
-import runtime.factory.IdentifierFactory;
+import util.IDFactories.IdentifierFactory;
 import runtime.txn.TableWriteSet;
 import runtime.txn.TupleWriteSet;
 import util.CheckConstraintViolated;
@@ -352,6 +352,8 @@ public class DBExecuter implements IExecuter
 			else
 				buffer.append("CREATE TABLE IF NOT EXISTS ");        // for mysql
 
+			LOG.debug("creating temporary table {}", this.tempTableName);
+
 			buffer.append(tempTableName);
 			buffer2.append(tempTableName);
 			buffer2.append(";");
@@ -364,7 +366,6 @@ public class DBExecuter implements IExecuter
 			ArrayList<String> uniqueIndices = new ArrayList<>(); // unique index
 			ResultSet colSet = metadata.getColumns(null, null, this.databaseTable.getName(), "%");
 			boolean first = true;
-			LOG.debug("INFO scratchpad: read table:" + this.databaseTable.getName());
 
 			while(colSet.next())
 			{
@@ -441,7 +442,7 @@ public class DBExecuter implements IExecuter
 				{
 					continue;
 				}
-				LOG.debug("UNIQUE INDEX" + columnName);
+				LOG.trace("UNIQUE INDEX" + columnName);
 				uniqueIndices.add(columnName);
 			}
 			uqIndices.close();
@@ -478,7 +479,7 @@ public class DBExecuter implements IExecuter
 			uniqueIndices.toArray(uqIndicesPlain);
 			uniqueIndices.clear();
 
-			LOG.debug("Unique indices: " + Arrays.toString(uqIndicesPlain));
+			LOG.trace("Unique indices: " + Arrays.toString(uqIndicesPlain));
 
 			this.tableDefinition = new TableDefinition(this.databaseTable.getName(), tableNameAlias, this.tableId,
 					colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
@@ -487,8 +488,6 @@ public class DBExecuter implements IExecuter
 				buffer.append(") NOT PERSISTENT;");    // FOR H2
 			else
 				buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
-			LOG.debug("INFO scratchpad sql:" + buffer2 + "\n" + buffer);
-			LOG.debug(buffer.toString());
 
 			scratchpad.executeUpdate(buffer2.toString());
 			scratchpad.executeUpdate(buffer.toString());
@@ -738,9 +737,7 @@ public class DBExecuter implements IExecuter
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
 		List s = insertOp.getColumns();
-		int newRowId = generator.getNextId();
 
-		ExpressionList valuesList  = new ExpressionList();
 		//valuesList.get
 		//TODO: acrescentar os fields do _SPT
 
@@ -804,7 +801,7 @@ public class DBExecuter implements IExecuter
 	 */
 	private DBUpdateResult executeTempOpDelete(Delete deleteOp, IDBScratchpad db) throws SQLException
 	{
-		LOG.trace("first fetch rows to delete");
+		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("(SELECT ");
 		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
@@ -822,15 +819,13 @@ public class DBExecuter implements IExecuter
 		buffer.append(";");
 		String query = buffer.toString();
 
-		LOG.trace("executing query: {}", query);
-
 		// this should only return 1 row...
 		ResultSet res = db.executeQuery(query);
-		int rowsUpdated = 0;
+		int rowsDeleted = 0;
 
 		while(res.next())
 		{
-			rowsUpdated++;
+			rowsDeleted++;
 			Integer immutValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 
 			/* we will remove this row.
@@ -865,11 +860,10 @@ public class DBExecuter implements IExecuter
 		buffer.append(";");
 		String delete = buffer.toString();
 
-		LOG.trace("erasing affected rows from temporary table");
-		LOG.trace("executing delete: {}", delete);
+		LOG.trace("erasing {} rows from temporary table", rowsDeleted);
 
-		rowsUpdated += db.executeUpdate(delete);
-		return DBUpdateResult.createResult(rowsUpdated);
+		rowsDeleted += db.executeUpdate(delete);
+		return DBUpdateResult.createResult(rowsDeleted);
 	}
 
 	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchpad db) throws SQLException
@@ -1141,8 +1135,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws
-			SQLException
+	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws SQLException
 	{
 		List<Integer> affectedRows = new ArrayList<>();
 		int affected = 0;
@@ -1191,6 +1184,9 @@ public class DBExecuter implements IExecuter
 			// immut field of this row
 			Integer immutablueValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 			this.createWriteSetEntry(immutablueValue);
+			this.duplicatedRows.add(immutablueValue);
+			this.writeSet.addUpdatedRow(immutablueValue);
+
 			affected++;
 
 			buffer.setLength(0);
@@ -1201,46 +1197,27 @@ public class DBExecuter implements IExecuter
 			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
 			{
 				DataField currentField = this.databaseTable.getField(i);
+				Object oldValue = res.getObject(i + 1);
+				String oldValueString;
+
+				if(oldValue == null)
+					oldValueString = "NULL";
+				else
+					oldValueString = oldValue.toString();
+
+				if(this.tableDefinition.colsStr[i])
+					oldValueString =  "\"" + oldValueString + "\"";
 
 				if(i > 0)
 					buffer.append(",");
 
-				// if it is a string, include "" in the value
-				if(this.tableDefinition.colsStr[i])
-				{
-					buffer.append(
-							res.getObject(i + 1) == null ? "NULL" : "\"" + res.getObject(i + 1).toString() + "\"");
-				} else
-				{
-
-					switch(this.tableDefinition.colsPlain[i])
-					{
-					case ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE:
-						/* record the immutable value. This way we will know which rows are duplicated in scratchpad
-						and main db. */
-						if(this.duplicatedRows.contains(immutablueValue))
-							RuntimeHelper.throwRunTimeException(
-									"this record is already in the scratchpad. This should not be possible",
-									ExitCode.HASHMAPDUPLICATE);
-						this.duplicatedRows.add(immutablueValue);
-						this.writeSet.addUpdatedRow(immutablueValue);
-						buffer.append(immutablueValue);
-						break;
-					case ScratchpadDefaults.SCRATCHPAD_COL_DELETED:
-						buffer.append(res.getObject(i + 1) == null ? "NULL" : Integer.toString(res.getInt(i + 1)));
-						break;
-					default:
-						String oldValue = res.getObject(i + 1).toString();
-						this.addOldEntry(immutablueValue, currentField.getFieldName(), oldValue);
-						buffer.append(oldValue == null ? "NULL" : oldValue);
-						break;
-					}
-				}
+				buffer.append(oldValueString);
+				this.addOldEntry(immutablueValue, currentField.getFieldName(), oldValueString);
 			}
 			buffer.append(");");
 			pad.executeUpdate(buffer.toString());
 		}
-		LOG.trace("{} affected by this update", affected);
+		LOG.debug("{} affected by this update", affected);
 		res.close();
 	}
 
@@ -1314,70 +1291,6 @@ public class DBExecuter implements IExecuter
 
 		if(notInClauseAdded)
 			buffer.append("))");
-	}
-
-	/**
-	 * Adds the 'IN' clause to the buffer.
-	 * Does not add the prefix 'AND' to the buffer
-	 *
-	 * @param buffer
-	 * @param includeDeleted
-	 * @param includeDuplicated
-	 * @param includeInserted
-	 */
-	private void addInClause(StringBuffer buffer, boolean includeDeleted, boolean includeDuplicated,
-							 boolean includeInserted)
-	{
-		boolean notInClauseAdded = false;
-		boolean needComma = false;
-
-		if(this.duplicatedRows.size() > 0 && includeDuplicated)
-		{
-			buffer.append("(");
-			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-			buffer.append(" IN (");
-			notInClauseAdded = true;
-			fillDuplicatedValues(buffer, needComma);
-			needComma = true;
-		}
-
-		if(this.insertedRows.size() > 0 && includeInserted)
-		{
-			if(!notInClauseAdded)
-			{
-				buffer.append("AND (");
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				buffer.append(" IN (");
-				notInClauseAdded = true;
-			}
-
-			fillInsertedValues(buffer, needComma);
-		}
-
-		if(this.deletedRows.size() > 0 && includeDeleted)
-		{
-			if(!notInClauseAdded)
-			{
-				buffer.append("AND (");
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				buffer.append(" IN (");
-				notInClauseAdded = true;
-			}
-
-			fillDeletedValues(buffer, needComma);
-		}
-
-		if(notInClauseAdded)
-			buffer.append("))");
-	}
-
-	private String createWhereClause(String defaultClause, boolean includeHiddenFlag, boolean includeDeleted,
-									 boolean includeDuplicated, boolean includeInserted)
-	{
-		StringBuilder buffer = new StringBuilder(defaultClause);
-
-		return buffer.toString();
-
 	}
 
 	@Override

@@ -53,6 +53,7 @@ public class AutoIncrementEnforcer
 				this.currentId = rs.getInt(this.field.getFieldName());
 				rs.close();
 				stmt.close();
+				tempConnection.close();
 			} else
 			{
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());

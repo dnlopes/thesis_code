@@ -66,7 +66,7 @@ public class CheckConstraintEnforcer
 
 			rs.close();
 			stmt.close();
-
+			tempConnection.close();
 		} catch(SQLException e)
 		{
 			LOG.error("error while fetching all current values for field {}", this.field.getFieldName(), e);

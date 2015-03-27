@@ -1,4 +1,4 @@
-package runtime.factory;
+package util.IDFactories;
 
 
 import database.util.DataField;
@@ -27,7 +27,7 @@ public class IdentifierFactory
 
 	public static void createGenerators(ProxyConfig config)
 	{
-		LOG.info("bootstrap id generators for auto increment fields");
+		LOG.info("bootstraping id generators for auto increment fields");
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
 			List<DataField> fields = table.getFieldsList();
@@ -46,14 +46,14 @@ public class IdentifierFactory
 
 		if(ID_GENERATORS_MAP.containsKey(key))
 		{
-			LOG.warn("id generator already created. Silently ignoring");
+			LOG.warn("id generator already created. Silently ignored");
 			return;
 		}
 
 		IDGenerator newGenerator = new IDGenerator(field, config);
 
 		ID_GENERATORS_MAP.put(key, newGenerator);
-		LOG.info("id generator for field {} created. Initial value {}", field.getFieldName(),
+		LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
 				newGenerator.getCurrentValue());
 	}
 

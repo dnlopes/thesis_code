@@ -8,7 +8,7 @@ import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
 import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
-import runtime.factory.IdentifierFactory;
+import util.IDFactories.IdentifierFactory;
 
 import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
@@ -51,6 +51,8 @@ public class Proxy extends AbstractNode
 		IdentifierFactory.createGenerators(this.getConfig());
 
 		this.setup();
+
+		LOG.info("proxy {} online.", this.config.getId());
 	}
 
 	@Override

@@ -41,6 +41,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	private ProxyConfig proxyConfig;
 
 	private Transaction activeTransaction;
+	private StopWatch runtimeWatch;
 	private int id;
 	private Map<String, IExecuter> executers;
 
@@ -65,6 +66,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
+
+		this.runtimeWatch = new StopWatch("txn runtime");
 		this.createDBExecuters();
 	}
 
@@ -80,6 +83,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
 		}
 		this.activeTransaction = new Transaction(txnId);
+		this.runtimeWatch.start();
 		this.activeTransaction.start();
 
 		LOG.info("Beggining txn {}", activeTransaction.getTxnId().getValue());
@@ -88,6 +92,9 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public boolean commitTransaction(IProxyNetwork network)
 	{
+		this.runtimeWatch.stop();
+		LOG.info("txn runtime: {} ms", runtimeWatch.getElapsedTime());
+
 		if(this.readOnly)
 		{
 			this.activeTransaction.finish();
@@ -111,10 +118,10 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 			this.activeTransaction.finish();
 			commitTimeWatcher.stop();
-			LOG.trace("txn commit time {}", commitTimeWatcher.getElapsedTime());
+			LOG.info("txn commit time {}", commitTimeWatcher.getElapsedTime());
 
 			if(commitDecision)
-				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+				LOG.info("txn {} latency: {} ms", this.activeTransaction.getTxnId().getValue(),
 						this.activeTransaction.getLatency());
 			else
 				LOG.warn("replicator failed to commit txn {}", this.activeTransaction.getTxnId().getValue());

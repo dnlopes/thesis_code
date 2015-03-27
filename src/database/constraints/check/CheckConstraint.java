@@ -17,12 +17,12 @@ public class CheckConstraint extends AbstractConstraint
 
 	protected static final Logger LOG = LoggerFactory.getLogger(CheckConstraint.class);
 
-	private byte fieldType; // 1: string, 2: int, 3: float, 4: double
+	private int fieldType; // 1: string, 2: int, 3: float, 4: double
 	protected CheckConstraintType conditionType;
 	protected String thresholdValue;
 	private boolean equalFlag;
 
-	public CheckConstraint(CheckConstraintType type, String threshold, byte fieldType, boolean equalFlag)
+	public CheckConstraint(CheckConstraintType type, String threshold, int fieldType, boolean equalFlag)
 	{
 		super(ConstraintType.CHECK);
 

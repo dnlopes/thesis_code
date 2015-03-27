@@ -21,7 +21,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.factory.IdentifierFactory;
+import util.IDFactories.IdentifierFactory;
 import runtime.operation.DBOpEntry;
 import runtime.operation.DBSingleOperation;
 import runtime.operation.ShadowOperation;
@@ -100,7 +100,7 @@ public class MyShadowOpCreator
 			//iDFactory = new IDFactories();
 			globalProxyId = gPId;
 			totalProxyNum = numOfProxies;
-			this.initIDFactories(globalProxyId, totalProxyNum, originalConn);
+			//this.initIDFactories(globalProxyId, totalProxyNum, originalConn);
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
