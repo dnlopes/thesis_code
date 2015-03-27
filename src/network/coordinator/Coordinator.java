@@ -29,7 +29,6 @@ public class Coordinator extends AbstractNode
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Coordinator.class);
-	private static final StopWatch watch = new LoggingStopWatch();
 
 	private DatabaseMetadata databaseMetadata;
 

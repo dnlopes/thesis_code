@@ -56,6 +56,9 @@ public class AutoIncrementEnforcer
 				tempConnection.close();
 			} else
 			{
+				rs.close();
+				stmt.close();
+				tempConnection.close();
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());
 				RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
 						ExitCode.ID_GENERATOR_ERROR);
