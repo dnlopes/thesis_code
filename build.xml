@@ -4,7 +4,7 @@
 	<property environment="env" />
 
 	<property name="mysql.host" value="localhost" />
-	<property name="mysql.port" value="53306" />
+	<property name="mysql.port" value="3306" />
 
 	<!-- TPCW OPTIONS -->
 	<property name="TPCW_NUM_EBS" value="50" />
