@@ -59,7 +59,12 @@ public class IdentifierFactory
 
 	public static int getNextId(DataField field)
 	{
-		String key = field.getTableName() + "_" + field.getFieldName();
+		return getNextId(field.getTableName(), field.getFieldName());
+	}
+
+	public static int getNextId(String tableName, String fieldName)
+	{
+		String key = tableName + "_" + fieldName;
 
 		if(!ID_GENERATORS_MAP.containsKey(key))
 			RuntimeHelper.throwRunTimeException("id generator not found", ExitCode.ID_GENERATOR_ERROR);
@@ -69,7 +74,12 @@ public class IdentifierFactory
 
 	public static IDGenerator getIdGenerator(DataField field)
 	{
-		String key = field.getTableName() + "_" + field.getFieldName();
+		return getIdGenerator(field.getTableName(), field.getFieldName());
+	}
+
+	public static IDGenerator getIdGenerator(String tableName, String fieldName)
+	{
+		String key = tableName + "_" + fieldName;
 
 		if(!ID_GENERATORS_MAP.containsKey(key))
 			RuntimeHelper.throwRunTimeException("id generator not found", ExitCode.ID_GENERATOR_ERROR);

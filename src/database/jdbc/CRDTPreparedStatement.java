@@ -85,7 +85,6 @@ public class CRDTPreparedStatement implements PreparedStatement
 		{
 			DBSingleOperation dbOp = new DBSingleOperation(arg0);
 			rs = proxy.executeQuery(dbOp, this.txnId);
-			shdOpCreator.setCachedResultSetForDelta(rs);
 
 		} catch(JSQLParserException | ScratchpadException e)
 		{

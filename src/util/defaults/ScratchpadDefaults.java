@@ -18,4 +18,6 @@ public final class ScratchpadDefaults
 	public static final String SCRATCHPAD_COL_IMMUTABLE = "_SP_immut";
 	public static final String SCRATCHPAD_COL_TS = "_SP_ts";
 	public static final String SCRATCHPAD_COL_VV = "_SP_clock";
+
+	public static final String SCRATCHPAD_DELETED_FALSE = "FALSE";
 }

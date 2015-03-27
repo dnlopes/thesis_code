@@ -6,7 +6,6 @@ package runtime;
 
 
 import crdtlib.CrdtFactory;
-import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.jdbc.ConnectionFactory;
 import database.util.*;
 import net.sf.jsqlparser.JSQLParserException;
@@ -22,14 +21,10 @@ import network.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.IDFactories.IdentifierFactory;
-import runtime.operation.DBOpEntry;
-import runtime.operation.DBSingleOperation;
-import runtime.operation.ShadowOperation;
 import util.ExitCode;
-import util.IDFactories.IDFactories;
-import util.IDFactories.IDGenerator;
 import util.debug.Debug;
 import util.defaults.Configuration;
+import util.defaults.ScratchpadDefaults;
 import util.parser.DDLParser;
 
 import java.io.StringReader;
@@ -51,20 +46,13 @@ public class MyShadowOpCreator
 
 	static HashMap<String, DatabaseTable> annotatedTableSchema;
 	private DatabaseMetadata databaseMetadata;
-	private static ShadowOperation shadowOperation;
 
 	static CCJSqlParserManager cJsqlParser;
-	static IDFactories iDFactory;
 
 	static boolean isInitialized = false;
-	public static int globalProxyId;
-	public static int totalProxyNum;
 
-	/** The con for fetching subselection data. */
-	Connection con;
-
-	/** The cached result set for delta. */
-	private ResultSet cachedResultSetForDelta;
+	/** The defaultConnection for fetching subselection data. */
+	Connection defaultConnection;
 
 	/** The date format instance, it is thread-local since it is not thread-safe. */
 	DateFormat dateFormat;
@@ -87,7 +75,7 @@ public class MyShadowOpCreator
 	 * @param txMudConn
 	 * 		the tx mud conn
 	 */
-	public MyShadowOpCreator(String schemaFilePath, Proxy proxy, int gPId, int numOfProxies) throws SQLException
+	public MyShadowOpCreator(String schemaFilePath, Proxy proxy) throws SQLException
 	{
 		if(!isInitialized)
 		{
@@ -98,14 +86,11 @@ public class MyShadowOpCreator
 			annotatedTableSchema = sP.getTableCrdtFormMap();
 			cJsqlParser = new CCJSqlParserManager();
 			//iDFactory = new IDFactories();
-			globalProxyId = gPId;
-			totalProxyNum = numOfProxies;
 			//this.initIDFactories(globalProxyId, totalProxyNum, originalConn);
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
-		this.con = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
-		this.cachedResultSetForDelta = null;
+		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
 	}
 
@@ -127,53 +112,6 @@ public class MyShadowOpCreator
 		}
 	}
 
-	// check all tables, create ID Generator for all primarykey but not foreign
-	// key
-
-	/**
-	 * Inits the id factories.
-	 *
-	 * @param gPI
-	 * 		the g pi
-	 * @param pId
-	 * 		the id
-	 * @param conn
-	 * 		the conn
-	 */
-	public void initIDFactories(int gPI, int pId, Connection conn)
-	{
-		LOG.trace("We initialize the ID factories!");
-		IDGenerator.initialized(gPI, pId, conn);
-		Iterator<Map.Entry<String, DatabaseTable>> it = annotatedTableSchema.entrySet().iterator();
-		while(it.hasNext())
-		{
-			Map.Entry<String, DatabaseTable> entry = it.next();
-			DatabaseTable dT = entry.getValue();
-			String tableName = dT.getName();
-			LOG.trace("We initialize the ID generator for " + tableName);
-			HashMap<String, DataField> pkMap = dT.getPrimaryKeysMap();
-			Iterator<Map.Entry<String, DataField>> pkIt = pkMap.entrySet().iterator();
-			while(pkIt.hasNext())
-			{
-				Map.Entry<String, DataField> pkField = pkIt.next();
-				DataField pkDF = pkField.getValue();
-				if(pkDF.isAutoIncrement() && pkDF.getFieldType().toUpperCase().contains("INT"))
-				{
-					LOG.trace("We initialize the ID generator for " + tableName + " key " + pkDF.getFieldName());
-					iDFactory.add_ID_Generator(tableName, pkDF.getFieldName());
-				}
-			}
-		}
-	}
-
-	/**
-	 * Reset cached result set.
-	 */
-	public void resetCachedResultSet()
-	{
-		this.cachedResultSetForDelta = null;
-	}
-
 	/*
 	 * The following two functions are used to fill in missing fields in an
 	 * insertion.
@@ -193,7 +131,8 @@ public class MyShadowOpCreator
 	 */
 	public Set<String> findMissingDataFields(String tableName, List<String> colList, List<String> valueList)
 	{
-		DatabaseTable dtB = annotatedTableSchema.get(tableName);
+		//DatabaseTable dtB = annotatedTableSchema.get(tableName);
+		DatabaseTable dtB = this.databaseMetadata.getTable(tableName);
 		return dtB.findMisingDataField(colList, valueList);
 	}
 
@@ -212,7 +151,9 @@ public class MyShadowOpCreator
 
 		Set<String> missFields = findMissingDataFields(tableName, colList, valueList);
 
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+//		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+
 		for(int i = 0; i < valueList.size(); i++)
 		{
 			DataField dF = null;
@@ -223,7 +164,7 @@ public class MyShadowOpCreator
 			{
 				dF = dbT.getField(i);
 			}
-			String expStr = valueList.get(i).toString().trim();
+			String expStr = valueList.get(i).trim();
 			if(expStr.equalsIgnoreCase("NOW()") || expStr.equalsIgnoreCase("NOW") || expStr.equalsIgnoreCase(
 					"CURRENT_TIMESTAMP") || expStr.equalsIgnoreCase("CURRENT_TIMESTAMP()") || expStr.equalsIgnoreCase(
 					"CURRENT_DATE"))
@@ -321,7 +262,8 @@ public class MyShadowOpCreator
 	 */
 	private boolean isPrimaryKeyMissingFromWhereClause(String tableName, Expression whereClause)
 	{
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
 		return dbT.isPrimaryKeyMissingFromWhereClause(whereClause.toString());
 	}
 
@@ -345,7 +287,9 @@ public class MyShadowOpCreator
 	 */
 	public String getPrimaryKeySelectionQuery(String tableName, Expression whereClause)
 	{
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+//		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+
 		return dbT.generatedPrimaryKeyQuery(whereClause.toString());
 	}
 
@@ -387,6 +331,8 @@ public class MyShadowOpCreator
 			replaceSelectionForInsert(insertStmt, valList);
 			//call function to replace and fill in the missing fields
 			fillInMissingValue(tableName, colList, valList);
+			this.addScratchpadColumnsValues(tableName, colList, valList);
+
 			deterQueries = new String[1];
 			deterQueries[0] = assembleInsert(tableName, colList, valList);
 		} else if(sqlStmt instanceof Update)
@@ -455,7 +401,7 @@ public class MyShadowOpCreator
 			try
 			{
 				LOG.trace("fetching rows from main database");
-				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
+				PreparedStatement sPst = defaultConnection.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
 				newUpdates = assembleUpdates(updateStmt.getTable().getName(), colList, valList, rs);
 				rs.close();
@@ -492,13 +438,12 @@ public class MyShadowOpCreator
 			//executeUpdate the primaryKeySelectStr
 			try
 			{
-				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
+				PreparedStatement sPst = defaultConnection.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
 				newDeletes = assembleDeletes(delStmt.getTable().getName(), rs);
 				rs.close();
 			} catch(SQLException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				Debug.println("Selection is wrong");
 			}
@@ -546,7 +491,7 @@ public class MyShadowOpCreator
 				PreparedStatement sPst;
 				try
 				{
-					sPst = con.prepareStatement(valStr);
+					sPst = defaultConnection.prepareStatement(valStr);
 					ResultSet rs = sPst.executeQuery();
 					if(rs.next())
 					{
@@ -562,7 +507,6 @@ public class MyShadowOpCreator
 					rs.close();
 				} catch(SQLException e1)
 				{
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			} else
@@ -603,7 +547,7 @@ public class MyShadowOpCreator
 				assert (plainSelect.getSelectItems().size() == 1);
 				try
 				{
-					PreparedStatement sPst = con.prepareStatement(valStr);
+					PreparedStatement sPst = defaultConnection.prepareStatement(valStr);
 					ResultSet rs = sPst.executeQuery();
 					if(rs.next())
 					{
@@ -615,7 +559,6 @@ public class MyShadowOpCreator
 					rs.close();
 				} catch(SQLException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					Debug.println("Selection is wrong");
 				}
@@ -747,9 +690,11 @@ public class MyShadowOpCreator
 		updateMainBody = buffer.toString();
 		//Debug.println("Newly generated update main body is " + updateMainBody);
 
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+
 		Set<String> pkSet = dbT.getPrimaryKeysNamesList();
-		List<String> updateStrList = new ArrayList<String>();
+		List<String> updateStrList = new ArrayList<>();
 		try
 		{
 			while(rs.next())
@@ -778,7 +723,6 @@ public class MyShadowOpCreator
 			}
 		} catch(SQLException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			LOG.error("failed to assemble update query");
 		}
@@ -829,7 +773,8 @@ public class MyShadowOpCreator
 		deleteMainBody = buffer.toString();
 		//Debug.println("Newly generated delete mainbody is " + deleteMainBody);
 
-		DatabaseTable dbTable = annotatedTableSchema.get(tableName);
+		//DatabaseTable dbTable = annotatedTableSchema.get(tableName);
+		DatabaseTable dbTable = this.databaseMetadata.getTable(tableName);
 
 		Set<String> primaryKeySet = dbTable.getPrimaryKeysNamesList();
 		List<String> deleteStrList = new ArrayList<>();
@@ -861,7 +806,6 @@ public class MyShadowOpCreator
 			}
 		} catch(SQLException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			LOG.error("failed to assemble delete query");
 		}
@@ -883,7 +827,9 @@ public class MyShadowOpCreator
 	 */
 	public String get_Value_In_Correct_Format(String tableName, int fieldIndex, String Value)
 	{
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+
 		DataField dF = dbT.getField(fieldIndex);
 		return dF.get_Value_In_Correct_Format(Value);
 	}
@@ -902,386 +848,10 @@ public class MyShadowOpCreator
 	 */
 	public String get_Value_In_Correct_Format(String tableName, String dataFileName, String Value)
 	{
-		DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
 		DataField dF = dbT.getField(dataFileName);
 		return dF.get_Value_In_Correct_Format(Value);
-	}
-
-	/**
-	 * Gets the database instance.
-	 *
-	 * @param tableName
-	 * 		the table name
-	 *
-	 * @return the database instance
-	 */
-	public DatabaseTable getDatabaseInstance(String tableName)
-	{
-		//		DatabaseTable dTb = annotatedTableSchema.get(tableName);
-		DatabaseTable table = databaseMetadata.getTable(tableName);
-
-		if(table == null)
-		{
-			try
-			{
-				throw new RuntimeException("This table doesn't appear in the annotation list" + tableName);
-			} catch(RuntimeException e)
-			{
-				e.printStackTrace();
-				System.exit(ExitCode.UNKNOWTABLENAME);
-			}
-		}
-		return table;
-	}
-
-	/**
-	 * Adds the database entry to shadow operation.
-	 *
-	 * @param shdOp
-	 * 		the shd op
-	 * @param sqlQuery
-	 * 		the sql query
-	 *
-	 * @throws JSQLParserException
-	 * 		the jSQL parser exception
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public void addDBEntryToShadowOperation(ShadowOperation shdOp, String sqlQuery, DBSingleOperation sqlOp)
-			throws JSQLParserException, SQLException
-	{
-		/*
-		// remove the last ";"
-
-		sqlQuery = sqlQuery.trim();
-		int endIndex = sqlQuery.lastIndexOf(";");
-		if(endIndex == sqlQuery.length() - 1)
-		{
-			sqlQuery = sqlQuery.substring(0, endIndex);
-		}
-		Statement sqlStmt = cJsqlParser.parse(new StringReader(sqlQuery));
-		if(sqlStmt instanceof Insert)
-		{
-			Insert insertStatement = (Insert) sqlStmt;
-			String tableName = insertStatement.getTable().getName();
-			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-
-			if(dTb instanceof AosetTable || dTb instanceof AusetTable)
-			{
-				shdOp.addOperation(this.createUniqueInsertDBOpEntry(dTb, insertStatement));
-			} else if(dTb instanceof ArsetTable)
-			{
-				shdOp.addOperation(this.createInsertDBOpEntry(dTb, insertStatement));
-			} else
-			{
-				try
-				{
-					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
-									"cannot be modified!");
-				} catch(RuntimeException e)
-				{
-					e.printStackTrace();
-					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
-				}
-			}
-		} else if(sqlStmt instanceof Update)
-		{
-			Update updateStatement = (Update) sqlStmt;
-			String tableName = updateStatement.getTable().getName();
-			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-
-			if(dTb instanceof ArsetTable ||
-					dTb instanceof AusetTable ||
-					dTb instanceof UosetTable)
-			{
-				shdOp.addOperation(this.createUpdateDBOpEntry(dTb, updateStatement, this.getCachedResultSetForDelta
-						()));
-			} else
-			{
-				try
-				{
-					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
-									"cannot be modified!");
-				} catch(RuntimeException e)
-				{
-					e.printStackTrace();
-					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
-				}
-			}
-
-		} else if(sqlStmt instanceof Delete)
-		{
-			Delete deleteStatement = (Delete) sqlStmt;
-			String tableName = deleteStatement.getTable().getName();
-			DatabaseTable dTb = this.getDatabaseInstance(tableName);
-
-			if(dTb instanceof ArsetTable)
-			{
-				shdOp.addOperation(this.createDeleteDBOpEntry(dTb, deleteStatement));
-			} else
-			{
-				try
-				{
-					throw new RuntimeException(
-							"The type of CRDT table " + dTb.getTableType() + "is not supported by our framework or " +
-									"cannot be modified!");
-				} catch(RuntimeException e)
-				{
-					e.printStackTrace();
-					System.exit(ExitCode.NOTDEFINEDCRDTTABLE);
-				}
-			}
-		} else
-		{
-			try
-			{
-				throw new RuntimeException("Could not identify the sql type " + sqlQuery);
-			} catch(RuntimeException e)
-			{
-				e.printStackTrace();
-				System.exit(ExitCode.UNKNOWSQLQUERY);
-			}
-		}
-		*/
-	}
-
-	/**
-	 * Creates the insert database op entry.
-	 *
-	 * @param dbT
-	 * 		the database t
-	 * @param insertStatement
-	 * 		the insert statement
-	 *
-	 * @return the dB op entry
-	 *
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public DBOpEntry createInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
-	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.INSERT, dbT.getName());
-		Iterator colIt = insertStatement.getColumns().iterator();
-		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || !colIt.hasNext())
-		{
-			//added in the sorted manner
-			int index = 0;
-			while(valueIt.hasNext())
-			{
-				String value = valueIt.next().toString();
-				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-						value, null, insertStatement);
-				if(df.isPrimaryKey())
-				{
-					dbOpEntry.addPrimaryKey(pt);
-				} else
-				{
-					dbOpEntry.addNormalAttribute(pt);
-				}
-				index++;
-			}
-		} else
-		{
-			while(colIt.hasNext() && valueIt.hasNext())
-			{
-				String colName = colIt.next().toString();
-				String value = valueIt.next().toString();
-				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-						value, null, insertStatement);
-				if(df.isPrimaryKey())
-				{
-					dbOpEntry.addPrimaryKey(pt);
-				} else
-				{
-					dbOpEntry.addNormalAttribute(pt);
-				}
-			}
-		}
-		return dbOpEntry;
-	}
-
-	/**
-	 * Creates the unique insert database op entry.
-	 *
-	 * @param dbT
-	 * 		the database t
-	 * @param insertStatement
-	 * 		the insert statement
-	 *
-	 * @return the dB op entry
-	 *
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public DBOpEntry createUniqueInsertDBOpEntry(DatabaseTable dbT, Insert insertStatement) throws SQLException
-	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UNIQUEINSERT, dbT.getName());
-		Iterator colIt = insertStatement.getColumns().iterator();
-		Iterator valueIt = ((ExpressionList) insertStatement.getItemsList()).getExpressions().iterator();
-		if(colIt == null || !colIt.hasNext())
-		{
-			//added in the sorted manner
-			int index = 0;
-			while(valueIt.hasNext())
-			{
-				String value = valueIt.next().toString();
-				DataField df = dbT.getField(index);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-						value, null, insertStatement);
-				if(df.isPrimaryKey())
-				{
-					dbOpEntry.addPrimaryKey(pt);
-				} else
-				{
-					dbOpEntry.addNormalAttribute(pt);
-				}
-				index++;
-			}
-		} else
-		{
-			while(colIt.hasNext() && valueIt.hasNext())
-			{
-				String colName = colIt.next().toString();
-				String value = valueIt.next().toString();
-				DataField df = dbT.getField(colName);
-				PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-						value, null, insertStatement);
-				if(df.isPrimaryKey())
-				{
-					dbOpEntry.addPrimaryKey(pt);
-				} else
-				{
-					dbOpEntry.addNormalAttribute(pt);
-				}
-			}
-		}
-		return dbOpEntry;
-	}
-
-	/**
-	 * Creates the update database op entry.
-	 *
-	 * @param dbT
-	 * 		the database t
-	 * @param updateStatement
-	 * 		the update statement
-	 * @param rs
-	 * 		the rs
-	 *
-	 * @return the dB op entry
-	 *
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public DBOpEntry createUpdateDBOpEntry(DatabaseTable dbT, Update updateStatement, ResultSet rs) throws SQLException
-	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.UPDATE, dbT.getName());
-		Iterator colIt = updateStatement.getColumns().iterator();
-		Iterator valueIt = updateStatement.getExpressions().iterator();
-		while(colIt.hasNext() && valueIt.hasNext())
-		{
-			String colName = colIt.next().toString();
-			String value = valueIt.next().toString();
-			DataField df = dbT.getField(colName);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df, value,
-					rs, updateStatement);
-			dbOpEntry.addNormalAttribute(pt);
-		}
-		String whereClause = updateStatement.getWhere().toString();
-		this.addFieldAndValueInWhereClauseToDBOpEntry(dbT, whereClause, dbOpEntry);
-		return dbOpEntry;
-	}
-
-	/**
-	 * Creates the delete database op entry.
-	 *
-	 * @param dbT
-	 * 		the database t
-	 * @param deleteStatement
-	 * 		the delete statement
-	 *
-	 * @return the dB op entry
-	 *
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public DBOpEntry createDeleteDBOpEntry(DatabaseTable dbT, Delete deleteStatement) throws SQLException
-	{
-		DBOpEntry dbOpEntry = new DBOpEntry(DatabaseDef.DELETE, dbT.getName());
-		String whereClause = deleteStatement.getWhere().toString();
-		this.addFieldAndValueInWhereClauseToDBOpEntry(dbT, whereClause, dbOpEntry);
-		return dbOpEntry;
-	}
-
-	/**
-	 * Adds the field and value in where clause to database op entry.
-	 *
-	 * @param dbT
-	 * 		the database t
-	 * @param whereClause
-	 * 		the where clause
-	 * @param dbOpEntry
-	 * 		the database op entry
-	 *
-	 * @throws SQLException
-	 * 		the sQL exception
-	 */
-	public void addFieldAndValueInWhereClauseToDBOpEntry(DatabaseTable dbT, String whereClause, DBOpEntry dbOpEntry)
-			throws SQLException
-	{
-		//add all primary key to the entry
-		String[] primaryKeyPairs = whereClause.split("AND");
-		assert (primaryKeyPairs.length == dbT.getPrimaryKeysMap().size());
-		for(int i = 0; i < primaryKeyPairs.length; i++)
-		{
-			String primaryKeyPair = primaryKeyPairs[i].replaceAll("\\s+", "");
-			String[] fieldAndValue = primaryKeyPair.split("=");
-			DataField df = dbT.getField(fieldAndValue[0]);
-			PrimitiveType pt = CrdtFactory.generateCrdtPrimitiveType(shadowOperation, this.getDateFormat(), df,
-					fieldAndValue[1], null, null);
-			dbOpEntry.addPrimaryKey(pt);
-		}
-	}
-
-	/**
-	 * Assign next unique id.
-	 *
-	 * @param tableName
-	 * 		the table name
-	 * @param dataFieldName
-	 * 		the data field name
-	 *
-	 * @return the int
-	 */
-	public int assignNextUniqueId(String tableName, String dataFieldName)
-	{
-		return iDFactory.getNextId(tableName, dataFieldName);
-	}
-
-	/**
-	 * Sets the cached result set for delta.
-	 *
-	 * @param cachedResultSetForDelta
-	 * 		the cachedResultSetForDelta to set
-	 */
-	public void setCachedResultSetForDelta(ResultSet cachedResultSetForDelta)
-	{
-		this.cachedResultSetForDelta = cachedResultSetForDelta;
-	}
-
-	/**
-	 * Gets the cached result set for delta.
-	 *
-	 * @return the cachedResultSetForDelta
-	 */
-	public ResultSet getCachedResultSetForDelta()
-	{
-		return cachedResultSetForDelta;
 	}
 
 	/**
@@ -1305,9 +875,25 @@ public class MyShadowOpCreator
 		this.dateFormat = dateFormat;
 	}
 
-	public void setShadowOperation(ShadowOperation op)
+	private void addScratchpadColumnsValues(String tableName, List<String> cols, List<String> vals)
 	{
-		shadowOperation = op;
+		if(cols.size() != vals.size())
+		{
+			LOG.error("cols and vals size must match before appending scratchpad values");
+			RuntimeHelper.throwRunTimeException("cols and vals size dont match", ExitCode.ERRORTRANSFORM);
+		}
+
+		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
+		//vals.add(ScratchpadDefaults.SCRATCHPAD_DELETED_FALSE);
+
+		// TODO: when to add these values?
+		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_TS);
+		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+
+		cols.add(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		int rowId = IdentifierFactory.getNextId(tableName, ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		vals.add(Integer.toString(rowId));
 	}
+
 }
 

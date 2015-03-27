@@ -22,16 +22,17 @@ public class MicroTest
 
 	public static void main(String args[]) throws SQLException, IOException, ClassNotFoundException
 	{
-		//Micro_Populate db = new Micro_Populate();
+		Micro_Populate db = new Micro_Populate();
 
 		Connection conn = ConnectionFactory.getCRDTConnection();
 
 		Statement stat = conn.createStatement();
 
 		int res = stat.executeUpdate("update t2 set d=20 where a=1");
+		res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
 		ResultSet rs = stat.executeQuery("SELECT * from t2 where a=5");
 
-		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+		res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
 		res = stat.executeUpdate("update t2 set d=21 where a=2");
 		//res = stat.executeUpdate("update t1 set b=20 where a=3");
 

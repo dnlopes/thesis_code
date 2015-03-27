@@ -35,8 +35,7 @@ public class CRDTConnection implements Connection
 	public CRDTConnection() throws SQLException
 	{
 		this.proxy = THIS_PROXY;
-		this.shdOpCreator = new MyShadowOpCreator(Configuration.getInstance().getSchemaFile(), this.proxy, this.proxy
-				.getConfig().getId(), Configuration.getInstance().getProxies().size());
+		this.shdOpCreator = new MyShadowOpCreator(Configuration.getInstance().getSchemaFile(), this.proxy);
 		this.txnId = new TransactionIdentifier();
 	}
 
