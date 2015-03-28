@@ -1,97 +1,203 @@
-<project name="Main" default="compile" basedir=".">
+<project name="WeakDB Project" default="compile" basedir=".">
 
-	<!-- EDIT THE FOLLOWING TWO PARAMETERS ACCORDING TO YOUR SYSTEM -->
+	<!-- edit the follow properties according to your system -->
 	<property environment="env" />
-
+	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
 	<property name="mysql.host" value="localhost" />
 	<property name="mysql.port" value="3306" />
+	<property name="mysql.user" value="sa" />
+	<property name="mysql.pwd" value="101010" />
+	<property name="tomcat.host" value="localhost" />
+	<property name="tomcat.port" value="8080" />
 
-	<!-- TPCW OPTIONS -->
-	<property name="TPCW_NUM_EBS" value="50" />
-	<property name="TPCW_NUM_ITEMS" value="100" />
-	<property name="gendb-tpcw" value="applications.tpcw.TPCW_Populate" />
-
-
-	<!-- set properties for this build -->
+	<!-- main properties for this build -->
 	<property name="base.dir" value="." />
+	<property name="deploy.dir" value="/var/tmp/weakdb" />
+	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
+
 	<property name="src.dir" value="${base.dir}/src" />
-	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="libs.dir" value="${base.dir}/libs" />
-	<property name="resources.dir" value="${base.dir}/resources" />
+	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="classes.dir" value="${dist.dir}/classes" />
 	<property name="jars.dir" value="${dist.dir}/jars" />
+	<property name="resources.dir" value="${base.dir}/resources" />
 
+	<property name="applications.dir" value="${base.dir}/applications" />
+	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
+
+	<!-- Custom ant tasks -->
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="${libs.dir}/ant-contrib-0.3.jar" />
+		</classpath>
+	</taskdef>
+
+
+	<!-- TPCW properties -->
+	<property name="TPCW_NUM_EBS" value="50" />
+	<property name="TPCW_NUM_ITEMS" value="100" />
+	<property name="tpcw-populate-class" value="TPCW_Populate" />
+	<property name="tpcw.dist.dir" value="${tpcw.dir}/dist" />
+	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
+	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
 
 
 	<!-- PATHS DEFINITIONS -->
-	<path id="dependencies.path">
+	<path id="weakdb.classpath">
 		<fileset dir="${libs.dir}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
-	<path id="runtime.path">
+	<path id="tpcw.classpath">
+		<fileset dir="${tpcw.dir}/libs">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<path id="weakdb.runtime.classpath">
 		<pathelement path="${classes.dir}" />
+	</path>
+	<path id="tpcw.runtime.classpath">
+		<pathelement path="${tpcw.dist.dir}" />
 	</path>
 
 	<!-- MAIN TASKS -->
 
+	<target name="purge" description="Purges everything">
+		<antcall target="clean" />
+		<antcall target="tpcw-clean" />
+	</target>
 	<target name="init" depends="clean">
 		<tstamp />
 		<mkdir dir="${dist.dir}" />
 		<mkdir dir="${classes.dir}" />
 		<mkdir dir="${jars.dir}" />
 	</target>
-
-	<target name="clean" description="Clean distribution directory">
+	<target name="clean" description="Clean WeakDB distribution">
 		<delete dir="${dist.dir}" />
 	</target>
-
-	<target name="compile" depends="init" description="Compile source code">
+	<target name="compile" depends="init" description="Compile WeakDB sources">
 		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
-			<classpath refid="dependencies.path" />
+			<classpath refid="weakdb.classpath" />
 		</javac>
 	</target>
+	<target name="dist" depends="compile" description="Generates WeakDB jars">
+		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="main.ReplicatorMain" />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/coordinator.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="main.CoordinatorMain" />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/crdtjdbc.jar" basedir="${classes.dir}">
+			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+		</jar>
+	</target>
 
-	<target name="tpcw-gendb" depends="compile" description="Generate TPCW database">
-		<java classname="${gendb-tpcw}" fork="true">
+	<!-- TPCW TASKS -->
+	<target name="tpcw-init" depends="tpcw-clean">
+		<tstamp />
+		<mkdir dir="${tpcw.dist.dir}/servlets" />
+	</target>
+	<target name="tpcw-clean">
+		<delete dir="${tpcw.dist.dir}" />
+		<delete>
+			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" />
+			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
+		</delete>
+	</target>
+
+	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init">
+		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
+			   debug="true" deprecation="false" source="1.3" nowarn="yes">
+			<classpath refid="tpcw.classpath" />
+		</javac>
+		<javac srcdir="${tpcw.dir}/populate" includeantruntime="false" includes="TPCW_Populate.java"
+			   destdir="${tpcw.dist.dir}" debug="true" depend="yes" deprecation="false" nowarn="yes">
+			<classpath refid="tpcw.classpath" />
+		</javac>
+		<javac srcdir="${tpcw.dir}/servlets" includeantruntime="false" includes="*.java"
+			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
+			<classpath refid="tpcw.classpath" />
+		</javac>
+		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
+			<fileset dir="${tpcw.dist.dir}/servlets">
+				<include name="*.class" />
+			</fileset>
+		</copy>
+		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
+		<copy file="${base.dir}/resources/dbdefault.tpcw.properties"
+			  tofile="${tpcw.web.dir}/WEB-INF/classes/database.properties" />
+		<war destfile="${tpcw.dist.dir}/tpcw.war" webxml="${tpcw.web.dir}/WEB-INF/web.xml" basedir="${tpcw.web.dir}" />
+		<delete dir="${tomcat.dir}/webapps/tpcw" />
+		<delete file="${tomcat.dir}/webapps/tpcw.war" />
+		<copy file="${tpcw.dist.dir}/tpcw.war" todir="${tomcat.dir}/webapps" />
+		<copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" />
+		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
+		<copy todir="${tomcat.dir}/webapps/tpcw/tpcw/Images">
+			<fileset dir="${tpcw.dir}/images/" />
+		</copy>
+	</target>
+
+	<target name="tpcw-gendb" depends="tpcw-dist, check-mysql" if="mysql.running"
+			description="Generate TPCW database">
+		<java classname="${tpcw-populate-class}" fork="true">
 			<arg value="${TPCW_NUM_EBS}" />
 			<arg value="${TPCW_NUM_ITEMS}" />
-			<classpath refid="runtime.path" />
-			<classpath refid="dependencies.path" />
+			<classpath refid="tpcw.runtime.classpath" />
+			<classpath refid="tpcw.classpath" />
 		</java>
 	</target>
 
+	<!-- UTIL TASKS -->
 	<target name="check-mysql">
-		<echo message="Checking whether MySQL is running..." />
-		<fail message="MySQL is not running. :(">
+		<fail message="Database is not running">
 			<condition>
 				<not>
 					<socket server="${mysql.host}" port="${mysql.port}" />
 				</not>
 			</condition>
 		</fail>
-		<echo message="MySQL is running :D" />
 	</target>
-
-	<target name="jars" depends="compile" description="Generates jars">
-		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="main.ReplicatorMain"/>
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}" />
-			<fileset dir="${resources.dir}">
-				<include name="*.properties"/>
-			</fileset>
-		</jar>
-		<jar destfile="${jars.dir}/coordinator.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="main.CoordinatorMain"/>
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}" />
-			<fileset dir="${resources.dir}">
-				<include name="*.properties"/>
-			</fileset>
-		</jar>
+	<target name="check-tomcat">
+		<fail message="Database is not running">
+			<condition>
+				<not>
+					<socket server="${mysql.host}" port="${mysql.port}" />
+				</not>
+			</condition>
+		</fail>
+	</target>
+	<target name="test-tomcat">
+		<condition property="tomcat.running">
+			<socket server="${tomcat.host}" port="${tomcat.port}" />
+		</condition>
+	</target>
+	<target name="start-tomcat" unless="tomcat.running" depends="test-tomcat">
+		<delete>
+			<fileset dir="${tomcat.dir}/logs" includes="*" />
+		</delete>
+		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tomcat.dir}/bin">
+			<arg value="startup.sh" />
+		</exec>
+	</target>
+	<target name="stop-tomcat" if="tomcat.running" depends="test-tomcat">
+		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tomcat.dir}/bin">
+			<arg value="shutdown.sh" />
+		</exec>
 	</target>
 </project>
 

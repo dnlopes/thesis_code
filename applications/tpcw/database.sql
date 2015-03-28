@@ -6,7 +6,6 @@
 	@NORMALSTRING addr_state varchar(20), 
 	@NORMALSTRING addr_zip varchar(10), 
 	@NORMALINTEGER addr_co_id int,
-	CHECK(addr_id>=0),
 	FOREIGN KEY(addr_city,addr_street2) REFERENCES author(a_id,a_mname),
 	FOREIGN KEY(addr_city,addr_state) REFERENCES author(a_fname,a_id),	
 	PRIMARY KEY(addr_id,addr_street2),
