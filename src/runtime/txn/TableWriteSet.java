@@ -1,6 +1,8 @@
 package runtime.txn;
 
 
+import database.util.PrimaryKeyValue;
+
 import java.util.*;
 
 
@@ -13,10 +15,10 @@ public class TableWriteSet
 	// original name, not temporary
 	private String tableName;
 	// list of tupleId that were deleted, inserted and updates
-	private Set<Integer> deletedTuples;
-	private Set<Integer> insertedTuples;
-	private Set<Integer> updatedTuples;
-	private Map<Integer, TupleWriteSet> writeSet;
+	private Set<PrimaryKeyValue> deletedTuples;
+	private Set<PrimaryKeyValue> insertedTuples;
+	private Set<PrimaryKeyValue> updatedTuples;
+	private Map<PrimaryKeyValue, TupleWriteSet> writeSet;
 
 	public TableWriteSet(String tableName)
 	{
@@ -27,42 +29,42 @@ public class TableWriteSet
 		this.writeSet = new LinkedHashMap();
 	}
 
-	public Map<Integer, TupleWriteSet> getTableWriteSetMap()
+	public Map<PrimaryKeyValue, TupleWriteSet> getTableWriteSetMap()
 	{
 		return this.writeSet;
 	}
 
-	public void addUpdatedRow(Integer id)
+	public void addUpdatedRow(PrimaryKeyValue id)
 	{
 		this.updatedTuples.add(id);
 	}
 
-	public void addDeletedRow(Integer id)
+	public void addDeletedRow(PrimaryKeyValue id)
 	{
 		this.deletedTuples.add(id);
 	}
 
-	public void addInsertedRow(Integer id)
+	public void addInsertedRow(PrimaryKeyValue id)
 	{
 		this.insertedTuples.add(id);
 	}
 
-	public void removeUpdatedRow(Integer id)
+	public void removeUpdatedRow(PrimaryKeyValue id)
 	{
 		this.updatedTuples.remove(id);
 	}
 
-	public void removeInsertedRow(Integer id)
+	public void removeInsertedRow(PrimaryKeyValue id)
 	{
 		this.insertedTuples.remove(id);
 	}
 
-	public Set<Integer> getDeletedRows()
+	public Set<PrimaryKeyValue> getDeletedRows()
 	{
 		return this.deletedTuples;
 	}
 
-	public Set<Integer> getInsertedRows()
+	public Set<PrimaryKeyValue> getInsertedRows()
 	{
 		return this.insertedTuples;
 	}
@@ -83,11 +85,6 @@ public class TableWriteSet
 	public String getTableName()
 	{
 		return this.tableName;
-	}
-
-	public void setWriteSet(Map<Integer, TupleWriteSet> writeSet)
-	{
-		this.writeSet = writeSet;
 	}
 
 	public Collection<TupleWriteSet> getTuplesWriteSet()

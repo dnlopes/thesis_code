@@ -9,6 +9,8 @@ import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
 import database.util.DataField;
 import database.util.DatabaseTable;
+import database.util.PrimaryKey;
+import database.util.PrimaryKeyValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Table;
@@ -45,20 +47,20 @@ public class DBExecuter implements IExecuter
 	private int tableId;
 	private boolean modified;
 	private FromItem fromItemTemp;
+	private PrimaryKey pk;
 
 	private List<String> selectAllItems;
-	private Set<Integer> duplicatedRows;
+	private Set<PrimaryKeyValue> duplicatedRows;
 	private TableWriteSet writeSet;
-	private Map<Integer, TupleWriteSet> tuplesWriteSet;
 
 	public DBExecuter(int tableId, String tableName)
 	{
 		this.tableId = tableId;
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+		this.pk = databaseTable.getPrimaryKey();
 		this.modified = false;
 
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
-		this.tuplesWriteSet = this.writeSet.getTableWriteSetMap();
 
 		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.selectAllItems = this.databaseTable.getFieldsNamesList();
@@ -741,7 +743,6 @@ public class DBExecuter implements IExecuter
 			buffer.append("(");
 			Iterator it = columnsList.iterator();
 			boolean first = true;
-			int index = 0;
 			while(it.hasNext())
 			{
 				String col = it.next().toString();
@@ -750,23 +751,27 @@ public class DBExecuter implements IExecuter
 					buffer.append(",");
 				first = false;
 				buffer.append(col);
-
-				if(col.compareTo(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE) == 0)
-				{
-					immutablueValue = Integer.parseInt(valuesList.get(index).toString());
-					this.writeSet.addInsertedRow(immutablueValue);
-					this.createWriteSetEntry(immutablueValue);
-				}
-				index++;
 			}
 			buffer.append(")");
 		}
 
 		int counter = 0;
-		for(Object value: valuesList)
+		List<String> pkValueList = new ArrayList<>();
+
+		for(int i = 0; i < pk.getSize(); i++)
 		{
-			String valueString = value.toString();
-			this.addNewEntry(immutablueValue, columnsList.get(counter).toString(), valueString);
+			pkValueList.add(valuesList.get(i).toString());
+			counter++;
+		}
+
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
+		this.createWriteSetEntry(pkValue);
+		this.writeSet.addInsertedRow(pkValue);
+
+		for(int j = counter; j < valuesList.size(); j++)
+		{
+			String valueString = valuesList.toString();
+			this.addNewEntry(pkValue, columnsList.get(counter).toString(), valueString);
 			counter++;
 		}
 
@@ -836,16 +841,17 @@ public class DBExecuter implements IExecuter
 		while(res.next())
 		{
 			rowsDeleted++;
-			Integer immutValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+			String pkValueString = this.getPkValue(res);
+			PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
 
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
-			if(this.writeSet.getInsertedRows().contains(immutValue))
-				this.writeSet.removeInsertedRow(immutValue);
+			if(this.writeSet.getInsertedRows().contains(pkValue))
+				this.writeSet.removeInsertedRow(pkValue);
 			else
-				this.writeSet.removeUpdatedRow(immutValue);
+				this.writeSet.removeUpdatedRow(pkValue);
 
-			this.writeSet.addDeletedRow(immutValue);
+			this.writeSet.addDeletedRow(pkValue);
 
 			int nPks = tableDefinition.getPksPlain().length;
 			if(nPks > 0)
@@ -887,7 +893,7 @@ public class DBExecuter implements IExecuter
 		// we also use this method to capture all the tuples that will be affected by the update
 		this.addMissingRowsToScratchpad(updateOp, db);
 
-		List<Integer> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
+		List<String> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
 
 		// now perform the actual update only in the scratchpad
 		StringBuffer buffer = new StringBuffer();
@@ -909,8 +915,8 @@ public class DBExecuter implements IExecuter
 			// we are updating this field, lets check if it is a valid value
 			this.verifyCheckConstraints(field, newValue);
 
-			for(Integer rowId : affectedRows)
-				this.addNewEntry(rowId, columnName, newValue);
+			for(String pkValue : affectedRows)
+				this.addNewEntry(new PrimaryKeyValue(pkValue, this.databaseTable.getName()), columnName, newValue);
 
 			buffer.append(columnName);
 			buffer.append(" = ");
@@ -1073,16 +1079,16 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(Integer immut : this.duplicatedRows)
+		for(PrimaryKeyValue pkValue : this.duplicatedRows)
 		{
 			if(first)
 			{
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 				first = false;
 			} else
 			{
 				buffer.append(",");
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 			}
 		}
 	}
@@ -1099,16 +1105,16 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(Integer immut : this.writeSet.getDeletedRows())
+		for(PrimaryKeyValue pkValue : this.writeSet.getDeletedRows())
 		{
 			if(first)
 			{
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 				first = false;
 			} else
 			{
 				buffer.append(",");
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 			}
 		}
 	}
@@ -1125,16 +1131,16 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(Integer immut : this.writeSet.getInsertedRows())
+		for(PrimaryKeyValue pkValue : this.writeSet.getInsertedRows())
 		{
 			if(first)
 			{
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 				first = false;
 			} else
 			{
 				buffer.append(",");
-				buffer.append(immut);
+				buffer.append(pkValue.getValue());
 			}
 		}
 	}
@@ -1195,11 +1201,12 @@ public class DBExecuter implements IExecuter
 				continue;
 			}
 
-			// immut field of this row
-			Integer immutablueValue = Integer.parseInt(res.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-			this.createWriteSetEntry(immutablueValue);
-			this.duplicatedRows.add(immutablueValue);
-			this.writeSet.addUpdatedRow(immutablueValue);
+			String pkValueString = this.getPkValue(res);
+			PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
+
+			this.createWriteSetEntry(pkValue);
+			this.duplicatedRows.add(pkValue);
+			this.writeSet.addUpdatedRow(pkValue);
 
 			affected++;
 
@@ -1208,9 +1215,8 @@ public class DBExecuter implements IExecuter
 			buffer.append(this.tempTableName);
 			buffer.append(" values (");
 
-			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
+			for(int i = pk.getSize(); i < this.tableDefinition.colsPlain.length; i++)
 			{
-				DataField currentField = this.databaseTable.getField(i);
 				Object oldValue = res.getObject(i + 1);
 				String oldValueString;
 
@@ -1220,13 +1226,13 @@ public class DBExecuter implements IExecuter
 					oldValueString = oldValue.toString();
 
 				if(this.tableDefinition.colsStr[i])
-					oldValueString =  "\"" + oldValueString + "\"";
+					oldValueString = "\"" + oldValueString + "\"";
 
 				if(i > 0)
 					buffer.append(",");
 
 				buffer.append(oldValueString);
-				this.addOldEntry(immutablueValue, currentField.getFieldName(), oldValueString);
+				this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
 			}
 			buffer.append(");");
 			pad.executeUpdate(buffer.toString());
@@ -1310,7 +1316,8 @@ public class DBExecuter implements IExecuter
 	@Override
 	public TableWriteSet getWriteSet() throws SQLException
 	{
-		this.writeSet.setWriteSet(this.tuplesWriteSet);
+		//FIXME: whaaat?
+		//this.writeSet.setWriteSet(this.tuplesWriteSet);
 		//ResultSet updateResultSet = this.getUpdateResultSet(pad);
 		//ResultSet insertResultSet = this.getInserteResultSet(pad);
 
@@ -1326,7 +1333,8 @@ public class DBExecuter implements IExecuter
 		{
 			if(constraint instanceof CheckConstraint)
 				if(!((CheckConstraint) constraint).isValidValue(newValue))
-					throw new CheckConstraintViolatedException("check constraint violated for field " + field.getFieldName());
+					throw new CheckConstraintViolatedException(
+							"check constraint violated for field " + field.getFieldName());
 		}
 	}
 
@@ -1341,7 +1349,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private List<Integer> getResultSelectBeforeUpdate(Update updateOp, IDBScratchpad pad) throws SQLException
+	private List<String> getResultSelectBeforeUpdate(Update updateOp, IDBScratchpad pad) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();
 		if(whereClause == null)
@@ -1360,12 +1368,15 @@ public class DBExecuter implements IExecuter
 
 		ResultSet rs = pad.executeQuery(buffer.toString());
 
-		List<Integer> idsList = new LinkedList<>();
+		List<String> pksList = new LinkedList<>();
 
 		while(rs.next())
-			idsList.add(rs.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+		{
+			String pkValue = this.getPkValue(rs);
+			pksList.add(pkValue);
+		}
 
-		return idsList;
+		return pksList;
 	}
 
 	/**
@@ -1373,20 +1384,42 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @param rowId
 	 */
-	private void createWriteSetEntry(Integer rowId)
+	private void createWriteSetEntry(PrimaryKeyValue pkValue)
 	{
-		TupleWriteSet set = new TupleWriteSet(rowId);
-		this.tuplesWriteSet.put(rowId, set);
+		TupleWriteSet set = new TupleWriteSet(pkValue);
+		this.writeSet.getTableWriteSetMap().put(pkValue, set);
 	}
 
-	private void addNewEntry(Integer rowId, String fieldName, String newValue)
+	private void addNewEntry(PrimaryKeyValue pkValue, String fieldName, String newValue)
 	{
-		this.tuplesWriteSet.get(rowId).addLwwEntry(fieldName, newValue);
+		this.writeSet.getTableWriteSetMap().get(pkValue).addLwwEntry(fieldName, newValue);
 	}
 
-	private void addOldEntry(Integer rowId, String fieldName, String oldValue)
+	private void addOldEntry(PrimaryKeyValue pkValue, String fieldName, String oldValue)
 	{
-		this.tuplesWriteSet.get(rowId).addOldEntry(fieldName, oldValue);
+		this.writeSet.getTableWriteSetMap().get(pkValue).addOldEntry(fieldName, oldValue);
+	}
+
+	private String getPkValue(ResultSet rs) throws SQLException
+	{
+		StringBuilder pkBuffer = new StringBuilder();
+
+		for(int i = 0; i < this.pk.getSize(); i++)
+		{
+			String fieldValue = rs.getObject(i + 1).toString();
+
+			if(this.tableDefinition.colsStr[i])
+				fieldValue = "\"" + fieldValue + "\"";
+
+			if(i == 0)
+				pkBuffer.append(fieldValue);
+			else
+			{
+				pkBuffer.append(",");
+				pkBuffer.append(fieldValue);
+			}
+		}
+		return pkBuffer.toString();
 	}
 
 }

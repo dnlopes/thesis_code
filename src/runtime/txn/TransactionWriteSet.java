@@ -199,7 +199,7 @@ public class TransactionWriteSet
 	private void verifyInvariantsForTable(TableWriteSet writeSet, List<ThriftCheckEntry> checkList)
 	{
 		for(TupleWriteSet tupleWriteSet : writeSet.getTuplesWriteSet())
-			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTupleId(),
+			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTuplePkValue(),
 					checkList);
 	}
 

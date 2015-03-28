@@ -14,13 +14,19 @@ import java.util.List;
 public final class PrimaryKeyValue
 {
 
-	private List<String> fieldsValues;
 	private final String valuesClause;
+	private final String tableName;
 
-	public PrimaryKeyValue(List<String> values)
+	public PrimaryKeyValue(List<String> values, String tableName)
 	{
-		this.fieldsValues = values;
-		this.valuesClause = this.generateValue();
+		this.valuesClause = this.generateValue(values);
+		this.tableName = tableName;
+	}
+
+	public PrimaryKeyValue(String compiledValue, String tableName)
+	{
+		this.valuesClause = compiledValue;
+		this.tableName = tableName;
 	}
 
 	public String getValue()
@@ -28,11 +34,11 @@ public final class PrimaryKeyValue
 		return this.valuesClause;
 	}
 
-	private String generateValue()
+	private String generateValue(List<String> values)
 	{
 		StringBuilder buffer = new StringBuilder("(");
 
-		Iterator<String> it = this.fieldsValues.iterator();
+		Iterator<String> it = values.iterator();
 		while(it.hasNext())
 		{
 			buffer.append(it.next());

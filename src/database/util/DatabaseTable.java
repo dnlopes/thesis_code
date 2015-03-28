@@ -44,7 +44,6 @@ public abstract class DatabaseTable
 	protected List<String> fieldsNamesList;
 
 
-
 	protected static LWWField timestampLWW;
 
 	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
@@ -97,6 +96,11 @@ public abstract class DatabaseTable
 			throws JSQLParserException;
 
 	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
+
+	public PrimaryKey getPrimaryKey()
+	{
+		return this.primaryKey;
+	}
 
 	public void addPrimaryKey(DataField field)
 	{
@@ -609,11 +613,6 @@ public abstract class DatabaseTable
 		this.timestampField = clockField;
 		this.immutableField = immutableField;
 
-	}
-
-	public DataField getImmutableField()
-	{
-		return this.immutableField;
 	}
 
 	public List<Constraint> getTableInvarists()

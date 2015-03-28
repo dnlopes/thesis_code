@@ -1,6 +1,8 @@
 package runtime.txn;
 
 
+import database.util.PrimaryKeyValue;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,14 +13,14 @@ import java.util.Map;
 public class TupleWriteSet
 {
 
-	private Integer tupleId;
+	private PrimaryKeyValue tupleId;
 	private Map<String, String> lwwFieldsValues;
 	private Map<String, String> oldFieldsValues;
 
 
-	public TupleWriteSet(Integer tupleId)
+	public TupleWriteSet(PrimaryKeyValue tuplePkValue)
 	{
-		this.tupleId = tupleId;
+		this.tupleId = tuplePkValue;
 		this.lwwFieldsValues = new LinkedHashMap<>();
 		this.oldFieldsValues = new LinkedHashMap<>();
 	}
@@ -33,7 +35,7 @@ public class TupleWriteSet
 		this.oldFieldsValues.put(fieldName, oldValue);
 	}
 
-	public Integer getTupleId()
+	public PrimaryKeyValue getTuplePkValue()
 	{
 		return this.tupleId;
 	}

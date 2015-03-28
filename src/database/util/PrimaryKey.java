@@ -13,12 +13,19 @@ public class PrimaryKey
 
 	private List<DataField> fields;
 	private final String queryClause;
+	private final int pkSize;
 
 	public PrimaryKey(List<DataField> fields)
 	{
 		this.fields = fields;
+		this.pkSize = fields.size();
 		queryClause = this.generateQueryClause();
 
+	}
+
+	public int getSize()
+	{
+		return this.pkSize;
 	}
 
 	public String getQueryClause()
