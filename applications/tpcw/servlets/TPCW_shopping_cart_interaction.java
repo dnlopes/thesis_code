@@ -170,7 +170,7 @@ public class TPCW_shopping_cart_interaction extends HttpServlet {
 	out.print("<P>If you have changed the quantities and/or taken " + 
 		  "anything out<BR> of your shopping cart, click here to " + 
 		  "refresh your shopping cart:</P> ");
-	//out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
+	//out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
 	//	   "\" value = \"" + req.getRequestedSessionId() + "\">\n");
 	out.print("<INPUT TYPE=HIDDEN NAME=\"ADD_FLAG\" value = \"N\">\n");
 	out.print("<INPUT TYPE=HIDDEN NAME=\"SHOPPING_ID\" value = \"" + 

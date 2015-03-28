@@ -664,6 +664,7 @@ class TPCW_Populate
 		try {
 			Class.forName(driverName);
 			con = DriverManager.getConnection(dbName, dbUser, dbPwd);
+			con.setAutoCommit(false);
 		}
 		catch (java.lang.Exception ex) {
 			ex.printStackTrace();

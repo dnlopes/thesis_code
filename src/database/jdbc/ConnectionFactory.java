@@ -56,21 +56,6 @@ public class ConnectionFactory
 		return c;
 	}
 
-	public static Connection getCRDTConnection(ReplicatorConfig nodeInfo) throws SQLException
-	{
-		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
-		url.append(nodeInfo.getDbHost());
-		url.append(":");
-		url.append(nodeInfo.getDbPort());
-		url.append("/");
-		url.append(Configuration.getInstance().getDatabaseName());
-
-		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
-		c.setAutoCommit(false);
-
-		return c;
-	}
-
 	private static Connection getCRDTConnection(String database, String user, String password) throws SQLException
 	{
 		Connection c = DriverManager.getConnection(database, user, password);

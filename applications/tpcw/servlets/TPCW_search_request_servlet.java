@@ -95,7 +95,7 @@ public class TPCW_search_request_servlet extends HttpServlet {
       out.print("<P ALIGN=\"CENTER\"><CENTER>\n");
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Search\"" + 
 		" SRC=\"../tpcw/Images/submit_B.gif\">\n");
-      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
+      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
       //	"\" value=\"" 
       //	+ req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)

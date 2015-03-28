@@ -33,7 +33,6 @@
 	<!-- TPCW properties -->
 	<property name="TPCW_NUM_EBS" value="50" />
 	<property name="TPCW_NUM_ITEMS" value="100" />
-	<property name="tpcw-populate-class" value="TPCW_Populate" />
 	<property name="tpcw.dist.dir" value="${tpcw.dir}/dist" />
 	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
 	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
@@ -56,7 +55,7 @@
 		<pathelement path="${tpcw.dist.dir}" />
 	</path>
 
-	<!-- WeakDB Tasks -->
+	<!-- WeakDB tasks -->
 	<target name="purge" description="Purges everything">
 		<antcall target="clean" />
 		<antcall target="tpcw-clean" />
@@ -102,7 +101,7 @@
 		</jar>
 	</target>
 
-	<!-- TPCW Tasks -->
+	<!-- TPCW tasks -->
 	<target name="tpcw-init" depends="tpcw-clean">
 		<tstamp />
 		<mkdir dir="${tpcw.dist.dir}/servlets" />
@@ -114,7 +113,7 @@
 			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
 	</target>
-	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init">
+	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init, tomcat.dir.check" if="tomcat.dir.exists">
 		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
 			   debug="true" deprecation="false" source="1.3" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
@@ -139,15 +138,15 @@
 		<delete dir="${tomcat.dir}/webapps/tpcw" />
 		<delete file="${tomcat.dir}/webapps/tpcw.war" />
 		<copy file="${tpcw.dist.dir}/tpcw.war" todir="${tomcat.dir}/webapps" />
-		<copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" />
+		<!-- <copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" /> -->
+		<copy file="${base.dir}/dist/jars/crdtjdbc.jar" todir="${tomcat.dir}/lib" />
 		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
 		<copy todir="${tomcat.dir}/webapps/tpcw/tpcw/Images">
 			<fileset dir="${tpcw.dir}/images/" />
 		</copy>
 	</target>
-	<target name="tpcw-gendb" depends="tpcw-dist, check-mysql" if="mysql.running"
-			description="Generate TPCW database">
-		<java classname="${tpcw-populate-class}" fork="true">
+	<target name="tpcw-gendb" depends="tpcw-dist, check-mysql" description="Generate TPCW database">
+		<java classname="populate.TPCW_Populate" fork="true">
 			<arg value="${TPCW_NUM_EBS}" />
 			<arg value="${TPCW_NUM_ITEMS}" />
 			<classpath refid="tpcw.runtime.classpath" />
@@ -155,7 +154,7 @@
 		</java>
 	</target>
 
-	<!-- UTIL TASKS -->
+	<!-- Utils tasks -->
 	<target name="check-mysql">
 		<fail message="Database is not running">
 			<condition>
@@ -164,6 +163,11 @@
 				</not>
 			</condition>
 		</fail>
+	</target>
+	<target name="tomcat.dir.check">
+		<condition property="tomcat.dir.exists">
+			<available file="${tomcat.dir}" type="dir"/>
+		</condition>
 	</target>
 	<target name="check-tomcat">
 		<fail message="Database is not running">
@@ -192,6 +196,7 @@
 			<arg value="shutdown.sh" />
 		</exec>
 	</target>
+
 
 </project>
 

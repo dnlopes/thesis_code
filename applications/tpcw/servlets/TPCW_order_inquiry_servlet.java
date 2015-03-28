@@ -90,7 +90,7 @@ public class TPCW_order_inquiry_servlet extends HttpServlet {
 
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Display Last Order\" "
 		+ "SRC=\"../tpcw/Images/display_last_order_B.gif\">\n");
-      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
+      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
       //	"\" value = \"" +
       //	req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)

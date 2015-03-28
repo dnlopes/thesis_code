@@ -137,7 +137,7 @@ public class TPCW_customer_registration_servlet extends HttpServlet {
 		"<CENTER>\n");
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Enter Order\" " +
 		"SRC=\"../tpcw/Images/submit_B.gif\">\n");
-      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
+      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
       //	"\" value = \"" + req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)
 	  out.print("<INPUT TYPE=HIDDEN NAME=\"SHOPPING_ID\" value = \"" + 
