@@ -1,6 +1,6 @@
 <project name="WeakDB Project" default="compile" basedir=".">
 
-	<!-- edit the follow properties according to your system -->
+	<!-- Edit the follow properties according to your system -->
 	<property environment="env" />
 	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
 	<property name="mysql.host" value="localhost" />
@@ -10,18 +10,16 @@
 	<property name="tomcat.host" value="localhost" />
 	<property name="tomcat.port" value="8080" />
 
-	<!-- main properties for this build -->
+	<!-- Main properties for this build -->
 	<property name="base.dir" value="." />
 	<property name="deploy.dir" value="/var/tmp/weakdb" />
 	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
-
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="libs.dir" value="${base.dir}/libs" />
 	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="classes.dir" value="${dist.dir}/classes" />
 	<property name="jars.dir" value="${dist.dir}/jars" />
 	<property name="resources.dir" value="${base.dir}/resources" />
-
 	<property name="applications.dir" value="${base.dir}/applications" />
 	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
 
@@ -32,7 +30,6 @@
 		</classpath>
 	</taskdef>
 
-
 	<!-- TPCW properties -->
 	<property name="TPCW_NUM_EBS" value="50" />
 	<property name="TPCW_NUM_ITEMS" value="100" />
@@ -41,8 +38,7 @@
 	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
 	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
 
-
-	<!-- PATHS DEFINITIONS -->
+	<!-- Path definitions -->
 	<path id="weakdb.classpath">
 		<fileset dir="${libs.dir}">
 			<include name="*.jar" />
@@ -60,8 +56,7 @@
 		<pathelement path="${tpcw.dist.dir}" />
 	</path>
 
-	<!-- MAIN TASKS -->
-
+	<!-- WeakDB Tasks -->
 	<target name="purge" description="Purges everything">
 		<antcall target="clean" />
 		<antcall target="tpcw-clean" />
@@ -107,7 +102,7 @@
 		</jar>
 	</target>
 
-	<!-- TPCW TASKS -->
+	<!-- TPCW Tasks -->
 	<target name="tpcw-init" depends="tpcw-clean">
 		<tstamp />
 		<mkdir dir="${tpcw.dist.dir}/servlets" />
@@ -119,7 +114,6 @@
 			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
 	</target>
-
 	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init">
 		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
 			   debug="true" deprecation="false" source="1.3" nowarn="yes">
@@ -151,7 +145,6 @@
 			<fileset dir="${tpcw.dir}/images/" />
 		</copy>
 	</target>
-
 	<target name="tpcw-gendb" depends="tpcw-dist, check-mysql" if="mysql.running"
 			description="Generate TPCW database">
 		<java classname="${tpcw-populate-class}" fork="true">
@@ -199,5 +192,6 @@
 			<arg value="shutdown.sh" />
 		</exec>
 	</target>
+
 </project>
 
