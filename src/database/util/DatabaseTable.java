@@ -32,6 +32,7 @@ public abstract class DatabaseTable
 	private int numOfHiddenFields;
 	private String primaryKeyString;
 	private List<Constraint> tableInvarists;
+	private PrimaryKey primaryKey;
 
 	protected DataField deletedField;
 	protected DataField timestampField;
@@ -41,6 +42,8 @@ public abstract class DatabaseTable
 	protected HashMap<Integer, DataField> sortedFieldsMap;
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 	protected List<String> fieldsNamesList;
+
+
 
 	protected static LWWField timestampLWW;
 
@@ -60,6 +63,7 @@ public abstract class DatabaseTable
 		this.tableInvarists = new ArrayList<>();
 
 		int totalHiddenFields = 0;
+		List<DataField> tempList = new ArrayList<>();
 
 		for(Entry<String, DataField> entry : this.fieldsMap.entrySet())
 		{
@@ -71,7 +75,10 @@ public abstract class DatabaseTable
 				this.fieldsNamesList.add(entry.getValue().getFieldName());
 
 			if(entry.getValue().isPrimaryKey())
+			{
 				this.addPrimaryKey(entry.getValue());
+				tempList.add(entry.getValue());
+			}
 
 			if(entry.getValue().isAutoIncrement() && !this.isAutoIncremental())
 				this.containsAutoIncrementField = true;
@@ -81,7 +88,7 @@ public abstract class DatabaseTable
 
 		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
-
+		this.primaryKey = new PrimaryKey(tempList);
 	}
 
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;

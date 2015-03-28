@@ -398,7 +398,7 @@ public class CreateStatementParser
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
 
-				Constraint uniqueConstraint = new UniqueConstraint();
+				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey);
 
 				for(int j = 0; j < pKeys.length; j++)
 				{

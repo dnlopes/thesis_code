@@ -10,9 +10,16 @@ import database.constraints.ConstraintType;
  */
 public class UniqueConstraint extends AbstractConstraint
 {
-	
-	public UniqueConstraint()
+
+	private boolean isPrimaryKey;
+	public UniqueConstraint(boolean isPrimaryKey)
 	{
 		super(ConstraintType.UNIQUE);
+		this.isPrimaryKey = isPrimaryKey;
+	}
+
+	public boolean isPrimaryKey()
+	{
+		return this.isPrimaryKey;
 	}
 }
