@@ -2,17 +2,18 @@
  * This class defines methods to parse sql schema to create all table and field
  * crdts.
  */
+
 package util.parser;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
 import database.util.DatabaseMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -30,8 +31,10 @@ import database.util.DatabaseTable;
 public class DDLParser
 {
 
+	static final Logger LOG = LoggerFactory.getLogger(DDLParser.class);
+
 	/** The file name. */
-	private String fileName = "";
+	private String fileName;
 	private DatabaseMetadata databaseMetadata;
 
 	/** The table crdt form map. */
@@ -40,12 +43,14 @@ public class DDLParser
 	/**
 	 * Instantiates a new schema parser.
 	 *
-	 * @param fileName the f n
+	 * @param fileName
+	 * 		the f n
 	 */
 	public DDLParser(String fileName)
 	{
 		this.fileName = fileName;
 		this.databaseMetadata = new DatabaseMetadata();
+		LOG.trace("parser created for schema file {}", this.fileName);
 	}
 
 	/**
@@ -70,7 +75,8 @@ public class DDLParser
 		String line;
 		try
 		{
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
+
+			br = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream("/" + this.fileName)));
 			while((line = br.readLine()) != null)
 			{
 				schemaContentStr = schemaContentStr + line;

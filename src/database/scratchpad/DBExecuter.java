@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.txn.TableWriteSet;
 import runtime.txn.TupleWriteSet;
-import util.CheckConstraintViolated;
+import util.exception.CheckConstraintViolatedException;
 import util.defaults.Configuration;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
@@ -1320,13 +1320,13 @@ public class DBExecuter implements IExecuter
 		return this.writeSet;
 	}
 
-	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolated
+	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolatedException
 	{
 		for(Constraint constraint : field.getInvariants())
 		{
 			if(constraint instanceof CheckConstraint)
 				if(!((CheckConstraint) constraint).isValidValue(newValue))
-					throw new CheckConstraintViolated("check constraint violated for field " + field.getFieldName());
+					throw new CheckConstraintViolatedException("check constraint violated for field " + field.getFieldName());
 		}
 	}
 

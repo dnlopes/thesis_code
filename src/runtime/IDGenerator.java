@@ -71,7 +71,6 @@ public class IDGenerator
 		{
 			LOG.error("could not fetch the last id for field {}. Reason: {}", this.field.getFieldName(),
 					e.getMessage());
-			e.printStackTrace();
 			RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
 					ExitCode.ID_GENERATOR_ERROR);
 		}

@@ -1,6 +1,9 @@
 package network;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.InetSocketAddress;
 
 
@@ -10,11 +13,14 @@ import java.net.InetSocketAddress;
 public abstract class AbstractNode
 {
 
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractNode.class);
+
 	private InetSocketAddress socketAddress;
 	protected AbstractConfig config;
 
 	public AbstractNode(AbstractConfig config)
 	{
+		LOG.trace("setup abstract node");
 		this.socketAddress = new InetSocketAddress(config.getHostName(), config.getPort());
 		this.config = config;
 	}

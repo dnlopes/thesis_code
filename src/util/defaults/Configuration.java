@@ -9,13 +9,15 @@ import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 import runtime.RuntimeHelper;
 import util.ExitCode;
+import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +32,8 @@ public final class Configuration
 	private static Configuration ourInstance = new Configuration();
 	private static Logger LOG;
 
-	private static final String CONFIG_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/resources/config.xml";
+	private static final String CONFIG_FILE = "/config.xml";
+
 
 	private Map<Integer, ReplicatorConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -44,6 +47,7 @@ public final class Configuration
 	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
+		LOG.trace("loading configuration file");
 		this.watch = new StopWatch("config");
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
@@ -53,10 +57,9 @@ public final class Configuration
 		{
 			watch.start();
 			loadConfigurationFile();
-		} catch(IOException e)
+		} catch(ConfigurationLoadException e)
 		{
 			LOG.error("failed to load config file");
-			e.printStackTrace();
 			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
 		}
 
@@ -79,15 +82,15 @@ public final class Configuration
 		return ourInstance;
 	}
 
-	private void loadConfigurationFile() throws IOException
+	private void loadConfigurationFile() throws ConfigurationLoadException
 	{
 		try
 		{
-			File xmlFile = new File(CONFIG_FILE);
 
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(xmlFile);
+
+			Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 
 			//optional, but recommended
 			doc.getDocumentElement().normalize();
@@ -108,12 +111,10 @@ public final class Configuration
 					parseVariables(n);
 			}
 
-		} catch(Exception e)
+		}catch(ParserConfigurationException | IOException | SAXException e)
 		{
-			throw new RuntimeException();
+			throw new ConfigurationLoadException(e.getMessage());
 		}
-
-		//LOG.info("xml file parsed successfully");
 	}
 
 	private void parseVariables(Node n)
@@ -122,6 +123,12 @@ public final class Configuration
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
+
+		LOG.info("#############################");
+		LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
+		LOG.info("Database name: {}", this.databaseName);
+		LOG.info("Schema file: {}", this.schemaFile);
+		LOG.info("#############################");
 	}
 
 	private void parseTopology(Node node)

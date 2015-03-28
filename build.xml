@@ -70,7 +70,8 @@
 		<delete dir="${dist.dir}" />
 	</target>
 	<target name="compile" depends="init" description="Compile WeakDB sources">
-		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" includeantruntime="false">
+		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
+			   includeantruntime="false">
 			<classpath refid="weakdb.classpath" />
 		</javac>
 	</target>
@@ -94,10 +95,20 @@
 			</fileset>
 		</jar>
 		<jar destfile="${jars.dir}/crdtjdbc.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Class-Path" value=". ./resources" />
+			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
+				<include name="config.xml" />
+				<include name="*.sql" />
 			</fileset>
+			<zipfileset dir="${resources.dir}" prefix="/resources/">
+				<include name="config.xml" />
+				<include name="log4j.properties" />
+				<include name="*.sql" />
+			</zipfileset>
 		</jar>
 	</target>
 
@@ -113,7 +124,8 @@
 			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
 	</target>
-	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init, tomcat.dir.check" if="tomcat.dir.exists">
+	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init, tomcat.dir.check"
+			if="tomcat.dir.exists">
 		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
 			   debug="true" deprecation="false" source="1.3" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
@@ -132,12 +144,15 @@
 			</fileset>
 		</copy>
 		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
-		<copy file="${base.dir}/resources/dbdefault.tpcw.properties"
+		<!-- <copy file="${base.dir}/resources/dbdefault.tpcw.properties"
+			  tofile="${tpcw.web.dir}/WEB-INF/classes/database.properties" /> -->
+		<copy file="${base.dir}/resources/crdtdb.tpcw.properties"
 			  tofile="${tpcw.web.dir}/WEB-INF/classes/database.properties" />
 		<war destfile="${tpcw.dist.dir}/tpcw.war" webxml="${tpcw.web.dir}/WEB-INF/web.xml" basedir="${tpcw.web.dir}" />
 		<delete dir="${tomcat.dir}/webapps/tpcw" />
 		<delete file="${tomcat.dir}/webapps/tpcw.war" />
 		<copy file="${tpcw.dist.dir}/tpcw.war" todir="${tomcat.dir}/webapps" />
+		<!-- our custom jdbc already includes default mysql connector -->
 		<!-- <copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" /> -->
 		<copy file="${base.dir}/dist/jars/crdtjdbc.jar" todir="${tomcat.dir}/lib" />
 		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
@@ -166,7 +181,7 @@
 	</target>
 	<target name="tomcat.dir.check">
 		<condition property="tomcat.dir.exists">
-			<available file="${tomcat.dir}" type="dir"/>
+			<available file="${tomcat.dir}" type="dir" />
 		</condition>
 	</target>
 	<target name="check-tomcat">

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import runtime.MyShadowOpCreator;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.TransactionIdentifier;
-import util.MissingImplementationException;
+import util.exception.MissingImplementationException;
 
 import java.io.InputStream;
 import java.io.Reader;

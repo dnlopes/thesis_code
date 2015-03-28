@@ -8,7 +8,7 @@ import runtime.*;
 import runtime.RuntimeHelper;
 import runtime.txn.TransactionIdentifier;
 import util.ExitCode;
-import util.MissingImplementationException;
+import util.exception.MissingImplementationException;
 import util.defaults.Configuration;
 
 import java.sql.*;
