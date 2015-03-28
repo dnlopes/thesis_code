@@ -54,6 +54,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	private Statement statBU;
 	private boolean batchEmpty;
 
+	private TransactionWriteSet writeSet;
+
 	public DBExecuteScratchpad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
 	{
 		this.id = id;
@@ -67,7 +69,9 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
 
+		this.writeSet = new TransactionWriteSet();
 		this.runtimeWatch = new StopWatch("txn runtime");
+
 		this.createDBExecuters();
 	}
 
@@ -273,17 +277,17 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 		this.executeBatch();
 		this.batchEmpty = true;
+
+		this.writeSet.resetWriteSet();
 	}
 
 	@Override
 	public TransactionWriteSet createTransactionWriteSet() throws SQLException
 	{
-		TransactionWriteSet writeSet = new TransactionWriteSet();
-
 		for(IExecuter executer : this.executers.values())
-			writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
+			this.writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
 
-		return writeSet;
+		return this.writeSet;
 	}
 
 	@Override
@@ -334,8 +338,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 		try
 		{
-			TransactionWriteSet writeSet = this.createTransactionWriteSet();
-			List<ThriftCheckEntry> checkList = writeSet.verifyInvariants();
+			this.writeSet = this.createTransactionWriteSet();
+			List<ThriftCheckEntry> checkList = this.writeSet.verifyInvariants();
 
 			//if we must coordinate then do it here. this is a blocking call
 			if(checkList.size() > 0)
@@ -346,12 +350,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 					LOG.warn("coordinator didnt allow txn to commit. Aborting.");
 					return;
 				}
-				writeSet.processCoordinatorResponse(response.getResult());
+				this.writeSet.processCoordinatorResponse(response.getResult());
 			}
 
-			writeSet.generateMinimalStatements();
+			this.writeSet.generateMinimalStatements();
 			ShadowOperation shadowOp = new ShadowOperation(this.activeTransaction.getTxnId().getValue(),
-					writeSet.getStatements());
+					this.writeSet.getStatements());
 			this.activeTransaction.setReadyToCommit(shadowOp);
 		} catch(SQLException | TException e)
 		{

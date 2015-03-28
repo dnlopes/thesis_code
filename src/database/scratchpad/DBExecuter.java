@@ -10,6 +10,7 @@ import database.jdbc.util.DBWriteSetEntry;
 import database.util.DataField;
 import database.util.DatabaseTable;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -18,7 +19,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.IDFactories.IdentifierFactory;
 import runtime.txn.TableWriteSet;
 import runtime.txn.TupleWriteSet;
 import util.CheckConstraintViolated;
@@ -48,8 +48,6 @@ public class DBExecuter implements IExecuter
 
 	private List<String> selectAllItems;
 	private Set<Integer> duplicatedRows;
-	private Set<Integer> insertedRows;
-	private Set<Integer> deletedRows;
 	private TableWriteSet writeSet;
 	private Map<Integer, TupleWriteSet> tuplesWriteSet;
 
@@ -60,13 +58,12 @@ public class DBExecuter implements IExecuter
 		this.modified = false;
 
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
-		this.duplicatedRows = this.writeSet.getUpdatedRows();
-		this.deletedRows = this.writeSet.getDeletedRows();
-		this.insertedRows = this.writeSet.getInsertedRows();
 		this.tuplesWriteSet = this.writeSet.getTableWriteSetMap();
 
 		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
 		this.selectAllItems = this.databaseTable.getFieldsNamesList();
+
+		this.duplicatedRows = new HashSet<>();
 	}
 
 	/**
@@ -706,10 +703,8 @@ public class DBExecuter implements IExecuter
 		buffer.append("TRUNCATE TABLE ");
 		buffer.append(this.tempTableName);
 		pad.addToBatchUpdate(buffer.toString());
-		this.deletedRows.clear();
+		this.writeSet.reset();
 		this.duplicatedRows.clear();
-		this.insertedRows.clear();
-		this.tuplesWriteSet.clear();
 		this.modified = false;
 	}
 
@@ -730,12 +725,13 @@ public class DBExecuter implements IExecuter
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
-		List s = insertOp.getColumns();
 
-		//valuesList.get
-		//TODO: acrescentar os fields do _SPT
+		List columnsList = insertOp.getColumns();
+		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
 
-		if(s == null)
+		Integer immutablueValue = null;
+
+		if(columnsList == null)
 		{
 			buffer.append("(");
 			buffer.append(tableDefinition.getPlainColumnList());
@@ -743,17 +739,37 @@ public class DBExecuter implements IExecuter
 		} else
 		{
 			buffer.append("(");
-			Iterator it = s.iterator();
+			Iterator it = columnsList.iterator();
 			boolean first = true;
+			int index = 0;
 			while(it.hasNext())
 			{
+				String col = it.next().toString();
+
 				if(!first)
 					buffer.append(",");
 				first = false;
-				buffer.append(it.next());
+				buffer.append(col);
+
+				if(col.compareTo(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE) == 0)
+				{
+					immutablueValue = Integer.parseInt(valuesList.get(index).toString());
+					this.writeSet.addInsertedRow(immutablueValue);
+					this.createWriteSetEntry(immutablueValue);
+				}
+				index++;
 			}
 			buffer.append(")");
 		}
+
+		int counter = 0;
+		for(Object value: valuesList)
+		{
+			String valueString = value.toString();
+			this.addNewEntry(immutablueValue, columnsList.get(counter).toString(), valueString);
+			counter++;
+		}
+
 		buffer.append(" values ");
 		buffer.append(insertOp.getItemsList());
 		buffer.append(";");
@@ -824,8 +840,12 @@ public class DBExecuter implements IExecuter
 
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
-			this.duplicatedRows.remove(immutValue);
-			this.deletedRows.add(immutValue);
+			if(this.writeSet.getInsertedRows().contains(immutValue))
+				this.writeSet.removeInsertedRow(immutValue);
+			else
+				this.writeSet.removeUpdatedRow(immutValue);
+
+			this.writeSet.addDeletedRow(immutValue);
 
 			int nPks = tableDefinition.getPksPlain().length;
 			if(nPks > 0)
@@ -935,7 +955,7 @@ public class DBExecuter implements IExecuter
 		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 		whereClauseTemp.append(" = FALSE )");
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
+		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
 		{
 			whereClauseOrig.append(" AND ");
 			this.addNotInClause(whereClauseOrig, true, true);
@@ -1079,7 +1099,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(Integer immut : this.deletedRows)
+		for(Integer immut : this.writeSet.getDeletedRows())
 		{
 			if(first)
 			{
@@ -1105,7 +1125,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(",");
 
 		boolean first = true;
-		for(Integer immut : this.insertedRows)
+		for(Integer immut : this.writeSet.getInsertedRows())
 		{
 			if(first)
 			{
@@ -1270,7 +1290,7 @@ public class DBExecuter implements IExecuter
 			needComma = true;
 		}
 
-		if(this.deletedRows.size() > 0 && filterDeleted)
+		if(this.writeSet.getDeletedRows().size() > 0 && filterDeleted)
 		{
 			if(!notInClauseAdded)
 			{

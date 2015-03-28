@@ -37,14 +37,29 @@ public class TableWriteSet
 		this.updatedTuples.add(id);
 	}
 
+	public void addDeletedRow(Integer id)
+	{
+		this.deletedTuples.add(id);
+	}
+
+	public void addInsertedRow(Integer id)
+	{
+		this.insertedTuples.add(id);
+	}
+
+	public void removeUpdatedRow(Integer id)
+	{
+		this.updatedTuples.remove(id);
+	}
+
+	public void removeInsertedRow(Integer id)
+	{
+		this.insertedTuples.remove(id);
+	}
+
 	public Set<Integer> getDeletedRows()
 	{
 		return this.deletedTuples;
-	}
-
-	public Set<Integer> getUpdatedRows()
-	{
-		return this.updatedTuples;
 	}
 
 	public Set<Integer> getInsertedRows()

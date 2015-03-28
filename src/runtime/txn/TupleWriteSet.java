@@ -57,4 +57,5 @@ public class TupleWriteSet
 	{
 		return this.oldFieldsValues.get(fieldName);
 	}
+
 }

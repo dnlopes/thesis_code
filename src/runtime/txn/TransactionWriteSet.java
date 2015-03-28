@@ -41,6 +41,16 @@ public class TransactionWriteSet
 		this.modifiedTuples = new HashMap<>();
 	}
 
+	public void resetWriteSet()
+	{
+		for(TableWriteSet tableSet : this.txnWriteSet.values())
+			tableSet.reset();
+
+		this.txnWriteSet.clear();
+		this.statements.clear();
+		this.modifiedTuples.clear();
+	}
+
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
 	{
 		this.txnWriteSet.put(tableName, writeSet);
@@ -174,7 +184,7 @@ public class TransactionWriteSet
 
 	public void processCoordinatorResponse(List<ThriftCheckResult> results)
 	{
-		for(ThriftCheckResult result: results)
+		for(ThriftCheckResult result : results)
 		{
 			if(result.getResquestedValue() != null)
 			{
