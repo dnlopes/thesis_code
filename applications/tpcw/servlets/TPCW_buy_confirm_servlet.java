@@ -151,7 +151,7 @@ public class TPCW_buy_confirm_servlet extends HttpServlet {
       out.print("<TABLE BORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"0\">\n");
       out.print("<TR><TD><B>Qty</B></TD><TD><B>Product</B></TD></TR> ");
 
-      //For each item in the shopping cart, assertCondition out its contents
+      //For each item in the shopping cart, print out its contents
       for(i = 0; i < result.cart.lines.size(); i++){
 	  CartLine line = (CartLine) result.cart.lines.elementAt(i);
 	  out.print("<TR><TD VALIGN=\"TOP\">" + line.scl_qty+ "</TD>\n");

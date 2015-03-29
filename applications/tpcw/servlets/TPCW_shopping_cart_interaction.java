@@ -50,6 +50,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.io.*;
@@ -133,7 +137,7 @@ public class TPCW_shopping_cart_interaction extends HttpServlet {
 						      SHOPPING_ID);
 
 	//Display the shopping cart contents
-	out.print("<FORM ACTION=\"TPCW_shopping_cart_interaction;jsessionid="+
+	out.print("<FORM ACTION=\"TPCW_shopping_cart_interaction;@sessionIdString@"+
 		  req.getRequestedSessionId()+"\" METHOD=\"get\">\n");
 	out.print("<CENTER><P></P><TABLE BORDER=\"0\">\n");
 	out.print("<TR><TD><B>Qty</B></TD><TD><B>Product</B></TD></TR>\n"); 
@@ -170,7 +174,7 @@ public class TPCW_shopping_cart_interaction extends HttpServlet {
 	out.print("<P>If you have changed the quantities and/or taken " + 
 		  "anything out<BR> of your shopping cart, click here to " + 
 		  "refresh your shopping cart:</P> ");
-	//out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
+	//out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
 	//	   "\" value = \"" + req.getRequestedSessionId() + "\">\n");
 	out.print("<INPUT TYPE=HIDDEN NAME=\"ADD_FLAG\" value = \"N\">\n");
 	out.print("<INPUT TYPE=HIDDEN NAME=\"SHOPPING_ID\" value = \"" + 

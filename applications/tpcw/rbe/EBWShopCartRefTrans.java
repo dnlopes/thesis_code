@@ -87,7 +87,7 @@
  *   EBWShopCartTrans handles this case.
  *
  * ADD_FLAG = N, same number of QTYs as previously, randomly modified.
- *   From Shopping servlets.Cart.  SUT updates the cart with the new quantities.
+ *   From Shopping Cart.  SUT updates the cart with the new quantities.
  *
  *   This class, EBWShopCartRefTrans, handles this case.
  *
@@ -115,7 +115,9 @@ public class EBWShopCartRefTrans extends EBWShopCartTrans {
     RBE rbe = eb.rbe;
 
 	 /* Find out how many items are on the page. */
-	 for (c=0,i=qtyPat.find(html,0);i!=-1;i=qtyPat.find(html,i+1),c++);
+	 for (c=0,i=qtyPat.find(html,0);i!=-1;c++){
+		 i=qtyPat.find(html,i+1);
+	 }
 
 	 if (c==0) {
 	     rbe.stats.error("Unable to find QTY in shopping cart page.", "???");
@@ -140,7 +142,9 @@ public class EBWShopCartRefTrans extends EBWShopCartTrans {
 		// See TPC-W Clause 2.4.5.1
 		int r= eb.nextInt(c)+1;
 		int [] idx = new int[c];
-		for (i=0;i<c;idx[i]=i,i++);
+		for (i=0;i<c;i++){
+			idx[i]=i;
+		}
 		for (i=0;i<(c-1);i++) {
 		  int d = eb.nextInt(c-i)+i;
 		  int a= idx[d];

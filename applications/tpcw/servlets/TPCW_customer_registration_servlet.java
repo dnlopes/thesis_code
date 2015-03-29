@@ -50,6 +50,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 
@@ -89,7 +93,7 @@ public class TPCW_customer_registration_servlet extends HttpServlet {
       out.print("<IMG SRC=\"../tpcw/Images/tpclogo.gif\" " +
 		"ALIGN=\"BOTTOM\" BORDER=\"0\" WIDTH=\"288\" HEIGHT=\"67\">");
       out.print("</H1><H2 ALIGN=\"center\">Customer Registration Page</H2>\n");
-      out.print("<FORM ACTION=\"TPCW_buy_request_servlet;jsessionid="+
+      out.print("<FORM ACTION=\"TPCW_buy_request_servlet;@sessionIdString@"+
 		req.getRequestedSessionId()+"\" METHOD=\"get\">");
       out.print("<BLOCKQUOTE><BLOCKQUOTE>\n");
       out.print("<HR><TABLE BORDER=\"0\"><TR>\n");
@@ -137,7 +141,7 @@ public class TPCW_customer_registration_servlet extends HttpServlet {
 		"<CENTER>\n");
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Enter Order\" " +
 		"SRC=\"../tpcw/Images/submit_B.gif\">\n");
-      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
+      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
       //	"\" value = \"" + req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)
 	  out.print("<INPUT TYPE=HIDDEN NAME=\"SHOPPING_ID\" value = \"" + 

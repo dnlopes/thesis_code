@@ -49,32 +49,23 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.util.*;
 
 public class TPCW_Util {
-
-    public static final String server_name="http://sp14.cs.rice.edu:8080/";
-    public static final String servlet_prefix=server_name+"servlet/";
-    public static final String doc_prefix=server_name+"/tpcw/";
-    public static final String image_prefix=server_name+"TPCW/";
-
-    //---------------------------------------------------------------------
-    
-    //This must be equal to the number of items in the ITEM table
-    public static final int NUM_EBS = 100; 
-    public static final int NUM_ITEMS = 10000;
-
-    //---------------------------------------------------------------------
     
     //public final String SESSION_ID="JIGSAW_SESSION_ID";
-    //public static final String SESSION_ID="JServSessionIdroot";
-    //public static final String SESSION_ID=";$sessionid$";
-  public static final String SESSION_ID=";jsessionid="; // For Tomcat to encode session information in the url
+    public static final String SESSION_ID="JServSessionIdroot";
+    //public static final String SESSION_ID="@sessionIdString@";
 
-
-   //---------------------------------------------------------------------
+    //This must be equal to the number of items in the ITEM table
+    //public static final int NUM_ITEMS = @num.item@;
+    public static final int NUM_ITEMS = 100;
 
     public static int getRandomI_ID(){
 	Random rand = new Random();

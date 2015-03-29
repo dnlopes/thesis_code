@@ -50,6 +50,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.io.*;
@@ -114,7 +118,7 @@ public class TPCW_execute_search extends HttpServlet {
 	  out.print("<TR><TD>" + (i + 1)+"</TD>\n");
 	  out.print("<TD><I>"+ myBook.a_fname + " " + 
 		    myBook.a_lname +"</I></TD>");
-	  url = "../servlet/TPCW_product_detail_servlet?I_ID=" + 
+	  url = "./TPCW_product_detail_servlet?I_ID=" + 
 	      String.valueOf(myBook.i_id);
 	  if(SHOPPING_ID != null)
 	      url = url + "&SHOPPING_ID=" + SHOPPING_ID;

@@ -88,7 +88,7 @@ shop.html?QTY=1&QTY=1&QTY=2&Continue+Shopping.x=2&Continue+Shopping.y=2
  *   EBWShopCartTrans handles this case.
  *
  * ADD_FLAG = N, same number of QTYs as previously, randomly modified.
- *   From Shopping servlets.Cart.  SUT updates the cart with the new quantities.
+ *   From Shopping Cart.  SUT updates the cart with the new quantities.
  *
  *   EBWShopCartRefTrans handles this case.
  *

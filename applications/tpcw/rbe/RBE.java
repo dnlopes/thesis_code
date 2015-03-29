@@ -54,6 +54,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 package rbe;
@@ -89,7 +93,7 @@ import rbe.util.Pad;
 public class RBE {
 
   // URLs
-  public static String www1 = "http://ironsides.cs.wisc.edu:8001/";
+  public static String www1 = "@standardUrl@";
   public static String www;
   public static String homeURL;
   public static String shopCartURL;
@@ -114,7 +118,7 @@ public class RBE {
   public static final StrStrPattern yourSessionID = 
       //new StrStrPattern("JIGSAW-SESSION-ID=");
       //      new StrStrPattern("JServSessionIdroot=");
-    new StrStrPattern(";jsessionid=");
+    new StrStrPattern(";@sessionIdString@");
   public static final StrStrPattern endSessionID =
     new StrStrPattern("?");
 
@@ -124,8 +128,8 @@ public class RBE {
 
   public static void setURLs()
   {
-	 www = www1 + "servlet/";
-	 String wwwTPCW = www1 + "tpcw/";
+	 www = www1 + "@servletUrlPath@";
+	 String wwwTPCW = www1 + "@tpcwUrlPath@";
 	 homeURL = www+"TPCW_home_interaction";
 	 shopCartURL = www+"TPCW_shopping_cart_interaction";
 	 orderInqURL = www+"TPCW_order_inquiry_servlet";
@@ -147,7 +151,7 @@ public class RBE {
     //public static final String field_sessionID = "JServSessionIdroot";
     
     //public static final String field_sessionID = "JIGSAW-SESSION-ID";
-  public static final String field_sessionID = ";jsessionid=";
+  public static final String field_sessionID = ";@sessionIdString@";
   public static final String field_shopID = "SHOPPING_ID";
   public static final String field_uname = "UNAME";
   public static final String field_passwd = "PASSWD";
@@ -186,9 +190,8 @@ public class RBE {
   public static boolean monitor; //Whether or not to do monitoring
   public static boolean incremental;  
 
-  public int numCustomer = 1000;  // Number of initial customers
-  public int cidA = 1023;         // Used for generating random CIDs
-                                  //  See TPC-W spec Clause 2.3.2
+    public int numCustomer = 1000;  // Number of initial customers
+    public int cidA = 1023;         // Used for generating random CIDs. See TPC-W spec Clause 2.3.2
 
   // TPC-W spec values for cidA.  See TPC-W spec Clause 2.3.2
   public static final int [][] stdCIDA = 
@@ -205,9 +208,8 @@ public class RBE {
     {  163840000, 655359999,                 67108863 }
   };
 
-  public static int numItem = 10000;     // Number of items for sale.
-  public static int numItemA = 511;      // Used for search strings.  See
-                                         //  TPC-W Spec. 2.10.5.1
+    public static int numItem = 10000;     // Number of items for sale.
+    public static int numItemA = 511;      // Used for search strings.  See TPC-W Spec. 2.10.5.1
 
   public static final int [][] stdNumItemA =
   // For NUM_ITEMS    Value for A
@@ -462,6 +464,7 @@ public class RBE {
 	}
     }
 
+
     // Re-initialize EBs.  This is necessary to correctly scale usmd for
     //  the slow-down factor which was not computed when EBs were created.
     for (i=0;i<ebs.size();i++) {
@@ -522,8 +525,8 @@ public class RBE {
     for (i=0;i<ebs.size();i++) {
       EB e = (EB) ebs.elementAt(i);
       System.out.println("main thread: About to interrupt: " + i);
-      //e.interrupt();
-      e.stop();
+      e.interrupt();
+      //e.stop();
       try {
 	e.join();
       }
@@ -552,6 +555,23 @@ public class RBE {
 
     rbe.stats.print(oFile.s);
     oFile.s.close();
+    try{
+    	PrintStream gnuplotFile = new PrintStream(new FileOutputStream(oFile.fName+".gnuplot"));
+    	
+    	gnuplotFile.println("# Start time: " + startTime);
+        gnuplotFile.println("# System under test: " + www);
+        gnuplotFile.println("# End time: " + endTime);
+        gnuplotFile.println("# Transaction Mix: " + ebfArg.className);
+        gnuplotFile.println("# Database parameters: num items=" + rbe.numItem +" num customers= " + rbe.numCustomer);
+        gnuplotFile.println("# Images On?: " + RBE.getImage +" Think Time Scale Factor: " + tt_scale.num);
+        rbe.stats.printGnuPlotFile(gnuplotFile);
+    	
+    }catch(Exception e){
+    	System.err.println("Problem generating gnuplot file");
+    	e.printStackTrace();
+    }
+    
+    
     System.out.println("Really finishing RBE!.");
   }
 

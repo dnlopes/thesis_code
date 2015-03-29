@@ -87,7 +87,7 @@
  *   This class (EBWShopCartTrans) handles this case.
  *
  * ADD_FLAG = N, same number of QTYs as previously, randomly modified.
- *   From Shopping servlets.Cart.  SUT updates the cart with the new quantities.
+ *   From Shopping Cart.  SUT updates the cart with the new quantities.
  *
  *   EBWShopCartRefTrans handles this case.
  *

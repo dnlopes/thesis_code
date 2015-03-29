@@ -88,8 +88,8 @@ public class EB extends Thread {
   int    cid;                // CUSTOMER_ID.  See TPC-W Spec.
   String sessionID;          // SESSION_ID.  See TPC-W Spec. 
   int    shopID;             // Shopping ID.  
-  String fname = null;       // servlets.Customer first name.
-  String lname = null;       // servlets.Customer last name.
+  String fname = null;       // Customer first name.
+  String lname = null;       // Customer last name.
   public RBE rbe;
   long usmd;
   boolean toHome;
@@ -105,7 +105,7 @@ public class EB extends Thread {
   public double tt_scale = 1.0;
 
   // Set this higher to see more messages. 
-  public static int DEBUG =1;
+  public static int DEBUG =0;
 
   public static final int NO_TRANS = 0;
   public static final int MIN_PROB = 1;
@@ -132,43 +132,42 @@ public class EB extends Thread {
 
     // Make sure prob and trans are well-formed.
     s = prob.length;
-
-    if(s>0) System.out.println("No states in prob.");
-    if(trans.length == s) System.out.println("Number of states in prob (" + s + 
+    Debug.assert_v2(s>0, "No states in prob.");
+    Debug.assert_v2(trans.length == s, "Number of states in prob (" + s + 
 		 ") does not equal number of states in trans (" + 
 		 trans.length + ")");
 
     for (j=0;j<s;j++) {
-      if(trans[j].length==s) System.out.println("Transition matrix is not square.");
-      if(prob[j].length==s) System.out.println("Transition matrix is not square.");
+      Debug.assert_v2(trans[j].length==s, "Transition matrix is not square.");
+      Debug.assert_v2(prob[j].length==s, "Transition matrix is not square.");
 
       prev = 0;
       for (i=0;i<s;i++) {
 	if (prob[j][i]==NO_TRANS) {
-	  if(trans[j][i] == null) System.out.println("Transition method specified " + 
+	  Debug.assert_v2(trans[j][i] == null, "Transition method specified " + 
 		       "for impossible transition." + i + ", " + j + " " + trans[j][i]);
 	}
 	else {
-	  if(prob[j][i] <= MAX_PROB)
-		       System.out.println("Transition probability for prob[" + 
+	  Debug.assert_v2(prob[j][i] <= MAX_PROB, 
+		       "Transition probability for prob[" + 
 		       j + "][" + i + "] (" + prob[j][i] + 
 		       ") is larger than " + MAX_PROB);
-	  if(prob[j][i] >= MIN_PROB)
-		       System.out.println("Transition probability for prob[" + 
+	  Debug.assert_v2(prob[j][i] >= MIN_PROB, 
+		       "Transition probability for prob[" + 
 		       j + "][" + i + "] (" + prob[j][i] + 
 		       ") is less than " + MIN_PROB);
-	  if(trans[j][i]!=null)
-		       System.out.println("No transition method for possible transition [" + 
+	  Debug.assert_v2(trans[j][i]!=null, 
+		       "No transition method for possible transition [" + 
 		       j +"][" +i + "]");
 
-	  if(prob[j][i] > prev)
-		       System.out.println("Transition [" + j + "][" + i + "] has probability (" + 
+	  Debug.assert_v2(prob[j][i] > prev, 
+		       "Transition [" + j + "][" + i + "] has probability (" + 
 		       prob[j][i] + " not greater than previous " + 
 		       "probability (" + prev + ")");
 	  prev = prob[j][i];
 	}
       }
-      if(prev==MAX_PROB) System.out.println("Final probability for state [" + j + 
+      Debug.assert_v2(prev==MAX_PROB, "Final probability for state [" + j + 
 		   "] ( " + prev + ") is not " + MAX_PROB);
     }
 
@@ -246,6 +245,8 @@ public class EB extends Thread {
 	    nextReq = nextReq.substring(0,q);
 	    // System.out.println("nextReq trimmed : " + nextReq);
 	  }
+	  //smf	  System.out.println("GET: (" + this + ", " + nextReq + ")");
+	  
 	  URL httpReq = new URL(nextReq);
 	 
 	  // 3) Receive HTML response page.
@@ -278,6 +279,8 @@ public class EB extends Thread {
 	// 6) Pick the next navigation option.
 	// 7) Compose HTTP request.
 	nextState();
+
+	//smf	System.out.println("GET: (" + this + " got next state = " + nextReq + ")");
 
 	if (nextReq != null) {
 	  // 8) Pick think time (TT), and compute absolute request time

@@ -56,6 +56,7 @@
 
 package rbe.util;
 
+import rbe.util.Debug;
 
 public class CharSetStrPattern extends AbCharStrPattern {
   public static final CharRangeStrPattern digit =
@@ -87,7 +88,7 @@ public class CharSetStrPattern extends AbCharStrPattern {
 
   public void set(char s, char e) {
 
-    Debug.assertCondition(s <= e, "CharSetStrPattern.set: s must be <= to e.");
+    Debug.assert_v2(s<=e, "CharSetStrPattern.set: s must be <= to e.");
 
     int si = s>>3;
     int ei = e>>3;
@@ -123,7 +124,7 @@ public class CharSetStrPattern extends AbCharStrPattern {
 
   public void clear(char s, char e) {
 
-    Debug.assertCondition(s <= e, "CharSetStrPattern.clear: s must be <= to e.");
+    Debug.assert_v2(s<=e, "CharSetStrPattern.clear: s must be <= to e.");
     int si = s>>3;
     int ei = e>>3;
 

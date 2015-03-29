@@ -47,6 +47,11 @@
 		<fileset dir="${tpcw.dir}/libs">
 			<include name="*.jar" />
 		</fileset>
+		<fileset dir="${tpcw.dir}/">
+			<include name="crdtdb.tpcw.properties" />
+			<include name="log4j.properties" />
+			<include name="sql-mysql.properties" />
+		</fileset>
 	</path>
 	<path id="weakdb.runtime.classpath">
 		<pathelement path="${classes.dir}" />
@@ -112,19 +117,16 @@
 		</jar>
 		<jar destfile="${jars.dir}/crdtjdbc.jar" basedir="${classes.dir}">
 			<manifest>
-				<attribute name="Class-Path" value=". ./resources" />
+				<attribute name="Class-Path" value="." />
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
+				<include name="crdtdb.tpcw.properties" />
 				<include name="log4j.properties" />
+				<include name="sql-mysql.properties" />
 				<include name="config.xml" />
 				<include name="*.sql" />
 			</fileset>
-			<zipfileset dir="${resources.dir}" prefix="/resources/">
-				<include name="config.xml" />
-				<include name="log4j.properties" />
-				<include name="*.sql" />
-			</zipfileset>
 		</jar>
 	</target>
 
@@ -156,7 +158,7 @@
 		</javac>
 		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
 			<fileset dir="${tpcw.dist.dir}/servlets">
-				<include name="*.class" />
+				<include name="**/*.class" />
 			</fileset>
 		</copy>
 		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />

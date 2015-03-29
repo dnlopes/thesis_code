@@ -50,6 +50,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.io.*;
@@ -80,7 +84,7 @@ public class TPCW_search_request_servlet extends HttpServlet {
       //Insert Promotional processing
       TPCW_promotional_processing.DisplayPromotions(out, req, res,-1);
 
-      out.print("<FORM ACTION=\"/servlet/TPCW_execute_search;jsessionid="+
+      out.print("<FORM ACTION=\"./TPCW_execute_search;@sessionIdString@"+
 		req.getRequestedSessionId()+"\" METHOD=\"get\">\n");
       out.print("<TABLE ALIGN=\"center\"><TR><TD ALIGN=\"right\">\n");
       out.print("<H3>Search by:</H3></TD><TD WIDTH=\"100\"></TD></TR>\n");
@@ -95,7 +99,7 @@ public class TPCW_search_request_servlet extends HttpServlet {
       out.print("<P ALIGN=\"CENTER\"><CENTER>\n");
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Search\"" + 
 		" SRC=\"../tpcw/Images/submit_B.gif\">\n");
-      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
+      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
       //	"\" value=\"" 
       //	+ req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)
@@ -105,7 +109,7 @@ public class TPCW_search_request_servlet extends HttpServlet {
 	  out.print("<INPUT TYPE=HIDDEN NAME=\"C_ID\" value = \"" + 
 		    C_ID + "\">\n");
     
-      url = "../servlet/TPCW_home_interaction";
+      url = "./TPCW_home_interaction";
       if(SHOPPING_ID != null){
 	  url = url+"?SHOPPING_ID="+SHOPPING_ID;
 	  if(C_ID!=null)

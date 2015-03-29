@@ -67,7 +67,7 @@ public class EBWSearchResultTrans extends EBTransition {
     int srchType = eb.nextInt(3);
     String url = rbe.searchResultURL;
 
-    switch(srchType) {
+    /*switch(srchType) {
     case 0:
       url = url + "?" + rbe.field_srchType + "=" + rbe.authorType +
 	"&" + rbe.field_srchStr + "=" + 
@@ -82,8 +82,24 @@ public class EBWSearchResultTrans extends EBTransition {
       url = url + "?" + rbe.field_srchType + "=" + rbe.subjectType +
 	"&" + rbe.field_srchStr + "=" + rbe.unifSubject(eb.rand);
       break;
-    }
+    }*/
 
+    if(srchType == 0) {
+	      url = url + "?" + rbe.field_srchType + "=" + rbe.authorType +
+		"&" + rbe.field_srchStr + "=" + 
+		rbe.digSyl(rbe.NURand(eb.rand, rbe.numItemA, 0, rbe.numItem/10), 7);
+    }else{
+    	if(srchType == 1){
+		      url = url + "?" + rbe.field_srchType + "=" + rbe.titleType + 
+			"&" + rbe.field_srchStr + "=" + 
+			rbe.digSyl(rbe.NURand(eb.rand, rbe.numItemA, 0, rbe.numItem/5), 7);
+    	}else{
+		    if(srchType == 2){
+		      url = url + "?" + rbe.field_srchType + "=" + rbe.subjectType +
+			"&" + rbe.field_srchStr + "=" + rbe.unifSubject(eb.rand);
+		    }
+    	}
+    }
 
     return(eb.addIDs(url));
   }

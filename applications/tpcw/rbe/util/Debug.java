@@ -57,7 +57,7 @@
 package rbe.util;
 
 public class Debug {
-  public static void assertCondition(boolean assertCond, String message)
+  public static void assert_v2(boolean assertCond, String message)
   {
     if (!assertCond) {
       throw new DebugError("Assert failed:  " + message);

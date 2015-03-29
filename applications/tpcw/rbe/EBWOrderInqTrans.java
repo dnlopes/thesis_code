@@ -5,7 +5,7 @@
  *
  * ECE902 Fall '99
  *
- * TPC-W servlets.Order Inquiry transition.  Supplies the order inquiry page URL.
+ * TPC-W Order Inquiry transition.  Supplies the order inquiry page URL.
  *------------------------------------------------------------------------
  *
  * This is part of the the Java TPC-W distribution,

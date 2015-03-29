@@ -86,7 +86,7 @@ public class BooleanArg extends Arg {
 	 }
 
 	 char ch = args[a].charAt(0);
-	 switch (ch) {
+	 /*switch (ch) {
 	 case '0':  // zero
 	 case 'F':  // false
 	 case 'f':  
@@ -107,8 +107,19 @@ public class BooleanArg extends Arg {
 		break;
 	 default:
 		throw new Arg.Exception("Unable to parse flag (" + args[a] + ").", a);
-	 }
+	 }*/
 
+	 if(ch == '0' || ch == 'F' || ch == 'f' || ch == 'd' || ch == 'D' || ch == 'n' ||
+			 ch == 'N'){
+		 flag = false;
+	 }else{
+		 if(ch == 'l' || ch == 'T' || ch == 't' || ch == 'e' || ch == 'E' || ch == 'y' || ch == 'Y'){
+			 flag = true;
+		 }else{
+			 throw new Arg.Exception("Unable to parse flag (" + args[a] + ").", a);
+		 }
+	 }
+	 
 	 return(a+1);
   }
 	

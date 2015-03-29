@@ -52,6 +52,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.io.*;
@@ -86,7 +90,7 @@ public class TPCW_promotional_processing {
 	
 	//Create links and references to book images
 	for(i = 0; i < related_item_ids.size(); i++){
-	    url = "../servlet/TPCW_product_detail_servlet";
+	    url = "./TPCW_product_detail_servlet";
 	    url = url + "?I_ID=" + 
 		String.valueOf(related_item_ids.elementAt(i));
 	    if(SHOPPING_ID != null)

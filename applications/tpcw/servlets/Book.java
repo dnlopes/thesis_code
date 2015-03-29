@@ -51,6 +51,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.util.Date;
@@ -70,7 +74,7 @@ public class Book {
 	try {
 	    i_id = rs.getInt("i_id");
 	    i_title = rs.getString("i_title");
-	    i_pub_Date = rs.getDate("i_pub_Date");
+	    i_pub_Date = rs.getDate("i_pub_date");
 	    i_publisher = rs.getString("i_publisher");
 	    i_subject = rs.getString("i_subject");
 	    i_desc = rs.getString("i_desc");

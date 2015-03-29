@@ -77,7 +77,7 @@ public class EBStats {
   private final long [] end_times;
   private int num_interactions = 0;
   private RBE rbe;
-  private final int NUM_INTERACTIONS = 100000;    
+  private final int NUM_INTERACTIONS = 10 *1000 *1000;    
 
   // List of retries/errors encount.
   public final Vector errors = new Vector(0);  
@@ -211,7 +211,9 @@ public class EBStats {
 
 	 out.print("dat.interact = [");
     for (j=0;j<trans.length;j++) {
-      for (i=0,tot=0;i<trans.length;tot=tot + trans[i][j],i++);
+      for (i=0,tot=0;i<trans.length;i++){
+    	  tot=tot + trans[i][j];
+      }
 		out.print(" " + Pad.l(6, "" + tot));
 	 }
     out.println("];\n");
@@ -248,6 +250,27 @@ public class EBStats {
       out.println("%" + errors.elementAt(i));
     }
     out.println("% Total Errors: " + errors.size());
+  }
+  public void printGnuPlotFile(PrintStream out) {
+	  int i,j,tot;
+	  double throughput=0;
+	  double latency=0;
+	  
+	  out.println("# Errors");
+	  for (i=0;i<errors.size();i++) {
+	      out.println("#" + errors.elementAt(i));
+	  }
+	  out.println("#Data ----------------------");
+	  double sim_time=0;
+	  for(i=0; i < num_interactions; i++){
+		  latency+=(end_times[i] - start_times[i]);
+		  if(end_times[i]>sim_time)
+			  sim_time=end_times[i];
+	  }
+	  
+	  latency=(latency/num_interactions);
+	  throughput=(num_interactions/sim_time)*1000;
+	  out.println("latency(wirt[miliseconds]) "+latency+"\t "+"throughput(wips) "+throughput+"\t "+"interactions "+num_interactions+"\t "+"simulation time "+sim_time);
   }
 
   public void waitForRampDown()

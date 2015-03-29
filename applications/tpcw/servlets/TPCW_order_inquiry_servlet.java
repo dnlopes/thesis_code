@@ -50,6 +50,10 @@
  * You are forbidden to forbid anyone else to use, share and improve what
  * you give them.
  *
+ ************************************************************************
+ *
+ * Changed 2003 by Jan Kiefer.
+ *
  ************************************************************************/
 
 import java.io.*;
@@ -77,7 +81,7 @@ public class TPCW_order_inquiry_servlet extends HttpServlet {
       out.print("<H1 ALIGN=\"center\">TPC Web Commerce Benchmark (TPC-W)</H1>\n"); 
       out.print("<H2 ALIGN=\"center\">Order Inquiry Page</H2>\n"); 
 
-      out.print("<FORM ACTION=\"TPCW_order_display_servlet;jsessionid="+
+      out.print("<FORM ACTION=\"TPCW_order_display_servlet;@sessionIdString@"+
 		req.getRequestedSessionId()+"\" METHOD=\"get\">\n");
       out.print("<TABLE ALIGN=\"CENTER\">\n"); 
       out.print("<TR> <TD> <H4>Username:</H4></TD>\n"); 
@@ -90,7 +94,7 @@ public class TPCW_order_inquiry_servlet extends HttpServlet {
 
       out.print("<INPUT TYPE=\"IMAGE\" NAME=\"Display Last Order\" "
 		+ "SRC=\"../tpcw/Images/display_last_order_B.gif\">\n");
-      //      out.assertCondition("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID +
+      //      out.print("<INPUT TYPE=HIDDEN NAME=\"" + TPCW_Util.SESSION_ID + 
       //	"\" value = \"" +
       //	req.getRequestedSessionId() + "\">\n");
       if(SHOPPING_ID != null)
