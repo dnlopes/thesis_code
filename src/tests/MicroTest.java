@@ -40,8 +40,8 @@ public class MicroTest
 		ResultSet rs;
 
 
-			res = stat.executeUpdate("update t3 set b=9, d=10 where a=1");
-			res = stat.executeUpdate("update t3 set d=10 where a=4");
+			res = stat.executeUpdate("update t3 set b=9, d=10 where a>8");
+			res = stat.executeUpdate("update t3 set e='teste' where a>6");
 			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
 			conn.commit();
 			System.exit(1);

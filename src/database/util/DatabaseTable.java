@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 
 import database.constraints.Constraint;
 import database.util.field.hidden.DeletedField;
-import database.util.field.hidden.ImmutableField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
 import util.ExitCode;
@@ -36,7 +35,6 @@ public abstract class DatabaseTable
 
 	protected DataField deletedField;
 	protected DataField timestampField;
-	protected DataField immutableField;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected HashMap<Integer, DataField> sortedFieldsMap;
@@ -606,13 +604,8 @@ public abstract class DatabaseTable
 
 		DataField clockField = new LogicalClockField(name, fieldsMap.size());
 		this.fieldsMap.put(clockField.getFieldName(), clockField);
-		DataField immutableField = new ImmutableField(name, fieldsMap.size());
-		immutableField.setAutoIncremental();
-		this.fieldsMap.put(immutableField.getFieldName(), immutableField);
 
 		this.timestampField = clockField;
-		this.immutableField = immutableField;
-
 	}
 
 	public Set<Constraint> getTableInvarists()

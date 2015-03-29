@@ -27,6 +27,8 @@ public class TransactionWriteSet
 
 	private static final Logger LOG = LoggerFactory.getLogger(TransactionWriteSet.class);
 
+	private Set<String> treatedConstraints;
+
 	private Map<String, TableWriteSet> txnWriteSet;
 	private List<String> statements;
 
@@ -39,6 +41,7 @@ public class TransactionWriteSet
 		this.txnWriteSet = new HashMap<>();
 		this.statements = new ArrayList<>();
 		this.modifiedTuples = new HashMap<>();
+		this.treatedConstraints = new HashSet<>();
 	}
 
 	public void resetWriteSet()
@@ -49,6 +52,7 @@ public class TransactionWriteSet
 		this.txnWriteSet.clear();
 		this.statements.clear();
 		this.modifiedTuples.clear();
+		this.treatedConstraints.clear();
 	}
 
 	public void addTableWriteSet(String tableName, TableWriteSet writeSet)
@@ -186,6 +190,10 @@ public class TransactionWriteSet
 
 			for(Constraint constraint : field.getInvariants())
 			{
+				if(this.treatedConstraints.contains(constraint.getConstraintIdentifier()))
+					continue;
+
+				this.treatedConstraints.add(constraint.getConstraintIdentifier());
 				RequestEntry newEntry = new RequestEntry();
 				newEntry.setId(pkValue.getValue());
 				newEntry.setTableName(tableName);

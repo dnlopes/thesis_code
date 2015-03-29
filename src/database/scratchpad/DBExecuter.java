@@ -819,14 +819,14 @@ public class DBExecuter implements IExecuter
 		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("(SELECT ");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
 		buffer.append(" AND ");
 		this.addNotInClause(buffer, true, true);
 		buffer.append(") UNION (SELECT ");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
@@ -1288,8 +1288,9 @@ public class DBExecuter implements IExecuter
 
 		if(this.duplicatedRows.size() > 0 && filterDuplicated)
 		{
-			buffer.append("(");
-			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+			buffer.append("((");
+			buffer.append(this.pk.getQueryClause());
+			buffer.append(")");
 			buffer.append(" NOT IN (");
 			notInClauseAdded = true;
 			fillDuplicatedValues(buffer, needComma);
@@ -1300,9 +1301,9 @@ public class DBExecuter implements IExecuter
 		{
 			if(!notInClauseAdded)
 			{
-				buffer.append("AND (");
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				buffer.append(" NOT IN (");
+				buffer.append("AND ((");
+				buffer.append(this.pk.getQueryClause());
+				buffer.append(") NOT IN (");
 				notInClauseAdded = true;
 			}
 
