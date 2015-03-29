@@ -23,10 +23,10 @@ public class PrimaryKeyValueTest
 		list2.add("ola");
 		list2.add("olaa");
 
-		PrimaryKeyValue pk1 = new PrimaryKeyValue(list1);
-		PrimaryKeyValue pk2 = new PrimaryKeyValue(list2);
+		//PrimaryKeyValue pk1 = new PrimaryKeyValue(list1);
+		//PrimaryKeyValue pk2 = new PrimaryKeyValue(list2);
 
 
-		boolean b = pk1.equals(pk2);
+		//boolean b = pk1.equals(pk2);
 	}
 }

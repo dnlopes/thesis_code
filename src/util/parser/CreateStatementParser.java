@@ -407,10 +407,13 @@ public class CreateStatementParser
 
 					DataField field = fieldsMap.get(pKeys[j]);
 					uniqueConstraint.addField(field);
+					uniqueConstraint.setTableName(field.getTableName());
 					if(isPrimaryKey)
 						field.setPrimaryKey();
 					field.addInvariant(uniqueConstraint);
 				}
+
+				uniqueConstraint.generateIdentifier();
 			} else if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
 				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint();
@@ -452,9 +455,12 @@ public class CreateStatementParser
 					DataField originField = fieldsMap.get(fKeys[t]);
 					fkConstraint.addPair(originField, foreignAttributes[t]);
 					fkConstraint.setRemoteTable(foreignKeyTable);
+					fkConstraint.setTableName(originField.getTableName());
 					originField.setForeignKey();
 					originField.addInvariant(fkConstraint);
 				}
+
+				fkConstraint.generateIdentifier();
 			} else if(constraint.toUpperCase().contains("CHECK"))
 			{
 				int locationIndex = constraintStrs.elementAt(i).toUpperCase().indexOf("CHECK");
@@ -492,6 +498,8 @@ public class CreateStatementParser
 								true);
 
 					checkConstraint.addField(field);
+					checkConstraint.setTableName(field.getTableName());
+					checkConstraint.generateIdentifier();
 					field.addInvariant(checkConstraint);
 
 				} else if(conditionStr.contains("<"))
@@ -520,6 +528,8 @@ public class CreateStatementParser
 								false);
 
 					checkConstraint.addField(field);
+					checkConstraint.setTableName(field.getTableName());
+					checkConstraint.generateIdentifier();
 					field.addInvariant(checkConstraint);
 
 				} else if(conditionStr.contains(">="))
@@ -546,6 +556,8 @@ public class CreateStatementParser
 								true);
 
 					checkConstraint.addField(field);
+					checkConstraint.setTableName(field.getTableName());
+					checkConstraint.generateIdentifier();
 					field.addInvariant(checkConstraint);
 
 				} else if(conditionStr.contains(">"))
@@ -572,6 +584,8 @@ public class CreateStatementParser
 								false);
 
 					checkConstraint.addField(field);
+					checkConstraint.setTableName(field.getTableName());
+					checkConstraint.generateIdentifier();
 					field.addInvariant(checkConstraint);
 
 				} else

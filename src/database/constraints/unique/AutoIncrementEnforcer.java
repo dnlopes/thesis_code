@@ -25,10 +25,13 @@ public class AutoIncrementEnforcer
 
 	private int currentId;
 	private DataField field;
+	private AutoIncrementConstraint constraint;
 
-	public AutoIncrementEnforcer(DataField field, CoordinatorConfig config)
+
+	public AutoIncrementEnforcer(DataField field, CoordinatorConfig config, AutoIncrementConstraint constraint)
 	{
 		this.field = field;
+		this.constraint = constraint;
 		this.setup(config);
 	}
 
@@ -65,7 +68,7 @@ public class AutoIncrementEnforcer
 			}
 		} catch(SQLException e)
 		{
-			LOG.error("could not fetch the last id for field {}", this.field.getFieldName(), e);
+			LOG.error("could not fetch the last id for constraint {}", this.constraint.getConstraintIdentifier(), e);
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
 		}
 

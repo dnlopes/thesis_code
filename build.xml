@@ -79,20 +79,36 @@
 		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="main.ReplicatorMain" />
+				<attribute name="Class-Path" value="." />
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
+				<include name="config.xml" />
+				<include name="*.sql" />
 			</fileset>
+			<zipfileset dir="${resources.dir}" prefix="/resources/">
+				<include name="config.xml" />
+				<include name="log4j.properties" />
+				<include name="*.sql" />
+			</zipfileset>
 		</jar>
 		<jar destfile="${jars.dir}/coordinator.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="main.CoordinatorMain" />
+				<attribute name="Class-Path" value="." />
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
+				<include name="config.xml" />
+				<include name="*.sql" />
 			</fileset>
+			<zipfileset dir="${resources.dir}" prefix="/resources/">
+				<include name="config.xml" />
+				<include name="log4j.properties" />
+				<include name="*.sql" />
+			</zipfileset>
 		</jar>
 		<jar destfile="${jars.dir}/crdtjdbc.jar" basedir="${classes.dir}">
 			<manifest>

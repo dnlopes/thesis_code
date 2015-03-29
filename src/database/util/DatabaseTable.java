@@ -31,7 +31,7 @@ public abstract class DatabaseTable
 	private boolean containsAutoIncrementField;
 	private int numOfHiddenFields;
 	private String primaryKeyString;
-	private List<Constraint> tableInvarists;
+	private Set<Constraint> tableInvarists;
 	private PrimaryKey primaryKey;
 
 	protected DataField deletedField;
@@ -59,7 +59,7 @@ public abstract class DatabaseTable
 		this.containsAutoIncrementField = false;
 		this.primaryKeyMap = new LinkedHashMap<>();
 		this.sortedFieldsMap = new HashMap<>();
-		this.tableInvarists = new ArrayList<>();
+		this.tableInvarists = new LinkedHashSet<>();
 
 		int totalHiddenFields = 0;
 		List<DataField> tempList = new ArrayList<>();
@@ -615,7 +615,7 @@ public abstract class DatabaseTable
 
 	}
 
-	public List<Constraint> getTableInvarists()
+	public Set<Constraint> getTableInvarists()
 	{
 		return this.tableInvarists;
 	}

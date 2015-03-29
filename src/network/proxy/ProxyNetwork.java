@@ -58,7 +58,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public ThriftCheckResponse checkInvariants(List<ThriftCheckEntry> checkList, AbstractConfig node) throws TException
+	public CoordResponseMessage checkInvariants(List<RequestEntry> checkList, AbstractConfig node) throws TException
 	{
 		if(!this.coordinatorsClients.containsKey(node.getName()))
 			try
@@ -71,8 +71,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			}
 
 		CoordinatorRPC.Client client = this.coordinatorsClients.get(node.getName());
-		ThriftCheckRequest newRequest = new ThriftCheckRequest(this.me.getName() + "(" + this.requestId++ + ")",
-				checkList);
+		CoordRequestMessage newRequest = new CoordRequestMessage(this.requestId, checkList);
 
 		return client.checkInvariants(newRequest);
 	}

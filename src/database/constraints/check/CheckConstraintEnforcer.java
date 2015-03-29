@@ -2,19 +2,20 @@ package database.constraints.check;
 
 
 import database.jdbc.ConnectionFactory;
-import database.util.DataField;
+import database.util.*;
 import network.coordinator.CoordinatorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
-import util.defaults.ScratchpadDefaults;
+import util.defaults.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+
 import java.util.Map;
 
 
@@ -28,14 +29,16 @@ public class CheckConstraintEnforcer
 
 	private CheckConstraint checkConstraint;
 	private DataField field;
+	private DatabaseTable dbTable;
 	// stores rowId, value
-	private Map<Integer, Double> currentValues;
+	private Map<String, Double> currentValues;
 
 	public CheckConstraintEnforcer(DataField field, CheckConstraint constraint, CoordinatorConfig config)
 	{
 		this.checkConstraint = constraint;
 		this.currentValues = new HashMap<>();
 		this.field = field;
+		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(field.getTableName());
 		this.setup(config);
 	}
 
@@ -45,7 +48,7 @@ public class CheckConstraintEnforcer
 
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
 		buffer.append(",");
 		buffer.append(field.getFieldName());
 		buffer.append(" FROM ");
@@ -59,9 +62,20 @@ public class CheckConstraintEnforcer
 
 			while(rs.next())
 			{
-				int rowId = rs.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+				StringBuilder pkBuffer = new StringBuilder();
+
+				for(int i = 0; i < this.dbTable.getPrimaryKey().getSize(); i++)
+				{
+					if(i == 0)
+						pkBuffer.append(rs.getObject(i + 1).toString());
+					else
+					{
+						pkBuffer.append(",");
+						pkBuffer.append(rs.getObject(i + 1).toString());
+					}
+				}
 				String currentValue = rs.getString(field.getFieldName());
-				currentValues.put(rowId, Double.parseDouble(currentValue));
+				currentValues.put(pkBuffer.toString(), Double.parseDouble(currentValue));
 			}
 
 			rs.close();
@@ -76,14 +90,14 @@ public class CheckConstraintEnforcer
 		LOG.trace("{} values inserted", this.currentValues.size());
 	}
 
-	public boolean applyDelta(int rowId, String delta)
+	public boolean applyDelta(String id, String delta)
 	{
-		double currentValue = this.currentValues.get(rowId);
+		double currentValue = this.currentValues.get(id);
 		double finalValue = currentValue + Double.parseDouble(delta);
 
 		if(this.checkConstraint.isValidValue(String.valueOf(finalValue)))
 		{
-			this.currentValues.put(rowId, finalValue);
+			this.currentValues.put(id, finalValue);
 			return true;
 		} else
 			return false;

@@ -4,10 +4,10 @@ package network.coordinator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.thrift.CoordRequestMessage;
+import util.thrift.CoordResponseMessage;
 import util.thrift.CoordinatorRPC;
-import util.thrift.ThriftCheckRequest;
-import util.thrift.ThriftCheckResponse;
-import util.thrift.ThriftCheckResult;
+import util.thrift.ResponseEntry;
 
 import java.util.List;
 
@@ -28,13 +28,13 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	}
 
 	@Override
-	public ThriftCheckResponse checkInvariants(ThriftCheckRequest checkRequest) throws TException
+	public CoordResponseMessage checkInvariants(CoordRequestMessage checkRequest) throws TException
 	{
-		LOG.trace("request {} received", checkRequest.getRequestId());
-		ThriftCheckResponse newResponse = new ThriftCheckResponse();
-		newResponse.setResponseId(checkRequest.getRequestId());
+		LOG.trace("request {} received", checkRequest.getMessageId());
+		CoordResponseMessage newResponse = new CoordResponseMessage();
+		newResponse.setMessageId(checkRequest.getMessageId());
 
-		List<ThriftCheckResult> checkResultList = this.coordinator.processInvariants(checkRequest.getRequest());
+		List<ResponseEntry> checkResultList = this.coordinator.processInvariants(checkRequest.getRequests());
 
 		// something went wrong. set boolean false and send response
 		if(checkResultList == null)
@@ -45,7 +45,7 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 		}
 
 		newResponse.setSuccess(true);
-		newResponse.setResult(checkResultList);
+		newResponse.setResponses(checkResultList);
 		LOG.info("txn is allowed to commit.");
 		return newResponse;
 	}

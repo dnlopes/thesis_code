@@ -4,7 +4,9 @@ package network.coordinator;
 import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.constraints.check.CheckConstraintEnforcer;
+import database.constraints.unique.AutoIncrementConstraint;
 import database.constraints.unique.AutoIncrementEnforcer;
+import database.constraints.unique.UniqueConstraint;
 import database.constraints.unique.UniqueConstraintEnforcer;
 import database.util.DataField;
 import database.util.DatabaseMetadata;
@@ -13,9 +15,11 @@ import network.AbstractNode;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.RuntimeHelper;
+import util.ExitCode;
 import util.defaults.Configuration;
-import util.thrift.ThriftCheckEntry;
-import util.thrift.ThriftCheckResult;
+import util.thrift.RequestEntry;
+import util.thrift.ResponseEntry;
 
 import java.util.*;
 
@@ -61,13 +65,13 @@ public class Coordinator extends AbstractNode
 		LOG.info("coordinator {} online", this.config.getId());
 	}
 
-	public List<ThriftCheckResult> processInvariants(List<ThriftCheckEntry> checkList)
+	public List<ResponseEntry> processInvariants(List<RequestEntry> checkList)
 	{
-		List<ThriftCheckResult> results = new ArrayList<>();
+		List<ResponseEntry> results = new ArrayList<>();
 
-		for(ThriftCheckEntry checkEntry : checkList)
+		for(RequestEntry checkEntry : checkList)
 		{
-			ThriftCheckResult newResult = this.processRequestEntry(checkEntry);
+			ResponseEntry newResult = this.processRequestEntry(checkEntry);
 			//if any of the requests failed we can return now and avoid processing the rest
 			// either way, the txn on the other side will fail
 			if(!newResult.isSuccess())
@@ -78,43 +82,42 @@ public class Coordinator extends AbstractNode
 		return results;
 	}
 
-	private ThriftCheckResult processRequestEntry(ThriftCheckEntry entry)
+	private ResponseEntry processRequestEntry(RequestEntry entry)
 	{
-		ThriftCheckResult newResult = new ThriftCheckResult();
+		ResponseEntry newResult = new ResponseEntry();
 		newResult.setId(entry.getId());
+		newResult.setFieldName(entry.getFieldName());
+		newResult.setTableName(entry.getTableName());
 
-		String key = entry.getTableName() + "_" + entry.getFieldName();
+		String constraintId = entry.getConstraintId();
 		switch(entry.getType())
 		{
 		case UNIQUE:
 			String desiredValue = entry.getValue();
-			if(this.uniquesEnforcers.get(key).reserveValue(desiredValue))
+			if(this.uniquesEnforcers.get(constraintId).reservValue(desiredValue))
 			{
-				LOG.debug("new unique value reserved: {} for table-field {}", desiredValue, key);
+				LOG.debug("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
 				newResult.setSuccess(true);
-			}
-			else
+			} else
 			{
-				LOG.debug("unique value already in use {} for table-field {}", desiredValue, key);
+				LOG.debug("unique value already in use {} for table-field {}", desiredValue, constraintId);
 				newResult.setSuccess(false);
 			}
 			return newResult;
 		case REQUEST_ID:
-			int newId = this.autoIncrementsEnforcers.get(key).getNextId();
+			int newId = this.autoIncrementsEnforcers.get(constraintId).getNextId();
 			newResult.setResquestedValue(String.valueOf(newId));
-			newResult.setFieldName(entry.getFieldName());
 			newResult.setSuccess(true);
-			LOG.debug("providing new auto incremented value {} for table-field {}", newId, key);
+			LOG.debug("providing new auto incremented value {} for table-field {}", newId, constraintId);
 			return newResult;
 		case APPLY_DELTA:
 			String delta = entry.getValue();
-			int rowId = entry.getId();
-			if(this.checkEnforcers.get(key).applyDelta(rowId, delta))
+			String pkValue = entry.getId();
+			if(this.checkEnforcers.get(constraintId).applyDelta(pkValue, delta))
 			{
 				LOG.debug("delta value {} applied sucessfully", delta);
 				newResult.setSuccess(true);
-			}
-			else
+			} else
 			{
 				LOG.debug("delta value {} not valid", delta);
 				newResult.setSuccess(false);
@@ -135,35 +138,46 @@ public class Coordinator extends AbstractNode
 	{
 		for(DatabaseTable table : this.databaseMetadata.getAllTables())
 		{
-			List<Constraint> invariants = table.getTableInvarists();
+			Set<Constraint> invariants = table.getTableInvarists();
 
 			for(Constraint constraint : invariants)
 			{
-				DataField field = constraint.getFields().get(0);
-				String key = field.getTableName() + "_" + field.getFieldName();
+				String constraintId = constraint.getConstraintIdentifier();
+				List<DataField> fields = constraint.getFields();
 
 				switch(constraint.getType())
 				{
 				case UNIQUE:
-					if(field.isAutoIncrement())
+					UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(fields, this.getConfig(),
+							(UniqueConstraint) constraint);
+					this.uniquesEnforcers.put(constraintId, uniqueEnforcer);
+					break;
+				case AUTO_INCREMENT:
+					if(fields.size() > 1)
 					{
-						AutoIncrementEnforcer autoIncrementEnforcer = new AutoIncrementEnforcer(field,
-								this.getConfig());
-						this.autoIncrementsEnforcers.put(key, autoIncrementEnforcer);
-					} else
-					{
-						UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(field,
-								this.getConfig());
-						this.uniquesEnforcers.put(key, uniqueEnforcer);
+						LOG.error("an auto increment constraint should only refer to one field");
+						RuntimeHelper.throwRunTimeException("auto increment constriant references multiple " +
+										"fields",
+								ExitCode.INVALIDUSAGE);
 					}
+					AutoIncrementEnforcer autoIncrementEnforcer = new AutoIncrementEnforcer(fields.get(0),
+							this.getConfig(), (AutoIncrementConstraint) constraint);
+					this.autoIncrementsEnforcers.put(constraintId, autoIncrementEnforcer);
 					break;
 				case FOREIGN_KEY:
 					LOG.warn("not yet implemented");
 					break;
 				case CHECK:
-					CheckConstraintEnforcer checkEnforcer = new CheckConstraintEnforcer(field,
+					if(fields.size() > 1)
+					{
+						LOG.error("a check constraint should only refer to one field");
+						RuntimeHelper.throwRunTimeException("auto increment constriant references multiple " +
+										"fields",
+								ExitCode.INVALIDUSAGE);
+					}
+					CheckConstraintEnforcer checkEnforcer = new CheckConstraintEnforcer(fields.get(0),
 							(CheckConstraint) constraint, this.getConfig());
-					this.checkEnforcers.put(key, checkEnforcer);
+					this.checkEnforcers.put(constraintId, checkEnforcer);
 					break;
 				default:
 					LOG.warn("unexpected constraint type");

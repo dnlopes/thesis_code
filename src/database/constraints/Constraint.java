@@ -18,4 +18,10 @@ public interface Constraint
 
 	public void addField(DataField field);
 
+	public String getConstraintIdentifier();
+
+	public void generateIdentifier();
+
+	public void setTableName(String name);
+
 }

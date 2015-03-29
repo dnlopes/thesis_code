@@ -60,4 +60,9 @@ public class TupleWriteSet
 		return this.oldFieldsValues.get(fieldName);
 	}
 
+	public boolean constainsNewValue(String fieldName)
+	{
+		return this.lwwFieldsValues.containsKey(fieldName);
+	}
+
 }

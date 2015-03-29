@@ -1,40 +1,41 @@
 namespace java util.thrift
 
 
-enum CheckTypeRequest {
+enum RequestType {
     UNIQUE,
     FOREIGN_KEY,
     REQUEST_ID,
     APPLY_DELTA
 }
 
-struct ThriftCheckRequest
+struct CoordRequestMessage
 {
-    1: required string requestId;
-    2: required list<ThriftCheckEntry> request;
+    1: required i32 messageId;
+    2: required list<RequestEntry> requests;
 }
 
-struct ThriftCheckResponse
+struct CoordResponseMessage
 {
-    1: required string responseId;
+    1: required i32 messageId;
     2: required bool success;
-    3: list<ThriftCheckResult> result;
+    3: list<ResponseEntry> responses;  // fill only with auto increment assignments
 }
 
-struct ThriftCheckResult {
-    1: required i32 id;
+struct ResponseEntry {
+    1: required string id; //the pk value that identifies this tuple
     2: required bool success;
-    3: string resquestedValue;
-    4: string fieldName;
-
+    3: required string fieldName;
+    4: required string tableName;
+    5: string resquestedValue;
 }
 
-struct ThriftCheckEntry {
-    1: required CheckTypeRequest type;
-    2: required i32 id;
+struct RequestEntry {
+    1: required RequestType type;
+    2: required string id; //the pk value that identifies this tuple
     3: required string fieldName;
     4: required string tableName;
     5: string value;
+    6: required string constraintId;
 }
 
 struct ThriftOperation {
@@ -51,5 +52,5 @@ service ReplicatorRPC {
 service CoordinatorRPC
 {
 
-    ThriftCheckResponse checkInvariants(1:ThriftCheckRequest checkRequest);
+    CoordResponseMessage checkInvariants(1:CoordRequestMessage checkRequest);
 }

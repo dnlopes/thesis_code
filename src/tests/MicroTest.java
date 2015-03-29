@@ -21,7 +21,7 @@ public class MicroTest
 {
 
 
-	public static void main(String args[]) throws IOException, ClassNotFoundException
+	public static void main(String args[]) throws IOException, ClassNotFoundException, SQLException
 	{
 		//Micro_Populate db = new Micro_Populate();
 
@@ -38,25 +38,20 @@ public class MicroTest
 		}
 		int res;
 		ResultSet rs;
-		try
-		{
 
-			//res = stat.executeUpdate("update t2 set d=20 where a=1");
-			res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
+
+			res = stat.executeUpdate("update t3 set b=9, d=10 where a=1");
+			res = stat.executeUpdate("update t3 set d=10 where a=4");
+			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
 			conn.commit();
 			System.exit(1);
-			rs = stat.executeQuery("SELECT * from t2 where a=5");
+			//rs = stat.executeQuery("SELECT * from t2 where a=5");
 
-			res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
 			res = stat.executeUpdate("update t2 set d=21 where a=2");
 			//res = stat.executeUpdate("update t1 set b=20 where a=3");
 
 
-
-		} catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
 
 
 

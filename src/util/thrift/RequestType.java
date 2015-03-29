@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum CheckTypeRequest implements org.apache.thrift.TEnum {
+public enum RequestType implements org.apache.thrift.TEnum {
   UNIQUE(0),
   FOREIGN_KEY(1),
   REQUEST_ID(2),
@@ -19,7 +19,7 @@ public enum CheckTypeRequest implements org.apache.thrift.TEnum {
 
   private final int value;
 
-  private CheckTypeRequest(int value) {
+  private RequestType(int value) {
     this.value = value;
   }
 
@@ -34,7 +34,7 @@ public enum CheckTypeRequest implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static CheckTypeRequest findByValue(int value) { 
+  public static RequestType findByValue(int value) { 
     switch (value) {
       case 0:
         return UNIQUE;

@@ -18,8 +18,9 @@ public class PrimaryKey
 	public PrimaryKey(List<DataField> fields)
 	{
 		this.fields = fields;
+
 		this.pkSize = fields.size();
-		queryClause = this.generateQueryClause();
+		this.queryClause = this.generateQueryClause();
 
 	}
 

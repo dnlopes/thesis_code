@@ -22,8 +22,9 @@ import runtime.txn.TransactionWriteSet;
 import util.ExitCode;
 import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
-import util.thrift.ThriftCheckEntry;
-import util.thrift.ThriftCheckResponse;
+import util.thrift.CoordResponseMessage;
+import util.thrift.RequestEntry;
+import util.thrift.ResponseEntry;
 
 import java.sql.*;
 import java.sql.Statement;
@@ -339,18 +340,21 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		try
 		{
 			this.writeSet = this.createTransactionWriteSet();
-			List<ThriftCheckEntry> checkList = this.writeSet.verifyInvariants();
+			List<RequestEntry> checkList = this.writeSet.verifyInvariants();
 
-			//if we must coordinate then do it here. this is a blocking call
 			if(checkList.size() > 0)
 			{
-				ThriftCheckResponse response = network.checkInvariants(checkList, proxyConfig.getCoordinatorConfig());
+				//if we must coordinate then do it here. this is a blocking call
+				CoordResponseMessage response = network.checkInvariants(checkList, proxyConfig.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
 					LOG.warn("coordinator didnt allow txn to commit. Aborting.");
 					return;
 				}
-				this.writeSet.processCoordinatorResponse(response.getResult());
+				List<ResponseEntry> responses = response.getResponses();
+
+				if(responses != null)
+					this.writeSet.processCoordinatorResponse(responses);
 			}
 
 			this.writeSet.generateMinimalStatements();

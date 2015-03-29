@@ -1215,7 +1215,7 @@ public class DBExecuter implements IExecuter
 			buffer.append(this.tempTableName);
 			buffer.append(" values (");
 
-			for(int i = pk.getSize(); i < this.tableDefinition.colsPlain.length; i++)
+			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
 			{
 				Object oldValue = res.getObject(i + 1);
 				String oldValueString;
@@ -1360,7 +1360,7 @@ public class DBExecuter implements IExecuter
 		// its all we need to keep track of changes
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
+		buffer.append(this.databaseTable.getPrimaryKey().getQueryClause());
 		buffer.append(" from ");
 		buffer.append(this.tempTableName);
 		buffer.append(" where ");

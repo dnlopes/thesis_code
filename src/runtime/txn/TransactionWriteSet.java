@@ -5,15 +5,15 @@ import database.constraints.*;
 import database.constraints.check.CheckConstraint;
 import database.util.DataField;
 import database.util.DatabaseTable;
+import database.util.PrimaryKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.defaults.Configuration;
-import util.defaults.ScratchpadDefaults;
-import util.thrift.CheckTypeRequest;
-import util.thrift.ThriftCheckEntry;
-import util.thrift.ThriftCheckResult;
+import util.thrift.RequestEntry;
+import util.thrift.RequestType;
+import util.thrift.ResponseEntry;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -32,7 +32,7 @@ public class TransactionWriteSet
 
 	// list of tuples that will be modified after contacting the coordinator
 	// for instance when requesting a new id
-	private Map<Integer, TupleWriteSet> modifiedTuples;
+	private Map<PrimaryKeyValue, TupleWriteSet> modifiedTuples;
 
 	public TransactionWriteSet()
 	{
@@ -133,48 +133,13 @@ public class TransactionWriteSet
 	 */
 	private void generateDeletes(List<String> allStatements)
 	{
-		StringBuilder buffer = new StringBuilder();
-
 		for(TableWriteSet tableWriteSet : this.txnWriteSet.values())
-		{
-			if(!tableWriteSet.hasDeletedRows())
-				continue;
-
-			// add delete statements
-			buffer.append("DELETE from ");
-			buffer.append(tableWriteSet.getTableName());
-			buffer.append(" WHERE (");
-			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-			buffer.append(" IN ");
-			this.addDeletedClause(buffer, tableWriteSet.getDeletedRows());
-			buffer.append(")");
-			allStatements.add(buffer.toString());
-			buffer.setLength(0);
-		}
+			tableWriteSet.generateDeleteStatements(allStatements);
 	}
 
-	private void addDeletedClause(StringBuilder buffer, Set<Integer> deletedRows)
+	public List<RequestEntry> verifyInvariants()
 	{
-		boolean first = true;
-		for(Integer tupleId : deletedRows)
-		{
-			if(first)
-			{
-				first = false;
-				buffer.append("(");
-				buffer.append(tupleId);
-			} else
-			{
-				buffer.append(",");
-				buffer.append(tupleId);
-			}
-		}
-		buffer.append(")");
-	}
-
-	public List<ThriftCheckEntry> verifyInvariants()
-	{
-		List<ThriftCheckEntry> checkEntryList = new ArrayList<>();
+		List<RequestEntry> checkEntryList = new ArrayList<>();
 
 		for(TableWriteSet writeSet : this.txnWriteSet.values())
 			this.verifyInvariantsForTable(writeSet, checkEntryList);
@@ -182,69 +147,85 @@ public class TransactionWriteSet
 		return checkEntryList;
 	}
 
-	public void processCoordinatorResponse(List<ThriftCheckResult> results)
+	public void processCoordinatorResponse(List<ResponseEntry> results)
 	{
-		for(ThriftCheckResult result : results)
+		for(ResponseEntry result : results)
 		{
 			if(result.getResquestedValue() != null)
 			{
-				int rowId = result.getId();
+				String pkValueString = result.getId();
 				String fieldName = result.getFieldName();
-				this.modifiedTuples.get(rowId).addLwwEntry(fieldName, result.getResquestedValue());
+				String tableName = result.getTableName();
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, tableName);
+
+				this.modifiedTuples.get(pkValue).addLwwEntry(fieldName, result.getResquestedValue());
 				LOG.trace("tuple updated with value received from coordinator");
 			}
 		}
 	}
 
-	private void verifyInvariantsForTable(TableWriteSet writeSet, List<ThriftCheckEntry> checkList)
+	private void verifyInvariantsForTable(TableWriteSet writeSet, List<RequestEntry> checkList)
 	{
 		for(TupleWriteSet tupleWriteSet : writeSet.getTuplesWriteSet())
 			this.verifyInvariantsForTuple(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTuplePkValue(),
 					checkList);
 	}
 
-	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, int rowId,
-										  List<ThriftCheckEntry> checkList)
+	private void verifyInvariantsForTuple(TupleWriteSet tupleWriteSet, String tableName, PrimaryKeyValue pkValue,
+										  List<RequestEntry> checkList)
 	{
 		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
-		Map<String, String> newModifiedFields = tupleWriteSet.getModifiedValuesMap();
+		Map<String, String> lwwFields = tupleWriteSet.getModifiedValuesMap();
 		Map<String, String> oldFields = tupleWriteSet.getOldValuesMap();
 
-		for(String fieldName : newModifiedFields.keySet())
+		for(String fieldName : lwwFields.keySet())
 		{
 			DataField field = table.getField(fieldName);
 			if(!field.hasInvariants())
 				continue;
 
-			ThriftCheckEntry newEntry = new ThriftCheckEntry();
-			newEntry.setId(rowId);
-			newEntry.setTableName(tableName);
-			newEntry.setFieldName(fieldName);
-
 			for(Constraint constraint : field.getInvariants())
 			{
+				RequestEntry newEntry = new RequestEntry();
+				newEntry.setId(pkValue.getValue());
+				newEntry.setTableName(tableName);
+				newEntry.setFieldName(fieldName);
+				newEntry.setConstraintId(constraint.getConstraintIdentifier());
+
 				switch(constraint.getType())
 				{
+				case AUTO_INCREMENT:
+					newEntry.setType(RequestType.REQUEST_ID);
+					this.modifiedTuples.put(pkValue, tupleWriteSet);
+					LOG.trace("new request Id check entry added for field {}", fieldName);
+					checkList.add(newEntry);
+					break;
 				case UNIQUE:
-					if(!field.isAutoIncrement())
+					newEntry.setType(RequestType.UNIQUE);
+
+					StringBuilder buffer = new StringBuilder();
+
+					Iterator<DataField> it = constraint.getFields().iterator();
+					while(it.hasNext())
 					{
-						newEntry.setType(CheckTypeRequest.UNIQUE);
-						newEntry.setValue(newModifiedFields.get(fieldName));
-						LOG.trace("new unique check entry added for field {}", fieldName);
-					} else
-					{
-						newEntry.setType(CheckTypeRequest.REQUEST_ID);
-						this.modifiedTuples.put(rowId, tupleWriteSet);
-						LOG.trace("new request Id check entry added for field {}", fieldName);
+						DataField currField = it.next();
+						if(lwwFields.containsKey(currField.getFieldName()))
+							buffer.append(lwwFields.get(currField.getFieldName()));
+						else
+							buffer.append(oldFields.get(currField.getFieldName()));
+						if(it.hasNext())
+							buffer.append(",");
 					}
+					newEntry.setValue(buffer.toString());
+					LOG.trace("new unique check entry added for field {}", fieldName);
 					checkList.add(newEntry);
 					break;
 				case CHECK:
-					String newValue = newModifiedFields.get(fieldName);
+					String newValue = lwwFields.get(fieldName);
 					String oldValue = oldFields.get(fieldName);
 					if(((CheckConstraint) constraint).mustCoordinate(newValue, oldValue))
 					{
-						newEntry.setType(CheckTypeRequest.APPLY_DELTA);
+						newEntry.setType(RequestType.APPLY_DELTA);
 						//FIXME: use delta instead of final result?
 						newEntry.setValue(((CheckConstraint) constraint).calculateDelta(newValue, oldValue));
 						checkList.add(newEntry);

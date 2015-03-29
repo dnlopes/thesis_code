@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 
@@ -26,12 +28,14 @@ public class UniqueConstraintEnforcer
 	static final Logger LOG = LoggerFactory.getLogger(UniqueConstraintEnforcer.class);
 
 	private Set<String> currentValues;
-	private DataField field;
+	private List<DataField> fields;
+	private UniqueConstraint constraint;
 
-	public UniqueConstraintEnforcer(DataField field, CoordinatorConfig config)
+	public UniqueConstraintEnforcer(List<DataField> field, CoordinatorConfig config, UniqueConstraint constraint)
 	{
-		this.field = field;
+		this.fields = field;
 		this.currentValues = new HashSet<>();
+		this.constraint = constraint;
 		this.setup(config);
 	}
 
@@ -41,9 +45,9 @@ public class UniqueConstraintEnforcer
 
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
-		buffer.append(field.getFieldName());
+		buffer.append(this.getQueryClause());
 		buffer.append(" FROM ");
-		buffer.append(this.field.getTableName());
+		buffer.append(this.fields.get(0).getTableName());
 
 		try
 		{
@@ -53,8 +57,26 @@ public class UniqueConstraintEnforcer
 
 			while(rs.next())
 			{
-				String uniqueValue = rs.getString(this.field.getFieldName());
-				this.reserveValue(uniqueValue);
+				StringBuilder pkBuffer = new StringBuilder();
+
+				for(int i = 0; i < this.fields.size(); i++)
+				{
+					if(i == 0)
+						pkBuffer.append(rs.getObject(i + 1).toString());
+					else
+					{
+						pkBuffer.append(",");
+						pkBuffer.append(rs.getObject(i + 1).toString());
+					}
+				}
+
+				String uniqueValue = pkBuffer.toString();
+				if(!this.reservValue(uniqueValue))
+				{
+					LOG.error("duplicated values for constraint for constraint {}",
+							this.constraint.getConstraintIdentifier());
+					RuntimeHelper.throwRunTimeException("duplicated values for constraint for constraint", ExitCode.HASHMAPDUPLICATE);
+				}
 			}
 
 			rs.close();
@@ -62,15 +84,32 @@ public class UniqueConstraintEnforcer
 			tempConnection.close();
 		} catch(SQLException e)
 		{
-			LOG.error("error while fetching all used values for field {}", this.field.getFieldName(), e);
+			LOG.error("error while fetching all used values for constraint {}",
+					this.constraint.getConstraintIdentifier(), e);
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		LOG.trace("{} values already in use", this.currentValues.size());
+		LOG.trace("{} values already in use for constraint {}", this.currentValues.size(), this.constraint.getConstraintIdentifier());
 	}
 
-	public boolean reserveValue(String newValue)
+	public boolean reservValue(String newValue)
 	{
 		return this.currentValues.add(newValue);
+	}
+
+	private String getQueryClause()
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		Iterator<DataField> it = this.fields.iterator();
+
+		while(it.hasNext())
+		{
+			buffer.append(it.next().getFieldName());
+			if(it.hasNext())
+				buffer.append(",");
+		}
+
+		return buffer.toString();
 	}
 }

@@ -155,6 +155,11 @@ public abstract class DataField
 				CrdtDataFieldType.NUMDELTAINTEGER;
 	}
 
+	public boolean isTextField()
+	{
+		return this.crdtDataType == CrdtDataFieldType.LWWSTRING || this.crdtDataType == CrdtDataFieldType.NORMALSTRING;
+	}
+
 	public boolean isImmutableField()
 	{
 		return this.crdtDataType == CrdtDataFieldType.IMMUTABLE_FIELD || this.crdtDataType == CrdtDataFieldType

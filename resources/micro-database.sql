@@ -28,7 +28,8 @@ DROP TABLE IF EXISTS `t3`;
 @LWWINTEGER `c` int(10) unsigned,
 @LWWINTEGER `d` int(10) unsigned,
 @LWWSTRING `e` varchar(50),
-PRIMARY KEY  (`a`)
+PRIMARY KEY  (`a`),
+UNIQUE(b,d)
 ) ENGINE=INNODB;
 
 DROP TABLE IF EXISTS `t4`;

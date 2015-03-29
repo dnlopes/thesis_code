@@ -24,6 +24,7 @@ public class CoordinatorMain
 		}
 
 		int id = Integer.parseInt(args[0]);
+		LOG.info("setup coordinator {}", id);
 
 		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinators().get(id));
 	}
