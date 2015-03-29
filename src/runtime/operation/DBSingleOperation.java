@@ -120,6 +120,8 @@ public class DBSingleOperation
 
 	public boolean isStandardOperation()
 	{
+		//return (sql.startsWith("SELECT") || sql.startsWith("select") || sql.startsWith("UPDATE") || sql.startsWith(
+		//		"update"));
 		return (opStatement instanceof Update) || (opStatement instanceof Select);
 	}
 }

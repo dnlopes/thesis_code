@@ -126,20 +126,20 @@ public class RBE {
   {
 	 www = www1 + "servlet/";
 	 String wwwTPCW = www1 + "tpcw/";
-	 homeURL = www+"servlets.TPCW_home_interaction";
-	 shopCartURL = www+"servlets.TPCW_shopping_cart_interaction";
-	 orderInqURL = www+"servlets.TPCW_order_inquiry_servlet";
-	 orderDispURL = www+"servlets.TPCW_order_display_servlet";
-	 searchReqURL = www+"servlets.TPCW_search_request_servlet";
-	 searchResultURL = www+"servlets.TPCW_execute_search";
-	 newProdURL = www+"servlets.TPCW_new_products_servlet";
-	 bestSellURL = www+"servlets.TPCW_best_sellers_servlet";
-	 prodDetURL = www+"servlets.TPCW_product_detail_servlet";
-	 custRegURL = www+"servlets.TPCW_customer_registration_servlet";
-	 buyReqURL = www+"servlets.TPCW_buy_request_servlet";
-	 buyConfURL = www+"servlets.TPCW_buy_confirm_servlet";
-	 adminReqURL = www+"servlets.TPCW_admin_request_servlet";
-	 adminConfURL = www+"servlets.TPCW_admin_response_servlet";
+	 homeURL = www+"TPCW_home_interaction";
+	 shopCartURL = www+"TPCW_shopping_cart_interaction";
+	 orderInqURL = www+"TPCW_order_inquiry_servlet";
+	 orderDispURL = www+"TPCW_order_display_servlet";
+	 searchReqURL = www+"TPCW_search_request_servlet";
+	 searchResultURL = www+"TPCW_execute_search";
+	 newProdURL = www+"TPCW_new_products_servlet";
+	 bestSellURL = www+"TPCW_best_sellers_servlet";
+	 prodDetURL = www+"TPCW_product_detail_servlet";
+	 custRegURL = www+"TPCW_customer_registration_servlet";
+	 buyReqURL = www+"TPCW_buy_request_servlet";
+	 buyConfURL = www+"TPCW_buy_confirm_servlet";
+	 adminReqURL = www+"TPCW_admin_request_servlet";
+	 adminConfURL = www+"TPCW_admin_response_servlet";
   }
 
   // FIELD NAMES

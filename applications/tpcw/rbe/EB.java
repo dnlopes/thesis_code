@@ -105,7 +105,7 @@ public class EB extends Thread {
   public double tt_scale = 1.0;
 
   // Set this higher to see more messages. 
-  public static int DEBUG =0;
+  public static int DEBUG =1;
 
   public static final int NO_TRANS = 0;
   public static final int MIN_PROB = 1;

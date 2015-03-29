@@ -171,6 +171,7 @@
 		<!-- our custom jdbc already includes default mysql connector -->
 		<!-- <copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" /> -->
 		<copy file="${base.dir}/dist/jars/crdtjdbc.jar" todir="${tomcat.dir}/lib" />
+		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
 		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
 		<copy todir="${tomcat.dir}/webapps/tpcw/tpcw/Images">
 			<fileset dir="${tpcw.dir}/images/" />
@@ -183,6 +184,11 @@
 			<classpath refid="tpcw.runtime.classpath" />
 			<classpath refid="tpcw.classpath" />
 		</java>
+	</target>
+	<target name="tpcw-run" description="Runs TPCW experiment">
+		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tpcw.dist.dir}" >
+			<arg value="run-tpcw.sh"/>
+		</exec>
 	</target>
 
 	<!-- Utils tasks -->
