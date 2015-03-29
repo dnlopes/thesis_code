@@ -123,7 +123,6 @@
 			<fileset dir="${resources.dir}">
 				<include name="crdtdb.tpcw.properties" />
 				<include name="log4j.properties" />
-				<include name="sql-mysql.properties" />
 				<include name="config.xml" />
 				<include name="*.sql" />
 			</fileset>
@@ -141,8 +140,10 @@
 			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" />
 			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
+		<delete file="${tpcw.dir}/servlets/TPCW_Database.java" />
 	</target>
-	<target name="tpcw-dist" description="Compile and distribute TPCW" depends="tpcw-init, tomcat.dir.check"
+	<target name="tpcw-dist" description="Compile and distribute TPCW"
+			depends="tpcw-init, tomcat.dir.check, prepare-tpcw"
 			if="tomcat.dir.exists">
 		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
 			   debug="true" deprecation="false" source="1.3" nowarn="yes">
@@ -153,6 +154,7 @@
 			<classpath refid="tpcw.classpath" />
 		</javac>
 		<javac srcdir="${tpcw.dir}/servlets" includeantruntime="false" includes="*.java"
+			   excludes="TPCW_Database_tmp.java"
 			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
 		</javac>
@@ -188,8 +190,8 @@
 		</java>
 	</target>
 	<target name="tpcw-run" description="Runs TPCW experiment">
-		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tpcw.dist.dir}" >
-			<arg value="run-tpcw.sh"/>
+		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tpcw.dist.dir}">
+			<arg value="run-tpcw.sh" />
 		</exec>
 	</target>
 
@@ -234,6 +236,23 @@
 		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tomcat.dir}/bin">
 			<arg value="shutdown.sh" />
 		</exec>
+	</target>
+
+
+	<!-- Filters!!! -->
+	<condition property="sqlFilter" value="${resources.dir}/sql-mysql.properties">
+		<equals arg1="mysql" arg2="mysql" casesensitive="no" trim="yes" />
+	</condition>
+	<filter filtersFile="${sqlFilter}" />
+
+
+	<target name="prepare-tpcw">
+		<copy tofile="${tpcw.dir}/servlets/TPCW_Database.java" filtering="on" preservelastmodified="false">
+			<fileset dir="${tpcw.dir}/servlets/" casesensitive="yes">
+				<include name="TPCW_Database_tmp.java" />
+			</fileset>
+		</copy>
+
 	</target>
 
 
