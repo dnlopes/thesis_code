@@ -111,6 +111,20 @@ public class Proxy extends AbstractNode
 		txnId.resetValue();
 	}
 
+	public void closeTransaction(TransactionIdentifier txnId)
+	{
+		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+
+		if(pad == null)
+			return;
+
+		this.activeScratchpads.remove(txnId);
+		this.scratchpadsPool.returnObject(pad);
+
+		LOG.trace("closing txn {}", txnId.getValue());
+		txnId.resetValue();
+	}
+
 	public void beginTransaction(TransactionIdentifier txnId)
 	{
 		txnId.setValue(this.transactionsCounter.incrementAndGet());

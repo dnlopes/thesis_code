@@ -225,7 +225,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public void close() throws SQLException
 	{
-		throw new MissingImplementationException("missing implementation");
+		this.proxy.closeTransaction(txnId);
 	}
 
 	@Override

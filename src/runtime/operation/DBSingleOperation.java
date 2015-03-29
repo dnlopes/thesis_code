@@ -117,4 +117,9 @@ public class DBSingleOperation
 			e.printStackTrace();
 		}
 	}
+
+	public boolean isStandardOperation()
+	{
+		return (opStatement instanceof Update) || (opStatement instanceof Select);
+	}
 }

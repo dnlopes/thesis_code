@@ -176,7 +176,7 @@
 			<fileset dir="${tpcw.dir}/images/" />
 		</copy>
 	</target>
-	<target name="tpcw-gendb" depends="tpcw-dist, check-mysql" description="Generate TPCW database">
+	<target name="tpcw-gendb" depends="dist, tpcw-dist, check-mysql" description="Generate TPCW database">
 		<java classname="populate.TPCW_Populate" fork="true">
 			<arg value="${TPCW_NUM_EBS}" />
 			<arg value="${TPCW_NUM_ITEMS}" />

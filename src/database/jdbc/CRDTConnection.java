@@ -116,7 +116,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public boolean isClosed() throws SQLException
 	{
-		throw new MissingImplementationException("missing implementation");
+		return this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE;
 	}
 
 	@Override

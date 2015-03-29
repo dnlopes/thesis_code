@@ -4,6 +4,7 @@ package database.scratchpad;
 import database.jdbc.ConnectionFactory;
 import database.jdbc.Result;
 import database.jdbc.util.DBReadSetEntry;
+import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
@@ -159,6 +160,13 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	{
 		op.parse(this.parser);
 
+		if(!op.isStandardOperation())
+		{
+			LOG.warn("executing non standard operation: {}", op.toString());
+			int count =  this.executeUpdate(op.toString());
+			return DBUpdateResult.createResult(count);
+		}
+
 		if(op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 
@@ -219,15 +227,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	@Override
 	public ResultSet executeQuery(String op) throws SQLException
 	{
-		LOG.trace("executing operation: {}", op);
 		return this.statQ.executeQuery(op);
 	}
 
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
-		//TODO
-		LOG.debug("executing operation: {}", op);
 		return this.statU.executeUpdate(op);
 	}
 
@@ -235,7 +240,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public void addToBatchUpdate(String op) throws SQLException
 	{
 		this.statBU.addBatch(op);
-		LOG.debug("executing operation: {}", op);
 		this.batchEmpty = false;
 	}
 

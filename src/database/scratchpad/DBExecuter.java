@@ -490,6 +490,7 @@ public class DBExecuter implements IExecuter
 			LOG.error("failed to create temporary tables for scratchpad {}", scratchpad.getScratchpadId());
 			RuntimeHelper.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 		}
+		LOG.info("executor for table {} created", this.databaseTable.getName());
 	}
 
 	/**
@@ -993,65 +994,47 @@ public class DBExecuter implements IExecuter
 	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db, IExecuter[] executors, String[][] tables)
 			throws SQLException, ScratchpadException
 	{
-		//TODO implement
-		RuntimeHelper.throwRunTimeException("TODO implementation", ExitCode.MISSING_IMPLEMENTATION);
-		return null;
-
-
-		/*LOG.trace("creating selection for query {}", selectOp.toString());
+		return db.executeQuery(selectOp.toString());
+	/*
+		LOG.trace("creating selection for query {}", selectOp.toString());
 		String queryToOrigin;
 		String queryToTemp;
+
 		StringBuffer buffer = new StringBuffer();
 
 		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+		List columnsToFetch = plainSelect.getSelectItems();
+
+		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
+			plainSelect.setSelectItems(this.selectAllItems);
 
 		StringBuffer whereClauseTemp = new StringBuffer();
-		whereClauseTemp.append("(");
-		whereClauseTemp.append(plainSelect.getWhere());
-		whereClauseTemp.append(") AND (");
+
+		if(plainSelect.getWhere() != null)
+		{
+			whereClauseTemp.append("(");
+			whereClauseTemp.append(plainSelect.getWhere());
+			whereClauseTemp.append(") AND");
+		}
+
+		whereClauseTemp.append(" (");
 		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		whereClauseTemp.append(" = FALSE");
-		whereClauseTemp.append(" ) ");
+		whereClauseTemp.append(" = FALSE )");
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-
-		boolean needPrefix = true;
-		boolean notInClauseAdded = false;
-		if(this.duplicatedRows.size() > 0)
+		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
 		{
-			notInClauseAdded = true;
-			whereClauseOrig.append("AND (");
-			whereClauseOrig.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-			whereClauseOrig.append(" NOT IN (");
-			needPrefix = false;
-			fillDuplicatedValues(whereClauseOrig, false);
+			whereClauseOrig.append(" AND ");
+			this.addNotInClause(whereClauseOrig, true, true);
 		}
-
-		if(this.deletedRows.size() > 0)
-		{
-			notInClauseAdded = true;
-			if(needPrefix)
-			{
-				whereClauseOrig.append("AND ");
-				whereClauseOrig.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				whereClauseOrig.append(" NOT IN (");
-				fillDeletedValues(whereClauseOrig, false);
-			} else
-				fillDeletedValues(whereClauseOrig, true);
-		}
-
-		if(notInClauseAdded)
-			whereClauseOrig.append("))");
 
 		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
 
 		plainSelect.setFromItem(this.fromItemTemp);
 		queryToTemp = plainSelect.toString();
-		queryToOrigin = org.apache.commons.lang3.StringUtils.replace(queryToOrigin, defaultWhere,
-				whereClauseOrig.toString());
 
-		queryToTemp = org.apache.commons.lang3.StringUtils.replace(queryToTemp, defaultWhere,
-				whereClauseTemp.toString());
+		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
+		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
 
 		buffer.append("(");
 		buffer.append(queryToTemp);
