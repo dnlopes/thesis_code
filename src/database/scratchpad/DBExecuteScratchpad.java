@@ -147,8 +147,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		if(!this.readOnly)
 			LOG.warn("this txn is not read-only, we should commit but instead we are closing");
 
-		LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
-				this.activeTransaction.getLatency());
+		//LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+		//		this.activeTransaction.getLatency());
 	}
 
 	@Override
