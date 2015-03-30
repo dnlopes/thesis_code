@@ -36,6 +36,7 @@
 	<property name="tpcw.dist.dir" value="${tpcw.dir}/dist" />
 	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
 	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
+	<property name="tpcw.src.dir" value="${tpcw.dir}/src" />
 
 	<!-- Path definitions -->
 	<path id="weakdb.classpath">
@@ -133,30 +134,34 @@
 	<target name="tpcw-init" depends="tpcw-clean">
 		<tstamp />
 		<mkdir dir="${tpcw.dist.dir}/servlets" />
+		<mkdir dir="${tpcw.dir}/src/servlets" />
+		<mkdir dir="${tpcw.dir}/src/rbe" />
+		<mkdir dir="${tpcw.dir}/src/populate" />
 	</target>
 	<target name="tpcw-clean">
 		<delete dir="${tpcw.dist.dir}" />
+		<delete dir="${tpcw.dir}/src" />
 		<delete>
 			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" />
 			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
-		<delete file="${tpcw.dir}/servlets/TPCW_Database.java" />
 	</target>
 	<target name="tpcw-dist" description="Compile and distribute TPCW"
 			depends="tpcw-init, tomcat.dir.check, prepare-tpcw"
 			if="tomcat.dir.exists">
-		<javac srcdir="${tpcw.dir}/rbe" includes="**/*.java" includeantruntime="false" destdir="${tpcw.dist.dir}"
-			   debug="true" deprecation="false" source="1.3" nowarn="yes">
+		<javac srcdir="${tpcw.dir}/src/rbe" includes="**/*.java" includeantruntime="false"
+			   destdir="${tpcw.dist.dir}"
+			   debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
 		</javac>
-		<javac srcdir="${tpcw.dir}/populate" includeantruntime="false" includes="TPCW_Populate.java"
+		<javac srcdir="${tpcw.dir}/src/populate" includeantruntime="false" includes="TPCW_Populate.java"
 			   destdir="${tpcw.dist.dir}" debug="true" depend="yes" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
 		</javac>
-		<javac srcdir="${tpcw.dir}/servlets" includeantruntime="false" includes="*.java"
-			   excludes="TPCW_Database_tmp.java"
+		<javac srcdir="${tpcw.dir}/src/servlets" includeantruntime="false" includes="*.java"
 			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
+			<classpath refid="weakdb.classpath"/>
 		</javac>
 		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
 			<fileset dir="${tpcw.dist.dir}/servlets">
@@ -238,21 +243,62 @@
 		</exec>
 	</target>
 
-
-	<!-- Filters!!! -->
-	<condition property="sqlFilter" value="${resources.dir}/sql-mysql.properties">
-		<equals arg1="mysql" arg2="mysql" casesensitive="no" trim="yes" />
-	</condition>
-	<filter filtersFile="${sqlFilter}" />
-
-
 	<target name="prepare-tpcw">
-		<copy tofile="${tpcw.dir}/servlets/TPCW_Database.java" filtering="on" preservelastmodified="false">
-			<fileset dir="${tpcw.dir}/servlets/" casesensitive="yes">
-				<include name="TPCW_Database_tmp.java" />
+		<condition property="sqlFilter" value="${resources.dir}/sql-mysql.properties">
+			<equals arg1="mysql" arg2="mysql" casesensitive="no" trim="yes" />
+		</condition>
+		<filter filtersFile="${sqlFilter}" />
+		<property name="sql.bigCharType" value="varchar(500)" />
+		<property name="sessionIdString" value="jsessionid=" />
+		<property name="standardUrl" value="http://localhost:8080" />
+		<property name="thinktime" value="1.0" />
+		<property name="servletUrlPath" value="" />
+		<!-- #servletUrlPath=/servlet -->
+		<property name="tpcwUrlPath" value="/tpcw" />
+		<property name="jdbc.connPoolMax" value="100" />
+
+		<property name="jdbc.actualPath" value="jdbc:mysql://localhost:3306/tpcw" />
+		<property name="jdbc.actualDriver" value="com.mysql.jdbc.Driver" />
+		<property name="jdbc.driver" value="database.jdbc.CRDTDriver" />
+		<property name="jdbc.path" value="jdbc:crdt://localhost:3306/tpcw" />
+
+		<filter token="num.item" value="${TPCW_NUM_ITEMS}" />
+		<filter token="num.eb" value="${TPCW_NUM_EBS}" />
+
+		<filter token="sql.bigCharType" value="${sql.bigCharType}" />
+		<filter token="sessionIdString" value="${sessionIdString}" />
+		<filter token="standardUrl" value="${standardUrl}" />
+		<filter token="thinktime" value="${thinktime}" />
+		<filter token="servletUrlPath" value="${servletUrlPath}" />
+		<filter token="tpcwUrlPath" value="${tpcwUrlPath}" />
+
+		<filter token="tomcat_root" value="${tomcat.dir}" />
+
+		<filter token="txmud.topologyfile" value="tpcw_txmud.xml" />
+		<filter token="jdbc.user" value="${mysql.user}" />
+		<filter token="jdbc.password" value="${mysql.pwd}" />
+		<filter token="jdbc.actualDriver" value="${jdbc.actualDriver}" />
+		<filter token="jdbc.connPoolMax" value="${jdbc.connPoolMax}" />
+		<filter token="jdbc.path" value="${jdbc.path}" />
+		<filter token="jdbc.driver" value="${jdbc.driver}" />
+		<filter token="jdbc.actualPath" value="${jdbc.actualPath}" />
+		<filter filtersFile="${sqlFilter}" />
+
+		<copy todir="${tpcw.src.dir}/rbe" filtering="on" preservelastmodified="false">
+			<fileset dir="${tpcw.dir}/rbe" casesensitive="yes">
+				<include name="**/*.java" />
 			</fileset>
 		</copy>
-
+		<copy todir="${tpcw.src.dir}/servlets" filtering="on" preservelastmodified="false">
+			<fileset dir="${tpcw.dir}/servlets" casesensitive="yes">
+				<include name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${tpcw.src.dir}/populate" filtering="on" preservelastmodified="false">
+			<fileset dir="${tpcw.dir}/populate" casesensitive="yes">
+				<include name="**/*.java" />
+			</fileset>
+		</copy>
 	</target>
 
 

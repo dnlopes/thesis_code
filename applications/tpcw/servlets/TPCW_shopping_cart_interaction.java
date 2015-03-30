@@ -116,7 +116,6 @@ public class TPCW_shopping_cart_interaction extends HttpServlet {
 	    curr_QTYstr = req.getParameter("QTY_" + i);
 	    curr_I_IDstr = req.getParameter("I_ID_" + i);
 	}
-
 	cart = TPCW_Database.doCart(SHOPPING_ID, I_ID, ids, quantities);
 
 	//Add the top part of the HTML

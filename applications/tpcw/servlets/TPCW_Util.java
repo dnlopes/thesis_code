@@ -60,12 +60,11 @@ import java.util.*;
 public class TPCW_Util {
     
     //public final String SESSION_ID="JIGSAW_SESSION_ID";
-    public static final String SESSION_ID="JServSessionIdroot";
-    //public static final String SESSION_ID="@sessionIdString@";
+    //public static final String SESSION_ID="JServSessionIdroot";
+    public static final String SESSION_ID="@sessionIdString@";
 
     //This must be equal to the number of items in the ITEM table
-    //public static final int NUM_ITEMS = @num.item@;
-    public static final int NUM_ITEMS = 100;
+    public static final int NUM_ITEMS = @num.item@;
 
     public static int getRandomI_ID(){
 	Random rand = new Random();

@@ -24,7 +24,6 @@ import util.IDFactories.IdentifierFactory;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.Configuration;
-import util.defaults.ScratchpadDefaults;
 import util.parser.DDLParser;
 
 import java.io.StringReader;

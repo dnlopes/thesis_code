@@ -62,7 +62,9 @@
 
 package rbe;
 
+import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -74,6 +76,7 @@ import java.util.GregorianCalendar;
 import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
+import java.util.HashMap;
 
 import rbe.args.Arg;
 import rbe.args.ArgDB;
@@ -90,10 +93,19 @@ import rbe.util.CharRangeStrPattern;
 
 import rbe.util.Pad;
 
+//getAborts
+import java.net.*;
+import java.io.*;
+
 public class RBE {
 
   // URLs
-  public static String www1 = "@standardUrl@";
+  public static String [] webproxies;
+  public static int cusers;
+  public static final int userMaxRetry=1;
+  public static HashMap<String,Integer> abortMap;
+  public static HashMap<String,Integer> transactionMap;
+  public static String www1 = "@standardUrl@/";  //list of URLs the client will connect to, separated by comas  
   public static String www;
   public static String homeURL;
   public static String shopCartURL;
@@ -109,8 +121,9 @@ public class RBE {
   public static String buyConfURL;
   public static String adminReqURL;
   public static String adminConfURL;
+  public static String mgmtURL;
   public static Date startTime;
-
+  
   public static final StrStrPattern yourCID = 
     new StrStrPattern("C_ID=");
   public static final StrStrPattern yourShopID = 
@@ -128,8 +141,20 @@ public class RBE {
 
   public static void setURLs()
   {
-	 www = www1 + "@servletUrlPath@";
-	 String wwwTPCW = www1 + "@tpcwUrlPath@";
+	 cusers=0;
+	 webproxies = www1.split(",");
+	 abortMap= new HashMap<String,Integer>();
+	 for(int i =0; i< webproxies.length; i++){
+		 abortMap.put(webproxies[i],0);
+		 System.out.println("added proxy "+webproxies[i]);
+	 }
+	 transactionMap= new HashMap<String,Integer>();
+	 for(int i =0; i< webproxies.length; i++){
+		 transactionMap.put(webproxies[i],0);
+	 }
+	 mgmtURL=www+"TPCW_MGMT_proxy";
+	 www = ""; //www1 + "@servletUrlPath@";
+	 //String wwwTPCW = www1 + "@tpcwUrlPath@";
 	 homeURL = www+"TPCW_home_interaction";
 	 shopCartURL = www+"TPCW_shopping_cart_interaction";
 	 orderInqURL = www+"TPCW_order_inquiry_servlet";
@@ -372,7 +397,21 @@ public class RBE {
     RBE.setURLs();
     EB.DEBUG = debug.num;
     EBStats.maxError = maxErr.num;
-
+    long datein=System.currentTimeMillis();
+	System.out.println("Configure measurement interval on remote proxies (compute aborts and transaction within MI)");
+    cusers=ebs.size();
+    int w;
+    for(w= 0; w<webproxies.length; w++){
+    	abortMap.put(webproxies[w], 0);
+    	transactionMap.put(webproxies[w],0);
+    	configureProxy(webproxies[w],w,1000L*ru.num,1000L*mi.num);
+    	//System.out.println(webproxies[w]);
+    	//System.out.println(getAborts(webproxies[w]));
+    }
+    System.out.println("Configuration finished in "+((System.currentTimeMillis()-datein)/1000)+"seconds");
+    //System.exit(0);
+    
+    
     // Check for numCustomer valid. 
     if (rbe.numCustomer < 1) {
       System.out.println("Number of customers (" + rbe.numCustomer + 
@@ -467,12 +506,17 @@ public class RBE {
 
     // Re-initialize EBs.  This is necessary to correctly scale usmd for
     //  the slow-down factor which was not computed when EBs were created.
+    int proxyindex = 0;
     for (i=0;i<ebs.size();i++) {
       EB e = (EB) ebs.elementAt(i);
+      if(proxyindex>=webproxies.length) 
+    	  proxyindex = 0;
+      e.webproxy=webproxies[proxyindex++];
       e.initialize();
       e.tt_scale = tt_scale.num;
       e.waitKey = key.flag;
-      e.setName("TPC-W Emulated Broswer " + (i+1));
+      e.setName("TPC-W Emulated Broswer " + (i+1)+" connected to "+e.webproxy);
+      System.out.println(e.getName());
       e.setDaemon(true);
     }
 
@@ -513,7 +557,7 @@ public class RBE {
     // Terminate all EBs
     EB.terminate = true;
     try {
-      Thread.currentThread().sleep(10000L);
+      Thread.currentThread().sleep(100L);
     }
     catch (InterruptedException ie) { System.out.println("Unable to sleep!");}
 
@@ -526,9 +570,9 @@ public class RBE {
       EB e = (EB) ebs.elementAt(i);
       System.out.println("main thread: About to interrupt: " + i);
       e.interrupt();
-      //e.stop();
+      e.stop();
       try {
-	e.join();
+	e.join(100L);
       }
       catch (InterruptedException inte) {
 	inte.printStackTrace();
@@ -555,8 +599,9 @@ public class RBE {
 
     rbe.stats.print(oFile.s);
     oFile.s.close();
+    
     try{
-    	PrintStream gnuplotFile = new PrintStream(new FileOutputStream(oFile.fName+".gnuplot"));
+    	PrintStream gnuplotFile = new PrintStream(new FileOutputStream(oFile.fName+"_gnuplot"));
     	
     	gnuplotFile.println("# Start time: " + startTime);
         gnuplotFile.println("# System under test: " + www);
@@ -976,4 +1021,278 @@ public class RBE {
 	 
 	 return(mURL);
   }
+  
+  public static Integer getAborts(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getAborts");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }//getAborts 
+  public static Integer getTransactions(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getTransactions");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }//getAborts 
+  public static void setProxyId(String proxy,int id){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=setProxyId&proxyid="+id+"&totalproxies="+webproxies.length);
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      //String [] value;
+	  //System.out.println("page:"+html);
+      //value = html.split("\\s+");
+      //return Integer.parseInt(value[1]);
+  }//setProxyID
+  public static void configureProxy(String proxy,int id, long startmi, long duration){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=configure" +
+				"&proxyid="+id+ //compute nonoverlap ids
+				"&totalproxies="+webproxies.length+ //compute nonoverlap ids
+				"&startmi="+startmi+  //how many seconds from now
+				"&duration="+duration); //how long it will take
+		
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+	  System.out.println("Proxy["+id+"] configuration:"+html);
+      //String [] value;
+	  //value = html.split("\\s+");
+      //return Integer.parseInt(value[1]);
+  }
+  
+  /////////////
+  public static Integer getTxMudAborts(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getTxMudAborts");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }
+  //---------
+  public static Integer getTxMudRedTransactions(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getTxMudRedTransactions");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }
+  //----------
+  public static Integer getTxMudBlueTransactions(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getTxMudBlueTransactions");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }//gettxn
+  public static Integer getCommitedTransactions(String proxy){
+	  //System.out.println("Connecting to server "+proxy+ " and update abort number");
+	  URL httpReq; 
+	  BufferedInputStream in=null;
+	  byte [] buffer = new byte[4096];
+	  String html="";
+	  int r;
+	  while(true){
+	  try {
+		httpReq = new URL(proxy+mgmtURL+"?command=getCommitedTransactions");
+		in = new BufferedInputStream(httpReq.openStream(), 4096);
+		  while ((r = in.read(buffer, 0, buffer.length))!=-1) {
+		      if (r>0) {
+			  html = html + new String(buffer, 0, r);
+		      }
+		  }
+      }
+	  catch(java.net.ConnectException ce){
+		System.out.println("failed to connecto to "+proxy+" trying again!");
+		  continue;
+	  }
+      catch (IOException ioe) {
+		ioe.printStackTrace();
+	  }
+      catch(Exception e){
+    	  e.printStackTrace();
+      }
+      String [] value;
+	  //System.out.println("page:"+html);
+      value = html.split("\\s+");
+      return Integer.parseInt(value[1]);
+      }
+  }//getAborts 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }

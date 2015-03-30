@@ -95,11 +95,11 @@ admr:   Administration request
 bess:   Best sellers page
 buyc:   Buy confirm page
 buyr:   Buy request page
-creg:   servlets.Customer registrations page
+creg:   Customer registrations page
 home:   Home page.  Probably shouldn't disable this one.
 newp:   New products page
-ordd:   servlets.Order display page
-ordi:   servlets.Order inquiry page
+ordd:   Order display page
+ordi:   Order inquiry page
 prod:   Product detail page
 sreq:   Search request page
 sres:   Search result page
