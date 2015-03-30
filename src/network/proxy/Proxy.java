@@ -106,8 +106,6 @@ public class Proxy extends AbstractNode
 
 		this.activeScratchpads.remove(txnId);
 		this.scratchpadsPool.returnObject(pad);
-
-		LOG.info("txn {} aborted by user request", txnId.getValue());
 		txnId.resetValue();
 	}
 
@@ -117,6 +115,8 @@ public class Proxy extends AbstractNode
 
 		if(pad == null)
 			return;
+
+		pad.closeTransaction();
 
 		this.activeScratchpads.remove(txnId);
 		this.scratchpadsPool.returnObject(pad);

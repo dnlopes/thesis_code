@@ -67,6 +67,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public void rollback() throws SQLException
 	{
+		LOG.info("aborting txn {} by user request", txnId.getValue());
 		this.proxy.abort(this.txnId);
 	}
 

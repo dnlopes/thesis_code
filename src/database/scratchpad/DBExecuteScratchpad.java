@@ -139,6 +139,19 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
+	public void closeTransaction()
+	{
+		this.runtimeWatch.stop();
+		this.activeTransaction.finish();
+
+		if(!this.readOnly)
+			LOG.warn("this txn is not read-only, we should commit but instead we are closing");
+
+		LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+				this.activeTransaction.getLatency());
+	}
+
+	@Override
 	public int getScratchpadId()
 	{
 		return this.id;
@@ -265,12 +278,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
-	public void abort() throws SQLException
-	{
-		this.defaultConnection.rollback();
-	}
-
-	@Override
 	public void resetScratchpad() throws SQLException
 	{
 		this.activeTransaction = null;
@@ -297,13 +304,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 	@Override
 	public boolean addToWriteSet(DBWriteSetEntry entry)
-	{
-		//TODO
-		return false;
-	}
-
-	@Override
-	public boolean addToReadSet(DBReadSetEntry readSetEntry)
 	{
 		//TODO
 		return false;

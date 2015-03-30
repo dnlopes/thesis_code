@@ -2,7 +2,6 @@ package database.scratchpad;
 
 
 import database.jdbc.Result;
-import database.jdbc.util.DBReadSetEntry;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import network.proxy.IProxyNetwork;
@@ -24,6 +23,8 @@ public interface IDBScratchpad
 
 	public boolean commitTransaction(IProxyNetwork proxy);
 
+	public void closeTransaction();
+
 	public int getScratchpadId();
 
 	public boolean isReadOnly();
@@ -38,11 +39,7 @@ public interface IDBScratchpad
 
 	public int executeBatch() throws SQLException;
 
-	public void abort() throws SQLException;
-
 	boolean addToWriteSet(DBWriteSetEntry entry);
-
-	boolean addToReadSet(DBReadSetEntry readSetEntry);
 
 	public ResultSet executeQuery(String op) throws SQLException;
 
