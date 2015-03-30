@@ -39,7 +39,7 @@ public class MicroTest
 		int res;
 		ResultSet rs;
 
-			rs = stat.executeQuery("SELECT * from t2,t1 where a=5");
+			rs = stat.executeQuery("SELECT * from t2");
 
 		res = stat.executeUpdate("update t3 set b=9, d=10 where a>8");
 			res = stat.executeUpdate("update t3 set e='teste' where a>6");

@@ -12,6 +12,7 @@ import database.util.DatabaseTable;
 import database.util.PrimaryKey;
 import database.util.PrimaryKeyValue;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.WhenClause;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -968,14 +969,29 @@ public class DBExecuter implements IExecuter
 			this.addNotInClause(whereClauseOrig, true, true);
 		}
 
-		String defaultWhere = plainSelect.getWhere().toString();
 		queryToOrigin = plainSelect.toString();
 
 		plainSelect.setFromItem(this.fromItemTemp);
 		queryToTemp = plainSelect.toString();
 
-		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
-		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
+		if(plainSelect.getWhere() != null)
+		{
+			String defaultWhere = plainSelect.getWhere().toString();
+			queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
+			queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
+		}
+		else
+		{
+ 			StringBuilder auxBuffer = new StringBuilder(queryToOrigin);
+			auxBuffer.append(" WHERE ");
+			auxBuffer.append(whereClauseOrig);
+			queryToOrigin = auxBuffer.toString();
+			auxBuffer.setLength(0);
+			auxBuffer.append(queryToTemp);
+			auxBuffer.append(" WHERE ");
+			auxBuffer.append(whereClauseTemp);
+			queryToTemp = auxBuffer.toString();
+		}
 
 		buffer.append("(");
 		buffer.append(queryToTemp);
