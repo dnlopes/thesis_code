@@ -714,29 +714,30 @@ public class TPCW_Database {
 	    });
 	return integer;
     }
-    private static int createEmptyCart(Connection con)throws SQLException {
-	int SHOPPING_ID = 0;
-	boolean success = false;
+    private static int createEmptyCart(Connection con)throws SQLException
+	{
+		int SHOPPING_ID = 0;
+		boolean success = false;
 	
-	while(success == false) {
-	    PreparedStatement get_next_id = con.prepareStatement
-		(@sql.createEmptyCart@);
-	    // synchronized(Cart.class) {
-		//ResultSet rs = get_next_id.executeQuery();
-		//rs.next();
-		//SHOPPING_ID = rs.getInt(1);
-		//rs.close();
-		//replaced by new SIEVE id assignment method
-	    //SHOPPING_ID = con.shdOpCreator.assignNextUniqueId("shopping_cart","sc_id");
-		SHOPPING_ID = IdentifierFactory.getNextId("shopping_cart", "sc_id");
-		PreparedStatement insert_cart = con.prepareStatement
-		    (@sql.createEmptyCart.txmud@);
-		insert_cart.setInt(1, SHOPPING_ID);
-		insert_cart.executeUpdate();
-		get_next_id.close();
+		//while(!success)
+		//{
+			//PreparedStatement get_next_id = con.prepareStatement
+			//( @sql.createEmptyCart @);
+			// synchronized(Cart.class) {
+			//ResultSet rs = get_next_id.executeQuery();
+			//rs.next();
+			//SHOPPING_ID = rs.getInt(1);
+			//rs.close();
+			//replaced by new SIEVE id assignment method
+			//SHOPPING_ID = con.shdOpCreator.assignNextUniqueId("shopping_cart","sc_id");
+			SHOPPING_ID = IdentifierFactory.getNextId("shopping_cart", "sc_id");
+			PreparedStatement insert_cart = con.prepareStatement
+					(@sql.createEmptyCart.insert.v2@);
+			insert_cart.setInt(1, SHOPPING_ID);
+			insert_cart.executeUpdate();
+			return SHOPPING_ID;
+		//}
 	}
-	return SHOPPING_ID;
-    }
     
     public static Cart doCart(final int SHOPPING_ID, final Integer I_ID, final Vector ids, final Vector quantities) {	
 	Cart cart = withTransaction(new tx.TransactionalCommand<Cart>() {

@@ -117,7 +117,8 @@ CREATE TABLE country (
 	@NORMALSTRING o_status varchar(15), 
 	PRIMARY KEY (o_id),
 	FOREIGN KEY (o_c_id) REFERENCES customer(c_id),
-    FOREIGN KEY (o_bill_addr_id, o_ship_addr_id) REFERENCES address(addr_id)
+    FOREIGN KEY (o_bill_addr_id) REFERENCES address(addr_id),
+    FOREIGN KEY (o_ship_addr_id) REFERENCES address(addr_id)
 	);
 
 @AUSETTABLE CREATE TABLE shopping_cart ( 

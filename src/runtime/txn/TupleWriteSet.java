@@ -1,9 +1,14 @@
 package runtime.txn;
 
 
+import database.util.DatabaseTable;
 import database.util.PrimaryKeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -13,14 +18,17 @@ import java.util.Map;
 public class TupleWriteSet
 {
 
+	private static final Logger LOG = LoggerFactory.getLogger(TupleWriteSet.class);
+
 	private PrimaryKeyValue tupleId;
 	private Map<String, String> lwwFieldsValues;
 	private Map<String, String> oldFieldsValues;
+	private DatabaseTable dbTable;
 
-
-	public TupleWriteSet(PrimaryKeyValue tuplePkValue)
+	public TupleWriteSet(PrimaryKeyValue tuplePkValue, DatabaseTable dbTable)
 	{
 		this.tupleId = tuplePkValue;
+		this.dbTable = dbTable;
 		this.lwwFieldsValues = new LinkedHashMap<>();
 		this.oldFieldsValues = new LinkedHashMap<>();
 	}
@@ -50,19 +58,41 @@ public class TupleWriteSet
 		return this.oldFieldsValues;
 	}
 
-	public String getNewValue(String fieldName)
+	public void generateUpdateStatement(List<String> statements)
 	{
-		return this.lwwFieldsValues.get(fieldName);
-	}
+		if(lwwFieldsValues.size() == 0)
+			return;
 
-	public String getOldValue(String fieldName)
-	{
-		return this.oldFieldsValues.get(fieldName);
-	}
+		LOG.debug("{} fields modified for tuple {}", this.lwwFieldsValues.size(), this.tupleId
+				.getValue());
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("UPDATE ");
+		buffer.append(this.dbTable);
+		buffer.append(" set ");
 
-	public boolean constainsNewValue(String fieldName)
-	{
-		return this.lwwFieldsValues.containsKey(fieldName);
-	}
+		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
 
+		while(modifiedFieldsIterator.hasNext())
+		{
+			String fieldName = modifiedFieldsIterator.next();
+			String newValue = this.lwwFieldsValues.get(fieldName);
+			buffer.append(fieldName);
+			buffer.append("=");
+			buffer.append(newValue);
+
+			if(modifiedFieldsIterator.hasNext())
+				buffer.append(",");
+		}
+
+		buffer.append(" WHERE (");
+		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
+		buffer.append(") = (");
+		buffer.append(this.tupleId.getValue());
+		buffer.append(")");
+
+		String statement = buffer.toString();
+		LOG.debug("statemente generated: {}", statement);
+
+		statements.add(statement);
+	}
 }

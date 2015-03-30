@@ -65,7 +65,7 @@ public class TransactionWriteSet
 		List<String> allStatements = new ArrayList<>();
 		this.generateDeletes(allStatements);
 		this.generateUpdates(allStatements);
-		//TODO inserts
+		this.generateInserts(allStatements);
 
 		this.statements = allStatements;
 	}
@@ -77,57 +77,8 @@ public class TransactionWriteSet
 
 	private void generateUpdates(List<String> allStatements) throws SQLException
 	{
-		// gerar aqui os comandos sql ou dar o write set inteiro ao replicator?
-		for(TupleWriteSet set : this.modifiedTuples.values())
-		{
-		}
-		/*
-		StringBuilder buffer = new StringBuilder();
-
-		for(TableWriteSet tableWriteSet : this.writeSet.values())
-		{
-			if(!tableWriteSet.hasUpdatedRows())
-				continue;
-
-			ResultSet rs = tableWriteSet.getUpdateResultSet();
-
-			while(rs.next())
-			{
-				buffer.append("UPDATE ");
-				buffer.append(tableWriteSet.getTableName());
-				buffer.append(" SET ");
-
-				//for each modified column
-				for(String column : tableWriteSet.getModifiedColumns())
-				{
-					// ignore custom fields. there is no point in updating it
-					if(column.startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
-						continue;
-
-					String newValue = rs.getString(column);
-					DataField field = DatabaseMetadata.getField(tableWriteSet.getTableName(), column);
-
-					if(field.hasInvariants())
-						InvariantChecker.checkInvariants(DBOperationType.UPDATE, field, newValue,
-								this.invariantsToCheck);
-
-					buffer.append(column);
-					buffer.append("=");
-					buffer.append(newValue);
-					buffer.append(",");
-				}
-
-				buffer.deleteCharAt(buffer.length() - 1);
-
-				buffer.append(" WHERE ");
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE);
-				buffer.append("=");
-				buffer.append(rs.getString(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-				allStatements.add(buffer.toString());
-				buffer.setLength(0);
-			}
-		}
-		*/
+		for(TableWriteSet tableWriteSet : this.txnWriteSet.values())
+			tableWriteSet.generateUpdateStatements(allStatements);
 	}
 
 	/**
@@ -139,6 +90,12 @@ public class TransactionWriteSet
 	{
 		for(TableWriteSet tableWriteSet : this.txnWriteSet.values())
 			tableWriteSet.generateDeleteStatements(allStatements);
+	}
+
+	private void generateInserts(List<String> allStatements)
+	{
+		for(TableWriteSet tableWriteSet : this.txnWriteSet.values())
+			tableWriteSet.generateInsertsStatements(allStatements);
 	}
 
 	public List<RequestEntry> verifyInvariants()

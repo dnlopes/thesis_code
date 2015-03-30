@@ -345,7 +345,7 @@ public class DBExecuter implements IExecuter
 			else
 				buffer.append("CREATE TABLE IF NOT EXISTS ");        // for mysql
 
-			LOG.debug("creating temporary table {}", this.tempTableName);
+			LOG.trace("creating temporary table {}", this.tempTableName);
 
 			buffer.append(tempTableName);
 			buffer2.append(tempTableName);
@@ -490,7 +490,7 @@ public class DBExecuter implements IExecuter
 			LOG.error("failed to create temporary tables for scratchpad {}", scratchpad.getScratchpadId());
 			RuntimeHelper.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 		}
-		LOG.info("executor for table {} created", this.databaseTable.getName());
+		LOG.trace("executor for table {} created", this.databaseTable.getName());
 	}
 
 	/**
@@ -726,22 +726,28 @@ public class DBExecuter implements IExecuter
 			throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
+		StringBuilder originBuffer = new StringBuilder();
 		buffer.append("insert into ");
+		originBuffer.append("insert into ");
 		buffer.append(tempTableName);
+		originBuffer.append(this.databaseTable.getName());
 
 		List columnsList = insertOp.getColumns();
 		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
-
-		Integer immutablueValue = null;
 
 		if(columnsList == null)
 		{
 			buffer.append("(");
 			buffer.append(tableDefinition.getPlainColumnList());
 			buffer.append(")");
+			originBuffer.append("(");
+			originBuffer.append(tableDefinition.getPlainColumnList());
+			originBuffer.append(")");
 		} else
 		{
 			buffer.append("(");
+			originBuffer.append("(");
+
 			Iterator it = columnsList.iterator();
 			boolean first = true;
 			while(it.hasNext())
@@ -749,44 +755,35 @@ public class DBExecuter implements IExecuter
 				String col = it.next().toString();
 
 				if(!first)
+				{
 					buffer.append(",");
+					originBuffer.append(",");
+				}
+
 				first = false;
 				buffer.append(col);
+				originBuffer.append(col);
 			}
 			buffer.append(")");
+			originBuffer.append(")");
 		}
 
-		int counter = 0;
 		List<String> pkValueList = new ArrayList<>();
 
 		for(int i = 0; i < pk.getSize(); i++)
-		{
 			pkValueList.add(valuesList.get(i).toString());
-			counter++;
-		}
-
-		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
-		this.createWriteSetEntry(pkValue);
-		this.writeSet.addInsertedRow(pkValue);
-
-		for(int j = counter; j < valuesList.size(); j++)
-		{
-			String valueString = valuesList.toString();
-			this.addNewEntry(pkValue, columnsList.get(counter).toString(), valueString);
-			counter++;
-		}
 
 		buffer.append(" values ");
 		buffer.append(insertOp.getItemsList());
-		buffer.append(";");
+		originBuffer.append(" values ");
+		originBuffer.append(insertOp.getItemsList());
+
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
+		this.createWriteSetEntry(pkValue);
+		this.writeSet.addInsertedRow(pkValue, originBuffer.toString());
 
 		// TODO: blue transactions need to fail here when the value inserted already exists
 		int result = db.executeUpdate(buffer.toString());
-		String[] pkVal = tableDefinition.getPlainPKValue(insertOp.getColumns(), insertOp.getItemsList());
-		if(pkVal.length > 0)
-		{
-			db.addToWriteSet(DBWriteSetEntry.createEntry(insertOp.getTable().toString(), pkVal, true, false));
-		}
 
 		//add unique index to write set as well
 		//get unique indices
@@ -847,7 +844,7 @@ public class DBExecuter implements IExecuter
 
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
-			if(this.writeSet.getInsertedRows().contains(pkValue))
+			if(this.writeSet.getInsertedRows().containsKey(pkValue))
 				this.writeSet.removeInsertedRow(pkValue);
 			else
 				this.writeSet.removeUpdatedRow(pkValue);
@@ -978,10 +975,9 @@ public class DBExecuter implements IExecuter
 			String defaultWhere = plainSelect.getWhere().toString();
 			queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
 			queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
-		}
-		else
+		} else
 		{
- 			StringBuilder auxBuffer = new StringBuilder(queryToOrigin);
+			StringBuilder auxBuffer = new StringBuilder(queryToOrigin);
 			auxBuffer.append(" WHERE ");
 			auxBuffer.append(whereClauseOrig);
 			queryToOrigin = auxBuffer.toString();
@@ -1104,32 +1100,6 @@ public class DBExecuter implements IExecuter
 
 		boolean first = true;
 		for(PrimaryKeyValue pkValue : this.writeSet.getDeletedRows())
-		{
-			if(first)
-			{
-				buffer.append(pkValue.getValue());
-				first = false;
-			} else
-			{
-				buffer.append(",");
-				buffer.append(pkValue.getValue());
-			}
-		}
-	}
-
-	/**
-	 * Fills the buffer with the newly inserted values
-	 *
-	 * @param buffer
-	 * @param startWithComa
-	 */
-	private void fillInsertedValues(StringBuffer buffer, boolean startWithComa)
-	{
-		if(startWithComa)
-			buffer.append(",");
-
-		boolean first = true;
-		for(PrimaryKeyValue pkValue : this.writeSet.getInsertedRows())
 		{
 			if(first)
 			{
@@ -1385,7 +1355,7 @@ public class DBExecuter implements IExecuter
 	 */
 	private void createWriteSetEntry(PrimaryKeyValue pkValue)
 	{
-		TupleWriteSet set = new TupleWriteSet(pkValue);
+		TupleWriteSet set = new TupleWriteSet(pkValue, databaseTable);
 		this.writeSet.getTableWriteSetMap().put(pkValue, set);
 	}
 

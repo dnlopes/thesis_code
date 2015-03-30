@@ -3,6 +3,8 @@ package runtime.txn;
 
 import database.util.DatabaseTable;
 import database.util.PrimaryKeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
 
 import java.util.*;
@@ -14,12 +16,16 @@ import java.util.*;
 public class TableWriteSet
 {
 
+	private static final Logger LOG = LoggerFactory.getLogger(TableWriteSet.class);
+
 	// original name, not temporary
 	private String tableName;
 	// list of tupleId that were deleted, inserted and updates
 	private Set<PrimaryKeyValue> deletedTuples;
-	private Set<PrimaryKeyValue> insertedTuples;
+	private Map<PrimaryKeyValue, String> insertedTuples;
 	private Set<PrimaryKeyValue> updatedTuples;
+
+	// only for updated tuples
 	private Map<PrimaryKeyValue, TupleWriteSet> writeSet;
 	private DatabaseTable dbTable;
 
@@ -28,7 +34,7 @@ public class TableWriteSet
 		this.tableName = tableName;
 		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(this.tableName);
 		this.deletedTuples = new HashSet<>();
-		this.insertedTuples = new HashSet<>();
+		this.insertedTuples = new HashMap<>();
 		this.updatedTuples = new HashSet<>();
 		this.writeSet = new LinkedHashMap();
 	}
@@ -48,9 +54,9 @@ public class TableWriteSet
 		this.deletedTuples.add(id);
 	}
 
-	public void addInsertedRow(PrimaryKeyValue id)
+	public void addInsertedRow(PrimaryKeyValue id, String insertStatement)
 	{
-		this.insertedTuples.add(id);
+		this.insertedTuples.put(id, insertStatement);
 	}
 
 	public void removeUpdatedRow(PrimaryKeyValue id)
@@ -68,14 +74,9 @@ public class TableWriteSet
 		return this.deletedTuples;
 	}
 
-	public Set<PrimaryKeyValue> getInsertedRows()
+	public Map<PrimaryKeyValue, String> getInsertedRows()
 	{
 		return this.insertedTuples;
-	}
-
-	public boolean hasDeletedRows()
-	{
-		return this.deletedTuples.size() > 0;
 	}
 
 	public void reset()
@@ -98,6 +99,10 @@ public class TableWriteSet
 
 	public void generateDeleteStatements(List<String> statements)
 	{
+		if(this.deletedTuples.size() == 0)
+			return;
+
+		LOG.debug("{} tuples deleted", this.deletedTuples.size());
 		StringBuilder buffer = new StringBuilder();
 		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(this.tableName);
 		String pkCols = table.getPrimaryKey().getQueryClause();
@@ -110,7 +115,36 @@ public class TableWriteSet
 		buffer.append(") IN (");
 		buffer.append(this.createInValuesClause());
 		buffer.append(")");
-		statements.add(buffer.toString());
+
+		String statement = buffer.toString();
+		LOG.debug("statement generated: {}", statement);
+		statements.add(statement);
+	}
+
+	public void generateUpdateStatements(List<String> statements)
+	{
+		if(this.updatedTuples.size() == 0)
+			return;
+
+		for(PrimaryKeyValue pkValue : this.updatedTuples)
+		{
+			TupleWriteSet tupleWriteSet = this.writeSet.get(pkValue);
+			tupleWriteSet.generateUpdateStatement(statements);
+		}
+	}
+
+	public void generateInsertsStatements(List<String> statements)
+	{
+		if(this.insertedTuples.size() == 0)
+			return;
+
+		LOG.debug("{} tuples inserted");
+		for(PrimaryKeyValue pkValue : this.insertedTuples.keySet())
+		{
+			String insertStatement = this.insertedTuples.get(pkValue);
+			LOG.debug("statement generated: {}", insertStatement);
+			statements.add(insertStatement);
+		}
 	}
 
 	private String createInValuesClause()
