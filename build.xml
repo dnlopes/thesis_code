@@ -171,6 +171,7 @@
 		<javac srcdir="${tpcw.dir}/src/servlets" includeantruntime="false" includes="*.java"
 			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
+			<classpath refid="weakdb.runtime.classpath" />
 		</javac>
 		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
 			<fileset dir="${tpcw.dist.dir}/servlets">
