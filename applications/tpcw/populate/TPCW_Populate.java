@@ -117,14 +117,14 @@ class TPCW_Populate
 		//createDB();
 		deleteTables();
 		createTables();
-		populateAddressTable();
-		populateAuthorTable();
+		addIndexes();
 		populateCountryTable();
+		populateAuthorTable();
+		populateAddressTable();
 		populateCustomerTable();
 		populateItemTable();
 		//Need to debug
 		populateOrdersAndCC_XACTSTable();
-		addIndexes();
 		System.out.println("Done");
 		closeConnection();
 	}
@@ -687,6 +687,13 @@ class TPCW_Populate
 		int i;
 		String[] tables = {"address", "author", "cc_xacts", "country", "customer", "item", "order_line", "orders", "shopping_cart", "shopping_cart_line"};
 		int numTables = 10;
+		try
+		{
+			con.commit();
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
 
 		for(i = 0; i < numTables; i++)
 		{
@@ -714,26 +721,47 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE address ( " +
-							"addr_id int not null, " +
-							"addr_street1 varchar(40), " +
-							"addr_street2 varchar(40), " +
-							"addr_city varchar(30), " +
-							"addr_state varchar(20), " +
-							"addr_zip varchar(10), " +
-							"addr_co_id int, " +
+					"CREATE TABLE shopping_cart ( " +
+							"sc_id int not null, " +
+							"sc_time timestamp, " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(addr_id), " +
-							"FOREIGN KEY (addr_co_id) REFERENCES country(co_id) " +
+							"PRIMARY KEY(sc_id)" +
 							")");
+			statement.executeUpdate("drop table if exists shopping_cart");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
-			System.out.println("Created table ADDRESS");
+			System.out.println("Created table SHOPPING_CART");
 		} catch(java.lang.Exception ex)
 		{
-			System.out.println("Unable to create table: ADDRESS");
+			System.out.println("Unable to create table: SHOPPING_CART");
+			ex.printStackTrace();
+			System.exit(1);
+		}
+
+		try
+		{
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE country ( " +
+							"co_id int not null, " +
+							"co_name varchar(50), " +
+							"co_exchange double, " +
+							"co_currency varchar(18), " +
+							"_SP_del BIT(1) default false, " +
+							"_SP_ts int default 0, " +
+							"_SP_clock varchar(100), " +
+							"PRIMARY KEY(co_id)" +
+							")");
+			statement.executeUpdate("drop table if exists country");
+			con.commit();
+			statement.executeUpdate();
+			con.commit();
+			System.out.println("Created table COUNTRY");
+		} catch(java.lang.Exception ex)
+		{
+			System.out.println("Unable to create table: COUNTRY");
 			ex.printStackTrace();
 			System.exit(1);
 		}
@@ -752,6 +780,8 @@ class TPCW_Populate
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
 							"PRIMARY KEY(a_id))");
+			statement.executeUpdate("drop table if exists author");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table AUTHOR");
@@ -765,55 +795,32 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE cc_xacts ( " +
-							"cx_o_id int not null, " +
-							"cx_type varchar(10), " +
-							"cx_num varchar(20), " +
-							"cx_name varchar(30), " +
-							"cx_expire date, " +
-							"cx_auth_id char(15), " +
-							"cx_xact_amt double, " +
-							"cx_xact_date date, " +
-							"cx_co_id int, " +
+					"CREATE TABLE address ( " +
+							"addr_id int not null, " +
+							"addr_street1 varchar(40), " +
+							"addr_street2 varchar(40), " +
+							"addr_city varchar(30), " +
+							"addr_state varchar(20), " +
+							"addr_zip varchar(10), " +
+							"addr_co_id int, " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(cx_o_id), " +
-							"FOREIGN KEY (cx_o_id) REFERENCES orders(o_id), " +
-							"FOREIGN KEY (cx_co_id) REFERENCES country(co_id) " +
+							"PRIMARY KEY(addr_id), " +
+							"FOREIGN KEY (addr_co_id) REFERENCES country(co_id) " +
 							")");
+			statement.executeUpdate("drop table if exists address");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
-			System.out.println("Created table CC_XACTS");
+			System.out.println("Created table ADDRESS");
 		} catch(java.lang.Exception ex)
 		{
-			System.out.println("Unable to create table: CC_XACTS");
+			System.out.println("Unable to create table: ADDRESS");
 			ex.printStackTrace();
 			System.exit(1);
 		}
 
-		try
-		{
-			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE country ( " +
-							"co_id int not null, " +
-							"co_name varchar(50), " +
-							"co_exchange double, " +
-							"co_currency varchar(18), " +
-							"_SP_del BIT(1) default false, " +
-							"_SP_ts int default 0, " +
-							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(co_id)" +
-							")");
-			statement.executeUpdate();
-			con.commit();
-			System.out.println("Created table COUNTRY");
-		} catch(java.lang.Exception ex)
-		{
-			System.out.println("Unable to create table: COUNTRY");
-			ex.printStackTrace();
-			System.exit(1);
-		}
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
@@ -841,6 +848,8 @@ class TPCW_Populate
 							"PRIMARY KEY(c_id), " +
 							"FOREIGN KEY (c_addr_id) REFERENCES address(addr_id)" +
 							")");
+			statement.executeUpdate("drop table if exists customer");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table CUSTOMER");
@@ -882,39 +891,14 @@ class TPCW_Populate
 							"_SP_clock varchar(100), " +
 							"PRIMARY KEY(i_id) " +
 							")");
+			statement.executeUpdate("drop table if exists item");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ITEM");
 		} catch(java.lang.Exception ex)
 		{
 			System.out.println("Unable to create table: ITEM");
-			ex.printStackTrace();
-			System.exit(1);
-		}
-
-		try
-		{
-			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE order_line ( " +
-							"ol_id int not null, " +
-							"ol_o_id int not null, " +
-							"ol_i_id int, " +
-							"ol_qty int, " +
-							"ol_discount double, " +
-							"ol_comments varchar(110), " +
-							"_SP_del BIT(1) default false, " +
-							"_SP_ts int default 0, " +
-							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(ol_id, ol_o_id), " +
-							"FOREIGN KEY (ol_i_id) REFERENCES item(i_id), " +
-							"FOREIGN KEY (ol_o_id) REFERENCES orders(o_id) " +
-							")");
-			statement.executeUpdate();
-			con.commit();
-			System.out.println("Created table ORDER_LINE");
-		} catch(java.lang.Exception ex)
-		{
-			System.out.println("Unable to create table: ORDER_LINE");
 			ex.printStackTrace();
 			System.exit(1);
 		}
@@ -939,8 +923,11 @@ class TPCW_Populate
 							"_SP_clock varchar(100), " +
 							"PRIMARY KEY(o_id), " +
 							"FOREIGN KEY (o_c_id) REFERENCES customer(c_id), " +
-							"FOREIGN KEY (o_bill_addr_id, o_ship_addr_id) REFERENCES address(addr_id) " +
+							"FOREIGN KEY (o_bill_addr_id) REFERENCES address(addr_id), " +
+							"FOREIGN KEY (o_ship_addr_id) REFERENCES address(addr_id) " +
 							")");
+			statement.executeUpdate("drop table if exists orders");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ORDERS");
@@ -951,26 +938,69 @@ class TPCW_Populate
 			System.exit(1);
 		}
 
+
+
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE shopping_cart ( " +
-							"sc_id int not null, " +
-							"sc_time timestamp, " +
+					"CREATE TABLE cc_xacts ( " +
+							"cx_o_id int not null, " +
+							"cx_type varchar(10), " +
+							"cx_num varchar(20), " +
+							"cx_name varchar(30), " +
+							"cx_expire date, " +
+							"cx_auth_id char(15), " +
+							"cx_xact_amt double, " +
+							"cx_xact_date date, " +
+							"cx_co_id int, " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(sc_id)" +
+							"PRIMARY KEY(cx_o_id), " +
+							"FOREIGN KEY (cx_o_id) REFERENCES orders(o_id), " +
+							"FOREIGN KEY (cx_co_id) REFERENCES country(co_id) " +
 							")");
+			statement.executeUpdate("drop table if exists cc_xacts");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
-			System.out.println("Created table SHOPPING_CART");
+			System.out.println("Created table CC_XACTS");
 		} catch(java.lang.Exception ex)
 		{
-			System.out.println("Unable to create table: SHOPPING_CART");
+			System.out.println("Unable to create table: CC_XACTS");
 			ex.printStackTrace();
 			System.exit(1);
 		}
+
+		try
+		{
+			PreparedStatement statement = con.prepareStatement(
+					"CREATE TABLE order_line ( " +
+							"ol_id int not null, " +
+							"ol_o_id int not null, " +
+							"ol_i_id int, " +
+							"ol_qty int, " +
+							"ol_discount double, " +
+							"ol_comments varchar(110), " +
+							"_SP_del BIT(1) default false, " +
+							"_SP_ts int default 0, " +
+							"_SP_clock varchar(100), " +
+							"PRIMARY KEY(ol_id, ol_o_id), " +
+							"FOREIGN KEY (ol_i_id) REFERENCES item(i_id), " +
+							"FOREIGN KEY (ol_o_id) REFERENCES orders(o_id) " +
+							")");
+			statement.executeUpdate("drop table if exists order_line");
+			con.commit();
+			statement.executeUpdate();
+			con.commit();
+			System.out.println("Created table ORDER_LINE");
+		} catch(java.lang.Exception ex)
+		{
+			System.out.println("Unable to create table: ORDER_LINE");
+			ex.printStackTrace();
+			System.exit(1);
+		}
+
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
@@ -983,6 +1013,8 @@ class TPCW_Populate
 							"_SP_clock varchar(100), " +
 							"PRIMARY KEY(scl_sc_id, scl_i_id) " +
 							")");
+			statement.executeUpdate("drop table if exists shopping_cart_line");
+			con.commit();
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table SHOPPING_CART_LINE");
