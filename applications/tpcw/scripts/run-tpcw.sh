@@ -20,5 +20,5 @@
 #Shopping Mix = rbe.EBTPCW2Factory
 #Ordering Mix = rbe.EBTPCW3Factory
 
-java rbe.RBE -EB rbe.EBTPCW1Factory 10 -OUT run1.m -GETIM false -RU 30 -MI 60 -RD 1 -WWW http://localhost:8080/tpcw/
+java rbe.RBE -EB rbe.EBTPCW2Factory 10 -OUT run1.m -GETIM false -RU 30 -MI 60 -RD 1 -WWW http://localhost:8080/tpcw/
 -CUST 100 -ITEM 10000

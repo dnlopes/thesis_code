@@ -57,10 +57,9 @@
  *
  ************************************************************************/
 
-import java.io.*;
-import java.net.URL;
-import java.sql.*;
-import java.lang.Math.*;
+import database.jdbc.CRDTConnection;
+import util.IDFactories.IdentifierFactory;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.sql.Date;
@@ -68,8 +67,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
 
 
 public class TPCW_Database {
@@ -82,12 +79,12 @@ public class TPCW_Database {
 	static String user = "@jdbc.user@";
 	static String password = "@jdbc.password@";
 
-    // Pool of *available* connections.
-    static Vector<Connection> availConn = new Vector(0);
+    // Pool of *available* CRDTConnections.
+    static Vector<CRDTConnection> availConn = new Vector(0);
     static int checkedOut = 0;
-    static int totalConnections = 0;
-    static int createdConnections = 0;
-    static int closedConnections = 0;
+    static int totalCRDTConnections = 0;
+    static int createdCRDTConnections = 0;
+    static int closedCRDTConnections = 0;
     static AtomicInteger aborts =new AtomicInteger(0);
     static AtomicInteger commitedtxn =new AtomicInteger(0);
 
@@ -95,30 +92,30 @@ public class TPCW_Database {
     static long startmi=0;
     static long endmi=0;
     static boolean pool_initialized=false;
-    //    private static final boolean use_connection_pool = false;
-    private static final boolean use_connection_pool = true;
+    //    private static final boolean use_CRDTConnection_pool = false;
+    private static final boolean use_CRDTConnection_pool = true;
     public static int maxConn = @jdbc.connPoolMax@;
 
     // Here's what the db line looks like for postgres
     //public static final String url = "jdbc:postgresql://eli.ece.wisc.edu/tpcwb";
 
     
-    // Get a connection from the pool.
-    public static synchronized Connection getConnection() {
+    // Get a CRDTConnection from the pool.
+    public static synchronized CRDTConnection getCRDTConnection() {
     	//count only transactions within measurement interval
-    	//System.err.println("get new TxMud Connection\n");
+    	//System.err.println("get new TxMud CRDTConnection\n");
     	long time = System.currentTimeMillis();
     	if( time > startmi && time < endmi ) transactions++;
     	//
     //System.err.println("INFO: connect to database");
-	if (!use_connection_pool) {
+	if (!use_CRDTConnection_pool) {
 	    return getNewConnection();
 	} else {
-		Connection con = null;
+		CRDTConnection con = null;
 	    while (availConn.size() > 0) {
-				// Pick the first Connection in the Vector
+				// Pick the first CRDTConnection in the Vector
 				// to get round-robin usage
-		con = (Connection) availConn.firstElement();
+		con = (CRDTConnection) availConn.firstElement();
 		availConn.removeElementAt(0);
 		try {
 		    if (con.isClosed()) {
@@ -130,15 +127,15 @@ public class TPCW_Database {
 		    continue;
 		}
 		
-		// Got a connection.
+		// Got a CRDTConnection.
 		checkedOut++;
 		try { con.setAutoCommit(false); } catch (SQLException e) { return null; }
 		return(con);
 	    }
 	    
 	    if (maxConn == 0 || checkedOut < maxConn) {
-		con = getNewConnection();	
-		totalConnections++;
+		con = getNewConnection();
+		totalCRDTConnections++;
 	    }
 
 	    
@@ -151,11 +148,11 @@ public class TPCW_Database {
 	}
     }
     
-    // Return a connection to the pool.
-    public static synchronized void returnConnection(Connection con)
+    // Return a CRDTConnection to the pool.
+    public static synchronized void returnCRDTConnection(CRDTConnection con)
     throws java.sql.SQLException
     {	
-	if (!use_connection_pool) {
+	if (!use_CRDTConnection_pool) {
 	    con.close();
 	} else {
 	    checkedOut--;
@@ -163,35 +160,29 @@ public class TPCW_Database {
 	}
     }
 
-    // Get a new connection to DB2
-    public static Connection getNewConnection() {
-    	System.out.println("INFO: creating new connection");
-		System.out.println("INFO: configuring weakdb: " +
-				"actualDriver <"+actualDriver+"> jdbcActualpath <jdbcActualPath>"+jdbcActualPath+ " " + jdbcPath +
-				"username:<"+user+"> password:<"+password+">");
+    // Get a new CRDTConnection to DB2
+    public static CRDTConnection getNewConnection() {
 	try {
 		Class.forName(driver);
 
-
-
-		Connection con;
+		CRDTConnection con;
 	    while(true) {
 		try {
-		    //   con = DriverManager.getConnection("jdbc:postgresql://eli.ece.wisc.edu/tpcw", "milo", "");
-		    //con = (Connection) DriverManager.getConnection(jdbcPath);
-			con = DriverManager.getConnection(jdbcPath, user, password);
+		    //   con = DriverManager.getCRDTConnection("jdbc:postgresql://eli.ece.wisc.edu/tpcw", "milo", "");
+		    //con = (CRDTConnection) DriverManager.getCRDTConnection(jdbcPath);
+			con = (CRDTConnection) DriverManager.getConnection(jdbcPath, user, password);
 		    break;  
 		} catch (java.sql.SQLException ex) {
-		    System.err.println("Error getting connection: " + 
+		    System.err.println("Error getting CRDTConnection: " + 
 				       ex.getMessage() + " : " +
 				       ex.getErrorCode() + 
-				       ": trying to get connection again.");
+				       ": trying to get CRDTConnection again.");
 		    ex.printStackTrace();
 		    java.lang.Thread.sleep(1000);
 		}
 	    }
 	    con.setAutoCommit(false);
-	    createdConnections++;
+	    createdCRDTConnections++;
 	    return con;
 	} catch (java.lang.Exception ex) {
 	    ex.printStackTrace();
@@ -203,9 +194,9 @@ public class TPCW_Database {
 	try {
 	    while (true) {
 	    long time = System.currentTimeMillis();	
-		Connection con = getConnection();
+		CRDTConnection con = getCRDTConnection();
 		if (con==null) {
-			System.err.println("ERROR: Restarting TX - because there's no database connection available!! you should change system parameter!! this is not an abort");
+			System.err.println("ERROR: Restarting TX - because there's no database CRDTConnection available!! you should change system parameter!! this is not an abort");
 			continue;
 		}
 		boolean txFinished = false;
@@ -214,7 +205,7 @@ public class TPCW_Database {
 		    con.commit();
 			if( time > startmi && time < endmi )
 				commitedtxn.incrementAndGet();
-		    returnConnection(con);
+		    returnCRDTConnection(con);
 		    txFinished = true;
 		    return result;
 		} catch (SQLException sqle) {
@@ -223,7 +214,7 @@ public class TPCW_Database {
 		    System.err.println("Restarting TX because of a database problem (hopefully just a conflict) total aborts within the MI so far:"+aborts);
 		    sqle.printStackTrace();
 		    //con.rollback();
-		    returnConnection(con);
+		    returnCRDTConnection(con);
 		    txFinished = true;
 		}catch(Exception spde){
 		 	if( time > startmi && time < endmi )	
@@ -231,13 +222,13 @@ public class TPCW_Database {
 		    System.err.println("Restarting TX because of a database problem (hopefully just a conflict) total aborts within the MI so far:"+aborts);
 		    spde.printStackTrace();
 		    //con.rollback();
-		    returnConnection(con);
+		    returnCRDTConnection(con);
 		    txFinished = true;
 		} 
 		finally {
 		    if (!txFinished) {
 			//con.rollback();
-			returnConnection(con);
+			returnCRDTConnection(con);
 		    }
 		}
 	    }
@@ -245,9 +236,9 @@ public class TPCW_Database {
 	    // exception occurred either rolling back or releasing resources.  Not much we can do here
 		System.err.println("----------------------------------------------------------------------------");
 		System.err.println("A very strange error happened!! - failed during rollback! Aborts so far:"
-				+aborts+" available connections:"+availConn.size()+" total connections:"+maxConn);
+				+aborts+" available CRDTConnections:"+availConn.size()+" total CRDTConnections:"+maxConn);
 		System.out.println("A very strange error happened!! - failed during rollback! Aborts so far:"
-				+aborts+" available connections:"+availConn.size()+" total connections:"+maxConn);
+				+aborts+" available CRDTConnections:"+availConn.size()+" total CRDTConnections:"+maxConn);
 		sqle.printStackTrace();
 		System.err.println("----------------------------------------------------------------------------");
 	    throw new RuntimeException(sqle);
@@ -256,13 +247,13 @@ public class TPCW_Database {
 
     public static String[] getName(final int c_id) {
 	String[] name = withTransaction(new tx.TransactionalCommand<String[]>() {
-		public String[] doIt(Connection con) throws SQLException {
-		    return getName((Connection)con, c_id);
+		public String[] doIt(CRDTConnection con) throws SQLException {
+		    return getName((CRDTConnection)con, c_id);
 		}
 	    });
 	return name;
     }
-    private static String[] getName(Connection con, int c_id) throws SQLException {
+    private static String[] getName(CRDTConnection con, int c_id) throws SQLException {
 	String name[] = new String[2];
 	    PreparedStatement get_name = con.prepareStatement
 		(@sql.getName@);
@@ -285,13 +276,13 @@ public class TPCW_Database {
 
     public static Book getBook(final int i_id) {
 	Book book = withTransaction(new tx.TransactionalCommand<Book>() {
-		public Book doIt(Connection con) throws SQLException {
-		    return getBook((Connection)con, i_id);
+		public Book doIt(CRDTConnection con) throws SQLException {
+		    return getBook((CRDTConnection)con, i_id);
 		}
 	    });
 	return book;
     }
-    private static Book getBook(Connection con, int i_id) throws SQLException {
+    private static Book getBook(CRDTConnection con, int i_id) throws SQLException {
 	Book book = null;
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.getBook@);
@@ -310,13 +301,13 @@ public class TPCW_Database {
 
     public static Customer getCustomer(final String UNAME){
 	Customer customer = withTransaction(new tx.TransactionalCommand<Customer>() {
-		public Customer doIt(Connection con) throws SQLException {
-		    return getCustomer((Connection)con, UNAME);
+		public Customer doIt(CRDTConnection con) throws SQLException {
+		    return getCustomer((CRDTConnection)con, UNAME);
 		}
 	    });
 	return customer;
     }
-    private static Customer getCustomer(Connection con, String UNAME) throws SQLException {
+    private static Customer getCustomer(CRDTConnection con, String UNAME) throws SQLException {
 	Customer cust = null;
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.getCustomer@);
@@ -341,13 +332,13 @@ public class TPCW_Database {
 
     public static Vector doSubjectSearch(final String search_key) {
 	Vector Vector = withTransaction(new tx.TransactionalCommand<Vector>() {
-		public Vector doIt(Connection con) throws SQLException {
-		    return doSubjectSearch((Connection)con, search_key);
+		public Vector doIt(CRDTConnection con) throws SQLException {
+		    return doSubjectSearch((CRDTConnection)con, search_key);
 		}
 	    });
 	return Vector;
     }
-    private static Vector doSubjectSearch(Connection con, String search_key) throws SQLException {
+    private static Vector doSubjectSearch(CRDTConnection con, String search_key) throws SQLException {
 	Vector vec = new Vector();
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.doSubjectSearch@);
@@ -367,13 +358,13 @@ public class TPCW_Database {
 
     public static Vector doTitleSearch(final String search_key) {
 	Vector vector = withTransaction(new tx.TransactionalCommand<Vector>() {
-		public Vector doIt(Connection con) throws SQLException {
-		    return doTitleSearch((Connection)con, search_key);
+		public Vector doIt(CRDTConnection con) throws SQLException {
+		    return doTitleSearch((CRDTConnection)con, search_key);
 		}
 	    });
 	return vector;
     }
-    private static Vector doTitleSearch(Connection con, String search_key) throws SQLException {
+    private static Vector doTitleSearch(CRDTConnection con, String search_key) throws SQLException {
 	Vector vec = new Vector();
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.doTitleSearch@);
@@ -393,13 +384,13 @@ public class TPCW_Database {
 
     public static Vector doAuthorSearch(final String search_key) {
 	Vector vector = withTransaction(new tx.TransactionalCommand<Vector>() {
-		public Vector doIt(Connection con) throws SQLException {
-		    return doAuthorSearch((Connection)con, search_key);
+		public Vector doIt(CRDTConnection con) throws SQLException {
+		    return doAuthorSearch((CRDTConnection)con, search_key);
 		}
 	    });
 	return vector;
     }
-    private static Vector doAuthorSearch(Connection con, String search_key) throws SQLException {
+    private static Vector doAuthorSearch(CRDTConnection con, String search_key) throws SQLException {
 	Vector vec = new Vector();
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.doAuthorSearch@);
@@ -419,13 +410,13 @@ public class TPCW_Database {
 
     public static Vector getNewProducts(final String subject) {
 	Vector vector = withTransaction(new tx.TransactionalCommand<Vector>() {
-		public Vector doIt(Connection con) throws SQLException {
-		    return getNewProducts((Connection)con, subject);
+		public Vector doIt(CRDTConnection con) throws SQLException {
+		    return getNewProducts((CRDTConnection)con, subject);
 		}
 	    });
 	return vector;
     }
-    private static Vector getNewProducts(Connection con, String subject) throws SQLException {
+    private static Vector getNewProducts(CRDTConnection con, String subject) throws SQLException {
 	Vector vec = new Vector();  // Vector of Books
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.getNewProducts@);
@@ -445,13 +436,13 @@ public class TPCW_Database {
 
     public static Vector getBestSellers(final String subject) {
 	Vector vector = withTransaction(new tx.TransactionalCommand<Vector>() {
-		public Vector doIt(Connection con) throws SQLException {
-		    return getBestSellers((Connection)con, subject);
+		public Vector doIt(CRDTConnection con) throws SQLException {
+		    return getBestSellers((CRDTConnection)con, subject);
 		}
 	    });
 	return vector;
     }
-    private static Vector getBestSellers(Connection con, String subject) throws SQLException {
+    private static Vector getBestSellers(CRDTConnection con, String subject) throws SQLException {
 	Vector vec = new Vector();  // Vector of Books
 	    //The following is the original, unoptimized best sellers query.
 	    PreparedStatement statement = con.prepareStatement
@@ -479,13 +470,13 @@ public class TPCW_Database {
 
     public static void getRelated(final int i_id, final Vector i_id_vec, final Vector i_thumbnail_vec) {
 	withTransaction(new tx.TransactionalCommand<Void>() {
-		public Void doIt(Connection con) throws SQLException {
-		    getRelated((Connection)con, i_id, i_id_vec, i_thumbnail_vec);
+		public Void doIt(CRDTConnection con) throws SQLException {
+		    getRelated((CRDTConnection)con, i_id, i_id_vec, i_thumbnail_vec);
 		    return VOID;
 		}
 	    });
     }
-    private static void getRelated(Connection con, int i_id, Vector i_id_vec, Vector i_thumbnail_vec) throws SQLException {
+    private static void getRelated(CRDTConnection con, int i_id, Vector i_id_vec, Vector i_thumbnail_vec) throws SQLException {
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.getRelated@);
 
@@ -508,13 +499,13 @@ public class TPCW_Database {
 
     public static void adminUpdate(final int i_id, final double cost, final String image, final String thumbnail) {
 	withTransaction(new tx.TransactionalCommand<Void>() {
-		public Void doIt(Connection con) throws SQLException {
-		    adminUpdate((Connection)con, i_id, cost, image, thumbnail);
+		public Void doIt(CRDTConnection con) throws SQLException {
+		    adminUpdate((CRDTConnection)con, i_id, cost, image, thumbnail);
 		    return VOID;
 		}
 	    });
     }
-    private static void adminUpdate(Connection con, int i_id, double cost, String image, String thumbnail) throws SQLException {
+    private static void adminUpdate(CRDTConnection con, int i_id, double cost, String image, String thumbnail) throws SQLException {
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.adminUpdate@);
 
@@ -576,13 +567,13 @@ public class TPCW_Database {
 
     public static String GetUserName(final int C_ID){
 	String string = withTransaction(new tx.TransactionalCommand<String>() {
-		public String doIt(Connection con) throws SQLException {
-		    return GetUserName((Connection)con, C_ID);
+		public String doIt(CRDTConnection con) throws SQLException {
+		    return GetUserName((CRDTConnection)con, C_ID);
 		}
 	    });
 	return string;
     }
-    private static String GetUserName(Connection con, int C_ID)throws SQLException {
+    private static String GetUserName(CRDTConnection con, int C_ID)throws SQLException {
 	String u_name = null;
 	    PreparedStatement get_user_name = con.prepareStatement
 		(@sql.getUserName@);
@@ -602,13 +593,13 @@ public class TPCW_Database {
 
     public static String GetPassword(final String C_UNAME){
 	String string = withTransaction(new tx.TransactionalCommand<String>() {
-		public String doIt(Connection con) throws SQLException {
-		    return GetPassword((Connection)con, C_UNAME);
+		public String doIt(CRDTConnection con) throws SQLException {
+		    return GetPassword((CRDTConnection)con, C_UNAME);
 		}
 	    });
 	return string;
     }
-    private static String GetPassword(Connection con, String C_UNAME)throws SQLException {
+    private static String GetPassword(CRDTConnection con, String C_UNAME)throws SQLException {
 	String passwd = null;
 	    PreparedStatement get_passwd = con.prepareStatement
 		(@sql.getPassword@);
@@ -628,7 +619,7 @@ public class TPCW_Database {
 
     //This function gets the value of I_RELATED1 for the row of
     //the item table corresponding to I_ID
-    private static int getRelated1(int I_ID, Connection con) throws SQLException {
+    private static int getRelated1(int I_ID, CRDTConnection con) throws SQLException {
 	int related1 = -1;
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.getRelated1@);
@@ -643,13 +634,13 @@ public class TPCW_Database {
 
     public static Order GetMostRecentOrder(final String c_uname, final Vector order_lines){
 	Order order = withTransaction(new tx.TransactionalCommand<Order>() {
-		public Order doIt(Connection con) throws SQLException {
-		    return GetMostRecentOrder((Connection)con, c_uname, order_lines);
+		public Order doIt(CRDTConnection con) throws SQLException {
+		    return GetMostRecentOrder((CRDTConnection)con, c_uname, order_lines);
 		}
 	    });
 	return order;
     }
-    private static Order GetMostRecentOrder(Connection con, String c_uname, Vector order_lines)throws SQLException {
+    private static Order GetMostRecentOrder(CRDTConnection con, String c_uname, Vector order_lines)throws SQLException {
 	    order_lines.removeAllElements();
 	    int order_id;
 	    Order order;
@@ -721,13 +712,13 @@ public class TPCW_Database {
     // Called from: TPCW_shopping_cart_interaction 
     public static int createEmptyCart(){
 	Integer integer = withTransaction(new tx.TransactionalCommand<Integer>() {
-		public Integer doIt(Connection con) throws SQLException {
-		    return createEmptyCart((Connection)con);
+		public Integer doIt(CRDTConnection con) throws SQLException {
+		    return createEmptyCart((CRDTConnection)con);
 		}
 	    });
 	return integer;
     }
-    private static int createEmptyCart(Connection con)throws SQLException {
+    private static int createEmptyCart(CRDTConnection con)throws SQLException {
 	int SHOPPING_ID = 0;
 	boolean success = false;
 	
@@ -735,15 +726,15 @@ public class TPCW_Database {
 	    PreparedStatement get_next_id = con.prepareStatement
 		(@sql.createEmptyCart@);
 	    // synchronized(Cart.class) {
-		ResultSet rs = get_next_id.executeQuery();
-		rs.next();
-		SHOPPING_ID = rs.getInt(1);
-		rs.close();
+		//ResultSet rs = get_next_id.executeQuery();
+		//rs.next();
+		//SHOPPING_ID = rs.getInt(1);
+		//rs.close();
 		//replaced by new SIEVE id assignment method
 	    //SHOPPING_ID = con.shdOpCreator.assignNextUniqueId("shopping_cart","sc_id");
-		//SHOPPING_ID = IdentifierFactory.getNextId("shopping_cart", "sc_id");
+		SHOPPING_ID = IdentifierFactory.getNextId("shopping_cart", "sc_id");
 		PreparedStatement insert_cart = con.prepareStatement
-		    (@sql.createEmptyCart.insert@);
+		    (@sql.createEmptyCart.txmud@);
 		insert_cart.setInt(1, SHOPPING_ID);
 		insert_cart.executeUpdate();
 		get_next_id.close();
@@ -753,13 +744,13 @@ public class TPCW_Database {
     
     public static Cart doCart(final int SHOPPING_ID, final Integer I_ID, final Vector ids, final Vector quantities) {	
 	Cart cart = withTransaction(new tx.TransactionalCommand<Cart>() {
-		public Cart doIt(Connection con) throws SQLException {
-		    return doCart((Connection)con, SHOPPING_ID, I_ID, ids, quantities);
+		public Cart doIt(CRDTConnection con) throws SQLException {
+		    return doCart((CRDTConnection)con, SHOPPING_ID, I_ID, ids, quantities);
 		}
 	    });
 	return cart;
     }
-    private static Cart doCart(Connection con, int SHOPPING_ID, Integer I_ID, Vector ids, Vector quantities) throws SQLException {
+    private static Cart doCart(CRDTConnection con, int SHOPPING_ID, Integer I_ID, Vector ids, Vector quantities) throws SQLException {
 	    Cart cart = null;
 
 	    if (I_ID != null) {
@@ -777,7 +768,7 @@ public class TPCW_Database {
     //and I_ID. If the item does not already exist, we create one with QTY=1,
     //otherwise we increment the quantity.
 
-    private static void addItem(Connection con, int SHOPPING_ID, int I_ID) throws SQLException {
+    private static void addItem(CRDTConnection con, int SHOPPING_ID, int I_ID) throws SQLException {
     	PreparedStatement find_entry = con.prepareStatement
 		(@sql.addItem@);
 	    
@@ -813,7 +804,7 @@ public class TPCW_Database {
 	    find_entry.close();
     }
 
-    private static void refreshCart(Connection con, int SHOPPING_ID, Vector ids, 
+    private static void refreshCart(CRDTConnection con, int SHOPPING_ID, Vector ids, 
 				    Vector quantities) throws SQLException {
 	int i;
 	    for(i = 0; i < ids.size(); i++){
@@ -842,7 +833,7 @@ public class TPCW_Database {
 	    }
     }
 
-    private static void addRandomItemToCartIfNecessary(Connection con, int SHOPPING_ID) throws SQLException {
+    private static void addRandomItemToCartIfNecessary(CRDTConnection con, int SHOPPING_ID) throws SQLException {
 	// check and see if the cart is empty. If it's not, we do
 	// nothing.
 	int related_item = 0;
@@ -866,7 +857,7 @@ public class TPCW_Database {
 
 
     // Only called from this class 
-    private static void resetCartTime(Connection con, int SHOPPING_ID) throws SQLException {
+    private static void resetCartTime(CRDTConnection con, int SHOPPING_ID) throws SQLException {
 	    PreparedStatement statement = con.prepareStatement
 		(@sql.resetCartTime@);
 	
@@ -878,14 +869,14 @@ public class TPCW_Database {
 
     public static Cart getCart(final int SHOPPING_ID, final double c_discount) {
 	Cart cart = withTransaction(new tx.TransactionalCommand<Cart>() {
-		public Cart doIt(Connection con) throws SQLException {
-		    return getCart((Connection)con, SHOPPING_ID, c_discount);
+		public Cart doIt(CRDTConnection con) throws SQLException {
+		    return getCart((CRDTConnection)con, SHOPPING_ID, c_discount);
 		}
 	    });
 	return cart;
     }
     //time .05s
-    private static Cart getCart(Connection con, int SHOPPING_ID, double c_discount) throws SQLException {
+    private static Cart getCart(CRDTConnection con, int SHOPPING_ID, double c_discount) throws SQLException {
 	Cart mycart = null;
 	    PreparedStatement get_cart = con.prepareStatement(@sql.getCart@);
 	    get_cart.setInt(1, SHOPPING_ID);
@@ -902,13 +893,13 @@ public class TPCW_Database {
     //doesn't exist, but ...
     public static void refreshSession(final int C_ID) {
 	withTransaction(new tx.TransactionalCommand<Void>() {
-		public Void doIt(Connection con) throws SQLException {
-		    refreshSession((Connection)con, C_ID);
+		public Void doIt(CRDTConnection con) throws SQLException {
+		    refreshSession((CRDTConnection)con, C_ID);
 		    return VOID;
 		}
 	    });
     }
-    private static void refreshSession(Connection con, int C_ID) throws SQLException {
+    private static void refreshSession(CRDTConnection con, int C_ID) throws SQLException {
 	    PreparedStatement updateLogin = con.prepareStatement
 		(@sql.refreshSession@);
 	    
@@ -921,13 +912,13 @@ public class TPCW_Database {
 
     public static Customer createNewCustomer(final Customer cust) {
 	Customer customer = withTransaction(new tx.TransactionalCommand<Customer>() {
-		public Customer doIt(Connection con) throws SQLException {
-		    return createNewCustomer((Connection)con, cust);
+		public Customer doIt(CRDTConnection con) throws SQLException {
+		    return createNewCustomer((CRDTConnection)con, cust);
 		}
 	    });
 	return customer;
     }
-    private static Customer createNewCustomer(Connection con, Customer cust) throws SQLException {
+    private static Customer createNewCustomer(CRDTConnection con, Customer cust) throws SQLException {
 	    // Get largest customer ID already in use.
 	    
 	    cust.c_discount = (int) (java.lang.Math.random() * 51);
@@ -1003,13 +994,13 @@ public class TPCW_Database {
 						final Date cc_expiry,
 						final String shipping) {
 	BuyConfirmResult buyConfirmResult = withTransaction(new tx.TransactionalCommand<BuyConfirmResult>() {
-		public BuyConfirmResult doIt(Connection con) throws SQLException {
-		    return doBuyConfirm((Connection)con, shopping_id, customer_id, cc_type, cc_number, cc_name, cc_expiry, shipping);
+		public BuyConfirmResult doIt(CRDTConnection con) throws SQLException {
+		    return doBuyConfirm((CRDTConnection)con, shopping_id, customer_id, cc_type, cc_number, cc_name, cc_expiry, shipping);
 		}
 	    });
 	return buyConfirmResult;
     }
-    private static BuyConfirmResult doBuyConfirm(Connection con, int shopping_id, int customer_id, String cc_type, long cc_number,
+    private static BuyConfirmResult doBuyConfirm(CRDTConnection con, int shopping_id, int customer_id, String cc_type, long cc_number,
 						 String cc_name, Date cc_expiry, String shipping) throws SQLException {
 	
 	BuyConfirmResult result = new BuyConfirmResult();
@@ -1033,14 +1024,14 @@ public class TPCW_Database {
 						final String city, final String state,
 						final String zip, final String country) {
 	BuyConfirmResult buyConfirmResult = withTransaction(new tx.TransactionalCommand<BuyConfirmResult>() {
-		public BuyConfirmResult doIt(Connection con) throws SQLException {
-		    return doBuyConfirm((Connection)con, shopping_id, customer_id, cc_type, cc_number, cc_name, cc_expiry, shipping,
+		public BuyConfirmResult doIt(CRDTConnection con) throws SQLException {
+		    return doBuyConfirm((CRDTConnection)con, shopping_id, customer_id, cc_type, cc_number, cc_name, cc_expiry, shipping,
 					street_1, street_2, city, state, zip, country);
 		}
 	    });
 	return buyConfirmResult;
 						}
-    private static BuyConfirmResult doBuyConfirm(Connection con, int shopping_id, int customer_id, String cc_type, long cc_number,
+    private static BuyConfirmResult doBuyConfirm(CRDTConnection con, int shopping_id, int customer_id, String cc_type, long cc_number,
 						 String cc_name, Date cc_expiry, String shipping, String street_1, String street_2,
 						 String city, String state, String zip, String country) throws SQLException {
 	BuyConfirmResult result = new BuyConfirmResult();
@@ -1055,7 +1046,7 @@ public class TPCW_Database {
 
 
     //DB query time: .05s
-    public static double getCDiscount(Connection con, int c_id) throws SQLException {
+    public static double getCDiscount(CRDTConnection con, int c_id) throws SQLException {
 	double c_discount = 0.0;
 	    // Prepare SQL
 	    PreparedStatement statement = con.prepareStatement
@@ -1074,7 +1065,7 @@ public class TPCW_Database {
     }
 
     //DB time: .05s
-    public static int getCAddrID(Connection con, int c_id) throws SQLException {
+    public static int getCAddrID(CRDTConnection con, int c_id) throws SQLException {
 	int c_addr_id = 0;
 	    // Prepare SQL
 	    PreparedStatement statement = con.prepareStatement
@@ -1092,7 +1083,7 @@ public class TPCW_Database {
 	return c_addr_id;
     }
 
-    public static int getCAddr(Connection con, int c_id) throws SQLException {
+    public static int getCAddr(CRDTConnection con, int c_id) throws SQLException {
 	int c_addr_id = 0;
 	    // Prepare SQL
 	    PreparedStatement statement = con.prepareStatement
@@ -1110,7 +1101,7 @@ public class TPCW_Database {
 	return c_addr_id;
     }
 
-    public static void enterCCXact(Connection con,
+    public static void enterCCXact(CRDTConnection con,
 				   int o_id,        // Order id
 				   String cc_type,
 				   long cc_number,
@@ -1141,7 +1132,7 @@ public class TPCW_Database {
 	    statement.close();
     }
     
-    public static void clearCart(Connection con, int shopping_id) throws SQLException {
+    public static void clearCart(CRDTConnection con, int shopping_id) throws SQLException {
 	// Empties all the lines from the shopping_cart_line for the
 	// shopping id.  Does not remove the actually shopping cart
 	    // Prepare SQL
@@ -1154,7 +1145,7 @@ public class TPCW_Database {
 	    statement.close();
     }
 
-    public static int enterAddress(Connection con,  // Do we need to do this as part of a transaction?
+    public static int enterAddress(CRDTConnection con,  // Do we need to do this as part of a transaction?
 				   String street1, String street2,
 				   String city, String state,
 				   String zip, String country) throws SQLException {
@@ -1220,7 +1211,7 @@ public class TPCW_Database {
     }
 
  
-    public static int enterOrder(Connection con, int customer_id, Cart cart, int ship_addr_id, String shipping, double c_discount) throws SQLException {
+    public static int enterOrder(CRDTConnection con, int customer_id, Cart cart, int ship_addr_id, String shipping, double c_discount) throws SQLException {
 	// returns the new order_id
 	int o_id = 0;
 	Calendar calendar = Calendar.getInstance();
@@ -1277,7 +1268,7 @@ public class TPCW_Database {
 	return o_id;
     }
     
-    public static void addOrderLine(Connection con, 
+    public static void addOrderLine(CRDTConnection con, 
 				    int ol_id, int ol_o_id, int ol_i_id, 
 				    int ol_qty, double ol_discount, String ol_comment) throws SQLException {
 	int success = 0;
@@ -1294,7 +1285,7 @@ public class TPCW_Database {
 	    insert_row.close();
     }
 
-    public static int getStock(Connection con, int i_id) throws SQLException {
+    public static int getStock(CRDTConnection con, int i_id) throws SQLException {
 	int stock = 0;
 	    PreparedStatement get_stock = con.prepareStatement
 		(@sql.getStock@);
@@ -1311,7 +1302,7 @@ public class TPCW_Database {
 	return stock;
     }
 
-    public static void setStock(Connection con, int i_id, int new_stock) throws SQLException {
+    public static void setStock(CRDTConnection con, int i_id, int new_stock) throws SQLException {
 	    PreparedStatement update_row = con.prepareStatement
 		(@sql.setStock@);
 	    update_row.setInt(1, new_stock);
@@ -1322,13 +1313,13 @@ public class TPCW_Database {
 
     public static void verifyDBConsistency(){
 	withTransaction(new tx.TransactionalCommand<Void>() {
-		public Void doIt(Connection con) throws SQLException {
-		    verifyDBConsistency((Connection)con);
+		public Void doIt(CRDTConnection con) throws SQLException {
+		    verifyDBConsistency((CRDTConnection)con);
 		    return VOID;
 		}
 	    });
     }
-    private static void verifyDBConsistency(Connection con) throws SQLException {
+    private static void verifyDBConsistency(CRDTConnection con) throws SQLException {
 	    int this_id;
 	    int id_expected = 1;
 	    //First verify customer table
@@ -1375,26 +1366,26 @@ public class TPCW_Database {
     }
     public synchronized static void initDatabasePool(){
 
-    	if(use_connection_pool==false || pool_initialized==true)
+    	if(use_CRDTConnection_pool==false || pool_initialized==true)
     		return;
 
-    	System.err.println("initialize weakdb connection pool");
+    	System.err.println("initialize weakdb CRDTConnection pool");
 
     	int i=0;
     	try{
 	    	for(i=0;i<maxConn-availConn.size();i++){
-				availConn.add(getConnection());
+				availConn.add(getCRDTConnection());
 	    		//transactions--;
 	    	}
 	    	for(i=0;i<availConn.size();i++){
-	    		returnConnection(availConn.get(i));
+	    		returnCRDTConnection(availConn.get(i));
 	    	}
     	}catch(Exception e){
-    		System.err.println("Problem when initializing database pool. connection:"+(i+1));
+    		System.err.println("Problem when initializing database pool. CRDTConnection:"+(i+1));
     		System.exit(0);
     	}
     	pool_initialized=true;
-    	System.err.println("Total avaiable connections:"+availConn.size());
+    	System.err.println("Total avaiable CRDTConnections:"+availConn.size());
     	
     }
     public synchronized static void initID(int globalProxyId){

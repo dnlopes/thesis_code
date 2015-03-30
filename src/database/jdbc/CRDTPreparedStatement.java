@@ -34,6 +34,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	String[] vals;
 	private MyShadowOpCreator shdOpCreator;
 	private TransactionIdentifier txnId;
+	private int paramsCounter;
 
 	private Proxy proxy;
 
@@ -43,33 +44,48 @@ public class CRDTPreparedStatement implements PreparedStatement
 		this.sql = sql;
 		this.shdOpCreator = creator;
 		this.txnId = txnId;
-		init(0, 0);
+		init();
 	}
 
-	private void init(int pos, int count)
+	private void init()
 	{
-		int npos = sql.indexOf('?', pos);
-		if(npos == -1)
+		int counter = 0;
+
+		for(int i = 0; i < sql.length(); i++)
 		{
-			argPos = new int[count];
-			vals = new String[count];
-			return;
+			if(sql.charAt(i) == '?')
+			{
+				counter++;
+			}
 		}
-		init(npos + 1, count + 1);
-		argPos[count] = npos;
+
+		this.paramsCounter = counter;
+		argPos = new int[counter];
+		vals = new String[counter];
 	}
 
 	private String generateStatement()
 	{
-		StringBuffer buffer = new StringBuffer();
+
+		int i = 0;
+		while(i < this.paramsCounter)
+		{
+			this.sql = this.sql.replaceFirst("\\?", vals[i]);
+			i++;
+		}
+
+
+/*
+
 		for(int i = 0; i < vals.length; i++)
 		{
 			buffer.append(sql.substring(i == 0 ? 0 : argPos[i - 1] + 1, argPos[i]));
 			buffer.append(vals[i]);
 		}
 		buffer.append(sql.substring(vals.length > 0 ? argPos[argPos.length - 1] + 1 : 0));
-		//Debug.println( "STAT = " + buffer.toString());
-		return buffer.toString();
+		//Debug.println( "STAT = " + buffer.toString());     */
+		LOG.debug("generated statement: {}", this.sql);
+		return this.sql;
 	}
 
 	@Override

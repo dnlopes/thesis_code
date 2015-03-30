@@ -23,6 +23,13 @@
 	<property name="applications.dir" value="${base.dir}/applications" />
 	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
 
+
+
+	<property name="main.db.properties" value="database.properties" />
+	<property name="tpcw.default.db.properties" value="dbdefault.tpcw.properties" />
+	<property name="tpcw.crdt.db.properties" value="crdtdb.tpcw.properties" />
+
+
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
 		<classpath>
@@ -122,7 +129,10 @@
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
+				<include name="${main.db.properties}" />
 				<include name="crdtdb.tpcw.properties" />
+				<include name="${tpcw.default.db.properties}"/>
+				<include name="${tpcw.crdt.db.properties}"/>
 				<include name="log4j.properties" />
 				<include name="config.xml" />
 				<include name="*.sql" />
@@ -161,7 +171,6 @@
 		<javac srcdir="${tpcw.dir}/src/servlets" includeantruntime="false" includes="*.java"
 			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcw.classpath" />
-			<classpath refid="weakdb.classpath"/>
 		</javac>
 		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
 			<fileset dir="${tpcw.dist.dir}/servlets">
@@ -252,7 +261,7 @@
 		<property name="sessionIdString" value="jsessionid=" />
 		<property name="standardUrl" value="http://localhost:8080" />
 		<property name="thinktime" value="1.0" />
-		<property name="servletUrlPath" value="" />
+		<property name="servletUrlPath" value="/servlet" />
 		<!-- #servletUrlPath=/servlet -->
 		<property name="tpcwUrlPath" value="/tpcw" />
 		<property name="jdbc.connPoolMax" value="100" />

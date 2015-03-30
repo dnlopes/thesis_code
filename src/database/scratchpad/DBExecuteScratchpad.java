@@ -160,12 +160,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	{
 		op.parse(this.parser);
 
-		if(!op.isStandardOperation())
+		/*if(!op.isStandardOperation())
 		{
 			LOG.warn("executing non standard operation: {}", op.toString());
 			int count =  this.executeUpdate(op.toString());
 			return DBUpdateResult.createResult(count);
-		}
+		}  */
 
 		if(op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);

@@ -12,7 +12,6 @@ import database.util.DatabaseTable;
 import database.util.PrimaryKey;
 import database.util.PrimaryKeyValue;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.WhenClause;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;

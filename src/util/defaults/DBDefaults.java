@@ -5,12 +5,8 @@ package util.defaults;
  */
 public class DBDefaults
 {
-
-	public static final String TPCW_DB_NAME = "tpcw";
-	public static final String MICRO_DB_NAME = "micro";
-
-	public static final String TPCW_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/application/tpcw/database.sql";
-	public static final String MICRO_FILE = "/Users/dnlopes/devel/thesis/code/weakdb/application/micro/database.sql";
+	public static final String DEFAUTL_TPCW_PROPERTIES = "dbdefault.tpcw.properties";
+	public static final String CRDT_TPCW_PROPERTIES = "crdtdb.tpcw.properties";
 
 	public static final String MYSQL_HOST = "172.16.24.163";
 	public static final String MYSQL_PORT = "3306";

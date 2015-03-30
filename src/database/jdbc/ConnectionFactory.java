@@ -5,6 +5,7 @@ import network.proxy.ProxyConfig;
 import network.replicator.ReplicatorConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
+import util.props.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -29,6 +30,15 @@ public class ConnectionFactory
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public static Connection getConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
+	{
+		Class.forName(props.getJdbcDriver());
+		Connection c = DriverManager.getConnection(props.getJdbcUrl(), props.getJdbcUser(), props.getJdbcPwd());
+		c.setAutoCommit(false);
+
+		return c;
 	}
 
 	public static Connection getCRDTConnection(String database) throws SQLException

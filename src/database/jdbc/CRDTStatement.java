@@ -59,6 +59,7 @@ public class CRDTStatement implements Statement
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
+
 		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
 			this.proxy.beginTransaction(txnId);
 

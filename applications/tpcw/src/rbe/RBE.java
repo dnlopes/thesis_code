@@ -153,7 +153,7 @@ public class RBE {
 		 transactionMap.put(webproxies[i],0);
 	 }
 	 mgmtURL=www+"TPCW_MGMT_proxy";
-	 www = ""; //www1 + "";
+	 www = ""; //www1 + "/servlet";
 	 //String wwwTPCW = www1 + "/tpcw";
 	 homeURL = www+"TPCW_home_interaction";
 	 shopCartURL = www+"TPCW_shopping_cart_interaction";

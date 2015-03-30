@@ -1,6 +1,6 @@
 # Directories
 dist/
-
+applications/tpcw/webapp
 # MacOS X
 **/*.DS_Store
 
