@@ -8,7 +8,7 @@ public class DBDefaults
 	public static final String DEFAUTL_TPCW_PROPERTIES = "dbdefault.tpcw.properties";
 	public static final String CRDT_TPCW_PROPERTIES = "crdtdb.tpcw.properties";
 
-	public static final String MYSQL_HOST = "172.16.24.164";
+	public static final String MYSQL_HOST = "172.16.24.166";
 	public static final String MYSQL_PORT = "3306";
 	public static final String MYSQL_USER = "sa";
 	public static final String MYSQL_PASSWORD = "101010";

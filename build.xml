@@ -265,7 +265,7 @@
 		<property name="servletUrlPath" value="/servlet" />
 		<!-- #servletUrlPath=/servlet -->
 		<property name="tpcwUrlPath" value="/tpcw" />
-		<property name="jdbc.connPoolMax" value="100" />
+		<property name="jdbc.connPoolMax" value="50" />
 
 		<property name="jdbc.actualPath" value="jdbc:mysql://localhost:3306/tpcw" />
 		<property name="jdbc.actualDriver" value="com.mysql.jdbc.Driver" />
