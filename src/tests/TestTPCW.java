@@ -21,9 +21,9 @@ public class TestTPCW
 		Connection connection = ConnectionFactory.getConnection(
 				new DatabaseProperties(DBDefaults.CRDT_TPCW_PROPERTIES));
 
-		String sstring = "INSERT into shopping_cart(sc_id, sc_time) VALUES(0, CURRENT_TIMESTAMP)";
+		String sstring = "INSERT into shopping_cart (sc_id, sc_time) VALUES (8817,CURRENT_TIMESTAMP)";
 		Statement s = connection.createStatement();
-		s.executeUpdate("INSERT into shopping_cart(sc_id, sc_time) VALUES(0, CURRENT_TIMESTAMP)");
+		s.executeUpdate(sstring);
 
 	}
 }

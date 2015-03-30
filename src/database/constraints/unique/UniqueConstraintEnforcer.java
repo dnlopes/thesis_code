@@ -75,7 +75,8 @@ public class UniqueConstraintEnforcer
 				{
 					LOG.error("duplicated values for constraint for constraint {}",
 							this.constraint.getConstraintIdentifier());
-					RuntimeHelper.throwRunTimeException("duplicated values for constraint for constraint", ExitCode.HASHMAPDUPLICATE);
+					RuntimeHelper.throwRunTimeException("duplicated values for constraint for constraint",
+							ExitCode.HASHMAPDUPLICATE);
 				}
 			}
 
@@ -89,7 +90,8 @@ public class UniqueConstraintEnforcer
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		LOG.trace("{} values already in use for constraint {}", this.currentValues.size(), this.constraint.getConstraintIdentifier());
+		LOG.trace("{} values already in use for constraint {}", this.currentValues.size(),
+				this.constraint.getConstraintIdentifier());
 	}
 
 	public boolean reservValue(String newValue)

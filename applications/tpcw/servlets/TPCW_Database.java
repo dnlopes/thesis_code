@@ -964,7 +964,7 @@ public class TPCW_Database {
 		cust.c_id+=1;
 		//replaced with the new SIEVE id assignment
 		//cust.c_id = con.shdOpCreator.assignNextUniqueId("customer","c_id");
-		//cust.c_id = IdentifierFactory.getNextId("customer","c_id");
+		cust.c_id = IdentifierFactory.getNextId("customer","c_id");
 		cust.c_uname = TPCW_Util.DigSyl(cust.c_id, 0);
 		cust.c_passwd = cust.c_uname.toLowerCase();
 
@@ -1191,7 +1191,7 @@ public class TPCW_Database {
 		    addr_id = rs2.getInt(1)+1;
 		    rs2.close();
 		//replace with the new SIEVE id assignment method
-		//addr_id = IdentifierFactory.getNextId("address","addr_id");
+		addr_id = IdentifierFactory.getNextId("address","addr_id");
 		    //Need to insert a new row in the address table
 		    insert_address_row.setInt(1, addr_id);
 		    insert_address_row.executeUpdate();
@@ -1234,7 +1234,7 @@ public class TPCW_Database {
 		rs.close();
 		//replaced with the new SIEVE id assignment method
 		//o_id = con.shdOpCreator.assignNextUniqueId("orders","o_id");
-		//o_id = IdentifierFactory.getNextId("orders", "o_id");
+		o_id = IdentifierFactory.getNextId("orders", "o_id");
 
 		insert_row.setInt(1, o_id);
 		insert_row.executeUpdate();

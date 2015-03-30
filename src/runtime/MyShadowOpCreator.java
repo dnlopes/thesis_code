@@ -44,7 +44,7 @@ public class MyShadowOpCreator
 	static final Logger LOG = LoggerFactory.getLogger(MyShadowOpCreator.class);
 
 	static HashMap<String, DatabaseTable> annotatedTableSchema;
-	private DatabaseMetadata databaseMetadata;
+	private static DatabaseMetadata databaseMetadata;
 
 	static CCJSqlParserManager cJsqlParser;
 
@@ -131,7 +131,13 @@ public class MyShadowOpCreator
 	public Set<String> findMissingDataFields(String tableName, List<String> colList, List<String> valueList)
 	{
 		//DatabaseTable dtB = annotatedTableSchema.get(tableName);
+		if(this.databaseMetadata == null)
+			LOG.debug("DATABASE METADATA IS NULL");
+
 		DatabaseTable dtB = this.databaseMetadata.getTable(tableName);
+
+		if(dtB == null)
+			LOG.debug("dtb is null!!");
 		return dtB.findMisingDataField(colList, valueList);
 	}
 

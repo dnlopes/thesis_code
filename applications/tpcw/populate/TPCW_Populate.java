@@ -714,7 +714,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE address ( addr_id int not null, " +
+					"CREATE TABLE address ( " +
+							"addr_id int not null, " +
 							"addr_street1 varchar(40), " +
 							"addr_street2 varchar(40), " +
 							"addr_city varchar(30), " +
@@ -724,7 +725,9 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(addr_id))");
+							"PRIMARY KEY(addr_id), " +
+							"FOREIGN KEY (addr_co_id) REFERENCES country(co_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ADDRESS");
@@ -738,7 +741,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE author ( a_id int not null, " +
+					"CREATE TABLE author ( " +
+							"a_id int not null, " +
 							"a_fname varchar(20), " +
 							"a_lname varchar(20), " +
 							"a_mname varchar(20), " +
@@ -761,7 +765,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE cc_xacts ( cx_o_id int not null, " +
+					"CREATE TABLE cc_xacts ( " +
+							"cx_o_id int not null, " +
 							"cx_type varchar(10), " +
 							"cx_num varchar(20), " +
 							"cx_name varchar(30), " +
@@ -773,7 +778,10 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(cx_o_id))");
+							"PRIMARY KEY(cx_o_id), " +
+							"FOREIGN KEY (cx_o_id) REFERENCES orders(o_id), " +
+							"FOREIGN KEY (cx_co_id) REFERENCES country(co_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table CC_XACTS");
@@ -787,14 +795,16 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE country ( co_id int not null, " +
+					"CREATE TABLE country ( " +
+							"co_id int not null, " +
 							"co_name varchar(50), " +
 							"co_exchange double, " +
 							"co_currency varchar(18), " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(co_id))");
+							"PRIMARY KEY(co_id)" +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table COUNTRY");
@@ -807,7 +817,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE customer ( c_id int not null, " +
+					"CREATE TABLE customer ( " +
+							"c_id int not null, " +
 							"c_uname varchar(20), " +
 							"c_passwd varchar(20), " +
 							"c_fname varchar(17), " +
@@ -827,7 +838,9 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(c_id))");
+							"PRIMARY KEY(c_id), " +
+							"FOREIGN KEY (c_addr_id) REFERENCES address(addr_id)" +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table CUSTOMER");
@@ -841,7 +854,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE item ( i_id int not null, " +
+					"CREATE TABLE item ( " +
+							"i_id int not null, " +
 							"i_title varchar(60), " +
 							"i_a_id int, " +
 							"i_pub_date date, " +
@@ -866,7 +880,8 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(i_id))");
+							"PRIMARY KEY(i_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ITEM");
@@ -880,7 +895,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE order_line ( ol_id int not null, " +
+					"CREATE TABLE order_line ( " +
+							"ol_id int not null, " +
 							"ol_o_id int not null, " +
 							"ol_i_id int, " +
 							"ol_qty int, " +
@@ -889,7 +905,10 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(ol_id, ol_o_id))");
+							"PRIMARY KEY(ol_id, ol_o_id), " +
+							"FOREIGN KEY (ol_i_id) REFERENCES item(i_id), " +
+							"FOREIGN KEY (ol_o_id) REFERENCES orders(o_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ORDER_LINE");
@@ -903,7 +922,8 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE orders ( o_id int not null, " +
+					"CREATE TABLE orders ( " +
+							"o_id int not null, " +
 							"o_c_id int, " +
 							"o_date date, " +
 							"o_sub_total double, " +
@@ -917,7 +937,10 @@ class TPCW_Populate
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(o_id))");
+							"PRIMARY KEY(o_id), " +
+							"FOREIGN KEY (o_c_id) REFERENCES customer(c_id), " +
+							"FOREIGN KEY (o_bill_addr_id, o_ship_addr_id) REFERENCES address(addr_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table ORDERS");
@@ -931,12 +954,14 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE shopping_cart ( sc_id int not null, " +
+					"CREATE TABLE shopping_cart ( " +
+							"sc_id int not null, " +
 							"sc_time timestamp, " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(sc_id))");
+							"PRIMARY KEY(sc_id)" +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table SHOPPING_CART");
@@ -949,13 +974,15 @@ class TPCW_Populate
 		try
 		{
 			PreparedStatement statement = con.prepareStatement(
-					"CREATE TABLE shopping_cart_line ( scl_sc_id int not null, " +
+					"CREATE TABLE shopping_cart_line ( " +
+							"scl_sc_id int not null, " +
 							"scl_qty int, " +
 							"scl_i_id int not null, " +
 							"_SP_del BIT(1) default false, " +
 							"_SP_ts int default 0, " +
 							"_SP_clock varchar(100), " +
-							"PRIMARY KEY(scl_sc_id, scl_i_id))");
+							"PRIMARY KEY(scl_sc_id, scl_i_id) " +
+							")");
 			statement.executeUpdate();
 			con.commit();
 			System.out.println("Created table SHOPPING_CART_LINE");
