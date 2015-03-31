@@ -78,7 +78,7 @@ class TPCW_Populate
 	private static final String driverName = "com.mysql.jdbc.Driver";
 	//private static final String driverName = "org.gjt.mm.mysql.Driver";
 	// private static final String dbName = "jdbc:mysql://localhost/tpcw";
-	private static final String dbName = "jdbc:mysql://localhost:3306/tpcw";
+	private static final String dbName = "jdbc:mysql://localhost:3306/";
 	private static final String dbUser = "sa";
 	private static final String dbPwd = "101010";
 
@@ -114,7 +114,7 @@ class TPCW_Populate
 		System.out.println("Beginning TPCW Database population.");
 		rand = new Random();
 		getConnection();
-		//createDB();
+		createDB();
 		deleteTables();
 		createTables();
 		addIndexes();

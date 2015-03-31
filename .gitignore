@@ -2,6 +2,7 @@
 dist/
 applications/tpcw/webapp
 applications/tpcw/src
+applications/tpcc/pom.xml
 # MacOS X
 **/*.DS_Store
 

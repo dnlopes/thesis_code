@@ -23,7 +23,7 @@ public interface IDBScratchpad
 
 	public boolean commitTransaction(IProxyNetwork proxy);
 
-	public void closeTransaction();
+	public void closeTransaction(IProxyNetwork network);
 
 	public int getScratchpadId();
 

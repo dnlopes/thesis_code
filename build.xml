@@ -22,7 +22,7 @@
 	<property name="resources.dir" value="${base.dir}/resources" />
 	<property name="applications.dir" value="${base.dir}/applications" />
 	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
-
+	<property name="tpcc.dir" value="${applications.dir}/tpcc" />
 
 
 	<property name="main.db.properties" value="database.properties" />
@@ -37,13 +37,26 @@
 		</classpath>
 	</taskdef>
 
-	<!-- TPCW properties -->
+	<!-- TPC-W properties -->
 	<property name="TPCW_NUM_EBS" value="50" />
-	<property name="TPCW_NUM_ITEMS" value="100" />
+	<property name="TPCW_NUM_ITEMS" value="10000" />
 	<property name="tpcw.dist.dir" value="${tpcw.dir}/dist" />
 	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
 	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
 	<property name="tpcw.src.dir" value="${tpcw.dir}/src" />
+
+	<!-- TPC-C properties -->
+	<property name="tpcc.src.dir" value="${tpcc.dir}/src" />
+	<property name="tpcc.dist.dir" value="${tpcc.dir}/dist" />
+	<property name="tpcc.classes.dir" value="${tpcc.dist.dir}/classes" />
+
+	<!-- TPC-C resources-->
+	<path id="tpcc.resources.path">
+		<fileset dir="${resources.dir}/tpcc">
+			<include name="*.properties" />
+		</fileset>
+	</path>
+
 
 	<!-- Path definitions -->
 	<path id="weakdb.classpath">
@@ -67,11 +80,29 @@
 	<path id="tpcw.runtime.classpath">
 		<pathelement path="${tpcw.dist.dir}" />
 	</path>
+	<path id="tpcc.classpath">
+		<fileset dir="${base.dir}/libs">
+			<include name="slf4j-api-1.7.10.jar" />
+			<include name="log4j-1.2.17.jar" />
+			<include name="slf4j-log4j12-1.7.10.jar" />
+			<include name="mysql-connector-java-5.1.17-bin.jar" />
+		</fileset>
+	</path>
+	<path id="tpcc.runtime.classpath">
+		<pathelement path="${tpcc.classes.dir}" />
+		<fileset dir="${base.dir}/libs">
+			<include name="slf4j-api-1.7.10.jar" />
+			<include name="log4j-1.2.17.jar" />
+			<include name="slf4j-log4j12-1.7.10.jar" />
+			<include name="mysql-connector-java-5.1.17-bin.jar" />
+		</fileset>
+	</path>
 
 	<!-- WeakDB tasks -->
 	<target name="purge" description="Purges everything">
 		<antcall target="clean" />
 		<antcall target="tpcw-clean" />
+		<antcall target="tpcc-clean" />
 	</target>
 	<target name="init" depends="clean">
 		<tstamp />
@@ -131,8 +162,8 @@
 			<fileset dir="${resources.dir}">
 				<include name="${main.db.properties}" />
 				<include name="crdtdb.tpcw.properties" />
-				<include name="${tpcw.default.db.properties}"/>
-				<include name="${tpcw.crdt.db.properties}"/>
+				<include name="${tpcw.default.db.properties}" />
+				<include name="${tpcw.crdt.db.properties}" />
 				<include name="log4j.properties" />
 				<include name="config.xml" />
 				<include name="*.sql" />
@@ -140,7 +171,29 @@
 		</jar>
 	</target>
 
-	<!-- TPCW tasks -->
+	<!-- TPC-C tasks -->
+	<target name="tpcc-init" depends="tpcc-clean">
+		<tstamp />
+		<mkdir dir="${tpcc.classes.dir}" />
+	</target>
+	<target name="tpcc-clean">
+		<delete dir="${tpcc.dist.dir}" />
+	</target>
+	<target name="tpcc-dist" depends="tpcc-init" description="Compile and distribute TPC-C">
+		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
+			   destdir="${tpcc.classes.dir}"
+			   debug="true" deprecation="false" nowarn="yes">
+			<classpath refid="tpcc.classpath" />
+		</javac>
+	</target>
+	<target name="tpcc-gendb" depends="tpcc-dist" description="Generate TPC-C database">
+		<java classname="com.codefutures.tpcc.TpccLoad" fork="true" dir="${tpcc.dir}">
+			<classpath refid="tpcc.runtime.classpath" />
+			<classpath refid="tpcc.resources.path" />
+		</java>
+	</target>
+
+	<!-- TPC-W tasks -->
 	<target name="tpcw-init" depends="tpcw-clean">
 		<tstamp />
 		<mkdir dir="${tpcw.dist.dir}/servlets" />
@@ -196,7 +249,7 @@
 			<fileset dir="${tpcw.dir}/images/" />
 		</copy>
 	</target>
-	<target name="tpcw-gendb" depends="dist, tpcw-dist, check-mysql" description="Generate TPCW database">
+	<target name="tpcw-gendb" depends="dist, tpcw-dist, check-mysql" description="Generate TPC-W database">
 		<java classname="populate.TPCW_Populate" fork="true">
 			<arg value="${TPCW_NUM_EBS}" />
 			<arg value="${TPCW_NUM_ITEMS}" />

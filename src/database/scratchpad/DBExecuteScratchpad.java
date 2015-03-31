@@ -3,8 +3,6 @@ package database.scratchpad;
 
 import database.jdbc.ConnectionFactory;
 import database.jdbc.Result;
-import database.jdbc.util.DBReadSetEntry;
-import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
@@ -92,7 +90,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.runtimeWatch.start();
 		this.activeTransaction.start();
 
-		LOG.info("Beggining txn {}", activeTransaction.getTxnId().getValue());
+		LOG.trace("Beggining txn {}", activeTransaction.getTxnId().getValue());
 	}
 
 	@Override
@@ -139,16 +137,16 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	}
 
 	@Override
-	public void closeTransaction()
+	public void closeTransaction(IProxyNetwork network)
 	{
 		this.runtimeWatch.stop();
 		this.activeTransaction.finish();
 
 		if(!this.readOnly)
-			LOG.warn("this txn is not read-only, we should commit but instead we are closing");
-
-		//LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
-		//		this.activeTransaction.getLatency());
+		{
+			LOG.trace("this txn is not read-only, we should commit but instead we are closing. Lets commit!");
+			this.commitTransaction(network);
+		}
 	}
 
 	@Override

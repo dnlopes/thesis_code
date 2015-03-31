@@ -6,7 +6,7 @@
 	@NORMALSTRING addr_state varchar(20), 
 	@NORMALSTRING addr_zip varchar(10), 
 	@NORMALINTEGER addr_co_id int,
-	PRIMARY KEY (addr_id,addr_street2),
+	PRIMARY KEY (addr_id),
 	FOREIGN KEY (addr_co_id) REFERENCES country(co_id)
 );
 

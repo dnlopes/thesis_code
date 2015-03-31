@@ -100,11 +100,6 @@ public abstract class DataField
 		this.isForeignKey = true;
 	}
 
-	public void setAutoIncremental()
-	{
-		this.isAutoIncremental = true;
-	}
-
 	public boolean isAutoIncrement()
 	{
 		return this.isAutoIncremental;

@@ -75,8 +75,8 @@ public class DDLParser
 		String line;
 		try
 		{
-
-			br = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream("/" + this.fileName)));
+			InputStream is = getClass().getClassLoader().getResourceAsStream(this.fileName);
+			br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 			while((line = br.readLine()) != null)
 			{
 				schemaContentStr = schemaContentStr + line;
@@ -84,7 +84,6 @@ public class DDLParser
 			br.close();
 		} catch(IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(ExitCode.FILENOTFOUND);
 		}
@@ -119,7 +118,7 @@ public class DDLParser
 	 */
 	public DatabaseMetadata parseAnnotations()
 	{
-
+		LOG.trace("parsing file: {}", this.fileName);
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
 		this.tableCrdtFormMap = new HashMap<>();
 

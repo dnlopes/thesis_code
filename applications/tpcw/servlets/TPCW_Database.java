@@ -898,7 +898,7 @@ public class TPCW_Database {
 	}
 	private static void refreshSession(Connection con, int C_ID) throws SQLException {
 		PreparedStatement updateLogin = con.prepareStatement
-				("UPDATE customer SET c_login = NOW(), c_expiration = (CURRENT_TIMESTAMP + INTERVAL 2 HOUR) WHERE c_id = ?");
+				(@sql.refreshSession@);
 
 		// Set parameter
 		updateLogin.setInt(1, C_ID);

@@ -332,8 +332,10 @@ public class CreateStatementParser
 		{
 			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains(
 					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains(
-					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE"))
-				constraintStrs.add(declarationStrs[i]);
+					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE") || declarationStrs[i].toUpperCase
+					().contains("AUTO_INCREMENT"))
+
+			constraintStrs.add(declarationStrs[i]);
 
 		}
 		return constraintStrs;
@@ -483,19 +485,15 @@ public class CreateStatementParser
 
 					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
 							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 3,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 3, true);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
 							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 2,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 2, true);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
 							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 4,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 4, true);
 					else
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 1,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 1, true);
 
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
@@ -513,19 +511,15 @@ public class CreateStatementParser
 
 					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
 							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 3,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 3, false);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
 							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 2,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 2, false);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
 							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 4,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 4, false);
 					else
-						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 1,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.LESSER, operands[1], 1, false);
 
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
@@ -541,19 +535,15 @@ public class CreateStatementParser
 
 					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
 							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 3,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 3, true);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
 							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 2,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 2, true);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
 							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 4,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 4, true);
 					else
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 1,
-								true);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 1, true);
 
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
@@ -569,19 +559,15 @@ public class CreateStatementParser
 
 					if(field.getCrdtType() == CrdtDataFieldType.NORMALFLOAT || field.getCrdtType() ==
 							CrdtDataFieldType.LWWFLOAT | field.getCrdtType() == CrdtDataFieldType.NUMDELTAFLOAT)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 3,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 3, false);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALINTEGER || field.getCrdtType() ==
 							CrdtDataFieldType.LWWINTEGER | field.getCrdtType() == CrdtDataFieldType.NUMDELTAINTEGER)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 2,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 2, false);
 					else if(field.getCrdtType() == CrdtDataFieldType.NORMALDOUBLE || field.getCrdtType() ==
 							CrdtDataFieldType.LWWDOUBLE | field.getCrdtType() == CrdtDataFieldType.NUMDELTADOUBLE)
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 4,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 4, false);
 					else
-						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 1,
-								false);
+						checkConstraint = new CheckConstraint(CheckConstraintType.GREATER, operands[1], 1, false);
 
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
