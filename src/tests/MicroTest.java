@@ -22,11 +22,13 @@ public class MicroTest
 	{
 		//Micro_Populate db = new Micro_Populate();
 
+		Configuration config = Configuration.getInstance();
+
 		Connection conn = null;
 		PreparedStatement stat = null;
 		try
 		{
-			conn = ConnectionFactory.getCRDTConnection();
+			conn = ConnectionFactory.getCRDTConnection(config.getProxyConfigWithIndex(1));
 
 			stat = conn.prepareStatement("SELECT a,b FROM t1 WHERE c = ?");
 		} catch(SQLException e)

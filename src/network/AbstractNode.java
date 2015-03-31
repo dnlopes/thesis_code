@@ -16,9 +16,9 @@ public abstract class AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNode.class);
 
 	private InetSocketAddress socketAddress;
-	protected AbstractConfig config;
+	protected AbstractNodeConfig config;
 
-	public AbstractNode(AbstractConfig config)
+	public AbstractNode(AbstractNodeConfig config)
 	{
 		LOG.trace("setup abstract node");
 		this.socketAddress = new InetSocketAddress(config.getHostName(), config.getPort());
@@ -30,7 +30,7 @@ public abstract class AbstractNode
 		return this.socketAddress;
 	}
 
-	public AbstractConfig getConfig()
+	public AbstractNodeConfig getConfig()
 	{
 		return this.config;
 	}

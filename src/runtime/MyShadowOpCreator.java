@@ -89,7 +89,7 @@ public class MyShadowOpCreator
 			isInitialized = true;
 			this.closeRealConnection(originalConn);
 		}
-		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
+		this.defaultConnection = ConnectionFactory.getDefaultConnection(proxy.getConfig());
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
 	}
 
@@ -358,7 +358,10 @@ public class MyShadowOpCreator
 			//replace values for selection in the itemlist
 			replaceSelectionForUpdate(updateStmt, valList);
 			//replace database functions like now or current time stamp
-			replaceValueForDatabaseFunctions(updateStmt.getTable().getName(), valList);
+
+			//FIXME: we changed this next line of code because of the new version of sql parser
+			//replaceValueForDatabaseFunctions(updateStmt.getTable().getName(), valList);
+			replaceValueForDatabaseFunctions(updateStmt.getTables().get(0).getName(), valList);
 			//where clause figure out whether this is specify by primary key or not, if yes, go ahead,
 			//it not, please first query
 			deterQueries = fillInMissingPrimaryKeysForUpdate(updateStmt, colList, valList);
@@ -398,9 +401,9 @@ public class MyShadowOpCreator
 	{
 		String[] newUpdates = null;
 
-		if(this.isPrimaryKeyMissingFromWhereClause(updateStmt.getTable().getName(), updateStmt.getWhere()))
+		if(this.isPrimaryKeyMissingFromWhereClause(updateStmt.getTables().get(0).getName(), updateStmt.getWhere()))
 		{
-			String primaryKeySelectStr = getPrimaryKeySelectionQuery(updateStmt.getTable().getName(),
+			String primaryKeySelectStr = getPrimaryKeySelectionQuery(updateStmt.getTables().get(0).getName(),
 					updateStmt.getWhere());
 			//executeUpdate the primaryKeySelectStr
 			try
@@ -408,7 +411,7 @@ public class MyShadowOpCreator
 				LOG.trace("fetching rows from main database");
 				PreparedStatement sPst = defaultConnection.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
-				newUpdates = assembleUpdates(updateStmt.getTable().getName(), colList, valList, rs);
+				newUpdates = assembleUpdates(updateStmt.getTables().get(0).getName(), colList, valList, rs);
 				rs.close();
 			} catch(SQLException e)
 			{
@@ -419,7 +422,7 @@ public class MyShadowOpCreator
 		{
 			//Debug.println("No primary key missing, then return the original update query");
 			newUpdates = new String[1];
-			newUpdates[0] = assembleUpdate(updateStmt.getTable().getName(), colList, valList,
+			newUpdates[0] = assembleUpdate(updateStmt.getTables().get(0).getName(), colList, valList,
 					updateStmt.getWhere().toString());
 		}
 		return newUpdates;

@@ -18,6 +18,6 @@ public class CoordinatorTestSetup
 	public static void main(String args[]) throws SQLException, IOException, SAXException, ClassNotFoundException
 	{
 
-		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinators().get(1));
+		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(1));
 	}
 }

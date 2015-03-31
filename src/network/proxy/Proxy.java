@@ -6,6 +6,7 @@ import database.scratchpad.DBExecuteScratchpad;
 import database.scratchpad.IDBScratchpad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
+import network.AbstractNodeConfig;
 import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
 import util.IDFactories.IdentifierFactory;
@@ -17,6 +18,7 @@ import util.ExitCode;
 import runtime.txn.TransactionIdentifier;
 import runtime.operation.DBSingleOperation;
 import util.ObjectPool;
+import util.defaults.Configuration;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,27 +40,26 @@ public class Proxy extends AbstractNode
 	private AtomicInteger transactionsCounter;
 	private AtomicInteger scratchpadsCount;
 
-	public Proxy(ProxyConfig config)
+	// a small hack to avoid casting the same object over and over during txn execution
+	private ProxyConfig privateConfig;
+
+	public Proxy(AbstractNodeConfig config)
 	{
 		super(config);
 
+		this.privateConfig = (ProxyConfig) config;
+
 		this.scratchpadsPool = new ObjectPool<>();
 		this.activeScratchpads = new ConcurrentHashMap<>();
-		this.networkInterface = new ProxyNetwork(this.getConfig());
+		this.networkInterface = new ProxyNetwork(this.config);
 		this.transactionsCounter = new AtomicInteger();
 		this.scratchpadsCount = new AtomicInteger();
 
-		IdentifierFactory.createGenerators(this.getConfig());
+		IdentifierFactory.createGenerators(this.config);
 
 		this.setup();
 
 		LOG.info("proxy {} online.", this.config.getId());
-	}
-
-	@Override
-	public ProxyConfig getConfig()
-	{
-		return (ProxyConfig) this.config;
 	}
 
 	public ResultSet executeQuery(DBSingleOperation op, TransactionIdentifier txnId)
@@ -141,7 +142,7 @@ public class Proxy extends AbstractNode
 			LOG.warn("scratchpad pool was empty");
 			try
 			{
-				pad = new DBExecuteScratchpad(this.scratchpadsCount.incrementAndGet(), this.getConfig());
+				pad = new DBExecuteScratchpad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
 			} catch(SQLException | ScratchpadException e)
 			{
 				LOG.error("failed to init scratchpad", e);
@@ -158,11 +159,11 @@ public class Proxy extends AbstractNode
 		StopWatch watch = new StopWatch();
 		watch.start();
 
-		for(int i = 1; i <= this.getConfig().getScratchPadPoolSize(); i++)
+		for(int i = 1; i <= Configuration.getInstance().getScratchpadPoolSize(); i++)
 		{
 			try
 			{
-				IDBScratchpad scratchpad = new DBExecuteScratchpad(i, this.getConfig());
+				IDBScratchpad scratchpad = new DBExecuteScratchpad(i, (ProxyConfig) config);
 				this.scratchpadsPool.addObject(scratchpad);
 				this.scratchpadsCount.incrementAndGet();
 			} catch(ScratchpadException | SQLException e)
@@ -173,7 +174,7 @@ public class Proxy extends AbstractNode
 
 		}
 		watch.stop();
-		LOG.info("{} scratchpads created in {} ms", this.getConfig().getScratchPadPoolSize(), watch.getElapsedTime());
+		LOG.info("{} scratchpads created in {} ms", Configuration.getInstance().getScratchpadPoolSize(), watch.getElapsedTime());
 	}
 
 }

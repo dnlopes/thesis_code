@@ -1,11 +1,13 @@
 package util.props;
 
 
+import network.AbstractNodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -19,49 +21,49 @@ public class DatabaseProperties
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseProperties.class);
 
-	private String jdbcUrl, jdbcDriver, jdbcUser, jdbcPwd;
+	private String dbUser;
+	private String dbPwd;
+	private String dbHost;
+	private int dbPort;
 
-	public DatabaseProperties()
-	{
-		LOG.trace("loading database properties file: database.properties");
-		try
-		{
-			InputStream is = this.getClass().getResourceAsStream("db.properties");
-			Properties properties = new Properties();
-			properties.load(is);
-			if(!this.setup(properties))
-				RuntimeHelper.throwRunTimeException("failed to read properties from file", ExitCode.FILENOTFOUND);
-		} catch(IOException e)
-		{
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FILENOTFOUND);
-		}
-
-	}
-
-	public DatabaseProperties(String propertiesFile)
+	public DatabaseProperties(String propertiesFile, boolean inClassPath)
 	{
 		LOG.trace("loading database properties file: " + propertiesFile);
 		try
 		{
-			InputStream is = getClass().getClassLoader().getResourceAsStream(propertiesFile);
+			InputStream inputStream;
+
+			if(inClassPath)
+				inputStream = getClass().getClassLoader().getResourceAsStream(propertiesFile);
+			else
+				inputStream = new FileInputStream(propertiesFile);
+
 			Properties properties = new Properties();
-			properties.load(is);
+			properties.load(inputStream);
 			if(!this.setup(properties))
 				RuntimeHelper.throwRunTimeException("failed to read properties from file", ExitCode.FILENOTFOUND);
 		} catch(IOException e)
 		{
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FILENOTFOUND);
 		}
+	}
+
+	public DatabaseProperties(AbstractNodeConfig config)
+	{
+		this.dbHost = config.getHostName();
+		this.dbPort = config.getDbPort();
+		this.dbUser = config.getDbUser();
+		this.dbPwd = config.getDbPwd();
 	}
 
 	private boolean setup(Properties properties)
 	{
 		try
 		{
-			this.jdbcUrl = properties.getProperty("db_url");
-			this.jdbcDriver = properties.getProperty("db_driver");
-			this.jdbcUser = properties.getProperty("db_username");
-			this.jdbcPwd = properties.getProperty("db_password");
+			this.dbHost = properties.getProperty("db_host");
+			this.dbPort = Integer.parseInt(properties.getProperty("db_port"));
+			this.dbUser = properties.getProperty("db_username");
+			this.dbPwd = properties.getProperty("db_password");
 
 			return true;
 		} catch(Exception e)
@@ -71,24 +73,24 @@ public class DatabaseProperties
 		}
 	}
 
-	public String getJdbcUrl()
+	public String getDbUser()
 	{
-		return this.jdbcUrl;
+		return this.dbUser;
 	}
 
-	public String getJdbcDriver()
+	public String getDbPwd()
 	{
-		return this.jdbcDriver;
+		return this.dbPwd;
 	}
 
-	public String getJdbcUser()
+	public String getDbHost()
 	{
-		return this.jdbcUser;
+		return dbHost;
 	}
 
-	public String getJdbcPwd()
+	public int getDbPort()
 	{
-		return this.jdbcPwd;
+		return dbPort;
 	}
 
 }

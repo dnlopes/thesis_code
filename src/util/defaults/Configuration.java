@@ -2,6 +2,7 @@ package util.defaults;
 
 
 import database.util.DatabaseMetadata;
+import network.AbstractNodeConfig;
 import network.coordinator.CoordinatorConfig;
 import network.proxy.ProxyConfig;
 import network.replicator.ReplicatorConfig;
@@ -33,7 +34,6 @@ public final class Configuration
 	private static Logger LOG;
 
 	private static final String CONFIG_FILE = "/config.xml";
-
 
 	private Map<Integer, ReplicatorConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -71,7 +71,6 @@ public final class Configuration
 
 		DDLParser parser = new DDLParser(this.schemaFile);
 		this.databaseMetadata = parser.parseAnnotations();
-		this.setupMissingConfigs();
 		this.watch.stop();
 
 		LOG.info("config file successfull loaded in {} ms", watch.getElapsedTime());
@@ -111,7 +110,7 @@ public final class Configuration
 					parseVariables(n);
 			}
 
-		}catch(ParserConfigurationException | IOException | SAXException e)
+		} catch(ParserConfigurationException | IOException | SAXException e)
 		{
 			throw new ConfigurationLoadException(e.getMessage());
 		}
@@ -201,12 +200,16 @@ public final class Configuration
 		String id = map.getNamedItem("id").getNodeValue();
 		String hostName = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
+		String dbHost = map.getNamedItem("dbHost").getNodeValue();
+		String dbPort = map.getNamedItem("dbPort").getNodeValue();
+		String dbUser = map.getNamedItem("dbUser").getNodeValue();
+		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
 		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
-		ReplicatorConfig replicatorConfig = this.getReplicators().get(Integer.parseInt(refReplicator));
+		ReplicatorConfig replicatorConfig = this.getAllReplicatorsConfig().get(Integer.parseInt(refReplicator));
 
 		CoordinatorConfig newCoordinator = new CoordinatorConfig(Integer.parseInt(id), hostName, Integer.parseInt
 				(port),
-				replicatorConfig);
+				dbHost, Integer.parseInt(dbPort), dbUser, dbPwd, replicatorConfig);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -241,8 +244,8 @@ public final class Configuration
 		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
 		String refCoordinator = map.getNamedItem("refCoordinator").getNodeValue();
 
-		ReplicatorConfig replicatorConfig = this.getReplicators().get(Integer.parseInt(refReplicator));
-		CoordinatorConfig coordinatorConfig = this.getCoordinators().get(Integer.parseInt(refCoordinator));
+		AbstractNodeConfig replicatorConfig = this.getReplicatorConfigWithIndex(Integer.parseInt(refReplicator));
+		AbstractNodeConfig coordinatorConfig = this.getCoordinatorConfigWithIndex(Integer.parseInt(refCoordinator));
 
 		ProxyConfig newProxy = new ProxyConfig(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
 				Integer.parseInt(dbPort), dbUser, dbPwd, replicatorConfig, coordinatorConfig);
@@ -250,7 +253,22 @@ public final class Configuration
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public Map<Integer, ReplicatorConfig> getReplicators()
+	public AbstractNodeConfig getReplicatorConfigWithIndex(int index)
+	{
+		return this.replicators.get(index);
+	}
+
+	public AbstractNodeConfig getCoordinatorConfigWithIndex(int index)
+	{
+		return this.coordinators.get(index);
+	}
+
+	public AbstractNodeConfig getProxyConfigWithIndex(int index)
+	{
+		return this.proxies.get(index);
+	}
+
+	public Map<Integer, ReplicatorConfig> getAllReplicatorsConfig()
 	{
 		return replicators;
 	}
@@ -258,11 +276,6 @@ public final class Configuration
 	public Map<Integer, ProxyConfig> getProxies()
 	{
 		return proxies;
-	}
-
-	public Map<Integer, CoordinatorConfig> getCoordinators()
-	{
-		return coordinators;
 	}
 
 	public String getDatabaseName()
@@ -289,14 +302,6 @@ public final class Configuration
 	{
 		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
 				.size() == 0 || this.coordinators.size() == 0);
-	}
-
-	private void setupMissingConfigs()
-	{
-		for(ProxyConfig config: this.proxies.values())
-		{
-			config.setScratchpadPoolSize(this.scratchpadPoolSize);
-		}
 	}
 }
 

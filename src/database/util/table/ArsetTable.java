@@ -310,7 +310,7 @@ public class ArsetTable extends DatabaseTable
 			throws JSQLParserException
 	{
 
-		String tbName = updateStatement.getTable().getName();
+		String tbName = updateStatement.getTables().get(0).getName();
 
 		List colList = updateStatement.getColumns();
 		List valueList = updateStatement.getExpressions();

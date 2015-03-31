@@ -1,7 +1,7 @@
 package network.coordinator;
 
 
-import network.AbstractConfig;
+import network.AbstractNodeConfig;
 import network.Role;
 import network.replicator.ReplicatorConfig;
 
@@ -9,15 +9,15 @@ import network.replicator.ReplicatorConfig;
 /**
  * Created by dnlopes on 22/03/15.
  */
-public class CoordinatorConfig extends AbstractConfig
+public class CoordinatorConfig extends AbstractNodeConfig
 {
 
 	private final ReplicatorConfig replicatorConfig;
 
-	public CoordinatorConfig(int id, String host, int port, ReplicatorConfig replicatorConfig)
+	public CoordinatorConfig(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
+							 ReplicatorConfig replicatorConfig)
 	{
-		super(Role.COORDINATOR, id, host, port);
-
+		super(Role.COORDINATOR, id, host, port, dbHost, dbPort, dbUser, dbPwd);
 		this.replicatorConfig = replicatorConfig;
 	}
 

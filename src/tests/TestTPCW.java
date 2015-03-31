@@ -18,8 +18,9 @@ public class TestTPCW
 
 	public static void main(String args[]) throws SQLException, ClassNotFoundException
 	{
-		Connection connection = ConnectionFactory.getConnection(
-				new DatabaseProperties(DBDefaults.CRDT_TPCW_PROPERTIES));
+		DatabaseProperties dbProperties = new DatabaseProperties(DBDefaults.DATABASE_PROPERTIES_FILE, true);
+
+		Connection connection = ConnectionFactory.getCRDTConnection(dbProperties, "tpcw");
 
 		String sstring = "INSERT into shopping_cart (sc_id, sc_time) VALUES (8817,CURRENT_TIMESTAMP)";
 		Statement s = connection.createStatement();

@@ -25,7 +25,7 @@ public class ReplicatorMain
 
 		int id = Integer.parseInt(args[0]);
 
-		Replicator replicator = new Replicator(Configuration.getInstance().getReplicators().get(id));
+		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(1));
 	}
 
 }

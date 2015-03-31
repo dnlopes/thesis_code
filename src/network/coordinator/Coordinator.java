@@ -12,6 +12,7 @@ import database.util.DataField;
 import database.util.DatabaseMetadata;
 import database.util.DatabaseTable;
 import network.AbstractNode;
+import network.AbstractNodeConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class Coordinator extends AbstractNode
 
 	private CoordinatorServerThread serverThread;
 
-	public Coordinator(CoordinatorConfig config)
+	public Coordinator(AbstractNodeConfig config)
 	{
 		super(config);
 

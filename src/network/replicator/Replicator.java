@@ -3,7 +3,7 @@ package network.replicator;
 
 import database.jdbc.ConnectionFactory;
 import network.AbstractNode;
-import network.AbstractConfig;
+import network.AbstractNodeConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +34,14 @@ public class Replicator extends AbstractNode
 	//saves all txn already committed
 	private Set<Long> committedTxns;
 	
-	public Replicator(ReplicatorConfig config)
+	public Replicator(AbstractNodeConfig config)
 	{
 		super(config);
 
 		this.otherReplicators = new HashMap<>();
 		this.networkInterface = new ReplicatorNetwork(this.getConfig());
 
-		for(ReplicatorConfig allReplicators : Configuration.getInstance().getReplicators().values())
+		for(ReplicatorConfig allReplicators : Configuration.getInstance().getAllReplicatorsConfig().values())
 			this.otherReplicators.put(allReplicators.getName(), allReplicators);
 
 		this.committedTxns = new HashSet<>();
@@ -67,12 +67,6 @@ public class Replicator extends AbstractNode
 		LOG.info("replicator {} online", this.config.getId());
 	}
 
-	@Override
-	public ReplicatorConfig getConfig()
-	{
-		return (ReplicatorConfig) this.config;
-	}
-
 	/**
 	 * Attempts to commit a shadow operation.
 	 * First it executes locally, and then it is async propagated to other replicators.
@@ -95,7 +89,7 @@ public class Replicator extends AbstractNode
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
-		for(AbstractConfig node : otherReplicators.values())
+		for(AbstractNodeConfig node : otherReplicators.values())
 			this.networkInterface.sendOperationAsync(shadowOperation, node);
 
 		return commitDecision;

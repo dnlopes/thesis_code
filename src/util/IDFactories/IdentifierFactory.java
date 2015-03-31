@@ -3,7 +3,7 @@ package util.IDFactories;
 
 import database.util.DataField;
 import database.util.DatabaseTable;
-import network.proxy.ProxyConfig;
+import network.AbstractNodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IDGenerator;
@@ -25,7 +25,7 @@ public class IdentifierFactory
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 
-	public static void createGenerators(ProxyConfig config)
+	public static void createGenerators(AbstractNodeConfig config)
 	{
 		LOG.info("bootstraping id generators for auto increment fields");
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
@@ -40,7 +40,7 @@ public class IdentifierFactory
 		}
 	}
 
-	public static void createIdGenerator(DataField field, ProxyConfig config)
+	public static void createIdGenerator(DataField field, AbstractNodeConfig config)
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 

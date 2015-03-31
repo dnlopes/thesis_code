@@ -13,6 +13,7 @@ import database.util.PrimaryKey;
 import database.util.PrimaryKeyValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -49,7 +50,7 @@ public class DBExecuter implements IExecuter
 	private FromItem fromItemTemp;
 	private PrimaryKey pk;
 
-	private List<String> selectAllItems;
+	private List<SelectItem> selectAllItems;
 	private Set<PrimaryKeyValue> duplicatedRows;
 	private TableWriteSet writeSet;
 
@@ -59,11 +60,22 @@ public class DBExecuter implements IExecuter
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
 		this.pk = databaseTable.getPrimaryKey();
 		this.modified = false;
+		this.selectAllItems = new ArrayList<>();
 
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
 
 		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
-		this.selectAllItems = this.databaseTable.getFieldsNamesList();
+		//this.selectAllItems = this.databaseTable.getFieldsNamesList();
+
+		for(DataField field : databaseTable.getFieldsList())
+		{
+			if(field.getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
+				continue;
+
+			Column column = new Column(field.getFieldName());
+			SelectExpressionItem a = new SelectExpressionItem(column);
+			selectAllItems.add(a);
+		}
 
 		this.duplicatedRows = new HashSet<>();
 	}
@@ -1131,8 +1143,8 @@ public class DBExecuter implements IExecuter
 		int affected = 0;
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(SELECT *, '" + updateOp.getTable().toString() + "' as tname FROM ");
-		buffer.append(updateOp.getTable().toString());
+		buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
+		buffer.append(updateOp.getTables().get(0).toString());
 		addWhere(buffer, updateOp.getWhere());
 		buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 		buffer.append(this.tempTableName);
@@ -1327,8 +1339,6 @@ public class DBExecuter implements IExecuter
 			RuntimeHelper.throwRunTimeException("operation with no where clause not yey supported",
 					ExitCode.MISSING_IMPLEMENTATION);
 
-		// just selec the _SP_immut field.
-		// its all we need to keep track of changes
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
 		buffer.append(this.databaseTable.getPrimaryKey().getQueryClause());

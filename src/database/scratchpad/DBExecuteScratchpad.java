@@ -19,7 +19,6 @@ import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
 import runtime.txn.TransactionWriteSet;
 import util.ExitCode;
-import util.defaults.Configuration;
 import util.defaults.ScratchpadDefaults;
 import util.thrift.CoordResponseMessage;
 import util.thrift.RequestEntry;
@@ -60,7 +59,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	{
 		this.id = id;
 		this.proxyConfig = proxyConfig;
-		this.defaultConnection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getDatabaseName());
+		this.defaultConnection = ConnectionFactory.getDefaultConnection(proxyConfig);
 		this.executers = new HashMap<>();
 		this.readOnly = false;
 		this.batchEmpty = true;

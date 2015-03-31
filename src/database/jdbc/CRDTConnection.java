@@ -25,8 +25,8 @@ public class CRDTConnection implements Connection
 
 	private static final Logger LOG = LoggerFactory.getLogger(CRDTConnection.class);
 	private static final int THIS_PROXY_ID = 1;
-	public static final Proxy THIS_PROXY = new Proxy(Configuration.getInstance().getProxies().get(THIS_PROXY_ID));
-
+	public static final Proxy THIS_PROXY = new Proxy(
+			Configuration.getInstance().getProxyConfigWithIndex(THIS_PROXY_ID));
 
 	private Proxy proxy;
 	private MyShadowOpCreator shdOpCreator;

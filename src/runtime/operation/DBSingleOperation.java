@@ -58,12 +58,12 @@ public class DBSingleOperation
 					.getName(), ((Insert) opStatement).getTable().getName().toUpperCase()}};
 		} else if(opStatement instanceof Update)
 		{
-			table = new String[][]{{((Update) opStatement).getTable().getName(), ((Update) opStatement).getTable()
-					.getName(), ((Update) opStatement).getTable().getName().toUpperCase()}};
+			table = new String[][]{{((Update) opStatement).getTables().get(
+					0).getName(), ((Update) opStatement).getTables().get(
+					0).getName(), ((Update) opStatement).getTables().get(0).getName().toUpperCase()}};
 		} else if(opStatement instanceof Delete)
 		{
-			table = new String[][]{{((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable()
-					.getName(), ((Delete) opStatement).getTable().getName().toUpperCase()}};
+			table = new String[][]{{((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName().toUpperCase()}};
 		} else if(opStatement instanceof Select)
 		{
 			SelectBody sb = ((Select) opStatement).getSelectBody();
@@ -77,8 +77,8 @@ public class DBSingleOperation
 			int nJoins = joins == null ? 0 : joins.size();
 			table = new String[nJoins + 1][3];
 			table[0][0] = ((Table) fi).getName();
-			table[0][1] = (fi.getAlias() == null || fi.getAlias().length() == 0) ? ((Table) fi).getName() : fi
-					.getAlias();
+			//table[0][1] = (fi.getAlias() == null || fi.getAlias().length() == 0) ? ((Table) fi).getName() : fi
+			//		.getAlias();
 			table[0][2] = ((Table) fi).getName().toUpperCase();
 			if(joins != null)
 			{
@@ -88,9 +88,9 @@ public class DBSingleOperation
 				{
 					Join jT = (Join) it.next();
 					table[i][0] = ((Table) jT.getRightItem()).getName();
-					table[i][1] = (((Table) jT.getRightItem()).getAlias() == null || ((Table) jT.getRightItem())
-							.getAlias().length() == 0) ? ((Table) jT.getRightItem()).getName() : ((Table) jT
-							.getRightItem()).getAlias();
+					//table[i][1] = (((Table) jT.getRightItem()).getAlias() == null || ((Table) jT.getRightItem())
+					//		.getAlias().length() == 0) ? ((Table) jT.getRightItem()).getName() : ((Table) jT
+					//		.getRightItem()).getAlias();
 					table[i][2] = ((Table) jT.getRightItem()).getName().toUpperCase();
 					i++;
 				}

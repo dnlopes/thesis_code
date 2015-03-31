@@ -19,8 +19,9 @@ public class ForeignKeyTest
 	public static void main(String args[]) throws SQLException, ClassNotFoundException
 	{
 
-		Connection connection = ConnectionFactory.getConnection(
-				new DatabaseProperties(DBDefaults.DEFAUTL_TPCW_PROPERTIES));
+		DatabaseProperties dbProperties = new DatabaseProperties(DBDefaults.DATABASE_PROPERTIES_FILE, true);
+		Connection connection = ConnectionFactory.getDefaultConnection(dbProperties);
+
 		connection.setAutoCommit(false);
 		Statement stat = connection.createStatement();
 		stat.execute("DROP DATABASE if exists test");
@@ -37,10 +38,10 @@ public class ForeignKeyTest
 		stat.addBatch(statement);
 		statement = "CREATE TABLE t2(" +
 				"a int(10) NOT NULL, " +
-				"b int(10) NOT NULL, " +
+				"b int(10), " +
 				"PRIMARY KEY (a), " +
 				//"FOREIGN KEY (b) REFERENCES t1 (b) ON DELETE CASCADE ON UPDATE CASCADE" +
-				"FOREIGN KEY (b) REFERENCES t1 (b) ON DELETE cascade on update cascade" +
+				"FOREIGN KEY (b) REFERENCES t1 (b) ON DELETE RESTRICT on update cascade" +
 				")ENGINE=INNODB";
 
 		stat.addBatch(statement);

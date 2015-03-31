@@ -87,6 +87,9 @@
 			<include name="slf4j-log4j12-1.7.10.jar" />
 			<include name="mysql-connector-java-5.1.17-bin.jar" />
 		</fileset>
+		<fileset dir="${dist.dir}/jars/">
+			<include name="crdtjdbc.jar" />
+		</fileset>
 	</path>
 	<path id="tpcc.runtime.classpath">
 		<pathelement path="${tpcc.classes.dir}" />
@@ -95,6 +98,9 @@
 			<include name="log4j-1.2.17.jar" />
 			<include name="slf4j-log4j12-1.7.10.jar" />
 			<include name="mysql-connector-java-5.1.17-bin.jar" />
+		</fileset>
+		<fileset dir="${dist.dir}/jars/">
+			<include name="crdtjdbc.jar" />
 		</fileset>
 	</path>
 
@@ -184,14 +190,14 @@
 	<target name="tpcc-clean">
 		<delete dir="${tpcc.dist.dir}" />
 	</target>
-	<target name="tpcc-dist" depends="tpcc-init" description="Compile and distribute TPC-C">
+	<target name="tpcc-dist" depends="dist,tpcc-init" description="Compile and distribute TPC-C">
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
 			   destdir="${tpcc.classes.dir}"
 			   debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcc.classpath" />
 		</javac>
 	</target>
-	<target name="tpcc-gendb" depends="tpcc-dist" description="Generate TPC-C database">
+	<target name="tpcc-gendb" depends="dist, tpcc-dist" description="Generate TPC-C database">
 		<java classname="com.codefutures.tpcc.TpccLoad" fork="true" dir="${tpcc.dir}">
 			<classpath refid="tpcc.runtime.classpath" />
 			<classpath refid="tpcc.resources.path" />

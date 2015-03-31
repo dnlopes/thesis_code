@@ -3,7 +3,7 @@ package runtime;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.proxy.ProxyConfig;
+import network.AbstractNodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -29,7 +29,7 @@ public class IDGenerator
 	private int delta;
 
 
-	public IDGenerator(DataField field, ProxyConfig config)
+	public IDGenerator(DataField field, AbstractNodeConfig config)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
@@ -38,7 +38,7 @@ public class IDGenerator
 		this.setupGenerator(config);
 	}
 
-	private void setupGenerator(ProxyConfig config)
+	private void setupGenerator(AbstractNodeConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");

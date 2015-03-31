@@ -25,12 +25,12 @@ public abstract class AbstractNetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
-	protected AbstractConfig me;
+	protected AbstractNodeConfig me;
 	protected Map<String, ReplicatorRPC.Client> replicatorsClients;
 	protected Map<String, CoordinatorRPC.Client> coordinatorsClients;
 
 
-	public AbstractNetwork(AbstractConfig node)
+	public AbstractNetwork(AbstractNodeConfig node)
 	{
 		this.me = node;
 		this.replicatorsClients = new HashMap<>();
@@ -38,7 +38,7 @@ public abstract class AbstractNetwork
 
 	}
 
-	protected void addNode(AbstractConfig newNode) throws TTransportException
+	protected void addNode(AbstractNodeConfig newNode) throws TTransportException
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
 		{
@@ -56,7 +56,7 @@ public abstract class AbstractNetwork
 		LOG.trace("new node added {}", newNode.getName());
 	}
 
-	private void addReplicatorNode(AbstractConfig newNode) throws TTransportException
+	private void addReplicatorNode(AbstractNodeConfig newNode) throws TTransportException
 	{
 		if(this.replicatorsClients.containsKey(newNode.getName()))
 		{
@@ -72,7 +72,7 @@ public abstract class AbstractNetwork
 		this.replicatorsClients.put(newNode.getName(), newClient);
 	}
 
-	private void addCoordinatorNode(AbstractConfig newNode) throws TTransportException
+	private void addCoordinatorNode(AbstractNodeConfig newNode) throws TTransportException
 	{
 		if(this.coordinatorsClients.containsKey(newNode.getName()))
 		{

@@ -1,8 +1,7 @@
 package database.jdbc;
 
 
-import network.proxy.ProxyConfig;
-import network.replicator.ReplicatorConfig;
+import network.AbstractNodeConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.props.DatabaseProperties;
@@ -20,38 +19,74 @@ import java.sql.SQLException;
 public class ConnectionFactory
 {
 
+	private static final String CRDT_DRIVER = "database.jdbc.CRDTDriver";
+	private static final String DEFAULT_DRIVER = "com.mysql.jdbc.Driver";
+	private static final String DATABASE_NAME = Configuration.getInstance().getDatabaseName();
+
 	static
 	{
 		try
 		{
-			Class.forName("com.mysql.jdbc.Driver");
-			Class.forName("database.jdbc.CRDTDriver");
+			Class.forName(CRDT_DRIVER);
+			Class.forName(DEFAULT_DRIVER);
 		} catch(ClassNotFoundException e)
 		{
 			e.printStackTrace();
 		}
 	}
 
-	public static Connection getConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
+	public static Connection getDefaultConnection(DatabaseProperties props, String databaseName)
+			throws SQLException, ClassNotFoundException
 	{
-		Class.forName(props.getJdbcDriver());
-		Connection c = DriverManager.getConnection(props.getJdbcUrl(), props.getJdbcUser(), props.getJdbcPwd());
+		StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		buffer.append(props.getDbHost());
+		buffer.append(":");
+		buffer.append(props.getDbPort());
+		buffer.append("/");
+		buffer.append(databaseName);
+
+		return DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
+	}
+
+	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
+	{
+		return getDefaultConnection(props, DATABASE_NAME);
+	}
+
+	public static Connection getCRDTConnection(DatabaseProperties props, String databaseName)
+			throws SQLException, ClassNotFoundException
+	{
+		StringBuffer buffer = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+		buffer.append(props.getDbHost());
+		buffer.append(":");
+		buffer.append(props.getDbPort());
+		buffer.append("/");
+		buffer.append(databaseName);
+
+		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
 		c.setAutoCommit(false);
 
 		return c;
 	}
 
-	public static Connection getCRDTConnection(String database) throws SQLException
+	public static Connection getCRDTConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
 	{
-		return getCRDTConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
+		return getCRDTConnection(props, DATABASE_NAME);
 	}
 
-	public static Connection getCRDTConnection() throws SQLException
+	public static Connection getDefaultConnection(AbstractNodeConfig nodeInfo) throws SQLException
 	{
-		return getCRDTConnection(CRDTConnection.THIS_PROXY.getConfig());
+		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		url.append(nodeInfo.getDbHost());
+		url.append(":");
+		url.append(nodeInfo.getDbPort());
+		url.append("/");
+		url.append(Configuration.getInstance().getDatabaseName());
+
+		return DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
 	}
 
-	public static Connection getCRDTConnection(ProxyConfig nodeInfo) throws SQLException
+	public static Connection getCRDTConnection(AbstractNodeConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
 		url.append(nodeInfo.getDbHost());
@@ -65,58 +100,4 @@ public class ConnectionFactory
 
 		return c;
 	}
-
-	private static Connection getCRDTConnection(String database, String user, String password) throws SQLException
-	{
-		Connection c = DriverManager.getConnection(database, user, password);
-		c.setAutoCommit(false);
-
-		return c;
-	}
-
-	public static Connection getDefaultConnection(String database) throws SQLException
-	{
-		return getDefaultConnection(database, DBDefaults.MYSQL_USER, DBDefaults.MYSQL_PASSWORD);
-	}
-
-	public static Connection getDefaultConnection(ProxyConfig nodeInfo) throws SQLException
-	{
-		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
-		url.append(nodeInfo.getDbHost());
-		url.append(":");
-		url.append(nodeInfo.getDbPort());
-		url.append("/");
-		url.append(Configuration.getInstance().getDatabaseName());
-
-		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
-		c.setAutoCommit(false);
-
-		return c;
-	}
-
-	public static Connection getDefaultConnection(ReplicatorConfig nodeInfo) throws SQLException
-	{
-		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
-		url.append(nodeInfo.getDbHost());
-		url.append(":");
-		url.append(nodeInfo.getDbPort());
-		url.append("/");
-		url.append(Configuration.getInstance().getDatabaseName());
-
-		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
-		c.setAutoCommit(false);
-
-		return c;
-	}
-
-	private static Connection getDefaultConnection(String database, String user, String password) throws SQLException
-	{
-		StringBuilder url = new StringBuilder(DBDefaults.DEFAULT_URL);
-		url.append(database);
-		Connection c = DriverManager.getConnection(url.toString(), user, password);
-		c.setAutoCommit(false);
-
-		return c;
-	}
-
 }

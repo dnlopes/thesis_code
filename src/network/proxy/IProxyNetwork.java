@@ -1,7 +1,7 @@
 package network.proxy;
 
 
-import network.AbstractConfig;
+import network.AbstractNodeConfig;
 import org.apache.thrift.TException;
 import runtime.operation.ShadowOperation;
 import util.thrift.CoordResponseMessage;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface IProxyNetwork
 {
-	public boolean commitOperation(ShadowOperation shadowOp, AbstractConfig node);
+	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node);
 
-	public CoordResponseMessage checkInvariants(List<RequestEntry> checkList, AbstractConfig node) throws TException;
+	public CoordResponseMessage checkInvariants(List<RequestEntry> checkList, AbstractNodeConfig node) throws TException;
 }

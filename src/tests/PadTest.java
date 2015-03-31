@@ -31,7 +31,10 @@ public class PadTest
 		IDBScratchpad pad2 = ScratchpadFactory.getInstante().getScratchpad();
 		watch.stop();
 		                     */
-		Connection con = ConnectionFactory.getCRDTConnection(Configuration.getInstance().getDatabaseName());
+
+		Configuration config = Configuration.getInstance();
+
+		Connection con = ConnectionFactory.getCRDTConnection(config.getProxyConfigWithIndex(0));
 		Statement stat = con.createStatement();
 
 		/*

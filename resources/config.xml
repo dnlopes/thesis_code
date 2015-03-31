@@ -8,7 +8,8 @@
 						dbPwd="101010" />
 		</replicators>
 		<coordinators>
-			<coordinator id="1" host="localhost" port="50011" refReplicator="1" />
+			<coordinator id="1" host="localhost" port="50011" dbHost="172.16.24.166" dbPort="3306" dbUser="sa"
+						 dbPwd="101010" refReplicator="1" />
 		</coordinators>
 		<proxies>
 			<proxy id="1" host="localhost" port="50005" dbHost="172.16.24.166" dbPort="3306" dbUser="sa"
