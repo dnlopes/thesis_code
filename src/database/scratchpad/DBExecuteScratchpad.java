@@ -202,6 +202,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public ResultSet executeQuery(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
 	{
 		op.parse(this.parser);
+		LOG.trace("query: {}", op.toString());
 
 		if(!op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);

@@ -75,8 +75,10 @@ public class DDLParser
 		String line;
 		try
 		{
-			InputStream is = getClass().getClassLoader().getResourceAsStream(this.fileName);
-			br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			//InputStream is = getClass().getClassLoader().getResourceAsStream(this.fileName);
+			FileReader reader = new FileReader(this.fileName);
+			InputStream stream = new FileInputStream(this.fileName);
+			br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			while((line = br.readLine()) != null)
 			{
 				schemaContentStr = schemaContentStr + line;

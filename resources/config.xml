@@ -17,6 +17,6 @@
 				   dbPwd="101010" refReplicator="2" refCoordinator="1" />
 		</proxies>
 	</topology>
-	<variables padPoolSize="75" dbName="tpcw"
-			   schemaFile="tpcw-database.sql" />
+	<variables padPoolSize="10" dbName="tpcc"
+			   schemaFile="/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc/tpcc-database.sql" />
 </config>

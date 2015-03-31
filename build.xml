@@ -166,7 +166,12 @@
 				<include name="${tpcw.crdt.db.properties}" />
 				<include name="log4j.properties" />
 				<include name="config.xml" />
-				<include name="*.sql" />
+			</fileset>
+			<fileset dir="${resources.dir}/tpcc">
+				<include name="tpcc-database.sql" />
+			</fileset>
+			<fileset dir="${resources.dir}/tpcw">
+				<include name="tpcw-database.sql" />
 			</fileset>
 		</jar>
 	</target>

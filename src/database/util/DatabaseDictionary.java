@@ -12,7 +12,7 @@ public class DatabaseDictionary {
 	/** The Constant dataTypeList. */
 	final static String[] dataTypeList = { "INT", "FLOAT", "DOUBLE", "BOOL",
 			"BOOLEAN", "DATE", "DATETIME", "TIMESTAMP", "CHAR", "VARCHAR" ,
-			"REAL", "INTEGER", "TEXT"};
+			"REAL", "INTEGER", "TEXT", "smallint", "decimal", "tinyint", "bigint", "datetime", };
 
 	final static String[] constraintsList = {"PRIMARY KEY", "CHECK", "FOREIGN KEY"};
 

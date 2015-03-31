@@ -9,9 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import network.proxy.Proxy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import util.defaults.Configuration;
+
 
 public class Tpcc implements TpccConstants {
 
@@ -32,8 +34,9 @@ public class Tpcc implements TpccConstants {
     private static final String JOINS = "JOINS";
 
 
-    private static final String PROPERTIESFILE = "tpcc.properties";
-    
+    private static final String PROPERTIESFILE = "/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/tpcc" +
+			".properties";
+
 
     /* Global SQL Variables */
 
@@ -83,7 +86,9 @@ public class Tpcc implements TpccConstants {
 
     public Tpcc() {
         // Empty.
-    }
+		Configuration config = Configuration.getInstance();
+
+	}
 
 
     private void init() {

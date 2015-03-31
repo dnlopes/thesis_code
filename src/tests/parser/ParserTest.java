@@ -6,7 +6,6 @@ import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
 import database.constraints.unique.UniqueConstraint;
-import org.junit.Test;
 import util.parser.DDLParser;
 import database.util.DatabaseMetadata;
 import database.util.DatabaseTable;
@@ -20,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 public class ParserTest
 {
 
-	private static final String SCHEMA_FILE = "/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcw-database" +
+	private static final String SCHEMA_FILE =
+			"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc/tpcc-database" +
 			".sql";
 
-	@Test
 	public static void main(String args[])
 	{
 

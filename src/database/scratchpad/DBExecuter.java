@@ -435,7 +435,7 @@ public class DBExecuter implements IExecuter
 				{
 					continue;
 				}
-				LOG.trace("UNIQUE INDEX" + columnName);
+				LOG.trace("UNIQUE INDEX " + columnName);
 				uniqueIndices.add(columnName);
 			}
 			uqIndices.close();
@@ -482,6 +482,8 @@ public class DBExecuter implements IExecuter
 			else
 				buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
 
+			LOG.trace("buffer1: {}", buffer.toString());
+			LOG.trace("buffer2: {}", buffer2.toString());
 			scratchpad.executeUpdate(buffer2.toString());
 			scratchpad.executeUpdate(buffer.toString());
 

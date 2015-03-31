@@ -12,7 +12,7 @@
         <logger name="org.opensharding.oscm" level="INFO" />
         <logger name="com.dbshards.jdbc" level="INFO" />
         <logger name="com.dbshards.core.plugins.StatsPlugin" level="DEBUG" />
-        <root level="info">
+        <root level="trace">
             <appender-ref ref="STDOUT"/>
         </root>
 

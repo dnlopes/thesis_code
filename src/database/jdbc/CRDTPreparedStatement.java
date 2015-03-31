@@ -410,7 +410,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public void setFetchSize(int arg0) throws SQLException
 	{
-		throw new MissingImplementationException("missing implementation");
+		//throw new MissingImplementationException("missing implementation");
 	}
 
 	@Override
