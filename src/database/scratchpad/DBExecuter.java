@@ -11,8 +11,8 @@ import database.util.DataField;
 import database.util.DatabaseTable;
 import database.util.PrimaryKey;
 import database.util.PrimaryKeyValue;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.*;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -51,6 +51,7 @@ public class DBExecuter implements IExecuter
 	private PrimaryKey pk;
 
 	private List<SelectItem> selectAllItems;
+
 	private Set<PrimaryKeyValue> duplicatedRows;
 	private TableWriteSet writeSet;
 
@@ -835,15 +836,17 @@ public class DBExecuter implements IExecuter
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
-		buffer.append(" AND ");
-		this.addNotInClause(buffer, true, true);
+		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
+		{
+			//buffer.append("AND ");
+			//this.generateNotInDeletedAndUpdatedClause(buffer);
+		}
 		buffer.append(") UNION (SELECT ");
 		buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
 		buffer.append(")");
-		buffer.append(";");
 		String query = buffer.toString();
 
 		// this should only return 1 row...
@@ -972,11 +975,13 @@ public class DBExecuter implements IExecuter
 		whereClauseTemp.append(" (");
 		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
 		whereClauseTemp.append(" = FALSE )");
+
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
+
 		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
 		{
-			whereClauseOrig.append(" AND ");
-			this.addNotInClause(whereClauseOrig, true, true);
+			//whereClauseOrig.append(" AND ");
+			//this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
 		}
 
 		queryToOrigin = plainSelect.toString();
@@ -1401,6 +1406,61 @@ public class DBExecuter implements IExecuter
 			}
 		}
 		return pkBuffer.toString();
+	}
+
+	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
+	{
+
+		buffer.append("( ");
+		// remove deleted and updated from select in main table
+		InExpression notInExpression = new InExpression();
+		notInExpression.setNot(true);
+
+		List<Expression> deletedItemsList = new ArrayList<>();
+
+		for(PrimaryKeyValue pkValue : this.duplicatedRows)
+		{
+			Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
+			deletedItemsList.add(valueExpression);
+		}
+
+		for(PrimaryKeyValue pkValue : this.writeSet.getDeletedRows())
+		{
+			Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
+			deletedItemsList.add(valueExpression);
+		}
+
+		ExpressionList expressionList = new ExpressionList(deletedItemsList);
+
+		notInExpression.setRightItemsList(expressionList);
+		notInExpression.setLeftExpression(new MyValueExpression("(" + this.pk.getQueryClause() + ")"));
+
+		buffer.append(notInExpression.toString());
+		buffer.append(" )");
+	}
+
+
+	private class MyValueExpression implements Expression
+	{
+
+		private String value;
+
+		public MyValueExpression(String value)
+		{
+			this.value = value;
+		}
+
+		@Override
+		public String toString()
+		{
+			return value;
+		}
+
+		@Override
+		public void accept(ExpressionVisitor expressionVisitor)
+		{
+
+		}
 	}
 
 }

@@ -26,9 +26,6 @@
 
 
 	<property name="main.db.properties" value="database.properties" />
-	<property name="tpcw.default.db.properties" value="dbdefault.tpcw.properties" />
-	<property name="tpcw.crdt.db.properties" value="crdtdb.tpcw.properties" />
-
 
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -168,8 +165,6 @@
 			<fileset dir="${resources.dir}">
 				<include name="${main.db.properties}" />
 				<include name="crdtdb.tpcw.properties" />
-				<include name="${tpcw.default.db.properties}" />
-				<include name="${tpcw.crdt.db.properties}" />
 				<include name="log4j.properties" />
 				<include name="config.xml" />
 			</fileset>

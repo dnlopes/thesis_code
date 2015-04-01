@@ -36,7 +36,7 @@ public final class PrimaryKeyValue
 
 	private String generateValue(List<String> values)
 	{
-		StringBuilder buffer = new StringBuilder("(");
+		StringBuilder buffer = new StringBuilder();
 
 		Iterator<String> it = values.iterator();
 		while(it.hasNext())
@@ -46,7 +46,7 @@ public final class PrimaryKeyValue
 				buffer.append(",");
 		}
 
-		buffer.append(")");
+		//buffer.append(")");
 		return buffer.toString();
 	}
 

@@ -45,7 +45,10 @@ public class ConnectionFactory
 		buffer.append("/");
 		buffer.append(databaseName);
 
-		return DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
+		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
 	}
 
 	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
@@ -83,7 +86,10 @@ public class ConnectionFactory
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		return DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
 	}
 
 	public static Connection getCRDTConnection(AbstractNodeConfig nodeInfo) throws SQLException

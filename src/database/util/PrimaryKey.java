@@ -36,7 +36,7 @@ public class PrimaryKey
 
 	private String generateQueryClause()
 	{
-		StringBuilder buffer = new StringBuilder("(");
+		StringBuilder buffer = new StringBuilder();
 
 		Iterator<DataField> it = this.fields.iterator();
 		while(it.hasNext())
@@ -46,7 +46,6 @@ public class PrimaryKey
 				buffer.append(",");
 		}
 
-		buffer.append(")");
 		return buffer.toString();
 	}
 	
