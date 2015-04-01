@@ -14,6 +14,7 @@ import java.util.Vector;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -76,7 +77,7 @@ public class DDLParser
 		try
 		{
 			//InputStream is = getClass().getClassLoader().getResourceAsStream(this.fileName);
-			FileReader reader = new FileReader(this.fileName);
+			//FileReader reader = new FileReader(this.fileName);
 			InputStream stream = new FileInputStream(this.fileName);
 			br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			while((line = br.readLine()) != null)

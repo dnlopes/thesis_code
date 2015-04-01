@@ -951,7 +951,7 @@ public class DBExecuter implements IExecuter
 
 	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db) throws SQLException, ScratchpadException
 	{
-		LOG.trace("creating selection for query {}", selectOp.toString());
+		LOG.debug("creating selection for query {}", selectOp.toString());
 		String queryToOrigin;
 		String queryToTemp;
 
@@ -980,8 +980,8 @@ public class DBExecuter implements IExecuter
 
 		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
 		{
-			//whereClauseOrig.append(" AND ");
-			//this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
+			whereClauseOrig.append(" AND ");
+			this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
 		}
 
 		queryToOrigin = plainSelect.toString();
@@ -1016,7 +1016,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(")");
 
 		String finalQuery = buffer.toString();
-		LOG.trace("query generated: {}", finalQuery);
+		LOG.debug("query generated: {}", finalQuery);
 
 		return db.executeQuery(finalQuery);
 	}
@@ -1410,6 +1410,9 @@ public class DBExecuter implements IExecuter
 
 	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
 	{
+
+		if(this.duplicatedRows.size() == 0 && this.writeSet.getDeletedRows().size() == 0)
+			return;
 
 		buffer.append("( ");
 		// remove deleted and updated from select in main table

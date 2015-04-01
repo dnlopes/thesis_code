@@ -19,7 +19,9 @@ import util.parser.DDLParser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ public final class Configuration
 	private static Logger LOG;
 
 	private static final String CONFIG_FILE = "/config.xml";
+	private static final String BASE_DIR = "/var/tmp/weakdb";
 
 	private Map<Integer, ReplicatorConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -89,8 +92,10 @@ public final class Configuration
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
+			InputStream stream = new FileInputStream(BASE_DIR + "/" + CONFIG_FILE);
 
+			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
+			Document doc = dBuilder.parse(stream);
 			//optional, but recommended
 			doc.getDocumentElement().normalize();
 
@@ -121,7 +126,7 @@ public final class Configuration
 		NamedNodeMap map = n.getAttributes();
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
-		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
+		this.schemaFile = BASE_DIR + "/" + map.getNamedItem("schemaFile").getNodeValue();
 
 		LOG.info("#############################");
 		LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
