@@ -24,9 +24,6 @@
 	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
 	<property name="tpcc.dir" value="${applications.dir}/tpcc" />
 
-
-	<property name="main.db.properties" value="database.properties" />
-
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
 		<classpath>
@@ -54,29 +51,28 @@
 		</fileset>
 	</path>
 
-
 	<!-- Path definitions -->
 	<path id="weakdb.classpath">
 		<fileset dir="${libs.dir}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
+	<path id="weakdb.runtime.classpath">
+		<pathelement path="${classes.dir}" />
+	</path>
+
 	<path id="tpcw.classpath">
 		<fileset dir="${tpcw.dir}/libs">
 			<include name="*.jar" />
 		</fileset>
 		<fileset dir="${tpcw.dir}/">
-			<include name="crdtdb.tpcw.properties" />
-			<include name="log4j.properties" />
 			<include name="sql-mysql.properties" />
 		</fileset>
-	</path>
-	<path id="weakdb.runtime.classpath">
-		<pathelement path="${classes.dir}" />
 	</path>
 	<path id="tpcw.runtime.classpath">
 		<pathelement path="${tpcw.dist.dir}" />
 	</path>
+
 	<path id="tpcc.classpath">
 		<fileset dir="${base.dir}/libs">
 			<include name="slf4j-api-1.7.10.jar" />
@@ -112,9 +108,12 @@
 		<mkdir dir="${dist.dir}" />
 		<mkdir dir="${classes.dir}" />
 		<mkdir dir="${jars.dir}" />
+		<mkdir dir="${deploy.dir}" />
 	</target>
 	<target name="clean" description="Clean WeakDB distribution">
 		<delete dir="${dist.dir}" />
+		<delete dir="${deploy.dir}" />
+
 	</target>
 	<target name="compile" depends="init" description="Compile WeakDB sources">
 		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
@@ -163,18 +162,25 @@
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}" />
 			<fileset dir="${resources.dir}">
-				<include name="${main.db.properties}" />
-				<include name="crdtdb.tpcw.properties" />
+				<include name="database.properties" />
 				<include name="log4j.properties" />
 				<include name="config.xml" />
-			</fileset>
-			<fileset dir="${resources.dir}/tpcc">
 				<include name="tpcc-database.sql" />
-			</fileset>
-			<fileset dir="${resources.dir}/tpcw">
 				<include name="tpcw-database.sql" />
 			</fileset>
 		</jar>
+		<copy todir="${deploy.dir}">
+			<fileset dir="${jars.dir}">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${resources.dir}">
+				<include name="config.xml" />
+				<include name="database.properties" />
+				<include name="tpcc-database.sql" />
+				<include name="tpcw-database.sql" />
+				<include name="log4j.properties" />
+			</fileset>
+		</copy>
 	</target>
 
 	<!-- TPC-C tasks -->
@@ -211,8 +217,8 @@
 		<delete dir="${tpcw.dist.dir}" />
 		<delete dir="${tpcw.dir}/src" />
 		<delete>
-			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" />
-			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
+			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" erroronmissingdir="" />
+			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" erroronmissingdir="" />
 		</delete>
 	</target>
 	<target name="tpcw-dist" description="Compile and distribute TPCW"
@@ -238,16 +244,11 @@
 			</fileset>
 		</copy>
 		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
-		<!-- <copy file="${base.dir}/resources/dbdefault.tpcw.properties"
-			  tofile="${tpcw.web.dir}/WEB-INF/classes/database.properties" /> -->
-		<copy file="${base.dir}/resources/crdtdb.tpcw.properties"
-			  tofile="${tpcw.web.dir}/WEB-INF/classes/database.properties" />
+		<copy file="${resources.dir}/database.properties" todir="${tpcw.web.dir}/WEB-INF/classes" />
 		<war destfile="${tpcw.dist.dir}/tpcw.war" webxml="${tpcw.web.dir}/WEB-INF/web.xml" basedir="${tpcw.web.dir}" />
 		<delete dir="${tomcat.dir}/webapps/tpcw" />
 		<delete file="${tomcat.dir}/webapps/tpcw.war" />
 		<copy file="${tpcw.dist.dir}/tpcw.war" todir="${tomcat.dir}/webapps" />
-		<!-- our custom jdbc already includes default mysql connector -->
-		<!-- <copy file="${tpcw.dir}/libs/mysql-connector-java-5.1.33.jar" todir="${tomcat.dir}/lib" /> -->
 		<copy file="${base.dir}/dist/jars/crdtjdbc.jar" todir="${tomcat.dir}/lib" />
 		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
 		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
