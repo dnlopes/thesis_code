@@ -67,7 +67,7 @@ public class TupleWriteSet
 				.getValue());
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
-		buffer.append(this.dbTable);
+		buffer.append(this.dbTable.getName());
 		buffer.append(" set ");
 
 		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
@@ -91,7 +91,7 @@ public class TupleWriteSet
 		buffer.append(")");
 
 		String statement = buffer.toString();
-		LOG.debug("statemente generated: {}", statement);
+		LOG.debug("statement generated: {}", statement);
 
 		statements.add(statement);
 	}

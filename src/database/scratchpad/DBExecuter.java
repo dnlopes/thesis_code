@@ -39,7 +39,8 @@ import java.util.*;
 public class DBExecuter implements IExecuter
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
+	private static final String SP_DELETED_EXPRESSION = ScratchpadDefaults.SCRATCHPAD_COL_DELETED + "=0";
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
@@ -64,9 +65,6 @@ public class DBExecuter implements IExecuter
 		this.selectAllItems = new ArrayList<>();
 
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
-
-		this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), this.databaseTable.getName());
-		//this.selectAllItems = this.databaseTable.getFieldsNamesList();
 
 		for(DataField field : databaseTable.getFieldsList())
 		{
@@ -346,6 +344,7 @@ public class DBExecuter implements IExecuter
 			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.databaseTable.getName() +
 					"_" +
 					scratchpad.getScratchpadId();
+			this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), tempTableName);
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
 
@@ -797,7 +796,6 @@ public class DBExecuter implements IExecuter
 		this.createWriteSetEntry(pkValue);
 		this.writeSet.addInsertedRow(pkValue, originBuffer.toString());
 
-		// TODO: blue transactions need to fail here when the value inserted already exists
 		int result = db.executeUpdate(buffer.toString());
 
 		//add unique index to write set as well
@@ -811,6 +809,7 @@ public class DBExecuter implements IExecuter
 			db.addToWriteSet(DBWriteSetEntry.createEntry(insertOp.getTable().toString(), uiqStr, true, false));
 		}
 
+		LOG.debug("new insert: {}", originBuffer.toString());
 		return DBUpdateResult.createResult(result);
 	}
 
@@ -850,6 +849,7 @@ public class DBExecuter implements IExecuter
 		String query = buffer.toString();
 
 		// this should only return 1 row...
+		LOG.debug("selection for delete: {}", query);
 		ResultSet res = db.executeQuery(query);
 		int rowsDeleted = 0;
 
@@ -895,15 +895,12 @@ public class DBExecuter implements IExecuter
 		buffer.append(";");
 		String delete = buffer.toString();
 
-		LOG.trace("erasing {} rows from temporary table", rowsDeleted);
-
 		rowsDeleted += db.executeUpdate(delete);
 		return DBUpdateResult.createResult(rowsDeleted);
 	}
 
 	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchpad db) throws SQLException
 	{
-		LOG.trace("insert missing rows in temporary table before applying update");
 		// before writting in the scratchpad, add the missing rows
 		// we also use this method to capture all the tuples that will be affected by the update
 		this.addMissingRowsToScratchpad(updateOp, db);
@@ -942,7 +939,10 @@ public class DBExecuter implements IExecuter
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
 
-		db.addToBatchUpdate(buffer.toString());
+
+		String updateStr = buffer.toString();
+		LOG.debug("transformed update: {}", updateStr);
+		db.addToBatchUpdate(updateStr);
 		db.executeBatch();
 		this.modified = true;
 
@@ -969,12 +969,11 @@ public class DBExecuter implements IExecuter
 		{
 			whereClauseTemp.append("(");
 			whereClauseTemp.append(plainSelect.getWhere());
-			whereClauseTemp.append(") AND");
+			whereClauseTemp.append(") AND (");
 		}
 
-		whereClauseTemp.append(" (");
-		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		whereClauseTemp.append(" = FALSE )");
+		whereClauseTemp.append(SP_DELETED_EXPRESSION);
+		whereClauseTemp.append(")");
 
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
 
@@ -1019,6 +1018,62 @@ public class DBExecuter implements IExecuter
 		LOG.debug("query generated: {}", finalQuery);
 
 		return db.executeQuery(finalQuery);
+
+
+		/*
+		LOG.debug("creating selection for query {}", selectOp.toString());
+
+		StringBuffer tempBuffer = new StringBuffer("SELECT ");
+		StringBuffer originBuffer = new StringBuffer("SELECT ");
+		StringBuffer finalQuery = new StringBuffer();
+
+		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+		List columnsToFetch = plainSelect.getSelectItems();
+
+		//if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
+		//	plainSelect.setSelectItems(this.selectAllItems);
+
+		tempBuffer.append(plainSelect.getSelectItems().toString());
+		originBuffer.append(plainSelect.getSelectItems().toString());
+		originBuffer.append(" FROM ");
+		originBuffer.append(plainSelect.getFromItem());
+		originBuffer.append(" ");
+		plainSelect.setFromItem(this.fromItemTemp);
+		tempBuffer.append(" FROM ");
+		tempBuffer.append(plainSelect.getFromItem());
+		tempBuffer.append(" ");
+
+		// first add original where clause in the temp query, if it exists
+		if(plainSelect.getWhere() != null)
+		{
+			tempBuffer.append("WHERE (");
+			tempBuffer.append(plainSelect.getWhere());
+			tempBuffer.append(")");
+			// at this point, the query to the temp table is ready!
+		}
+
+		// build the where clause of the main db query
+		CustomWhereClause whereClause;
+		if(plainSelect.getWhere() == null)
+			whereClause = new CustomWhereClause();
+		else
+			whereClause = new CustomWhereClause(plainSelect.getWhere().toString());
+
+		whereClause.addClause(SP_DELETED_EXPRESSION);
+
+		originBuffer.append("WHERE ");
+		originBuffer.append(whereClause.toString());
+
+		finalQuery.append("(");
+		finalQuery.append(tempBuffer.toString());
+		finalQuery.append(") UNION (");
+		finalQuery.append(originBuffer.toString());
+		finalQuery.append(")");
+
+		String finalQueryString = finalQuery.toString();
+		LOG.debug("query generated: {}", finalQueryString);
+
+		return db.executeQuery(finalQueryString);*/
 	}
 
 	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db, IExecuter[] executors, String[][] tables)
@@ -1144,7 +1199,6 @@ public class DBExecuter implements IExecuter
 	 */
 	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws SQLException
 	{
-		List<Integer> affectedRows = new ArrayList<>();
 		int affected = 0;
 
 		StringBuffer buffer = new StringBuffer();
@@ -1224,7 +1278,6 @@ public class DBExecuter implements IExecuter
 			buffer.append(");");
 			pad.executeUpdate(buffer.toString());
 		}
-		LOG.debug("{} affected by this update", affected);
 		res.close();
 	}
 
@@ -1410,7 +1463,6 @@ public class DBExecuter implements IExecuter
 
 	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
 	{
-
 		if(this.duplicatedRows.size() == 0 && this.writeSet.getDeletedRows().size() == 0)
 			return;
 
@@ -1442,6 +1494,46 @@ public class DBExecuter implements IExecuter
 		buffer.append(" )");
 	}
 
+	private class CustomWhereClause implements Expression
+	{
+
+		private StringBuffer buffer;
+		private String whereClause;
+
+		public CustomWhereClause(String defaultWhere)
+		{
+			this.buffer = new StringBuffer("(");
+			this.buffer.append(defaultWhere);
+			this.buffer.append(")");
+		}
+
+		public CustomWhereClause()
+		{
+			this.buffer = new StringBuffer();
+		}
+
+		public void addClause(String newClause)
+		{
+			this.buffer.append(" AND (");
+			this.buffer.append(newClause);
+			this.buffer.append(")");
+		}
+
+		@Override
+		public String toString()
+		{
+			if(this.whereClause == null)
+				this.whereClause = this.buffer.toString();
+			return whereClause;
+		}
+
+		@Override
+		public void accept(ExpressionVisitor expressionVisitor)
+		{
+
+		}
+	}
+
 
 	private class MyValueExpression implements Expression
 	{
@@ -1462,7 +1554,6 @@ public class DBExecuter implements IExecuter
 		@Override
 		public void accept(ExpressionVisitor expressionVisitor)
 		{
-
 		}
 	}
 
