@@ -179,20 +179,19 @@ public class NewOrder implements TpccConstants {
                         logger.trace("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id);
                     if (TRACE)
                         logger.trace("SELECT w_tax FROM warehouse WHERE w_id = " + w_id);
-                    ResultSet rs0 = pstmt35.executeQuery();
-                    if (rs0.next()) {
+					ResultSet rs0 = pstmt35.executeQuery();
+					ResultSet rs1 = pstmt36.executeQuery();
+					if (rs0.next()) {
                         c_discount = rs0.getFloat(1);
                         c_last = rs0.getString(2);
                         c_credit = rs0.getString(3);
                     }
-					rs0.close();
-
-					ResultSet rs1 = pstmt36.executeQuery();
 
 					if (rs1.next()) {
                         w_tax = rs1.getFloat(1);
                     }
-                    rs1.close();
+					rs0.close();
+					rs1.close();
                 } catch (SQLException e) {
                     logger.error("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id, e);
                     throw new Exception("NewOrder (join = false) select transaction error", e);

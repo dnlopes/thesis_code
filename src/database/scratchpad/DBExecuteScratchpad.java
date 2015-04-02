@@ -115,6 +115,9 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			if(!this.activeTransaction.isReadyToCommit())
 				return false;
 
+			// should we free resources before asking replicator to commit?
+			this.freeResources();
+
 			// FIXME: this call MUST NOT block, but for now it DOES
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
@@ -369,4 +372,35 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		}
 	}
 
+	private void freeResources()
+	{
+		try
+		{
+			this.statBU.close();
+		} catch(SQLException e)
+		{
+			LOG.error("failed to close statBU");
+			e.printStackTrace();
+		} finally
+		{
+			try
+			{
+				this.statQ.close();
+			} catch(SQLException e)
+			{
+				LOG.error("failed to close statQ");
+				e.printStackTrace();
+			} finally
+			{
+				try
+				{
+					this.statU.close();
+				} catch(SQLException e)
+				{
+					LOG.error("failed to close statU");
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }

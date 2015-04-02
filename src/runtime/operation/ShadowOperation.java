@@ -20,7 +20,6 @@ package runtime.operation;
 
 import java.util.List;
 
-import network.messages.CheckInvariantItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +33,9 @@ public class ShadowOperation
 	static final Logger LOG = LoggerFactory.getLogger(ShadowOperation.class);
 
 	private List<String> operationList;
-	private List<CheckInvariantItem> checkList;
-	private long txnId;
+	private int txnId;
 
-	public ShadowOperation(long txnId, List<String> operations)
+	public ShadowOperation(int txnId, List<String> operations)
 	{
 		this.txnId = txnId;
 		this.operationList = operations;
@@ -48,7 +46,7 @@ public class ShadowOperation
 		return this.operationList;
 	}
 
-	public long getTxnId()
+	public int getTxnId()
 	{
 		return this.txnId;
 	}

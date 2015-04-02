@@ -23,6 +23,11 @@ public class TransactionIdentifier
 		this.id = DEFAULT_VALUE;
 	}
 
+	public TransactionIdentifier(int id)
+	{
+		this.id = id;
+	}
+
 	public int getValue()
 	{
 		return this.id;

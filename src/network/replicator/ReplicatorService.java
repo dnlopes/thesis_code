@@ -25,9 +25,10 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public boolean commitOperation(ThriftOperation thriftOp) throws TException
+	public boolean commitOperation(ThriftOperation thriftOp)
 	{
-		LOG.trace("received new operation");
+		LOG.info("received new operation");
+		//System.out.println("RECEIVED");
 		//here we decide how a operation commit happens.
 		//for now, we commit locally, send to othe replicators but dont wait for their responses
 		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);

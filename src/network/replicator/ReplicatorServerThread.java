@@ -3,6 +3,7 @@ package network.replicator;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -30,7 +31,7 @@ public class ReplicatorServerThread implements Runnable
 		this.handler = new ReplicatorService(this.me);
 		this.processor = new ReplicatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
-		this.server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
+		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 	}
 
 	@Override

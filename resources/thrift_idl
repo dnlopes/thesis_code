@@ -39,13 +39,13 @@ struct RequestEntry {
 }
 
 struct ThriftOperation {
- 1: required i64 txnId;
+ 1: required i32 txnId;
  2: required list<string> operations;
 }
 
 service ReplicatorRPC {
- bool commitOperation(1:ThriftOperation  op);
- bool commitOperationSync(1:ThriftOperation  op);
+ bool commitOperation(1:ThriftOperation op);
+ bool commitOperationSync(1:ThriftOperation op);
  oneway void commitOperationAsync(1:ThriftOperation op);
 }
 

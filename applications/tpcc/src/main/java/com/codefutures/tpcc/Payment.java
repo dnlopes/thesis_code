@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -348,8 +349,8 @@ public class Payment implements TpccConstants {
 
             }
 
-            h_data = h_data + '\0' + d_name + ' ' + ' ' + ' ' + ' ' + '\0';
-
+            //h_data = h_data + '\0' + d_name + ' ' + ' ' + ' ' + ' ' + '\0';
+			h_data = RandomStringUtils.randomAlphanumeric(10).toUpperCase();
             proceed = 10;
             //Get prepared statement
             //"INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES(?, ?, ?, ?, ?, ?, ?, ?)"

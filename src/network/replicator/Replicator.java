@@ -32,7 +32,7 @@ public class Replicator extends AbstractNode
 	private Connection originalConn;
 	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
-	private Set<Long> committedTxns;
+	private Set<Integer> committedTxns;
 	
 	public Replicator(AbstractNodeConfig config)
 	{
@@ -77,6 +77,7 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
+		LOG.info("committing op");
 		if(this.alreadyCommitted(shadowOperation.getTxnId()))
 		{
 			LOG.warn("duplicated transaction {}. Ignored.", shadowOperation.getTxnId());
@@ -89,36 +90,51 @@ public class Replicator extends AbstractNode
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
-		for(AbstractNodeConfig node : otherReplicators.values())
-			this.networkInterface.sendOperationAsync(shadowOperation, node);
+		//for(AbstractNodeConfig node : otherReplicators.values())
+			//this.networkInterface.sendOperationAsync(shadowOperation, node);
 
 		return commitDecision;
 	}
 
-	public boolean alreadyCommitted(Long txnId)
+	public boolean alreadyCommitted(int txnId)
 	{
 		return this.committedTxns.contains(txnId);
 	}
 
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
 	{
-		Statement stat;
+		LOG.info("entering executeShadowOperation method");
+		Statement stat = null;
 		try
 		{
 			stat = this.originalConn.createStatement();
+			LOG.info("created statement for connection");
 			for(String statement : shadowOp.getOperationList())
 			{
-				LOG.trace("executing on maindb: {}", statement);
-				stat.execute(statement);
+				LOG.info("executing on maindb: {}", statement);
+				stat.addBatch(statement);
 			}
+			stat.executeBatch();
 
+			LOG.info("will commit");
 			this.originalConn.commit();
+			LOG.info("commit ok :)");
 
 		} catch(SQLException e)
 		{
 			LOG.error("failed to execute operation {} in main database", shadowOp.getTxnId());
 			e.printStackTrace();
 			return false;
+		}
+		finally
+		{
+			try
+			{
+				stat.close();
+			} catch(SQLException e)
+			{
+				e.printStackTrace();
+			}
 		}
 		this.committedTxns.add(shadowOp.getTxnId());
 

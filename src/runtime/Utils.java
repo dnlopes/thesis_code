@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
 import util.thrift.ThriftOperation;
 
+import java.util.List;
 
 
 /**
@@ -18,14 +19,18 @@ public class Utils
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
 		//TODO
-		return new ThriftOperation(shadowOperation.getTxnId(), shadowOperation.getOperationList());
+		ThriftOperation thriftOperation = new ThriftOperation();
+		thriftOperation.setOperations(shadowOperation.getOperationList());
+		thriftOperation.setTxnId(shadowOperation.getTxnId());
+
+		return thriftOperation;
 	}
 
 	public static ShadowOperation decodeThriftOperation(ThriftOperation thriftOperation)
 	{
-		//TODO
-		return new ShadowOperation(thriftOperation.getTxnId(), thriftOperation
-				.getOperations());
+		List<String> ops = thriftOperation.getOperations();
+
+		return new ShadowOperation(thriftOperation.getTxnId(), ops);
 	}
 
 

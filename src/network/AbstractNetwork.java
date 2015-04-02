@@ -2,6 +2,8 @@ package network;
 
 
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
@@ -67,7 +69,7 @@ public abstract class AbstractNetwork
 		TTransport newTransport = new TSocket(newNode.getHostName(), newNode.getPort());
 
 		newTransport.open();
-		TProtocol protocol = new TBinaryProtocol(newTransport);
+		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 		ReplicatorRPC.Client newClient = new ReplicatorRPC.Client(protocol);
 		this.replicatorsClients.put(newNode.getName(), newClient);
 	}
@@ -83,7 +85,7 @@ public abstract class AbstractNetwork
 		TTransport newTransport = new TSocket(newNode.getHostName(), newNode.getPort());
 
 		newTransport.open();
-		TProtocol protocol = new TBinaryProtocol(newTransport);
+		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 		CoordinatorRPC.Client newClient = new CoordinatorRPC.Client(protocol);
 		this.coordinatorsClients.put(newNode.getName(), newClient);
 	}
