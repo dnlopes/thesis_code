@@ -10,8 +10,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import database.jdbc.ConnectionFactory;
+import network.AbstractNodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import util.defaults.Configuration;
+
 
 public class TpccThread extends Thread {
 
@@ -141,7 +145,11 @@ public class TpccThread extends Thread {
             prop.put("password", db_password);
 
 
-            conn = DriverManager.getConnection(jdbcUrl, prop);
+			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
+			AbstractNodeConfig config = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+
+			conn = ConnectionFactory.getCRDTConnection(config);
+            //conn = DriverManager.getConnection(jdbcUrl, prop);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);
 

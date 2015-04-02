@@ -1,9 +1,10 @@
 package database.jdbc;
 
-
 import util.defaults.DBDefaults;
 
 import java.sql.*;
+import java.sql.Connection;
+import java.sql.Driver;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -23,6 +24,10 @@ public class CRDTDriver implements Driver
 		{
 			throw new RuntimeException("Error: failed to register CRDT:Driver");
 		}
+	}
+
+	private CRDTDriver()
+	{
 	}
 
 	@Override

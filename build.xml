@@ -197,8 +197,28 @@
 			   debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcc.classpath" />
 		</javac>
+		<jar destfile="${jars.dir}/tpcc-client.jar" basedir="${tpcc.classes.dir}">
+			<manifest>
+				<attribute name="Class-Path" value="." />
+				<attribute name="Main-Class" value="com.codefutures.tpcc.Tpcc" />
+			</manifest>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="crdtjdbc.jar" />
+			</zipgroupfileset>
+			<fileset dir="${resources.dir}">
+				<include name="client.database.properties" />
+				<include name="log4j.properties" />
+				<include name="config.xml" />
+				<include name="tpcc-database.sql" />
+				<include name="tpcw-database.sql" />
+			</fileset>
+		</jar>
+		<copy file="${jars.dir}/tpcc-client.jar" todir="${deploy.dir}" />
 	</target>
-	<target name="tpcc-gendb" depends="dist, tpcc-dist" description="Generate TPC-C database">
+	<target name="tpcc-gendb" depends="tpcc-dist" description="Generate TPC-C database">
+		<!--<exec dir="${tpcc.dir}/database" executable="/bin/bash" osfamily="unix" failonerror="true" >
+			<arg value="${base.dir}/scripts/tpcc-create.sh"/>
+		</exec>                                                  -->
 		<java classname="com.codefutures.tpcc.TpccLoad" fork="true" dir="${tpcc.dir}">
 			<classpath refid="tpcc.runtime.classpath" />
 			<classpath refid="tpcc.resources.path" />
