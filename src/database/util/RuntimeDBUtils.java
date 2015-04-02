@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Created by dnlopes on 20/03/15.
  */
-public class DBUtils
+public class RuntimeDBUtils
 {
 
 	public static String replaceWhereClauseInSelect(Select select, String newWhereClause)

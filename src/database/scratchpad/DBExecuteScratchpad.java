@@ -8,6 +8,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import network.proxy.IProxyNetwork;
 import network.proxy.ProxyConfig;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.thrift.TException;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
@@ -144,10 +145,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.runtimeWatch.stop();
 		this.activeTransaction.finish();
 
+		this.freeResources();
 		if(!this.readOnly)
 		{
 			LOG.trace("this txn is not read-only, we should commit but instead we are closing. Lets commit!");
 			this.commitTransaction(network);
+			this.freeResources();
 		}
 	}
 
@@ -374,33 +377,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 	private void freeResources()
 	{
-		try
-		{
-			this.statBU.close();
-		} catch(SQLException e)
-		{
-			LOG.error("failed to close statBU");
-			e.printStackTrace();
-		} finally
-		{
-			try
-			{
-				this.statQ.close();
-			} catch(SQLException e)
-			{
-				LOG.error("failed to close statQ");
-				e.printStackTrace();
-			} finally
-			{
-				try
-				{
-					this.statU.close();
-				} catch(SQLException e)
-				{
-					LOG.error("failed to close statU");
-					e.printStackTrace();
-				}
-			}
-		}
+		//DbUtils.closeQuietly(statU);
+		//DbUtils.closeQuietly(statBU);
+		//DbUtils.closeQuietly(statQ);
 	}
 }

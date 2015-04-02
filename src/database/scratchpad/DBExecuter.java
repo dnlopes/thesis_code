@@ -19,6 +19,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,6 @@ public class DBExecuter implements IExecuter
 	private boolean modified;
 	private FromItem fromItemTemp;
 	private PrimaryKey pk;
-
 	private List<SelectItem> selectAllItems;
 
 	private Set<PrimaryKeyValue> duplicatedRows;
@@ -523,6 +523,7 @@ public class DBExecuter implements IExecuter
 	public Result executeTempOpSelect(DBSingleOperation op, Select dbOp, IDBScratchpad db, IExecuter[] policies,
 									  String[][] tables) throws SQLException, ScratchpadException
 	{
+
 		Debug.println("multi table select >>" + dbOp);
 		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
 		StringBuffer buffer = new StringBuffer();
@@ -700,7 +701,7 @@ public class DBExecuter implements IExecuter
 	{
 		modified = true;
 		if(dbOp.getStatement() instanceof Insert)
-			return executeTempOpInsert(dbOp, (Insert) dbOp.getStatement(), db);
+			return executeTempOpInsert((Insert) dbOp.getStatement(), db);
 		else if(dbOp.getStatement() instanceof Delete)
 			return executeTempOpDelete((Delete) dbOp.getStatement(), db);
 		else if(dbOp.getStatement() instanceof Update)
@@ -736,7 +737,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpInsert(DBSingleOperation op, Insert insertOp, IDBScratchpad db)
+	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchpad db)
 			throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
@@ -850,53 +851,64 @@ public class DBExecuter implements IExecuter
 
 		// this should only return 1 row...
 		LOG.debug("selection for delete: {}", query);
-		ResultSet res = db.executeQuery(query);
-		int rowsDeleted = 0;
 
-		while(res.next())
+		int rowsDeleted = 0;
+		ResultSet res = null;
+
+		try
 		{
-			rowsDeleted++;
-			String pkValueString = this.getPkValue(res);
-			PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
+			db.executeQuery(query);
+			while(res.next())
+			{
+				rowsDeleted++;
+				String pkValueString = this.getPkValue(res);
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
 
 			/* we will remove this row.
 			thus, remove it form duplicatedRows and add it to deletedRows */
-			if(this.writeSet.getInsertedRows().containsKey(pkValue))
-				this.writeSet.removeInsertedRow(pkValue);
-			else
-				this.writeSet.removeUpdatedRow(pkValue);
+				if(this.writeSet.getInsertedRows().containsKey(pkValue))
+					this.writeSet.removeInsertedRow(pkValue);
+				else
+					this.writeSet.removeUpdatedRow(pkValue);
 
-			this.writeSet.addDeletedRow(pkValue);
+				this.writeSet.addDeletedRow(pkValue);
 
-			int nPks = tableDefinition.getPksPlain().length;
-			if(nPks > 0)
-			{
-				String[] pkVal = new String[nPks];
-				for(int i = 0; i < pkVal.length; i++)
-					pkVal[i] = res.getObject(i + 1).toString();
-				db.addToWriteSet(DBWriteSetEntry.createEntry(deleteOp.getTable().toString(), pkVal, true, true));
+				int nPks = tableDefinition.getPksPlain().length;
+				if(nPks > 0)
+				{
+					String[] pkVal = new String[nPks];
+					for(int i = 0; i < pkVal.length; i++)
+						pkVal[i] = res.getObject(i + 1).toString();
+					db.addToWriteSet(DBWriteSetEntry.createEntry(deleteOp.getTable().toString(), pkVal, true, true));
+				}
+
+				String[] uniqueIndexStrs = tableDefinition.getUqIndicesPlain();
+				for(int k = 0; k < uniqueIndexStrs.length; k++)
+				{
+					String[] uqStr = new String[1];
+					uqStr[0] = res.getString(uniqueIndexStrs[k]);
+					db.addToWriteSet(DBWriteSetEntry.createEntry(tableDefinition.name, uqStr, true, true));
+				}
 			}
 
-			String[] uniqueIndexStrs = tableDefinition.getUqIndicesPlain();
-			for(int k = 0; k < uniqueIndexStrs.length; k++)
-			{
-				String[] uqStr = new String[1];
-				uqStr[0] = res.getString(uniqueIndexStrs[k]);
-				db.addToWriteSet(DBWriteSetEntry.createEntry(tableDefinition.name, uqStr, true, true));
-			}
+			buffer = new StringBuffer();
+			buffer.append("delete from ");
+			buffer.append(this.tempTableName);
+			buffer.append(" where ");
+			buffer.append(deleteOp.getWhere().toString());
+			buffer.append(";");
+			String delete = buffer.toString();
+
+			rowsDeleted += db.executeUpdate(delete);
+			return DBUpdateResult.createResult(rowsDeleted);
+		} catch(SQLException e)
+		{
+			throw e;
+		} finally
+		{
+			DbUtils.closeQuietly(res);
 		}
 
-		res.close();
-		buffer = new StringBuffer();
-		buffer.append("delete from ");
-		buffer.append(this.tempTableName);
-		buffer.append(" where ");
-		buffer.append(deleteOp.getWhere().toString());
-		buffer.append(";");
-		String delete = buffer.toString();
-
-		rowsDeleted += db.executeUpdate(delete);
-		return DBUpdateResult.createResult(rowsDeleted);
 	}
 
 	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchpad db) throws SQLException
@@ -939,7 +951,6 @@ public class DBExecuter implements IExecuter
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
 
-
 		String updateStr = buffer.toString();
 		LOG.debug("transformed update: {}", updateStr);
 		db.addToBatchUpdate(updateStr);
@@ -958,6 +969,10 @@ public class DBExecuter implements IExecuter
 		StringBuffer buffer = new StringBuffer();
 
 		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+
+		if(plainSelect.isForUpdate())
+			plainSelect.setForUpdate(false);
+
 		List columnsToFetch = plainSelect.getSelectItems();
 
 		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
@@ -1199,8 +1214,6 @@ public class DBExecuter implements IExecuter
 	 */
 	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws SQLException
 	{
-		int affected = 0;
-
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
 		buffer.append(updateOp.getTables().get(0).toString());
@@ -1210,76 +1223,179 @@ public class DBExecuter implements IExecuter
 		addWhere(buffer, updateOp.getWhere());
 		buffer.append(");");
 
-		ResultSet res = pad.executeQuery(buffer.toString());
-		while(res.next())
+		ResultSet res = null;
+		try
 		{
-			// since we must iterate all the result set to check which tuples must be added to the temp table,
-			// we can capture here what tuples will be affected and track theirs rowIds
 
-			if(!res.getString("tname").equals(this.tempTableName))
+			res = pad.executeQuery(buffer.toString());
+			while(res.next())
 			{
-				if(!res.next())
+				// since we must iterate all the result set to check which tuples must be added to the temp table,
+				// we can capture here what tuples will be affected and track theirs rowIds
+
+				if(!res.getString("tname").equals(this.tempTableName))
 				{
-					//Debug.println("record exists in real table but not temp table");
-					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-					res.previous();
-				} else
-				{
-					if(!res.getString("tname").equals(this.tempTableName))
+					if(!res.next())
 					{
 						//Debug.println("record exists in real table but not temp table");
+						//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 						res.previous();
 					} else
 					{
-						//Debug.println("record exists in both real and temp table");
-						continue;
+						if(!res.getString("tname").equals(this.tempTableName))
+						{
+							//Debug.println("record exists in real table but not temp table");
+							res.previous();
+						} else
+						{
+							//Debug.println("record exists in both real and temp table");
+							continue;
+						}
 					}
+				} else
+				{
+					//Debug.println("record exist in temporary table but not real table");
+					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+					continue;
 				}
-			} else
-			{
-				//Debug.println("record exist in temporary table but not real table");
-				//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-				continue;
+
+				String pkValueString = this.getPkValue(res);
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
+
+				this.createWriteSetEntry(pkValue);
+				this.duplicatedRows.add(pkValue);
+				this.writeSet.addUpdatedRow(pkValue);
+
+				buffer.setLength(0);
+				buffer.append("insert into ");
+				buffer.append(this.tempTableName);
+				buffer.append(" values (");
+
+				for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
+				{
+					Object oldValue = res.getObject(i + 1);
+					String oldValueString;
+
+					if(oldValue == null)
+						oldValueString = "NULL";
+					else
+						oldValueString = oldValue.toString();
+
+					if(this.tableDefinition.colsStr[i])
+						oldValueString = "\"" + oldValueString + "\"";
+
+					if(i > 0)
+						buffer.append(",");
+
+					buffer.append(oldValueString);
+					this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
+				}
+				buffer.append(");");
+				pad.executeUpdate(buffer.toString());
 			}
-
-			String pkValueString = this.getPkValue(res);
-			PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
-
-			this.createWriteSetEntry(pkValue);
-			this.duplicatedRows.add(pkValue);
-			this.writeSet.addUpdatedRow(pkValue);
-
-			affected++;
-
-			buffer.setLength(0);
-			buffer.append("insert into ");
-			buffer.append(this.tempTableName);
-			buffer.append(" values (");
-
-			for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
-			{
-				Object oldValue = res.getObject(i + 1);
-				String oldValueString;
-
-				if(oldValue == null)
-					oldValueString = "NULL";
-				else
-					oldValueString = oldValue.toString();
-
-				if(this.tableDefinition.colsStr[i])
-					oldValueString = "\"" + oldValueString + "\"";
-
-				if(i > 0)
-					buffer.append(",");
-
-				buffer.append(oldValueString);
-				this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
-			}
-			buffer.append(");");
-			pad.executeUpdate(buffer.toString());
+		} catch(SQLException e)
+		{
+			throw e;
+		} finally
+		{
+			DbUtils.closeQuietly(res);
 		}
-		res.close();
 	}
+
+	private void addMissingRowsStuff(Select selectOp, IDBScratchpad pad) throws SQLException
+	{
+		StringBuffer buffer = new StringBuffer();
+		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+
+		/*
+		buffer.append("(SELECT *, '" + plainSelect.getFromItem().toString() + "' as tname FROM ");
+		buffer.append(updateOp.getTables().get(0).toString());
+		addWhere(buffer, updateOp.getWhere());
+		buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
+		buffer.append(this.tempTableName);
+		addWhere(buffer, updateOp.getWhere());
+		buffer.append(");");
+
+		ResultSet res = null;
+		try
+		{
+
+			res = pad.executeQuery(buffer.toString());
+			while(res.next())
+			{
+				// since we must iterate all the result set to check which tuples must be added to the temp table,
+				// we can capture here what tuples will be affected and track theirs rowIds
+
+				if(!res.getString("tname").equals(this.tempTableName))
+				{
+					if(!res.next())
+					{
+						//Debug.println("record exists in real table but not temp table");
+						//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+						res.previous();
+					} else
+					{
+						if(!res.getString("tname").equals(this.tempTableName))
+						{
+							//Debug.println("record exists in real table but not temp table");
+							res.previous();
+						} else
+						{
+							//Debug.println("record exists in both real and temp table");
+							continue;
+						}
+					}
+				} else
+				{
+					//Debug.println("record exist in temporary table but not real table");
+					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
+					continue;
+				}
+
+				String pkValueString = this.getPkValue(res);
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
+
+				this.createWriteSetEntry(pkValue);
+				this.duplicatedRows.add(pkValue);
+				this.writeSet.addUpdatedRow(pkValue);
+
+				buffer.setLength(0);
+				buffer.append("insert into ");
+				buffer.append(this.tempTableName);
+				buffer.append(" values (");
+
+				for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
+				{
+					Object oldValue = res.getObject(i + 1);
+					String oldValueString;
+
+					if(oldValue == null)
+						oldValueString = "NULL";
+					else
+						oldValueString = oldValue.toString();
+
+					if(this.tableDefinition.colsStr[i])
+						oldValueString = "\"" + oldValueString + "\"";
+
+					if(i > 0)
+						buffer.append(",");
+
+					buffer.append(oldValueString);
+					this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
+				}
+				buffer.append(");");
+				pad.executeUpdate(buffer.toString());
+			}
+		} catch(SQLException e)
+		{
+			throw e;
+		} finally
+		{
+			DbUtils.closeQuietly(res);
+		}
+		*/
+	}
+
 
 	//temporarily put there, need to file into other java files
 	public boolean isInteger(String str)
@@ -1405,17 +1521,28 @@ public class DBExecuter implements IExecuter
 		buffer.append(" where ");
 		buffer.append(whereClause);
 
-		ResultSet rs = pad.executeQuery(buffer.toString());
-
-		List<String> pksList = new LinkedList<>();
-
-		while(rs.next())
+		ResultSet rs = null;
+		try
 		{
-			String pkValue = this.getPkValue(rs);
-			pksList.add(pkValue);
-		}
+			rs = pad.executeQuery(buffer.toString());
 
-		return pksList;
+			List<String> pksList = new LinkedList<>();
+
+			while(rs.next())
+			{
+				String pkValue = this.getPkValue(rs);
+				pksList.add(pkValue);
+			}
+
+			return pksList;
+
+		} catch(SQLException e)
+		{
+			throw e;
+		} finally
+		{
+			DbUtils.closeQuietly(rs);
+		}
 	}
 
 	/**

@@ -46,8 +46,8 @@
 
 	<!-- TPC-C resources-->
 	<path id="tpcc.resources.path">
-		<fileset dir="${resources.dir}/tpcc">
-			<include name="*.properties" />
+		<fileset dir="${resources.dir}">
+			<include name="tpcc.properties" />
 		</fileset>
 	</path>
 

@@ -103,22 +103,18 @@ public class Replicator extends AbstractNode
 
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
 	{
-		LOG.info("entering executeShadowOperation method");
 		Statement stat = null;
 		try
 		{
 			stat = this.originalConn.createStatement();
-			LOG.info("created statement for connection");
 			for(String statement : shadowOp.getOperationList())
 			{
-				LOG.info("executing on maindb: {}", statement);
+				LOG.debug("executing on maindb: {}", statement);
 				stat.addBatch(statement);
 			}
 			stat.executeBatch();
 
-			LOG.info("will commit");
 			this.originalConn.commit();
-			LOG.info("commit ok :)");
 
 		} catch(SQLException e)
 		{

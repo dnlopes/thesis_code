@@ -4,6 +4,7 @@ package runtime;
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
 import network.AbstractNodeConfig;
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -28,7 +29,6 @@ public class IDGenerator
 	private DataField field;
 	private int delta;
 
-
 	public IDGenerator(DataField field, AbstractNodeConfig config)
 	{
 		this.field = field;
@@ -48,19 +48,19 @@ public class IDGenerator
 		buffer.append(" FROM ");
 		buffer.append(this.field.getTableName());
 
+		Connection tempConnection = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(config);
-			Statement stmt = tempConnection.createStatement();
-			ResultSet rs = stmt.executeQuery(buffer.toString());
+			tempConnection = ConnectionFactory.getDefaultConnection(config);
+			stmt = tempConnection.createStatement();
+			rs = stmt.executeQuery(buffer.toString());
 
 			if(rs.next())
 			{
 				int lastId = rs.getInt(this.field.getFieldName());
 				this.currentValue.set(lastId + config.getId());
-
-				rs.close();
-				stmt.close();
 			} else
 			{
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());
@@ -73,6 +73,9 @@ public class IDGenerator
 					e.getMessage());
 			RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
 					ExitCode.ID_GENERATOR_ERROR);
+		} finally
+		{
+			DbUtils.closeQuietly(tempConnection, stmt, rs);
 		}
 	}
 
