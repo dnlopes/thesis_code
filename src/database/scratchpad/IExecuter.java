@@ -2,6 +2,7 @@ package database.scratchpad;
 
 
 import database.jdbc.Result;
+import net.sf.jsqlparser.statement.select.Select;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.TableWriteSet;
 
@@ -59,7 +60,7 @@ public interface IExecuter
 	 *
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTemporaryQueryOnSingleTable(DBSingleOperation dbOp, IDBScratchpad db)
+	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchpad db)
 			throws SQLException, ScratchpadException;
 
 	/**
@@ -67,7 +68,7 @@ public interface IExecuter
 	 *
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTemporaryQueryOnMultTable(DBSingleOperation dbOp, IDBScratchpad db, IExecuter[] policies,
+	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchpad db, IExecuter[] policies,
 											String[][] table) throws SQLException, ScratchpadException;
 
 	/**

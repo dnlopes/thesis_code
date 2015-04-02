@@ -63,7 +63,8 @@ public class DBSingleOperation
 					0).getName(), ((Update) opStatement).getTables().get(0).getName().toUpperCase()}};
 		} else if(opStatement instanceof Delete)
 		{
-			table = new String[][]{{((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable().getName().toUpperCase()}};
+			table = new String[][]{{((Delete) opStatement).getTable().getName(), ((Delete) opStatement).getTable()
+					.getName(), ((Delete) opStatement).getTable().getName().toUpperCase()}};
 		} else if(opStatement instanceof Select)
 		{
 			SelectBody sb = ((Select) opStatement).getSelectBody();
@@ -116,12 +117,5 @@ public class DBSingleOperation
 			LOG.warn("failed to parse sql string {}", sql);
 			e.printStackTrace();
 		}
-	}
-
-	public boolean isStandardOperation()
-	{
-		//return (sql.startsWith("SELECT") || sql.startsWith("select") || sql.startsWith("UPDATE") || sql.startsWith(
-		//		"update"));
-		return (opStatement instanceof Update) || (opStatement instanceof Select);
 	}
 }

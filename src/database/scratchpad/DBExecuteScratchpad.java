@@ -6,9 +6,9 @@ import database.jdbc.Result;
 import database.jdbc.util.DBWriteSetEntry;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.select.Select;
 import network.proxy.IProxyNetwork;
 import network.proxy.ProxyConfig;
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.thrift.TException;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
@@ -116,9 +116,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			if(!this.activeTransaction.isReadyToCommit())
 				return false;
 
-			// should we free resources before asking replicator to commit?
-			this.freeResources();
-
 			// FIXME: this call MUST NOT block, but for now it DOES
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
@@ -175,13 +172,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public Result executeUpdate(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
 	{
 		op.parse(this.parser);
-
-		/*if(!op.isStandardOperation())
-		{
-			LOG.warn("executing non standard operation: {}", op.toString());
-			int count =  this.executeUpdate(op.toString());
-			return DBUpdateResult.createResult(count);
-		}  */
+		LOG.trace("query: {}", op.toString());
 
 		if(op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
@@ -223,7 +214,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 						ExitCode.EXECUTOR_NOT_FOUND);
 			}
 
-			return executor.executeTemporaryQueryOnSingleTable(op, this);
+			return executor.executeTemporaryQueryOnSingleTable((Select) op.getStatement(), this);
 
 		} else
 		{
@@ -236,8 +227,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 				if(executors[i] == null)
 					throw new ScratchpadException("No config for table " + tableName[i][0]);
 			}
-			//TODO: fix this
-			return executors[0].executeTemporaryQueryOnMultTable(op, this, executors, tableName);
+			return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors, tableName);
 		}
 	}
 

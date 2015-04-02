@@ -77,10 +77,10 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-		LOG.info("committing op");
+		LOG.trace("committing op");
 		if(this.alreadyCommitted(shadowOperation.getTxnId()))
 		{
-			LOG.warn("duplicated transaction {}. Ignored.", shadowOperation.getTxnId());
+			LOG.warn("duplicated transaction {}. Silently ignored.", shadowOperation.getTxnId());
 			return true;
 		}
 		/*	should block until decision is made
@@ -90,8 +90,8 @@ public class Replicator extends AbstractNode
 
 		boolean commitDecision = this.executeShadowOperation(shadowOperation);
 
-		//for(AbstractNodeConfig node : otherReplicators.values())
-			//this.networkInterface.sendOperationAsync(shadowOperation, node);
+		for(AbstractNodeConfig node : otherReplicators.values())
+			this.networkInterface.sendOperationAsync(shadowOperation, node);
 
 		return commitDecision;
 	}
@@ -110,15 +110,15 @@ public class Replicator extends AbstractNode
 			for(String statement : shadowOp.getOperationList())
 			{
 				LOG.debug("executing on maindb: {}", statement);
-				stat.addBatch(statement);
+				stat.execute(statement);
 			}
-			stat.executeBatch();
+			//stat.executeBatch();
 
 			this.originalConn.commit();
 
 		} catch(SQLException e)
 		{
-			LOG.error("failed to execute operation {} in main database", shadowOp.getTxnId());
+			LOG.error("failed to execute txn {} in main database", shadowOp.getTxnId());
 			e.printStackTrace();
 			return false;
 		}

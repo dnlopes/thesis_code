@@ -507,28 +507,93 @@ public class DBExecuter implements IExecuter
 		LOG.trace("executor for table {} created", this.databaseTable.getName());
 	}
 
-	/**
-	 * Execute select operation in the temporary table
-	 *
-	 * @param op
-	 * @param dbOp
-	 * @param db
-	 * @param tables
-	 *
-	 * @return
-	 *
-	 * @throws SQLException
-	 * @throws ScratchpadException
-	 */
-	public Result executeTempOpSelect(DBSingleOperation op, Select dbOp, IDBScratchpad db, IExecuter[] policies,
-									  String[][] tables) throws SQLException, ScratchpadException
+	@Override
+	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchpad db)
+			throws SQLException, ScratchpadException
+	{
+		LOG.debug("creating selection for query {}", selectOp.toString());
+		String queryToOrigin;
+		String queryToTemp;
+
+		StringBuffer buffer = new StringBuffer();
+
+		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+
+		if(plainSelect.isForUpdate())
+			plainSelect.setForUpdate(false);
+
+		List columnsToFetch = plainSelect.getSelectItems();
+
+		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
+			plainSelect.setSelectItems(this.selectAllItems);
+
+		StringBuffer whereClauseTemp = new StringBuffer();
+
+		if(plainSelect.getWhere() != null)
+		{
+			whereClauseTemp.append("(");
+			whereClauseTemp.append(plainSelect.getWhere());
+			whereClauseTemp.append(") AND (");
+		}
+
+		whereClauseTemp.append(SP_DELETED_EXPRESSION);
+		whereClauseTemp.append(")");
+
+		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
+
+		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
+		{
+			whereClauseOrig.append(" AND ");
+			this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
+		}
+
+		queryToOrigin = plainSelect.toString();
+
+		plainSelect.setFromItem(this.fromItemTemp);
+		queryToTemp = plainSelect.toString();
+
+		if(plainSelect.getWhere() != null)
+		{
+			String defaultWhere = plainSelect.getWhere().toString();
+			queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
+			queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
+		} else
+		{
+			StringBuilder auxBuffer = new StringBuilder(queryToOrigin);
+			auxBuffer.append(" WHERE ");
+			auxBuffer.append(whereClauseOrig);
+			queryToOrigin = auxBuffer.toString();
+			auxBuffer.setLength(0);
+			auxBuffer.append(queryToTemp);
+			auxBuffer.append(" WHERE ");
+			auxBuffer.append(whereClauseTemp);
+			queryToTemp = auxBuffer.toString();
+		}
+
+		buffer.append("(");
+		buffer.append(queryToTemp);
+		buffer.append(")");
+		buffer.append(" UNION ");
+		buffer.append("(");
+		buffer.append(queryToOrigin);
+		buffer.append(")");
+
+		String finalQuery = buffer.toString();
+		LOG.debug("query generated: {}", finalQuery);
+
+		return db.executeQuery(finalQuery);
+	}
+
+	@Override
+	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchpad db, IExecuter[] policies,
+													  String[][] tables) throws SQLException, ScratchpadException
 	{
 
-		Debug.println("multi table select >>" + dbOp);
+		Debug.println("multi table select >>" + selectOp);
 		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("select ");                        // select in base table
-		PlainSelect select = (PlainSelect) dbOp.getSelectBody();
+		PlainSelect select = (PlainSelect) selectOp.getSelectBody();
 		List what = select.getSelectItems();
 		int colIndex = 1;
 		TableDefinition tabdef;
@@ -657,42 +722,7 @@ public class DBExecuter implements IExecuter
 		//			}
 		//		}
 		addWhere(buffer, select.getWhere(), policies, tables, false);
-		//addGroupBy(buffer, select.getGroupByColumnReferences(), policies, tables, false);
-		//addOrderBy(buffer, select.getOrderByElements(), policies, tables, false);
-		//addLimit(buffer, select.getLimit());
-		buffer.append(";");
-
-		//Debug.println( "---->" + buffer.toString());
-		//Debug.println( "---->" + columnNamesToNumbersMap.toString().toString());
-		//System.err.println( "---->" + buffer.toString());
-		List<String[]> result = new ArrayList<>();
-		ResultSet rs = db.executeQuery(buffer.toString());
-		//addToResultList(rs, result, db, policies, !aggregateQuery);
-		rs.close();
-		return DBSelectResult.createResult(result, columnNamesToNumbersMap);
-
-	}
-
-	@Override
-	public ResultSet executeTemporaryQueryOnSingleTable(DBSingleOperation dbOp, IDBScratchpad db)
-			throws SQLException, ScratchpadException
-	{
-		if(dbOp.getStatement() instanceof Select)
-			return this.executeTempOpSelect((Select) dbOp.getStatement(), db);
-		else
-			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
-		return null;
-	}
-
-	@Override
-	public ResultSet executeTemporaryQueryOnMultTable(DBSingleOperation dbOp, IDBScratchpad db, IExecuter[] policies,
-													  String[][] tables) throws SQLException, ScratchpadException
-	{
-		if(dbOp.getStatement() instanceof Select)
-			return executeTempOpSelect((Select) dbOp.getStatement(), db, policies, tables);
-		else
-			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
-		return null;
+		return db.executeQuery(buffer.toString());
 	}
 
 	@Override
@@ -737,8 +767,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchpad db)
-			throws SQLException
+	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchpad db) throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
 		StringBuilder originBuffer = new StringBuilder();
@@ -960,248 +989,6 @@ public class DBExecuter implements IExecuter
 		return DBUpdateResult.createResult(affectedRows.size());
 	}
 
-	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db) throws SQLException, ScratchpadException
-	{
-		LOG.debug("creating selection for query {}", selectOp.toString());
-		String queryToOrigin;
-		String queryToTemp;
-
-		StringBuffer buffer = new StringBuffer();
-
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
-
-		if(plainSelect.isForUpdate())
-			plainSelect.setForUpdate(false);
-
-		List columnsToFetch = plainSelect.getSelectItems();
-
-		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
-			plainSelect.setSelectItems(this.selectAllItems);
-
-		StringBuffer whereClauseTemp = new StringBuffer();
-
-		if(plainSelect.getWhere() != null)
-		{
-			whereClauseTemp.append("(");
-			whereClauseTemp.append(plainSelect.getWhere());
-			whereClauseTemp.append(") AND (");
-		}
-
-		whereClauseTemp.append(SP_DELETED_EXPRESSION);
-		whereClauseTemp.append(")");
-
-		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-
-		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
-		{
-			whereClauseOrig.append(" AND ");
-			this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
-		}
-
-		queryToOrigin = plainSelect.toString();
-
-		plainSelect.setFromItem(this.fromItemTemp);
-		queryToTemp = plainSelect.toString();
-
-		if(plainSelect.getWhere() != null)
-		{
-			String defaultWhere = plainSelect.getWhere().toString();
-			queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
-			queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
-		} else
-		{
-			StringBuilder auxBuffer = new StringBuilder(queryToOrigin);
-			auxBuffer.append(" WHERE ");
-			auxBuffer.append(whereClauseOrig);
-			queryToOrigin = auxBuffer.toString();
-			auxBuffer.setLength(0);
-			auxBuffer.append(queryToTemp);
-			auxBuffer.append(" WHERE ");
-			auxBuffer.append(whereClauseTemp);
-			queryToTemp = auxBuffer.toString();
-		}
-
-		buffer.append("(");
-		buffer.append(queryToTemp);
-		buffer.append(")");
-		buffer.append(" UNION ");
-		buffer.append("(");
-		buffer.append(queryToOrigin);
-		buffer.append(")");
-
-		String finalQuery = buffer.toString();
-		LOG.debug("query generated: {}", finalQuery);
-
-		return db.executeQuery(finalQuery);
-
-
-		/*
-		LOG.debug("creating selection for query {}", selectOp.toString());
-
-		StringBuffer tempBuffer = new StringBuffer("SELECT ");
-		StringBuffer originBuffer = new StringBuffer("SELECT ");
-		StringBuffer finalQuery = new StringBuffer();
-
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
-		List columnsToFetch = plainSelect.getSelectItems();
-
-		//if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
-		//	plainSelect.setSelectItems(this.selectAllItems);
-
-		tempBuffer.append(plainSelect.getSelectItems().toString());
-		originBuffer.append(plainSelect.getSelectItems().toString());
-		originBuffer.append(" FROM ");
-		originBuffer.append(plainSelect.getFromItem());
-		originBuffer.append(" ");
-		plainSelect.setFromItem(this.fromItemTemp);
-		tempBuffer.append(" FROM ");
-		tempBuffer.append(plainSelect.getFromItem());
-		tempBuffer.append(" ");
-
-		// first add original where clause in the temp query, if it exists
-		if(plainSelect.getWhere() != null)
-		{
-			tempBuffer.append("WHERE (");
-			tempBuffer.append(plainSelect.getWhere());
-			tempBuffer.append(")");
-			// at this point, the query to the temp table is ready!
-		}
-
-		// build the where clause of the main db query
-		CustomWhereClause whereClause;
-		if(plainSelect.getWhere() == null)
-			whereClause = new CustomWhereClause();
-		else
-			whereClause = new CustomWhereClause(plainSelect.getWhere().toString());
-
-		whereClause.addClause(SP_DELETED_EXPRESSION);
-
-		originBuffer.append("WHERE ");
-		originBuffer.append(whereClause.toString());
-
-		finalQuery.append("(");
-		finalQuery.append(tempBuffer.toString());
-		finalQuery.append(") UNION (");
-		finalQuery.append(originBuffer.toString());
-		finalQuery.append(")");
-
-		String finalQueryString = finalQuery.toString();
-		LOG.debug("query generated: {}", finalQueryString);
-
-		return db.executeQuery(finalQueryString);*/
-	}
-
-	private ResultSet executeTempOpSelect(Select selectOp, IDBScratchpad db, IExecuter[] executors, String[][] tables)
-			throws SQLException, ScratchpadException
-	{
-		return db.executeQuery(selectOp.toString());
-	/*
-		LOG.trace("creating selection for query {}", selectOp.toString());
-		String queryToOrigin;
-		String queryToTemp;
-
-		StringBuffer buffer = new StringBuffer();
-
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
-		List columnsToFetch = plainSelect.getSelectItems();
-
-		if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
-			plainSelect.setSelectItems(this.selectAllItems);
-
-		StringBuffer whereClauseTemp = new StringBuffer();
-
-		if(plainSelect.getWhere() != null)
-		{
-			whereClauseTemp.append("(");
-			whereClauseTemp.append(plainSelect.getWhere());
-			whereClauseTemp.append(") AND");
-		}
-
-		whereClauseTemp.append(" (");
-		whereClauseTemp.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		whereClauseTemp.append(" = FALSE )");
-		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
-		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
-		{
-			whereClauseOrig.append(" AND ");
-			this.addNotInClause(whereClauseOrig, true, true);
-		}
-
-		String defaultWhere = plainSelect.getWhere().toString();
-		queryToOrigin = plainSelect.toString();
-
-		plainSelect.setFromItem(this.fromItemTemp);
-		queryToTemp = plainSelect.toString();
-
-		queryToOrigin = StringUtils.replace(queryToOrigin, defaultWhere, whereClauseOrig.toString());
-		queryToTemp = StringUtils.replace(queryToTemp, defaultWhere, whereClauseTemp.toString());
-
-		buffer.append("(");
-		buffer.append(queryToTemp);
-		buffer.append(")");
-		buffer.append(" UNION ");
-		buffer.append("(");
-		buffer.append(queryToOrigin);
-		buffer.append(")");
-
-		String finalQuery = buffer.toString();
-		LOG.trace("query generated: {}", finalQuery);
-
-		return db.executeQuery(finalQuery);  */
-	}
-
-	/**
-	 * Fills the buffer with the duplicated values
-	 *
-	 * @param buffer
-	 * @param startWithComa
-	 */
-	private void fillDuplicatedValues(StringBuffer buffer, boolean startWithComa)
-	{
-		if(startWithComa)
-			buffer.append(",");
-
-		boolean first = true;
-		for(PrimaryKeyValue pkValue : this.duplicatedRows)
-		{
-			if(first)
-			{
-				buffer.append(pkValue.getValue());
-				first = false;
-			} else
-			{
-				buffer.append(",");
-				buffer.append(pkValue.getValue());
-			}
-		}
-	}
-
-	/**
-	 * Fills the buffer with the duplicated values
-	 *
-	 * @param buffer
-	 * @param startWithComa
-	 */
-	private void fillDeletedValues(StringBuffer buffer, boolean startWithComa)
-	{
-		if(startWithComa)
-			buffer.append(",");
-
-		boolean first = true;
-		for(PrimaryKeyValue pkValue : this.writeSet.getDeletedRows())
-		{
-			if(first)
-			{
-				buffer.append(pkValue.getValue());
-				first = false;
-			} else
-			{
-				buffer.append(",");
-				buffer.append(pkValue.getValue());
-			}
-		}
-	}
-
 	/**
 	 * Inserts missing rows in the temporary table.
 	 * This must be done before updating rows in the scratchpad.
@@ -1302,101 +1089,6 @@ public class DBExecuter implements IExecuter
 		}
 	}
 
-	private void addMissingRowsStuff(Select selectOp, IDBScratchpad pad) throws SQLException
-	{
-		StringBuffer buffer = new StringBuffer();
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
-
-		/*
-		buffer.append("(SELECT *, '" + plainSelect.getFromItem().toString() + "' as tname FROM ");
-		buffer.append(updateOp.getTables().get(0).toString());
-		addWhere(buffer, updateOp.getWhere());
-		buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
-		buffer.append(this.tempTableName);
-		addWhere(buffer, updateOp.getWhere());
-		buffer.append(");");
-
-		ResultSet res = null;
-		try
-		{
-
-			res = pad.executeQuery(buffer.toString());
-			while(res.next())
-			{
-				// since we must iterate all the result set to check which tuples must be added to the temp table,
-				// we can capture here what tuples will be affected and track theirs rowIds
-
-				if(!res.getString("tname").equals(this.tempTableName))
-				{
-					if(!res.next())
-					{
-						//Debug.println("record exists in real table but not temp table");
-						//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-						res.previous();
-					} else
-					{
-						if(!res.getString("tname").equals(this.tempTableName))
-						{
-							//Debug.println("record exists in real table but not temp table");
-							res.previous();
-						} else
-						{
-							//Debug.println("record exists in both real and temp table");
-							continue;
-						}
-					}
-				} else
-				{
-					//Debug.println("record exist in temporary table but not real table");
-					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-					continue;
-				}
-
-				String pkValueString = this.getPkValue(res);
-				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
-
-				this.createWriteSetEntry(pkValue);
-				this.duplicatedRows.add(pkValue);
-				this.writeSet.addUpdatedRow(pkValue);
-
-				buffer.setLength(0);
-				buffer.append("insert into ");
-				buffer.append(this.tempTableName);
-				buffer.append(" values (");
-
-				for(int i = 0; i < this.tableDefinition.colsPlain.length; i++)
-				{
-					Object oldValue = res.getObject(i + 1);
-					String oldValueString;
-
-					if(oldValue == null)
-						oldValueString = "NULL";
-					else
-						oldValueString = oldValue.toString();
-
-					if(this.tableDefinition.colsStr[i])
-						oldValueString = "\"" + oldValueString + "\"";
-
-					if(i > 0)
-						buffer.append(",");
-
-					buffer.append(oldValueString);
-					this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
-				}
-				buffer.append(");");
-				pad.executeUpdate(buffer.toString());
-			}
-		} catch(SQLException e)
-		{
-			throw e;
-		} finally
-		{
-			DbUtils.closeQuietly(res);
-		}
-		*/
-	}
-
-
 	//temporarily put there, need to file into other java files
 	public boolean isInteger(String str)
 	{
@@ -1427,47 +1119,6 @@ public class DBExecuter implements IExecuter
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Adds the 'NOT IN' clause to the buffer.
-	 * Does not add the prefix 'AND' to the buffer
-	 *
-	 * @param buffer
-	 * @param filterDeleted
-	 * @param filterDuplicated
-	 */
-	private void addNotInClause(StringBuffer buffer, boolean filterDeleted, boolean filterDuplicated)
-	{
-		boolean notInClauseAdded = false;
-		boolean needComma = false;
-
-		if(this.duplicatedRows.size() > 0 && filterDuplicated)
-		{
-			buffer.append("((");
-			buffer.append(this.pk.getQueryClause());
-			buffer.append(")");
-			buffer.append(" NOT IN (");
-			notInClauseAdded = true;
-			fillDuplicatedValues(buffer, needComma);
-			needComma = true;
-		}
-
-		if(this.writeSet.getDeletedRows().size() > 0 && filterDeleted)
-		{
-			if(!notInClauseAdded)
-			{
-				buffer.append("AND ((");
-				buffer.append(this.pk.getQueryClause());
-				buffer.append(") NOT IN (");
-				notInClauseAdded = true;
-			}
-
-			fillDeletedValues(buffer, needComma);
-		}
-
-		if(notInClauseAdded)
-			buffer.append("))");
 	}
 
 	@Override
@@ -1620,47 +1271,6 @@ public class DBExecuter implements IExecuter
 		buffer.append(notInExpression.toString());
 		buffer.append(" )");
 	}
-
-	private class CustomWhereClause implements Expression
-	{
-
-		private StringBuffer buffer;
-		private String whereClause;
-
-		public CustomWhereClause(String defaultWhere)
-		{
-			this.buffer = new StringBuffer("(");
-			this.buffer.append(defaultWhere);
-			this.buffer.append(")");
-		}
-
-		public CustomWhereClause()
-		{
-			this.buffer = new StringBuffer();
-		}
-
-		public void addClause(String newClause)
-		{
-			this.buffer.append(" AND (");
-			this.buffer.append(newClause);
-			this.buffer.append(")");
-		}
-
-		@Override
-		public String toString()
-		{
-			if(this.whereClause == null)
-				this.whereClause = this.buffer.toString();
-			return whereClause;
-		}
-
-		@Override
-		public void accept(ExpressionVisitor expressionVisitor)
-		{
-
-		}
-	}
-
 
 	private class MyValueExpression implements Expression
 	{
