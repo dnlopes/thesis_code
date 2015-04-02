@@ -57,7 +57,10 @@
  *
  ************************************************************************/
 
+import database.jdbc.ConnectionFactory;
+import network.AbstractNodeConfig;
 import util.IDFactories.IdentifierFactory;
+import util.defaults.Configuration;
 
 import java.sql.*;
 import java.sql.Date;
@@ -67,6 +70,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TPCW_Database {
     private static Void VOID = null;
+	private static int PROXY_ID = 1;
+
+	static {
+		System.setProperty("proxyid", String.valueOf(PROXY_ID));
+	}
+
+	private static AbstractNodeConfig proxyConfig = Configuration.getInstance().getProxyConfigWithIndex(PROXY_ID);
 
     static String driver = "@jdbc.driver@";
 	static String jdbcPath = "@jdbc.path@";
@@ -158,6 +168,7 @@ public class TPCW_Database {
 
     // Get a new Connection to DB2
     public static Connection getNewConnection() {
+
 	try {
 		Class.forName(driver);
 
@@ -166,8 +177,9 @@ public class TPCW_Database {
 		try {
 		    //   con = DriverManager.getConnection("jdbc:postgresql://eli.ece.wisc.edu/tpcw", "milo", "");
 		    //con = (Connection) DriverManager.getConnection(jdbcPath);
-			con = (Connection) DriverManager.getConnection(jdbcPath, user, password);
-		    break;  
+			//con = (Connection) DriverManager.getConnection(jdbcPath, user, password);
+			con = ConnectionFactory.getCRDTConnection(proxyConfig);
+			break;
 		} catch (java.sql.SQLException ex) {
 		    System.err.println("Error getting Connection: " + 
 				       ex.getMessage() + " : " +
@@ -1222,22 +1234,22 @@ public class TPCW_Database {
 	    insert_row.setInt(8, getCAddrID(con, customer_id));
 	    insert_row.setInt(9, ship_addr_id);
 
-	    PreparedStatement get_max_id = con.prepareStatement
-		(@sql.enterOrder.maxId@);
+	    //PreparedStatement get_max_id = con.prepareStatement
+		//(@sql.enterOrder.maxId@);
 	    //selecting from order_line is really slow!
-	    synchronized(Order.class) {
-		ResultSet rs = get_max_id.executeQuery();
-		rs.next();
-		o_id = rs.getInt(1) + 1;
-		rs.close();
+	   // synchronized(Order.class) {
+		//ResultSet rs = get_max_id.executeQuery();
+		//rs.next();
+		//o_id = rs.getInt(1) + 1;
+		//rs.close();
 		//replaced with the new SIEVE id assignment method
 		//o_id = con.shdOpCreator.assignNextUniqueId("orders","o_id");
 		o_id = IdentifierFactory.getNextId("orders", "o_id");
 
 		insert_row.setInt(1, o_id);
 		insert_row.executeUpdate();
-	     }
-	    get_max_id.close();
+
+	    //get_max_id.close();
 	    insert_row.close();
 
 	Enumeration e = cart.lines.elements();

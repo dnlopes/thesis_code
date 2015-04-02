@@ -280,6 +280,7 @@
 			</fileset>
 		</copy>
 		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
+		<copy file="${jars.dir}/crdtjdbc.jar" todir="${tpcw.web.dir}/WEB-INF/lib" />
 		<copy file="${resources.dir}/database.properties" todir="${tpcw.web.dir}/WEB-INF/classes" />
 		<war destfile="${tpcw.dist.dir}/tpcw.war" webxml="${tpcw.web.dir}/WEB-INF/web.xml" basedir="${tpcw.web.dir}" />
 		<delete dir="${tomcat.dir}/webapps/tpcw" />

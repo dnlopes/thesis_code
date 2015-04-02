@@ -4,6 +4,7 @@ package network.replicator;
 import database.jdbc.ConnectionFactory;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,9 +111,9 @@ public class Replicator extends AbstractNode
 			for(String statement : shadowOp.getOperationList())
 			{
 				LOG.debug("executing on maindb: {}", statement);
-				stat.execute(statement);
+				stat.addBatch(statement);
 			}
-			//stat.executeBatch();
+			stat.executeBatch();
 
 			this.originalConn.commit();
 
@@ -124,13 +125,7 @@ public class Replicator extends AbstractNode
 		}
 		finally
 		{
-			try
-			{
-				stat.close();
-			} catch(SQLException e)
-			{
-				e.printStackTrace();
-			}
+			DbUtils.closeQuietly(stat);
 		}
 		this.committedTxns.add(shadowOp.getTxnId());
 

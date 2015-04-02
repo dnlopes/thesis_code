@@ -110,7 +110,7 @@ public class TableWriteSet
 		// add delete statements
 		buffer.append("DELETE from ");
 		buffer.append(this.tableName);
-		buffer.append(" WHERE ( (");
+		buffer.append(" WHERE (");
 		buffer.append(pkCols);
 		buffer.append(") IN (");
 		buffer.append(this.createInValuesClause());

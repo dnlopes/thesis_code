@@ -4,7 +4,6 @@ package database.scratchpad;
 import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.jdbc.Result;
-import database.jdbc.util.DBSelectResult;
 import database.jdbc.util.DBUpdateResult;
 import database.jdbc.util.DBWriteSetEntry;
 import database.util.DataField;
@@ -537,7 +536,9 @@ public class DBExecuter implements IExecuter
 		}
 
 		whereClauseTemp.append(SP_DELETED_EXPRESSION);
-		whereClauseTemp.append(")");
+
+		if(plainSelect.getWhere() != null)
+			whereClauseTemp.append(")");
 
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
 
@@ -584,124 +585,133 @@ public class DBExecuter implements IExecuter
 		return db.executeQuery(finalQuery);
 	}
 
+	private ResultSet cenas(IDBScratchpad pad, String cenas) throws SQLException
+	{
+		return pad.executeQuery(cenas);
+	}
+
 	@Override
 	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchpad db, IExecuter[] policies,
 													  String[][] tables) throws SQLException, ScratchpadException
 	{
-
-		Debug.println("multi table select >>" + selectOp);
-		HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("select ");                        // select in base table
-		PlainSelect select = (PlainSelect) selectOp.getSelectBody();
-		List what = select.getSelectItems();
-		int colIndex = 1;
-		TableDefinition tabdef;
-		boolean needComma = true;
-		boolean aggregateQuery = false;
-		if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
+		if(true)
+			return cenas(db, selectOp.toString());
+		else
 		{
-			//			buffer.append( "*");
-			for(int i = 0; i < policies.length; i++)
+			Debug.println("multi table select >>" + selectOp);
+			HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("select ");                        // select in base table
+			PlainSelect select = (PlainSelect) selectOp.getSelectBody();
+			List what = select.getSelectItems();
+			int colIndex = 1;
+			TableDefinition tabdef;
+			boolean needComma = true;
+			boolean aggregateQuery = false;
+			if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
 			{
-				tabdef = policies[i].getTableDefinition();
-				tabdef.addAliasColumnList(buffer, tables[i][1]);
-				for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
-				{ //columns doesnt include scratchpad tables
-					columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-					columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
-				}
-			}
-			needComma = false;
-		} else
-		{
-			Iterator it = what.iterator();
-			String str;
-			boolean f = true;
-			while(it.hasNext())
-			{
-				if(f)
-					f = false;
-				else
-					buffer.append(",");
-				str = it.next().toString();
-				if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
-						"max("))
-					aggregateQuery = true;
-				int starPos = str.indexOf(".*");
-				if(starPos != -1)
+				//			buffer.append( "*");
+				for(int i = 0; i < policies.length; i++)
 				{
-					String itTable = str.substring(0, starPos).trim();
-					for(int i = 0; i < tables.length; )
-					{
-						if(itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1]))
-						{
-							tabdef = policies[i].getTableDefinition();
-							tabdef.addAliasColumnList(buffer, tables[i][1]);
-							for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
-							{ //columns doesnt include scratchpad tables
-								columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-								columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
-							}
-							break;
-						}
-						i++;
-						if(i == tables.length)
-						{
-							Debug.println("not expected " + str + " in select");
-							buffer.append(str);
-						}
+					tabdef = policies[i].getTableDefinition();
+					tabdef.addAliasColumnList(buffer, tables[i][1]);
+					for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
+					{ //columns doesnt include scratchpad tables
+						columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
+						columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
 					}
-					f = true;
-					needComma = false;
-				} else
+				}
+				needComma = false;
+			} else
+			{
+				Iterator it = what.iterator();
+				String str;
+				boolean f = true;
+				while(it.hasNext())
 				{
-					buffer.append(str);
-					int aliasindex = str.toUpperCase().indexOf(" AS ");
-					if(aliasindex != -1)
+					if(f)
+						f = false;
+					else
+						buffer.append(",");
+					str = it.next().toString();
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+
+							"max("))
+						aggregateQuery = true;
+					int starPos = str.indexOf(".*");
+					if(starPos != -1)
 					{
-						columnNamesToNumbersMap.put(str.substring(aliasindex + 4), colIndex++);
+						String itTable = str.substring(0, starPos).trim();
+						for(int i = 0; i < tables.length; )
+						{
+							if(itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1]))
+							{
+								tabdef = policies[i].getTableDefinition();
+								tabdef.addAliasColumnList(buffer, tables[i][1]);
+								for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
+								{ //columns doesnt include scratchpad tables
+									columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
+									columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
+								}
+								break;
+							}
+							i++;
+							if(i == tables.length)
+							{
+								Debug.println("not expected " + str + " in select");
+								buffer.append(str);
+							}
+						}
+						f = true;
+						needComma = false;
 					} else
 					{
-						int dotindex;
-						dotindex = str.indexOf(".");
-						if(dotindex != -1)
+						buffer.append(str);
+						int aliasindex = str.toUpperCase().indexOf(" AS ");
+						if(aliasindex != -1)
 						{
-							columnNamesToNumbersMap.put(str.substring(dotindex + 1), colIndex++);
+							columnNamesToNumbersMap.put(str.substring(aliasindex + 4), colIndex++);
 						} else
 						{
-							columnNamesToNumbersMap.put(str, colIndex++);
+							int dotindex;
+							dotindex = str.indexOf(".");
+							if(dotindex != -1)
+							{
+								columnNamesToNumbersMap.put(str.substring(dotindex + 1), colIndex++);
+							} else
+							{
+								columnNamesToNumbersMap.put(str, colIndex++);
 
-						}//else
-					}
-					needComma = true;
-				}//else
+							}//else
+						}
+						needComma = true;
+					}//else
 
+				}
 			}
-		}
-		if(!aggregateQuery)
-		{
-			for(int i = 0; i < policies.length; i++)
+			if(!aggregateQuery)
 			{
-				if(needComma)
-					buffer.append(",");
-				else
-					needComma = true;
-				policies[i].addKeyVVBothTable(buffer, tables[i][1]);
+				for(int i = 0; i < policies.length; i++)
+				{
+					if(needComma)
+						buffer.append(",");
+					else
+						needComma = true;
+					policies[i].addKeyVVBothTable(buffer, tables[i][1]);
+				}
 			}
-		}
-		buffer.append(" from ");
-		//get all joins:
-		if(select.getJoins() != null)
-		{
-			String whereConditionStr = select.getWhere().toString();
-			for(int i = 0; i < policies.length; i++)
+			buffer.append(" from ");
+			//get all joins:
+			if(select.getJoins() != null)
 			{
-				if(i > 0)
-					buffer.append(",");
-				policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i], whereConditionStr);
-				//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
-			}
+				String whereConditionStr = select.getWhere().toString();
+				for(int i = 0; i < policies.length; i++)
+				{
+					if(i > 0)
+						buffer.append(",");
+					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i], whereConditionStr);
+					//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
+				}
 			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
 				Join join= (Join) joinsIt.next();
 				String joinString = join.toString();
@@ -712,17 +722,18 @@ public class DBExecuter implements IExecuter
 					buffer.append(",");
 				buffer.append(join.toString());
 			}*/
-		}
+			}
 
-		//		}else{
-		//			for( int i = 0; i < policies.length; i++) {
-		//				if( i > 0)
-		//					buffer.append( ",");
-		//				policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
-		//			}
-		//		}
-		addWhere(buffer, select.getWhere(), policies, tables, false);
-		return db.executeQuery(buffer.toString());
+			//		}else{
+			//			for( int i = 0; i < policies.length; i++) {
+			//				if( i > 0)
+			//					buffer.append( ",");
+			//				policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
+			//			}
+			//		}
+			addWhere(buffer, select.getWhere(), policies, tables, false);
+			return db.executeQuery(buffer.toString());
+		}
 	}
 
 	@Override
@@ -867,8 +878,8 @@ public class DBExecuter implements IExecuter
 		addWhere(buffer, deleteOp.getWhere());
 		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
 		{
-			//buffer.append("AND ");
-			//this.generateNotInDeletedAndUpdatedClause(buffer);
+			buffer.append("AND ");
+			this.generateNotInDeletedAndUpdatedClause(buffer);
 		}
 		buffer.append(") UNION (SELECT ");
 		buffer.append(this.pk.getQueryClause());
@@ -886,7 +897,7 @@ public class DBExecuter implements IExecuter
 
 		try
 		{
-			db.executeQuery(query);
+			res = db.executeQuery(query);
 			while(res.next())
 			{
 				rowsDeleted++;

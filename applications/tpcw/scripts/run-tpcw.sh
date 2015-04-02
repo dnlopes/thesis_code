@@ -59,4 +59,4 @@
 # TRUE=do monitoring, FALSE=Don't do monitoring
 # -INCREMENTAL   Start EBs Incrementally      false (default)
 # TRUE=do them in increments, FALSE=Do them all at once
-java rbe.RBE -EB rbe.EBTPCW3Factory 10 -OUT run1.m -GETIM false -RU 1 -MI 60 -TT 0.80 -RD 1 -WWW http://localhost:8080/tpcw/ -ITEM 10000 -CUST 100
+java rbe.RBE -EB rbe.EBTPCW2Factory 10 -OUT run1.m -GETIM false -RU 1 -MI 60 -TT 0.80 -RD 1 -WWW http://localhost:8080/tpcw/ -ITEM 10000 -CUST 100
