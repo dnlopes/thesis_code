@@ -9,6 +9,8 @@
 	<property name="mysql.pwd" value="101010" />
 	<property name="tomcat.host" value="localhost" />
 	<property name="tomcat.port" value="8080" />
+	<property name="defaultJDBCDriver" value="com.mysql.jdbc.Driver" />
+	<property name="dbBaseURL" value="jdbc:mysql://localhost:3306/" />
 
 	<!-- Main properties for this build -->
 	<property name="base.dir" value="." />
@@ -78,7 +80,6 @@
 			<include name="slf4j-api-1.7.10.jar" />
 			<include name="log4j-1.2.17.jar" />
 			<include name="slf4j-log4j12-1.7.10.jar" />
-			<include name="mysql-connector-java-5.1.17-bin.jar" />
 		</fileset>
 		<fileset dir="${dist.dir}/jars/">
 			<include name="crdtjdbc.jar" />
@@ -87,10 +88,9 @@
 	<path id="tpcc.runtime.classpath">
 		<pathelement path="${tpcc.classes.dir}" />
 		<fileset dir="${base.dir}/libs">
-			<include name="slf4j-api-1.7.10.jar" />
+			<!--<include name="slf4j-api-1.7.10.jar" />
 			<include name="log4j-1.2.17.jar" />
-			<include name="slf4j-log4j12-1.7.10.jar" />
-			<include name="mysql-connector-java-5.1.17-bin.jar" />
+			<include name="slf4j-log4j12-1.7.10.jar" />-->
 		</fileset>
 		<fileset dir="${dist.dir}/jars/">
 			<include name="crdtjdbc.jar" />
@@ -202,6 +202,22 @@
 		<java classname="com.codefutures.tpcc.TpccLoad" fork="true" dir="${tpcc.dir}">
 			<classpath refid="tpcc.runtime.classpath" />
 			<classpath refid="tpcc.resources.path" />
+			<arg value="-o" />
+			<arg value="output" />
+			<arg value="-m" />
+			<arg value="JDBC" />
+			<arg value="-u" />
+			<arg value="${mysql.user}" />
+			<arg value="-p" />
+			<arg value="${mysql.pwd}" />
+			<arg value="-j" />
+			<arg value="${defaultJDBCDriver}" />
+			<arg value="-l" />
+			<arg value="${dbBaseURL}tpcc" />
+			<arg value="-s" />
+			<arg value="1" />
+			<arg value="-i" />
+			<arg value="1" />
 		</java>
 	</target>
 

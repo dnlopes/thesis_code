@@ -25,7 +25,7 @@ public class TpccLoad implements TpccConstants {
 
 
     /* Global SQL Variables */
-    static int num_ware = 0;
+    static int num_ware = 1;
     static int fd = 0;
     static int seed = 0;
 
