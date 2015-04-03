@@ -179,7 +179,7 @@
 				<include name="tpcw-database.sql" />
 				<include name="log4j.properties" />
 			</fileset>
-			<fileset dir="${deploy.dir}/configs">
+			<fileset dir="${resources.dir}/configs">
 				<include name="*.xml" />
 			</fileset>
 		</copy>
