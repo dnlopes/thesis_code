@@ -17,13 +17,15 @@ public class ReplicatorMain
 
 	public static void main(String args[])
 	{
-		if(args.length != 1)
+		if(args.length != 2)
 		{
-			LOG.error("usage: java -jar ReplicatorMain <id>");
+			LOG.error("usage: java -jar ReplicatorMain <config_file_path> <id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
-		int id = Integer.parseInt(args[0]);
+		int id = Integer.parseInt(args[1]);
+		String configFilePath = args[0];
+		Configuration config = Configuration.getInstance();
 
 		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(id));
 	}

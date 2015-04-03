@@ -47,7 +47,7 @@ public final class Configuration
 	private int scratchpadPoolSize;
 	private StopWatch watch;
 
-	private Configuration()
+	public Configuration(String filePath)
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
 		LOG.trace("loading configuration file");
@@ -59,7 +59,39 @@ public final class Configuration
 		try
 		{
 			watch.start();
-			loadConfigurationFile();
+			loadConfigurationFile(filePath);
+		} catch(ConfigurationLoadException e)
+		{
+			LOG.error("failed to load config file");
+			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
+		}
+
+		if(!this.checkConfig())
+		{
+			LOG.error("failed to load config file");
+			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
+		}
+
+		DDLParser parser = new DDLParser(this.schemaFile);
+		this.databaseMetadata = parser.parseAnnotations();
+		this.watch.stop();
+
+		LOG.info("config file successfull loaded in {} ms", watch.getElapsedTime());
+	}
+
+	public Configuration()
+	{
+		LOG = LoggerFactory.getLogger(Configuration.class);
+		LOG.trace("loading configuration file");
+		this.watch = new StopWatch("config");
+		this.replicators = new HashMap<>();
+		this.proxies = new HashMap<>();
+		this.coordinators = new HashMap<>();
+
+		try
+		{
+			watch.start();
+			loadConfigurationFile(BASE_DIR + "/" + CONFIG_FILE);
 		} catch(ConfigurationLoadException e)
 		{
 			LOG.error("failed to load config file");
@@ -84,7 +116,7 @@ public final class Configuration
 		return ourInstance;
 	}
 
-	private void loadConfigurationFile() throws ConfigurationLoadException
+	private void loadConfigurationFile(String filePath) throws ConfigurationLoadException
 	{
 		try
 		{
@@ -92,7 +124,7 @@ public final class Configuration
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(BASE_DIR + "/" + CONFIG_FILE);
+			InputStream stream = new FileInputStream(filePath);
 
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
