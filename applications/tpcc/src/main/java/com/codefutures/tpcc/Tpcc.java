@@ -492,7 +492,7 @@ public class Tpcc implements TpccConstants
 
 		int ret = 0;
 
-		if(argv.length == 1)
+		if(argv.length == 2)
 		{
 			tpcc.init();
 			ret = tpcc.runBenchmark(false, argv);
