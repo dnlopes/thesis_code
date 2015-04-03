@@ -36,7 +36,7 @@ public final class Configuration
 	private static Logger LOG;
 
 	private static final String CONFIG_FILE = "/config.xml";
-	private static final String BASE_DIR = "/var/tmp/weakdb";
+	private static final String BASE_DIR = "/local/dp.lopes/deploy";
 
 	private Map<Integer, ReplicatorConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -47,7 +47,7 @@ public final class Configuration
 	private int scratchpadPoolSize;
 	private StopWatch watch;
 
-	public Configuration(String filePath)
+	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
 		LOG.trace("loading configuration file");
@@ -59,39 +59,7 @@ public final class Configuration
 		try
 		{
 			watch.start();
-			loadConfigurationFile(filePath);
-		} catch(ConfigurationLoadException e)
-		{
-			LOG.error("failed to load config file");
-			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
-		}
-
-		if(!this.checkConfig())
-		{
-			LOG.error("failed to load config file");
-			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
-		}
-
-		DDLParser parser = new DDLParser(this.schemaFile);
-		this.databaseMetadata = parser.parseAnnotations();
-		this.watch.stop();
-
-		LOG.info("config file successfull loaded in {} ms", watch.getElapsedTime());
-	}
-
-	public Configuration()
-	{
-		LOG = LoggerFactory.getLogger(Configuration.class);
-		LOG.trace("loading configuration file");
-		this.watch = new StopWatch("config");
-		this.replicators = new HashMap<>();
-		this.proxies = new HashMap<>();
-		this.coordinators = new HashMap<>();
-
-		try
-		{
-			watch.start();
-			loadConfigurationFile(BASE_DIR + "/" + CONFIG_FILE);
+			loadConfigurationFile();
 		} catch(ConfigurationLoadException e)
 		{
 			LOG.error("failed to load config file");
@@ -116,7 +84,7 @@ public final class Configuration
 		return ourInstance;
 	}
 
-	private void loadConfigurationFile(String filePath) throws ConfigurationLoadException
+	private void loadConfigurationFile() throws ConfigurationLoadException
 	{
 		try
 		{
@@ -124,7 +92,7 @@ public final class Configuration
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(filePath);
+			InputStream stream = new FileInputStream(BASE_DIR + "/" + CONFIG_FILE);
 
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
@@ -337,8 +305,7 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators
-				.size() == 0 || this.coordinators.size() == 0);
+		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0);
 	}
 }
 

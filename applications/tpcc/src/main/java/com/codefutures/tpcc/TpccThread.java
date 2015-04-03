@@ -147,9 +147,9 @@ public class TpccThread extends Thread {
 			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
 			String configFilePath = System.getProperty("config_file");
 
-			Configuration config = new Configuration(configFilePath);
+			//Configuration config = new Configuration(configFilePath);
 
-			AbstractNodeConfig nodeConfig = config.getProxyConfigWithIndex(proxyId);
+			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 
 			conn = ConnectionFactory.getCRDTConnection(nodeConfig);
             //conn = DriverManager.getConnection(jdbcUrl, prop);
