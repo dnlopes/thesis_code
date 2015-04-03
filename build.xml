@@ -168,16 +168,19 @@
 				<include name="tpcw-database.sql" />
 			</fileset>
 		</jar>
+		<mkdir dir="${deploy.dir}/configs" />
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">
 				<include name="*.jar" />
 			</fileset>
 			<fileset dir="${resources.dir}">
-				<include name="config.xml" />
 				<include name="database.properties" />
 				<include name="tpcc-database.sql" />
 				<include name="tpcw-database.sql" />
 				<include name="log4j.properties" />
+			</fileset>
+			<fileset dir="${deploy.dir}/configs">
+				<include name="*.xml" />
 			</fileset>
 		</copy>
 	</target>
