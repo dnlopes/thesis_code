@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
+import org.perf4j.StopWatch;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -173,6 +174,9 @@ public class Driver implements TpccConstants {
     }
 
     private void doNextTransaction(int t_num, int sequence) {
+
+		StopWatch txnTime = new StopWatch();
+		txnTime.start();
         if (sequence == 0) {
             doNeword(t_num);
         } else if (sequence == 1) {
@@ -186,6 +190,9 @@ public class Driver implements TpccConstants {
         } else {
             throw new IllegalStateException("Error - Unknown sequence");
         }
+
+		txnTime.stop();
+		logger.info("client-side txn time: {}", txnTime.getElapsedTime());
     }
 
     /*

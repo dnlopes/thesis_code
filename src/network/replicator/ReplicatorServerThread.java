@@ -31,7 +31,7 @@ public class ReplicatorServerThread implements Runnable
 		this.handler = new ReplicatorService(this.me);
 		this.processor = new ReplicatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
-		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
+		this.server = new TSimpleServer(new TSimpleServer.Args(serverTransport).processor(processor));
 	}
 
 	@Override

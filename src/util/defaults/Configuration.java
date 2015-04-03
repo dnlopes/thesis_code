@@ -76,7 +76,7 @@ public final class Configuration
 		this.databaseMetadata = parser.parseAnnotations();
 		this.watch.stop();
 
-		LOG.info("config file successfull loaded in {} ms", watch.getElapsedTime());
+		LOG.info("config file successfully loaded in {} ms", watch.getElapsedTime());
 	}
 
 	public static Configuration getInstance()
@@ -121,7 +121,7 @@ public final class Configuration
 		}
 	}
 
-	private void parseVariables(Node n)
+	private void	 parseVariables(Node n)
 	{
 		NamedNodeMap map = n.getAttributes();
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
@@ -131,7 +131,7 @@ public final class Configuration
 		LOG.info("#############################");
 		LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
 		LOG.info("Database name: {}", this.databaseName);
-		LOG.info("Schema file: {}", this.schemaFile);
+		LOG.info("DDL file: {}", this.schemaFile);
 		LOG.info("#############################");
 	}
 

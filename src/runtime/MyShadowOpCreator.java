@@ -18,13 +18,13 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import network.proxy.Proxy;
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.IDFactories.IdentifierFactory;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.Configuration;
-import util.parser.DDLParser;
 
 import java.io.StringReader;
 import java.sql.Connection;
@@ -43,7 +43,6 @@ public class MyShadowOpCreator
 
 	static final Logger LOG = LoggerFactory.getLogger(MyShadowOpCreator.class);
 
-	static HashMap<String, DatabaseTable> annotatedTableSchema;
 	private static DatabaseMetadata databaseMetadata;
 
 	static CCJSqlParserManager cJsqlParser;
@@ -74,41 +73,18 @@ public class MyShadowOpCreator
 	 * @param txMudConn
 	 * 		the tx mud conn
 	 */
-	public MyShadowOpCreator(String schemaFilePath, Proxy proxy) throws SQLException
+	public MyShadowOpCreator(Proxy proxy) throws SQLException
 	{
 		if(!isInitialized)
 		{
 			Connection originalConn = ConnectionFactory.getDefaultConnection(proxy.getConfig());
-			DDLParser sP = new DDLParser(schemaFilePath);
 			databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
-			sP.parseAnnotations();
-			annotatedTableSchema = sP.getTableCrdtFormMap();
 			cJsqlParser = new CCJSqlParserManager();
-			//iDFactory = new IDFactories();
-			//this.initIDFactories(globalProxyId, totalProxyNum, originalConn);
 			isInitialized = true;
-			this.closeRealConnection(originalConn);
+			DbUtils.closeQuietly(originalConn);
 		}
 		this.defaultConnection = ConnectionFactory.getDefaultConnection(proxy.getConfig());
 		this.setDateFormat(DatabaseFunction.getNewDateFormatInstance());
-	}
-
-	/**
-	 * Close real connection.
-	 *
-	 * @param originalConn
-	 * 		the original conn
-	 */
-	private void closeRealConnection(Connection originalConn)
-	{
-		LOG.trace("We have initialized the id factory, now close the real connection");
-		try
-		{
-			originalConn.close();
-		} catch(SQLException e)
-		{
-			LOG.warn("failed to close original connection");
-		}
 	}
 
 	/*
@@ -131,10 +107,10 @@ public class MyShadowOpCreator
 	public Set<String> findMissingDataFields(String tableName, List<String> colList, List<String> valueList)
 	{
 		//DatabaseTable dtB = annotatedTableSchema.get(tableName);
-		if(this.databaseMetadata == null)
+		if(databaseMetadata == null)
 			LOG.debug("DATABASE METADATA IS NULL");
 
-		DatabaseTable dtB = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dtB = databaseMetadata.getTable(tableName);
 
 		if(dtB == null)
 			LOG.debug("dtb is null!!");
@@ -157,7 +133,7 @@ public class MyShadowOpCreator
 		Set<String> missFields = findMissingDataFields(tableName, colList, valueList);
 
 //		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 
 		for(int i = 0; i < valueList.size(); i++)
 		{
@@ -268,7 +244,7 @@ public class MyShadowOpCreator
 	private boolean isPrimaryKeyMissingFromWhereClause(String tableName, Expression whereClause)
 	{
 		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 		return dbT.isPrimaryKeyMissingFromWhereClause(whereClause.toString());
 	}
 
@@ -293,7 +269,7 @@ public class MyShadowOpCreator
 	public String getPrimaryKeySelectionQuery(String tableName, Expression whereClause)
 	{
 //		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 
 		return dbT.generatedPrimaryKeyQuery(whereClause.toString());
 	}
@@ -699,7 +675,7 @@ public class MyShadowOpCreator
 		//Debug.println("Newly generated update main body is " + updateMainBody);
 
 		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 
 		Set<String> pkSet = dbT.getPrimaryKeysNamesList();
 		List<String> updateStrList = new ArrayList<>();
@@ -782,7 +758,7 @@ public class MyShadowOpCreator
 		//Debug.println("Newly generated delete mainbody is " + deleteMainBody);
 
 		//DatabaseTable dbTable = annotatedTableSchema.get(tableName);
-		DatabaseTable dbTable = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbTable = databaseMetadata.getTable(tableName);
 
 		Set<String> primaryKeySet = dbTable.getPrimaryKeysNamesList();
 		List<String> deleteStrList = new ArrayList<>();
@@ -836,7 +812,7 @@ public class MyShadowOpCreator
 	public String get_Value_In_Correct_Format(String tableName, int fieldIndex, String Value)
 	{
 		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 
 		DataField dF = dbT.getField(fieldIndex);
 		return dF.get_Value_In_Correct_Format(Value);
@@ -857,7 +833,7 @@ public class MyShadowOpCreator
 	public String get_Value_In_Correct_Format(String tableName, String dataFileName, String Value)
 	{
 		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = this.databaseMetadata.getTable(tableName);
+		DatabaseTable dbT = databaseMetadata.getTable(tableName);
 		DataField dF = dbT.getField(dataFileName);
 		return dF.get_Value_In_Correct_Format(Value);
 	}
