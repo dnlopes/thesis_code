@@ -2,7 +2,6 @@
 
 	<!-- Edit the follow properties according to your system -->
 	<property environment="env" />
-	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
 	<property name="mysql.host" value="localhost" />
 	<property name="mysql.port" value="3306" />
 	<property name="mysql.user" value="sa" />
@@ -14,8 +13,8 @@
 
 	<!-- Main properties for this build -->
 	<property name="base.dir" value="." />
-	<property name="deploy.dir" value="/var/tmp/weakdb" />
-	<property name="tomcat.dir" value="/var/tmp/tomcat6" />
+	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
+	<property name="tomcat.dir" value="/local/dp.lopes/tomcat6" />
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="libs.dir" value="${base.dir}/libs" />
 	<property name="dist.dir" value="${base.dir}/dist" />
