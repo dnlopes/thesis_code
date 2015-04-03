@@ -188,6 +188,7 @@ public class Tpcc implements TpccConstants
 			dbPassword = properties.getProperty(PASSWORD);
 			numWare = Integer.parseInt(properties.getProperty(WAREHOUSECOUNT));
 			numConn = Integer.parseInt(properties.getProperty(CONNECTIONS));
+			numConn = Integer.parseInt(System.getProperty("usersNum"));
 			rampupTime = Integer.parseInt(properties.getProperty(RAMPUPTIME));
 			measureTime = Integer.parseInt(properties.getProperty(DURATION));
 			javaDriver = properties.getProperty(DRIVER);
@@ -462,17 +463,19 @@ public class Tpcc implements TpccConstants
 	public static void main(String[] argv)
 	{
 
-		if(argv.length != 2)
+		if(argv.length != 3)
 		{
-			logger.error("usage: java -jar <config_file_path> <proxyId>");
+			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users>");
 			System.exit(1);
 		}
 		String configFile = argv[0];
 		int proxyId = Integer.parseInt(argv[1]);
+		int usersNum = Integer.parseInt(argv[2]);
 
 		System.setProperty("config_file", configFile);
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
+		System.setProperty("usersNum", String.valueOf(usersNum));
 
 		System.out.println("TPCC version " + VERSION + " Number of Arguments: " + argv.length);
 
@@ -492,7 +495,7 @@ public class Tpcc implements TpccConstants
 
 		int ret = 0;
 
-		if(argv.length == 2)
+		if(argv.length == 3)
 		{
 			tpcc.init();
 			ret = tpcc.runBenchmark(false, argv);
