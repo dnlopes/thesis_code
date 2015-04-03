@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
@@ -146,9 +145,13 @@ public class TpccThread extends Thread {
 
 
 			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
-			AbstractNodeConfig config = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+			String configFilePath = System.getProperty("config_file");
 
-			conn = ConnectionFactory.getCRDTConnection(config);
+			Configuration config = new Configuration(configFilePath);
+
+			AbstractNodeConfig nodeConfig = config.getProxyConfigWithIndex(proxyId);
+
+			conn = ConnectionFactory.getCRDTConnection(nodeConfig);
             //conn = DriverManager.getConnection(jdbcUrl, prop);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);

@@ -1,7 +1,6 @@
 package com.codefutures.tpcc;
 
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -463,11 +462,15 @@ public class Tpcc implements TpccConstants
 	public static void main(String[] argv)
 	{
 
-		if(argv.length != 1)
+		if(argv.length != 2)
 		{
-			logger.error("usage: java -jar mainClass [proxyId]");
+			logger.error("usage: java -jar <config_file_path> <proxyId>");
+			System.exit(1);
 		}
-		int proxyId = Integer.parseInt(argv[0]);
+		String configFile = argv[0];
+		int proxyId = Integer.parseInt(argv[1]);
+
+		System.setProperty("config_file", configFile);
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
 
