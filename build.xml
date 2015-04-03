@@ -252,8 +252,8 @@
 		<delete dir="${tpcw.dist.dir}" />
 		<delete dir="${tpcw.dir}/src" />
 		<delete>
-			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" erroronmissingdir="" />
-			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" erroronmissingdir="" />
+			<fileset dir="${tpcw.web.dir}/WEB-INF/classes" includes="*" />
+			<fileset dir="${tpcw.web.dir}/WEB-INF/lib" includes="*" />
 		</delete>
 	</target>
 	<target name="tpcw-dist" description="Compile and distribute TPCW"
