@@ -192,7 +192,7 @@ public class Driver implements TpccConstants {
         }
 
 		txnTime.stop();
-		logger.info("client-side txn time: {}", txnTime.getElapsedTime());
+		//logger.info("client-side txn time: {}", txnTime.getElapsedTime());
     }
 
     /*

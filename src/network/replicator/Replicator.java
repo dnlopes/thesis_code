@@ -2,6 +2,7 @@ package network.replicator;
 
 
 import database.jdbc.ConnectionFactory;
+import database.jdbc.util.DBUpdateResult;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
 import org.apache.commons.dbutils.DbUtils;
@@ -105,6 +106,7 @@ public class Replicator extends AbstractNode
 	private boolean executeShadowOperation(ShadowOperation shadowOp)
 	{
 		Statement stat = null;
+		boolean success = false;
 		try
 		{
 			stat = this.originalConn.createStatement();
@@ -114,22 +116,25 @@ public class Replicator extends AbstractNode
 				stat.addBatch(statement);
 			}
 			stat.executeBatch();
-
 			this.originalConn.commit();
+			success = true;
+			this.committedTxns.add(shadowOp.getTxnId());
+			LOG.info("txn {} committed", shadowOp.getTxnId());
 
+			DbUtils.closeQuietly(stat);
 		} catch(SQLException e)
 		{
-			LOG.error("failed to execute txn {} in main database", shadowOp.getTxnId());
-			e.printStackTrace();
-			return false;
-		}
-		finally
-		{
 			DbUtils.closeQuietly(stat);
+			try
+			{
+				DbUtils.rollback(this.originalConn);
+			} catch(SQLException e1)
+			{
+				// this should not happen
+				LOG.error("failed to rollback txn {}", shadowOp.getTxnId(), e1);
+			}
+			LOG.error("txn {} rollback ({})", shadowOp.getTxnId(), e.getMessage());
 		}
-		this.committedTxns.add(shadowOp.getTxnId());
-
-		LOG.info("txn {} committed", shadowOp.getTxnId());
-		return true;
+		return success;
 	}
 }

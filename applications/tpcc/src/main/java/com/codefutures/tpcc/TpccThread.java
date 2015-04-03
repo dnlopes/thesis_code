@@ -140,7 +140,7 @@ public class TpccThread extends Thread {
                     logger.error("", e);
                 }
             } else {
-                logger.warn(connPropFile.getAbsolutePath() + " does not exist! Using default connection properties");
+                logger.trace(connPropFile.getAbsolutePath() + " does not exist! Using default connection properties");
             }
             prop.put("user", db_user);
             prop.put("password", db_password);
@@ -148,12 +148,12 @@ public class TpccThread extends Thread {
 
 			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
 
-			//Configuration config = new Configuration(configFilePath);
+
 
 			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 
-			//conn = ConnectionFactory.getCRDTConnection(nodeConfig);
-            conn = DriverManager.getConnection(jdbcUrl, prop);
+			conn = ConnectionFactory.getCRDTConnection(nodeConfig);
+            //conn = DriverManager.getConnection(jdbcUrl, prop);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);
 

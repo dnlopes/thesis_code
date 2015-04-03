@@ -31,7 +31,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node)
+	public synchronized boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node)
 	{
 		if(!this.replicatorsClients.containsKey(node.getName()))
 			try

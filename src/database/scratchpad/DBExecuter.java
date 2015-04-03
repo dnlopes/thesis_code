@@ -762,7 +762,6 @@ public class DBExecuter implements IExecuter
 		buffer.append("TRUNCATE TABLE ");
 		buffer.append(this.tempTableName);
 		pad.addToBatchUpdate(buffer.toString());
-		this.writeSet.reset();
 		this.duplicatedRows.clear();
 		this.modified = false;
 	}

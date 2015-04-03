@@ -97,12 +97,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 	public boolean commitTransaction(IProxyNetwork network)
 	{
 		this.runtimeWatch.stop();
-		LOG.info("txn runtime: {} ms", runtimeWatch.getElapsedTime());
+		LOG.debug("txn runtime: {} ms", runtimeWatch.getElapsedTime());
 
 		if(this.readOnly)
 		{
 			this.activeTransaction.finish();
-			LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+			LOG.info("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
 					this.activeTransaction.getLatency());
 			return true;
 		} else
@@ -116,7 +116,6 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			if(!this.activeTransaction.isReadyToCommit())
 				return false;
 
-			// FIXME: this call MUST NOT block, but for now it DOES
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
@@ -125,9 +124,10 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 			if(commitDecision)
 			{
-				LOG.info("txn commit time {}", commitTimeWatcher.getElapsedTime());
-				LOG.info("txn {} full latency: {} ms", this.activeTransaction.getTxnId().getValue(),
-						this.activeTransaction.getLatency());
+				LOG.debug("txn commit time {}", commitTimeWatcher.getElapsedTime());
+				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(), this
+						.activeTransaction.getLatency());
+
 			} else
 				LOG.warn("txn {} failed to commit", this.activeTransaction.getTxnId().getValue());
 
@@ -278,13 +278,13 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.readOnly = true;
 		this.statBU.clearBatch();
 
+		this.writeSet.resetWriteSet();
+
 		for(IExecuter executer : this.executers.values())
 			executer.resetExecuter(this);
 
 		this.executeBatch();
 		this.batchEmpty = true;
-
-		this.writeSet.resetWriteSet();
 	}
 
 	@Override
