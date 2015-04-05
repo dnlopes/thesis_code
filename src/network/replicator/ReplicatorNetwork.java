@@ -3,9 +3,11 @@ package network.replicator;
 
 import network.AbstractNetwork;
 import network.AbstractNodeConfig;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.operation.ShadowOperation;
+import util.thrift.ReplicatorRPC;
+import util.thrift.ThriftOperation;
 
 
 /**
@@ -22,8 +24,15 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public void sendOperationAsync(ShadowOperation shadowOp, AbstractNodeConfig node)
+	public void sendOperationAsync(ThriftOperation thriftOperation)
 	{
-		//TODO
+		for(ReplicatorRPC.Client client : this.replicatorsClients.values())
+			try
+			{
+				client.commitOperationAsync(thriftOperation);
+			} catch(TException ex)
+			{
+				LOG.warn("failed to send async op to replicator");
+			}
 	}
 }

@@ -14,7 +14,6 @@ import java.util.Vector;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -52,16 +51,6 @@ public class DDLParser
 		this.fileName = fileName;
 		this.databaseMetadata = new DatabaseMetadata();
 		LOG.trace("parser created for schema file {}", this.fileName);
-	}
-
-	/**
-	 * Gets the table crdt form map.
-	 *
-	 * @return the table crdt form map
-	 */
-	public HashMap<String, DatabaseTable> getTableCrdtFormMap()
-	{
-		return tableCrdtFormMap;
 	}
 
 	/**

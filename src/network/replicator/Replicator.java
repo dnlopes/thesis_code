@@ -2,7 +2,6 @@ package network.replicator;
 
 
 import database.jdbc.ConnectionFactory;
-import database.jdbc.util.DBUpdateResult;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
 import org.apache.commons.dbutils.DbUtils;
@@ -28,10 +27,11 @@ public class Replicator extends AbstractNode
 {
 	
 	static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
-	
+
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
 	private Connection originalConn;
+
 	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
 	private Set<Integer> committedTxns;
@@ -71,11 +71,10 @@ public class Replicator extends AbstractNode
 
 	/**
 	 * Attempts to commit a shadow operation.
-	 * First it executes locally, and then it is async propagated to other replicators.
 	 *
 	 * @param shadowOperation
 	 *
-	 * @return true if it was sucessfull committed locally, false otherwise
+	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
@@ -85,20 +84,10 @@ public class Replicator extends AbstractNode
 			LOG.warn("duplicated transaction {}. Silently ignored.", shadowOperation.getTxnId());
 			return true;
 		}
-		/*	should block until decision is made
-			1- execute locally
-			2- send async to others
-		*/
-
-		boolean commitDecision = this.executeShadowOperation(shadowOperation);
-
-		for(AbstractNodeConfig node : otherReplicators.values())
-			this.networkInterface.sendOperationAsync(shadowOperation, node);
-
-		return commitDecision;
+		return this.executeShadowOperation(shadowOperation);
 	}
 
-	public boolean alreadyCommitted(int txnId)
+	private boolean alreadyCommitted(int txnId)
 	{
 		return this.committedTxns.contains(txnId);
 	}
@@ -136,5 +125,10 @@ public class Replicator extends AbstractNode
 			LOG.error("txn {} rollback ({})", shadowOp.getTxnId(), e.getMessage());
 		}
 		return success;
+	}
+
+	public IReplicatorNetwork getNetworkInterface()
+	{
+		return this.networkInterface;
 	}
 }

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import database.constraints.Constraint;
+import database.constraints.unique.AutoIncrementConstraint;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
@@ -77,8 +78,14 @@ public abstract class DatabaseTable
 				tempList.add(entry.getValue());
 			}
 
-			if(entry.getValue().isAutoIncrement() && !this.isAutoIncremental())
+			if(entry.getValue().isAutoIncrement())
+			{
+				Constraint autoIncrementConstraint = new AutoIncrementConstraint();
+				autoIncrementConstraint.setTableName(this.name);
+				autoIncrementConstraint.addField(entry.getValue());
+				this.tableInvarists.add(autoIncrementConstraint);
 				this.containsAutoIncrementField = true;
+			}
 
 			this.sortedFieldsMap.put(entry.getValue().getPosition(), entry.getValue());
 		}

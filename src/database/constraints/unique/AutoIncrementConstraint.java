@@ -11,15 +11,8 @@ import database.constraints.ConstraintType;
 public class AutoIncrementConstraint extends AbstractConstraint
 {
 
-	private boolean isPrimaryKey;
-	public AutoIncrementConstraint(boolean isPrimaryKey)
+	public AutoIncrementConstraint()
 	{
 		super(ConstraintType.AUTO_INCREMENT);
-		this.isPrimaryKey = isPrimaryKey;
-	}
-
-	public boolean isPrimaryKey()
-	{
-		return this.isPrimaryKey;
 	}
 }

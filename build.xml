@@ -179,6 +179,8 @@
 				<include name="tpcw-database.sql" />
 				<include name="log4j.properties" />
 			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/configs">
 			<fileset dir="${resources.dir}/configs">
 				<include name="*.xml" />
 			</fileset>

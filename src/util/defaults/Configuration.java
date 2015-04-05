@@ -121,7 +121,7 @@ public final class Configuration
 		}
 	}
 
-	private void	 parseVariables(Node n)
+	private void parseVariables(Node n)
 	{
 		NamedNodeMap map = n.getAttributes();
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
