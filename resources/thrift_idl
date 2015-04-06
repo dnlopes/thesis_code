@@ -19,6 +19,7 @@ struct CoordResponseMessage
     1: required i32 messageId;
     2: required bool success;
     3: list<ResponseEntry> responses;  // fill only with auto increment assignments
+    4: string errorMessage;
 }
 
 struct ResponseEntry {

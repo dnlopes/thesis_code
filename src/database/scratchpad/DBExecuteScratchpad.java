@@ -36,7 +36,7 @@ import java.util.*;
 public class DBExecuteScratchPad implements IDBScratchPad
 {
 
-	private final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchPad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchPad.class);
 
 	private ProxyConfig proxyConfig;
 	private Transaction activeTransaction;
@@ -347,7 +347,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 				CoordResponseMessage response = network.checkInvariants(checkList, proxyConfig.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
-					LOG.warn("coordinator didnt allow txn to commit. Aborting.");
+					LOG.warn("coordinator didnt allow txn to commit.");
 					return;
 				}
 				List<ResponseEntry> responses = response.getResponses();
