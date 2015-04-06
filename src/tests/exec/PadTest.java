@@ -2,16 +2,13 @@ package tests.exec;
 
 
 import database.jdbc.ConnectionFactory;
-import database.scratchpad.DBExecuteScratchpad;
-import database.scratchpad.IDBScratchpad;
+import database.scratchpad.DBExecuteScratchPad;
+import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
 import network.AbstractNodeConfig;
 import network.proxy.ProxyConfig;
-import runtime.operation.DBSingleOperation;
 import util.defaults.Configuration;
-import org.perf4j.LoggingStopWatch;
-import org.perf4j.StopWatch;
 
 import java.sql.*;
 
@@ -36,7 +33,7 @@ public class PadTest
 
 		setup();
 
-		IDBScratchpad pad = new DBExecuteScratchpad(1, (ProxyConfig) proxy);
+		IDBScratchPad pad = new DBExecuteScratchPad(1, (ProxyConfig) proxy);
 
 		int column = 1;
 		pStmts[0].setInt(column++, 1);

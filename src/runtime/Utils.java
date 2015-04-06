@@ -18,7 +18,6 @@ public class Utils
 
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
-		//TODO
 		ThriftOperation thriftOperation = new ThriftOperation();
 		thriftOperation.setOperations(shadowOperation.getOperationList());
 		thriftOperation.setTxnId(shadowOperation.getTxnId());

@@ -17,16 +17,18 @@ public class CoordinatorMain
 
 	public static void main(String args[])
 	{
-		if(args.length != 1)
+		if(args.length != 2)
 		{
-			LOG.error("usage: java -jar CoordinatorMain <id>");
+			LOG.error("usage: java -jar <config_file_path> <id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
-		int id = Integer.parseInt(args[0]);
-		LOG.info("setup coordinator {}", id);
+		int id = Integer.parseInt(args[1]);
+		String configFilePath = args[0];
 
-		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(1));
+		System.getProperty("configPath", configFilePath);
+
+		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(id));
 	}
 
 }

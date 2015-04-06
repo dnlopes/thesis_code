@@ -53,14 +53,14 @@ public interface IExecuter
 	/**
 	 * Called on scratchpad initialization for a given table. Allows to setup any internal state needed
 	 */
-	public void setup(DatabaseMetaData metadata, IDBScratchpad scratchpad);
+	public void setup(DatabaseMetaData metadata, IDBScratchPad scratchpad);
 
 	/**
 	 * Executes a query in the scratchpad temporary state.
 	 *
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchpad db)
+	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
 			throws SQLException, ScratchpadException;
 
 	/**
@@ -68,7 +68,7 @@ public interface IExecuter
 	 *
 	 * @throws ScratchpadException
 	 */
-	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchpad db, IExecuter[] policies,
+	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchPad db, IExecuter[] policies,
 											String[][] table) throws SQLException, ScratchpadException;
 
 	/**
@@ -76,12 +76,12 @@ public interface IExecuter
 	 *
 	 * @throws ScratchpadException
 	 */
-	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db) throws SQLException, ScratchpadException;
+	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db) throws SQLException, ScratchpadException;
 
 	/**
 	 * Cleans the state of the temporary table of this executer
 	 */
-	public void resetExecuter(IDBScratchpad pad) throws SQLException;
+	public void resetExecuter(IDBScratchPad pad) throws SQLException;
 
 	public TableWriteSet getWriteSet() throws SQLException;
 

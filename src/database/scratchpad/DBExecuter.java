@@ -336,7 +336,7 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public void setup(DatabaseMetaData metadata, IDBScratchpad scratchpad)
+	public void setup(DatabaseMetaData metadata, IDBScratchPad scratchpad)
 	{
 		try
 		{
@@ -507,7 +507,7 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchpad db)
+	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
 			throws SQLException, ScratchpadException
 	{
 		LOG.debug("creating selection for query {}", selectOp.toString());
@@ -585,13 +585,13 @@ public class DBExecuter implements IExecuter
 		return db.executeQuery(finalQuery);
 	}
 
-	private ResultSet cenas(IDBScratchpad pad, String cenas) throws SQLException
+	private ResultSet cenas(IDBScratchPad pad, String cenas) throws SQLException
 	{
 		return pad.executeQuery(cenas);
 	}
 
 	@Override
-	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchpad db, IExecuter[] policies,
+	public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchPad db, IExecuter[] policies,
 													  String[][] tables) throws SQLException, ScratchpadException
 	{
 		if(true)
@@ -737,7 +737,7 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchpad db)
+	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
 			throws SQLException, ScratchpadException
 	{
 		modified = true;
@@ -756,7 +756,7 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public void resetExecuter(IDBScratchpad pad) throws SQLException
+	public void resetExecuter(IDBScratchPad pad) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("TRUNCATE TABLE ");
@@ -777,7 +777,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchpad db) throws SQLException
+	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
 		StringBuilder originBuffer = new StringBuilder();
@@ -866,7 +866,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private DBUpdateResult executeTempOpDelete(Delete deleteOp, IDBScratchpad db) throws SQLException
+	private DBUpdateResult executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
 	{
 		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
@@ -950,7 +950,7 @@ public class DBExecuter implements IExecuter
 
 	}
 
-	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchpad db) throws SQLException
+	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
 	{
 		// before writting in the scratchpad, add the missing rows
 		// we also use this method to capture all the tuples that will be affected by the update
@@ -1009,7 +1009,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchpad pad) throws SQLException
+	private void addMissingRowsToScratchpad(Update updateOp, IDBScratchPad pad) throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
@@ -1167,7 +1167,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private List<String> getResultSelectBeforeUpdate(Update updateOp, IDBScratchpad pad) throws SQLException
+	private List<String> getResultSelectBeforeUpdate(Update updateOp, IDBScratchPad pad) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();
 		if(whereClause == null)

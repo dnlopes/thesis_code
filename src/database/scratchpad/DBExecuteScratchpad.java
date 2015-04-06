@@ -33,21 +33,18 @@ import java.util.*;
 /**
  * Created by dnlopes on 10/03/15.
  */
-public class DBExecuteScratchpad implements IDBScratchpad
+public class DBExecuteScratchPad implements IDBScratchPad
 {
 
-	private final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchpad.class);
+	private final Logger LOG = LoggerFactory.getLogger(DBExecuteScratchPad.class);
 
 	private ProxyConfig proxyConfig;
-
 	private Transaction activeTransaction;
 	private StopWatch runtimeWatch;
 	private int id;
 	private Map<String, IExecuter> executers;
-
 	private boolean readOnly;
 	private CCJSqlParserManager parser;
-
 	private Connection defaultConnection;
 	private Statement statQ;
 	private Statement statU;
@@ -56,7 +53,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 
 	private TransactionWriteSet writeSet;
 
-	public DBExecuteScratchpad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
+	public DBExecuteScratchPad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
 	{
 		this.id = id;
 		this.proxyConfig = proxyConfig;
@@ -125,15 +122,14 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			if(commitDecision)
 			{
 				LOG.debug("txn commit time {}", commitTimeWatcher.getElapsedTime());
-				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(), this
-						.activeTransaction.getLatency());
+				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+						this.activeTransaction.getLatency());
 
 			} else
 				LOG.warn("txn {} failed to commit", this.activeTransaction.getTxnId().getValue());
 
 			return commitDecision;
 		}
-
 	}
 
 	@Override
@@ -142,12 +138,10 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		this.runtimeWatch.stop();
 		this.activeTransaction.finish();
 
-		this.freeResources();
 		if(!this.readOnly)
 		{
 			LOG.trace("this txn is not read-only, we should commit but instead we are closing. Lets commit!");
 			this.commitTransaction(network);
-			this.freeResources();
 		}
 	}
 
@@ -227,7 +221,8 @@ public class DBExecuteScratchpad implements IDBScratchpad
 				if(executors[i] == null)
 					throw new ScratchpadException("No config for table " + tableName[i][0]);
 			}
-			return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors, tableName);
+			return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors,
+					tableName);
 		}
 	}
 
@@ -303,6 +298,12 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		return false;
 	}
 
+	@Override
+	public Transaction getActiveTransaction()
+	{
+		return this.activeTransaction;
+	}
+
 	private void createDBExecuters() throws SQLException, ScratchpadException
 	{
 		DatabaseMetaData metadata = this.defaultConnection.getMetaData();
@@ -356,6 +357,7 @@ public class DBExecuteScratchpad implements IDBScratchpad
 			}
 
 			this.writeSet.generateMinimalStatements();
+
 			ShadowOperation shadowOp = new ShadowOperation(this.activeTransaction.getTxnId().getValue(),
 					this.writeSet.getStatements());
 			this.activeTransaction.setReadyToCommit(shadowOp);
@@ -363,12 +365,5 @@ public class DBExecuteScratchpad implements IDBScratchpad
 		{
 			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId().getValue(), e);
 		}
-	}
-
-	private void freeResources()
-	{
-		//DbUtils.closeQuietly(statU);
-		//DbUtils.closeQuietly(statBU);
-		//DbUtils.closeQuietly(statQ);
 	}
 }

@@ -19,12 +19,14 @@ public class ReplicatorMain
 	{
 		if(args.length != 2)
 		{
-			LOG.error("usage: java -jar ReplicatorMain <config_file_path> <id>");
+			LOG.error("usage: java -jar <config_file_path> <id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
 		int id = Integer.parseInt(args[1]);
 		String configFilePath = args[0];
+
+		System.getProperty("configPath", configFilePath);
 
 		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(id));
 	}

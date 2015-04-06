@@ -35,7 +35,7 @@ public final class Configuration
 	private static Configuration ourInstance = new Configuration();
 	private static Logger LOG;
 
-	private static final String CONFIG_FILE = "/config.xml";
+	private static String CONFIG_FILE;
 	private static final String BASE_DIR = "/local/dp.lopes/deploy";
 
 	private Map<Integer, ReplicatorConfig> replicators;
@@ -51,6 +51,8 @@ public final class Configuration
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
 		LOG.trace("loading configuration file");
+		CONFIG_FILE = System.getProperty("configPath");
+
 		this.watch = new StopWatch("config");
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
@@ -92,7 +94,7 @@ public final class Configuration
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(BASE_DIR + "/" + CONFIG_FILE);
+			InputStream stream = new FileInputStream(CONFIG_FILE);
 
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);

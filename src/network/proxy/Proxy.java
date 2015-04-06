@@ -2,8 +2,8 @@ package network.proxy;
 
 
 import database.jdbc.Result;
-import database.scratchpad.DBExecuteScratchpad;
-import database.scratchpad.IDBScratchpad;
+import database.scratchpad.DBExecuteScratchPad;
+import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
@@ -19,6 +19,7 @@ import runtime.txn.TransactionIdentifier;
 import runtime.operation.DBSingleOperation;
 import util.ObjectPool;
 import util.defaults.Configuration;
+import util.stats.ProxyStatistics;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,11 +35,12 @@ public class Proxy extends AbstractNode
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 
-	private ObjectPool<IDBScratchpad> scratchpadsPool;
-	private ConcurrentHashMap<TransactionIdentifier, IDBScratchpad> activeScratchpads;
+	private ObjectPool<IDBScratchPad> scratchpadsPool;
+	private ConcurrentHashMap<TransactionIdentifier, IDBScratchPad> activeScratchpads;
 	private IProxyNetwork networkInterface;
 	private AtomicInteger transactionsCounter;
 	private AtomicInteger scratchpadsCount;
+	private ProxyStatistics statistics;
 
 	// a small hack to avoid casting the same object over and over during txn execution
 	private ProxyConfig privateConfig;
@@ -48,6 +50,7 @@ public class Proxy extends AbstractNode
 		super(config);
 
 		this.privateConfig = (ProxyConfig) config;
+		this.statistics = new ProxyStatistics();
 
 		this.scratchpadsPool = new ObjectPool<>();
 		this.activeScratchpads = new ConcurrentHashMap<>();
@@ -72,14 +75,14 @@ public class Proxy extends AbstractNode
 	public Result executeUpdate(DBSingleOperation op, TransactionIdentifier txnId)
 			throws JSQLParserException, SQLException, ScratchpadException
 	{
-		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+		IDBScratchPad pad = this.activeScratchpads.get(txnId);
 		pad.setNotReadOnly();
 		return this.activeScratchpads.get(txnId).executeUpdate(op);
 	}
 
 	public boolean commit(TransactionIdentifier txnId)
 	{
-		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+		IDBScratchPad pad = this.activeScratchpads.get(txnId);
 
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
@@ -88,10 +91,15 @@ public class Proxy extends AbstractNode
 
 		//TODO: maybe assign logical clocks and timestamp here?
 		boolean commitResult = pad.commitTransaction(this.networkInterface);
+		if(commitResult)
+		{
+			statistics.incrementCommitCounter();
+			statistics.addLatency(pad.getActiveTransaction().getLatency());
+		} else
+			statistics.incrementAbortsCounter();
 
 		this.activeScratchpads.remove(txnId);
-		// TODO: should we clean pad at this point?
-		// for now we clean at transaction startup
+
 		this.scratchpadsPool.returnObject(pad);
 		txnId.resetValue();
 
@@ -100,7 +108,7 @@ public class Proxy extends AbstractNode
 
 	public void abort(TransactionIdentifier txnId)
 	{
-		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+		IDBScratchPad pad = this.activeScratchpads.get(txnId);
 
 		if(pad == null)
 			return;
@@ -112,7 +120,7 @@ public class Proxy extends AbstractNode
 
 	public void closeTransaction(TransactionIdentifier txnId)
 	{
-		IDBScratchpad pad = this.activeScratchpads.get(txnId);
+		IDBScratchPad pad = this.activeScratchpads.get(txnId);
 
 		if(pad == null)
 			return;
@@ -134,7 +142,7 @@ public class Proxy extends AbstractNode
 	{
 		txnId.setValue(this.transactionsCounter.incrementAndGet());
 
-		IDBScratchpad pad;
+		IDBScratchPad pad;
 		pad = this.scratchpadsPool.borrowObject();
 
 		if(pad == null)
@@ -142,7 +150,7 @@ public class Proxy extends AbstractNode
 			LOG.warn("scratchpad pool was empty");
 			try
 			{
-				pad = new DBExecuteScratchpad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
+				pad = new DBExecuteScratchPad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
 			} catch(SQLException | ScratchpadException e)
 			{
 				LOG.error("failed to init scratchpad", e);
@@ -163,7 +171,7 @@ public class Proxy extends AbstractNode
 		{
 			try
 			{
-				IDBScratchpad scratchpad = new DBExecuteScratchpad(i, (ProxyConfig) config);
+				IDBScratchPad scratchpad = new DBExecuteScratchPad(i, (ProxyConfig) config);
 				this.scratchpadsPool.addObject(scratchpad);
 				this.scratchpadsCount.incrementAndGet();
 			} catch(ScratchpadException | SQLException e)
@@ -174,7 +182,8 @@ public class Proxy extends AbstractNode
 
 		}
 		watch.stop();
-		LOG.info("{} scratchpads created in {} ms", Configuration.getInstance().getScratchpadPoolSize(), watch.getElapsedTime());
+		LOG.info("{} scratchpads created in {} ms", Configuration.getInstance().getScratchpadPoolSize(),
+				watch.getElapsedTime());
 	}
 
 }

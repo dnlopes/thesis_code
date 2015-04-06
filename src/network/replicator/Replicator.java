@@ -1,19 +1,18 @@
 package network.replicator;
 
 
-import database.jdbc.ConnectionFactory;
+import database.scratchpad.DBCommitPad;
+import database.scratchpad.IDBCommitPad;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
+import util.stats.ReplicatorStatistics;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,7 +29,8 @@ public class Replicator extends AbstractNode
 
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
-	private Connection originalConn;
+	private ObjectPool<IDBCommitPad> commitPadPool;
+	private ReplicatorStatistics statistics;
 
 	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
@@ -47,14 +47,10 @@ public class Replicator extends AbstractNode
 			this.otherReplicators.put(allReplicators.getName(), allReplicators);
 
 		this.committedTxns = new HashSet<>();
+		this.commitPadPool = new ObjectPool<>();
+		this.statistics = new ReplicatorStatistics();
 
-		try
-		{
-			this.originalConn = ConnectionFactory.getDefaultConnection(this.getConfig());
-		} catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
+		this.setup();
 
 		try
 		{
@@ -78,13 +74,34 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-		LOG.trace("committing op");
 		if(this.alreadyCommitted(shadowOperation.getTxnId()))
 		{
 			LOG.warn("duplicated transaction {}. Silently ignored.", shadowOperation.getTxnId());
 			return true;
 		}
-		return this.executeShadowOperation(shadowOperation);
+
+		IDBCommitPad pad = this.commitPadPool.borrowObject();
+
+		if(pad == null)
+		{
+			LOG.warn("commitpad pool was empty");
+			pad = new DBCommitPad(this.config);
+		}
+
+		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
+
+		if(commitDecision)
+		{
+			this.committedTxns.add(shadowOperation.getTxnId());
+			this.statistics.incrementCommitCounter();
+			this.statistics.addLatency(pad.getCommitLatency());
+		} else
+		{
+			this.statistics.incrementAbortsCounter();
+			LOG.error("something went very wrong. State will not converge because op didnt commit");
+		}
+
+		return commitDecision;
 	}
 
 	private boolean alreadyCommitted(int txnId)
@@ -92,43 +109,20 @@ public class Replicator extends AbstractNode
 		return this.committedTxns.contains(txnId);
 	}
 
-	private boolean executeShadowOperation(ShadowOperation shadowOp)
-	{
-		Statement stat = null;
-		boolean success = false;
-		try
-		{
-			stat = this.originalConn.createStatement();
-			for(String statement : shadowOp.getOperationList())
-			{
-				LOG.debug("executing on maindb: {}", statement);
-				stat.addBatch(statement);
-			}
-			stat.executeBatch();
-			this.originalConn.commit();
-			success = true;
-			this.committedTxns.add(shadowOp.getTxnId());
-			LOG.info("txn {} committed", shadowOp.getTxnId());
-
-			DbUtils.closeQuietly(stat);
-		} catch(SQLException e)
-		{
-			DbUtils.closeQuietly(stat);
-			try
-			{
-				DbUtils.rollback(this.originalConn);
-			} catch(SQLException e1)
-			{
-				// this should not happen
-				LOG.error("failed to rollback txn {}", shadowOp.getTxnId(), e1);
-			}
-			LOG.error("txn {} rollback ({})", shadowOp.getTxnId(), e.getMessage());
-		}
-		return success;
-	}
-
 	public IReplicatorNetwork getNetworkInterface()
 	{
 		return this.networkInterface;
+	}
+
+	private void setup()
+	{
+		Configuration conf = Configuration.getInstance();
+		int count = conf.getProxies().size() * conf.getScratchpadPoolSize();
+
+		for(int i = 0; i < count; i++)
+		{
+			IDBCommitPad commitPad = new DBCommitPad(this.config);
+			this.commitPadPool.addObject(commitPad);
+		}
 	}
 }
