@@ -52,6 +52,7 @@ public final class Configuration
 		LOG = LoggerFactory.getLogger(Configuration.class);
 		LOG.trace("loading configuration file");
 		CONFIG_FILE = System.getProperty("configPath");
+		LOG.info("config file: {}", CONFIG_FILE);
 
 		this.watch = new StopWatch("config");
 		this.replicators = new HashMap<>();
@@ -95,7 +96,6 @@ public final class Configuration
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
 			InputStream stream = new FileInputStream(CONFIG_FILE);
-
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
 			//optional, but recommended

@@ -74,6 +74,7 @@ public class TPCW_Database {
 
 	static {
 		System.setProperty("proxyid", String.valueOf(PROXY_ID));
+		System.setProperty("configPath", "/local/dp.lopes/deploy/configs/tpcw_localhost_1node.xml");
 	}
 
 	private static AbstractNodeConfig proxyConfig = Configuration.getInstance().getProxyConfigWithIndex(PROXY_ID);

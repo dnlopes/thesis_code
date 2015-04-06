@@ -101,6 +101,8 @@ public class Replicator extends AbstractNode
 			LOG.error("something went very wrong. State will not converge because op didnt commit");
 		}
 
+		this.commitPadPool.returnObject(pad);
+
 		return commitDecision;
 	}
 
@@ -117,7 +119,7 @@ public class Replicator extends AbstractNode
 	private void setup()
 	{
 		Configuration conf = Configuration.getInstance();
-		int count = conf.getProxies().size() * conf.getScratchpadPoolSize();
+		int count = conf.getProxies().size() * 2;
 
 		for(int i = 0; i < count; i++)
 		{

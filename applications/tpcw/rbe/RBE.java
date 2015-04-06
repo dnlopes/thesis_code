@@ -257,7 +257,9 @@ public class RBE {
     new BufferedReader(new InputStreamReader(System.in));
 
   public static void main(String [] args) {
-    RBE rbe = new RBE();
+
+
+	  RBE rbe = new RBE();
     EBTestFactory ebtf = new EBTestFactory();
     int i,a,num;
     int maxState=0;
