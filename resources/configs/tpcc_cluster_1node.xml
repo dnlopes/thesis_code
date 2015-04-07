@@ -3,7 +3,7 @@
 	<topology replicatorNum="1" executorsNum="1">
 		<replicators>
 			<replicator id="1" host="node1" port="50000" dbHost="node1" dbPort="3306" dbUser="sa"
-						dbPwd="101010" />			
+						dbPwd="101010" />
 		</replicators>
 		<coordinators>
 			<coordinator id="1" host="node1" port="50011" dbHost="node1" dbPort="3306" dbUser="sa"

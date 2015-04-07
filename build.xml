@@ -115,6 +115,9 @@
 
 	</target>
 	<target name="compile" depends="init" description="Compile WeakDB sources">
+		<touch>
+			<fileset dir="${src.dir}"/>
+		</touch>
 		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
 			   includeantruntime="false">
 			<classpath refid="weakdb.classpath" />
