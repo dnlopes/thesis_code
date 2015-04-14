@@ -83,7 +83,9 @@ public abstract class DatabaseTable
 				Constraint autoIncrementConstraint = new AutoIncrementConstraint();
 				autoIncrementConstraint.setTableName(this.name);
 				autoIncrementConstraint.addField(entry.getValue());
+				autoIncrementConstraint.generateIdentifier();
 				this.tableInvarists.add(autoIncrementConstraint);
+				entry.getValue().addInvariant(autoIncrementConstraint);
 				this.containsAutoIncrementField = true;
 			}
 

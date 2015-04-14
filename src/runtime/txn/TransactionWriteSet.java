@@ -162,7 +162,7 @@ public class TransactionWriteSet
 				case AUTO_INCREMENT:
 					newEntry.setType(RequestType.REQUEST_ID);
 					this.modifiedTuples.put(pkValue, tupleWriteSet);
-					LOG.trace("new request Id check entry added for field {}", fieldName);
+					LOG.trace("new request id check entry added for field {}", fieldName);
 					checkList.add(newEntry);
 					break;
 				case UNIQUE:

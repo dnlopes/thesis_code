@@ -24,4 +24,6 @@ public interface Constraint
 
 	public void setTableName(String name);
 
+	public String getTableName();
+
 }

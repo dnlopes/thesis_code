@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.unique.UniqueConstraint;
 import database.util.DataField;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
@@ -202,10 +203,10 @@ public class DDLParser
 						if(constraint instanceof ForeignKeyConstraint)
 						{
 							String remoteTableString = ((ForeignKeyConstraint) constraint).getRemoteTable();
-							for(String remoteFieldString: ((ForeignKeyConstraint) constraint).getRemoteFields())
+							for(String remoteFieldString : ((ForeignKeyConstraint) constraint).getRemoteFields())
 							{
-								DataField originField = this.databaseMetadata.getTable(remoteTableString).getField
-										(remoteFieldString);
+								DataField originField = this.databaseMetadata.getTable(remoteTableString).getField(
+										remoteFieldString);
 								originField.addReferencedByField(field);
 							}
 						}

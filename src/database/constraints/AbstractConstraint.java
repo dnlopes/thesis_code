@@ -16,6 +16,8 @@ public abstract class AbstractConstraint implements Constraint
 	protected List<DataField> fields;
 	protected ConstraintType constraintType;
 	private String constraintIdentifier;
+
+
 	private String tableName;
 
 	public AbstractConstraint(ConstraintType type)
@@ -69,5 +71,11 @@ public abstract class AbstractConstraint implements Constraint
 		buffer.append("_");
 		buffer.append(this.constraintType);
 		this.constraintIdentifier = buffer.toString();
+	}
+
+	@Override
+	public String getTableName()
+	{
+		return this.tableName;
 	}
 }
