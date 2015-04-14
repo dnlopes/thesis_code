@@ -20,8 +20,7 @@ public class ParserTest
 {
 
 	private static final String SCHEMA_FILE =
-			"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc/tpcc-database" +
-			".sql";
+			"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcw-database.sql";
 
 	public static void main(String args[])
 	{

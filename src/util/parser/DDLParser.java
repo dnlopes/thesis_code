@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import database.constraints.Constraint;
+import database.constraints.fk.ForeignKeyConstraint;
+import database.util.DataField;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,6 +143,7 @@ public class DDLParser
 			}
 		}
 
+		this.fillMissingInfo();
 		return databaseMetadata;
 	}
 
@@ -181,5 +185,33 @@ public class DDLParser
 			}
 		}
 		Debug.println("End Print Out all Table information");
+	}
+
+	private void fillMissingInfo()
+	{
+		// add referenced by fields
+
+		for(DatabaseTable table : databaseMetadata.getAllTables())
+		{
+			for(DataField field : table.getFieldsList())
+			{
+				if(field.isForeignKey())
+				{
+					for(Constraint constraint : field.getInvariants())
+					{
+						if(constraint instanceof ForeignKeyConstraint)
+						{
+							String remoteTableString = ((ForeignKeyConstraint) constraint).getRemoteTable();
+							for(String remoteFieldString: ((ForeignKeyConstraint) constraint).getRemoteFields())
+							{
+								DataField originField = this.databaseMetadata.getTable(remoteTableString).getField
+										(remoteFieldString);
+								originField.addReferencedByField(field);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

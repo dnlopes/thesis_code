@@ -12,6 +12,8 @@ public class UniqueConstraint extends AbstractConstraint
 {
 
 	private boolean isPrimaryKey;
+	private boolean isAutoIncrement;
+
 	public UniqueConstraint(boolean isPrimaryKey)
 	{
 		super(ConstraintType.UNIQUE);
@@ -21,5 +23,11 @@ public class UniqueConstraint extends AbstractConstraint
 	public boolean isPrimaryKey()
 	{
 		return this.isPrimaryKey;
+	}
+
+
+	public boolean isAutoIncrement()
+	{
+		return this.isAutoIncrement;
 	}
 }

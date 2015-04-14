@@ -8,7 +8,7 @@ applications/tpcc/pom.xml
 
 # Compiled Object files
 *.class
-
+scripts/*.pyc
 # IDE
 *.iml
 .idea/*

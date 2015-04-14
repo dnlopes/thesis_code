@@ -15,6 +15,7 @@ public abstract class DataField
 {
 
 	private List<Constraint> invariants;
+	private List<DataField> referencedBy;
 	private CrdtDataFieldType crdtDataType;
 	private String fieldName;
 	private String tableName;
@@ -42,6 +43,7 @@ public abstract class DataField
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
 		this.invariants = new LinkedList<>();
+		this.referencedBy= new LinkedList<>();
 	}
 
 	public abstract String get_Crdt_Form(ResultSet rs, String Value);
@@ -162,5 +164,10 @@ public abstract class DataField
 				CrdtDataFieldType.NORMALDOUBLE || this.crdtDataType == CrdtDataFieldType.NORMALFLOAT || this
 				.crdtDataType == CrdtDataFieldType.NORMALINTEGER || this.crdtDataType == CrdtDataFieldType
 				.NORMALSTRING;
+	}
+
+	public void addReferencedByField(DataField field)
+	{
+		this.referencedBy.add(field);
 	}
 }

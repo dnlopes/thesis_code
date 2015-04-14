@@ -10,6 +10,7 @@ public class LogicalClock implements java.io.Serializable {
 	long[] dcCount;
 	//    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	ReentrantLock lock = new ReentrantLock();
+
 	public LogicalClock(int dcs) {
 		blue = 0;
 		this.dcCount = new long[dcs];
@@ -23,19 +24,6 @@ public class LogicalClock implements java.io.Serializable {
 		this.dcCount = dc;
 	}
 
-	public LogicalClock(String s) {
-		if (s == null || "null".equalsIgnoreCase(s)) {
-			s = DefaultForInTrx;
-		}
-		String tmp[] = s.split("-");
-		dcCount = new long[tmp.length - 1];
-		blue = Long.parseLong(tmp[0]);
-		for (int i = 1; i < tmp.length; i++) {
-			dcCount[i - 1] = Long.parseLong(tmp[i]);
-		}
-
-	}
-
 	public LogicalClock(byte b[], int offset) {
 		blue = UnsignedTypes.bytesToLongLong(b, offset);
 		offset += UnsignedTypes.uint64Size;
@@ -45,20 +33,6 @@ public class LogicalClock implements java.io.Serializable {
 		for (int i = 0; i < sz; i++) {
 			dcCount[i] = UnsignedTypes.bytesToLongLong(b, offset);
 			offset += UnsignedTypes.uint64Size;
-		}
-	}
-
-	public LogicalClock copy() {
-		lockForReads();
-		try {
-			LogicalClock tmp = new LogicalClock(dcCount.length);
-			tmp.blue = blue;
-			for (int i = 0; i < dcCount.length; i++) {
-				tmp.dcCount[i] = dcCount[i];
-			}
-			return tmp;
-		} finally {
-			readLock().unlock();
 		}
 	}
 

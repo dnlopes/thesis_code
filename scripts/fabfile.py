@@ -2,15 +2,27 @@ from fabric.api import env, local, lcd, roles, parallel, cd, put, execute, setti
 import time
 import sys
 import xml.etree.ElementTree as ET
+from sets import Set
+import logging
 
-# TPCW Deployment Script
+#------------------------------------------------------------------------------
+# Deployment Scripts
 # Author: David Lopes
 # Nova university of lisbon
-# Last update: nov 2013 
+# Last update: April, 2015
 #------------------------------------------------------------------------------
-#environment variables
-# REMEMBER TO UPDATE THE FILE ENVIROHMENT.SH AS WELL
-#------------------------------------------------------------------------------
+
+logger = logging.getLogger('simple_example')
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+formatter = logging.Formatter('[%(levelname)s] %(message)s')
+ch.setFormatter(formatter)
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
+
+
+CONFIG_FILE=''
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
@@ -21,21 +33,37 @@ TOMCAT_SHUTDOWN_COMMAND='bin/shutdown.sh'
 env.user = 'dp.lopes'
 env.shell = "/bin/bash -l -i -c" 
 
-BASE_DIR = '/local/' + env.user
-HOME_DIR = '/home/' + env.user
+BASE_DIR = '/local/' + env.user 
+PROJECT_DIR = '/home/' + env.user + '/code'
+JARS_DIR = PROJECT_DIR + '/dist/jars'
+DEPLOY_DIR = BASE_DIR + '/deploy'
 
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
 MYSQL_DIR = BASE_DIR + '/tomcat6'
 
 
-database_nodes = ["node1", "node2"]
-app_server_nodes = []
+distinct_nodes = []
+database_nodes = []
+replicators_nodes = []
+coordinators_nodes = []
+proxies_nodes = []
+
+database_map = dict()
+replicators_map = dict()
+coordinators_map = dict()
+
+proxies_map = dict()
+
 
 env_vars = dict()
 env.roledefs = {
-    'configuratorNode': ["node1"],
-    'databases': database_nodes
+    'configuratorNode': ["localhost"],
+    'databases': database_nodes, 
+    'replicators': replicators_nodes, 
+    'coordinators': coordinators_nodes
 }
+
+env.hosts = ['localhost']
 
 @task
 @roles('configuratorNode')
@@ -52,7 +80,6 @@ def prepareTPCW():
     exportDatabase('tpcw', export_file)
 
 @task
-@roles('configuratorNode')
 def prepareTPCC():
     if not is_mysql_running():
         mysql_start()
@@ -65,6 +92,36 @@ def prepareTPCC():
     export_file = HOME_DIR + '/backups/tpcc_export.sql'
     exportDatabase('tpcc', export_file)
 
+@task
+def startCoordinators():
+    pass
+
+@task
+def startReplicators():
+    currentId = replicators_map.get(env.host_string)    
+    logFile = 'replicator_' + currentId
+    logger.info('starting replicator at %s with id %s', env.host_string, currentId)
+    command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + logFile + ' &'
+    with cd(DEPLOY_DIR):
+        run(command)
+
+@task
+def setupExperiment(configFile):
+    print
+    global CONFIG_FILE
+    CONFIG_FILE=configFile
+    parseConfigFile()
+    prepareCode()
+
+@task
+def prepareCode():
+    logger.info('compiling source code')
+    with lcd(PROJECT_DIR):
+        local('ant purge compile')
+    logger.info('uploading distribution to nodes: %s', distinct_nodes)
+    logger.info('deploying jars, resources and config files')
+    with hide('output'):
+        execute(distributeCode, hosts=distinct_nodes)
 
 @task
 def startDatabases():
@@ -74,30 +131,34 @@ def startDatabases():
         return False
     else:
         return True     
-    
+
+@task
+@parallel
+def distributeCode():
+    with cd(BASE_DIR):
+        run('rm -rf ' + DEPLOY_DIR + ' ; mkdir -p ' + DEPLOY_DIR + '/logs')
+        put(JARS_DIR + '/*.jar', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/configs', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/*.sql', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
+
 @task
 def runTPCWExperiment(configFile):
-    print configFile
-    parseConfigFile(configFile)
-    pass
-    # load configFile
-    # prepareTPCW experiment
-    # compile code
-    # put jars and files in place
-    # stop/start databases.
-    # start coordinator
-    # start replicators
-    # start emulators
-
+    global CONFIG_FILE
+    CONFIG_FILE = configFile
+    parseConfigFile()
+    execute(startReplicators, hosts=replicators_nodes)
+    
 @task
 def exportDatabase(databaseName, outputFile):
     with cd(MYSQL_DIR):
         run('bin/mysqldump -u sa --password=101010 ' + databaseName + ' --socket=/tmp/mysql.sock > ' + outputFile)
-    
+        
 @task    
 def mysql_start():
     with cd(MYSQL_DIR):    
         run('nohup ' + MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &')    
+
 @task        
 def mysql_stop():
     with settings(warn_only=True),hide('output'), cd(MYSQL_DIR):
@@ -108,13 +169,55 @@ def is_mysql_running():
         output = run('netstat -tan | grep 3306')
         return output.find('LISTEN') != -1
 
-
-def parseConfigFile(configFile):
-    e = ET.parse(configFile).getroot()
+def parseConfigFile():
+    logger.info('parsing config file: %s', CONFIG_FILE)
+    #print ">> parsing config file: " + CONFIG_FILE
+    e = ET.parse(CONFIG_FILE).getroot()
+    distinctNodesSet = Set()
+    dbsSet = Set()
+    proxiesSet = Set()
+    coordinatorsSet = Set()
+    replicatorsSet = Set()
     for replicator in e.iter('replicator'):
+        replicatorId = replicator.get('id')
         host = replicator.get('host')
-        port = replicator.get('port')
-        print host, port
+        dbHost = replicator.get('dbHost')
+        dbsSet.add(dbHost)
+        replicatorsSet.add(host)
+        distinctNodesSet.add(host)
+        replicators_map[host] = replicatorId                 
+    for proxy in e.iter('proxy'):
+        proxyId = proxy.get('id')
+        host = proxy.get('host')
+        dbHost = proxy.get('dbHost')
+        dbsSet.add(dbHost)
+        proxiesSet.add(host) 
+        distinctNodesSet.add(host)
+        proxies_map[host] = proxyId         
+    for coordinator in e.iter('coordinator'):
+        coordinatorId = coordinator.get('id')
+        host = coordinator.get('host')
+        dbHost = coordinator.get('dbHost')
+        dbsSet.add(dbHost)
+        coordinatorsSet.add(host)      
+        distinctNodesSet.add(host) 
+        coordinators_map[host] = coordinatorId         
 
+    global database_nodes
+    global replicators_nodes
+    global proxies_nodes
+    global distinct_nodes
+    global coordinators_nodes
 
+    database_nodes = list(dbsSet)
+    proxies_nodes = list(proxiesSet)
+    replicators_nodes = list(replicatorsSet)
+    coordinators_nodes = list(coordinatorsSet)
+    distinct_nodes = list(distinctNodesSet)
 
+    logger.debug('Databases: %s', database_nodes)
+    logger.debug('Proxies: %s', proxies_nodes)
+    logger.debug('Replicators: %s', replicators_nodes)
+    logger.debug('Coordinators: %s', coordinators_nodes)
+    logger.debug('Distinct nodes: %s', distinct_nodes)
+    

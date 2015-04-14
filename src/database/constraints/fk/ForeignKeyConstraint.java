@@ -14,14 +14,17 @@ import java.util.List;
  */
 public class ForeignKeyConstraint extends AbstractConstraint implements IForeignKeyConstraint
 {
-
 	private List<String> remoteFields;
 	private String remoteTable;
+	private boolean isCascade;
+	private boolean isSetNull;
 
-	public ForeignKeyConstraint()
+	public ForeignKeyConstraint(boolean isCascade, boolean isSetNull)
 	{
 		super(ConstraintType.FOREIGN_KEY);
 		this.remoteFields = new ArrayList<>();
+		this.isCascade = isCascade;
+		this.isSetNull = isSetNull;
 	}
 	
 	@Override
@@ -41,5 +44,20 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 	public String getRemoteTable()
 	{
 		return this.remoteTable;
+	}
+
+	public boolean isCascade()
+	{
+		return this.isCascade;
+	}
+
+	public boolean isSetNull()
+	{
+		return this.isSetNull;
+	}
+
+	public List<String> getRemoteFields()
+	{
+		return this.remoteFields;
 	}
 }

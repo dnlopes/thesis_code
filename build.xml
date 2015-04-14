@@ -107,7 +107,6 @@
 		<mkdir dir="${dist.dir}" />
 		<mkdir dir="${classes.dir}" />
 		<mkdir dir="${jars.dir}" />
-		<mkdir dir="${deploy.dir}" />
 	</target>
 	<target name="clean" description="Clean WeakDB distribution">
 		<delete dir="${dist.dir}" />
@@ -122,8 +121,6 @@
 			   includeantruntime="false">
 			<classpath refid="weakdb.classpath" />
 		</javac>
-	</target>
-	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="main.ReplicatorMain" />
@@ -171,6 +168,8 @@
 				<include name="tpcw-database.sql" />
 			</fileset>
 		</jar>
+	</target>
+	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<mkdir dir="${deploy.dir}/configs" />
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">

@@ -332,8 +332,7 @@ public class CreateStatementParser
 		{
 			if(declarationStrs[i].toUpperCase().startsWith("PRIMARY KEY") || declarationStrs[i].toUpperCase().contains(
 					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains(
-					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE") || declarationStrs[i].toUpperCase
-					().contains("AUTO_INCREMENT"))
+					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE"))
 
 			constraintStrs.add(declarationStrs[i]);
 
@@ -418,7 +417,14 @@ public class CreateStatementParser
 				uniqueConstraint.generateIdentifier();
 			} else if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
-				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint();
+				boolean isCascade = constraint.toUpperCase().contains("CASCADE");
+				boolean isSetNull = constraint.toUpperCase().contains("SET NULL");
+
+				if (isCascade && isSetNull)
+					RuntimeHelper.throwRunTimeException("fk constraint cannot be both _cascade_ and _not_null_",
+							ExitCode.INVALIDUSAGE);
+
+				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint(isCascade, isSetNull);
 
 				int locationIndex = constraint.toUpperCase().indexOf("FOREIGN KEY");
 				int startIndex = constraint.indexOf("(", locationIndex);
@@ -577,9 +583,9 @@ public class CreateStatementParser
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
 
-			} else if(constraint.toUpperCase().contains("UNIQUE"))
+			} else
 			{
-				//TODO
+				RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNKNOWN_INVARIANT);
 			}
 		}
 	}
