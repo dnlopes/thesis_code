@@ -1,10 +1,12 @@
 package runtime.txn;
 
 
+import database.util.CrdtTableType;
 import database.util.DatabaseTable;
 import database.util.PrimaryKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.DBDefaults;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -88,6 +90,53 @@ public class TupleWriteSet
 		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
 		buffer.append(") = (");
 		buffer.append(this.tupleId.getValue());
+		buffer.append(")");
+
+		String statement = buffer.toString();
+		LOG.debug("statement generated: {}", statement);
+
+		statements.add(statement);
+	}
+
+	public void generateInsertStatement(List<String> statements)
+	{
+		StringBuilder buffer = new StringBuilder();
+		StringBuffer colsBuffer = new StringBuffer("(");
+		StringBuffer valsBuffer = new StringBuffer("(");
+
+
+		if(this.dbTable.getTableType() != CrdtTableType.ARSETTABLE)
+			this.lwwFieldsValues.put(dbTable.getDeletedField().getFieldName(), "FALSE");
+
+		if(this.dbTable.getTableType() != CrdtTableType.NONCRDTTABLE)
+		{
+			this.lwwFieldsValues.put(dbTable.getTimestampField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+			this.lwwFieldsValues.put(dbTable.getTimestampField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		}
+
+		buffer.append("insert into ");
+		buffer.append(this.dbTable.getName());
+
+		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
+
+		while(modifiedFieldsIterator.hasNext())
+		{
+			String fieldName = modifiedFieldsIterator.next();
+			String newValue = this.lwwFieldsValues.get(fieldName);
+			colsBuffer.append(fieldName);
+			valsBuffer.append(newValue);
+			if(modifiedFieldsIterator.hasNext())
+			{
+				colsBuffer.append(",");
+				valsBuffer.append(",");
+			}
+		}
+
+		buffer.append("(");
+		buffer.append(colsBuffer.toString());
+		buffer.append(")");
+		buffer.append(" VALUES (");
+		buffer.append(valsBuffer.toString());
 		buffer.append(")");
 
 		String statement = buffer.toString();

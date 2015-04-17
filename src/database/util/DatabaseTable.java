@@ -33,6 +33,7 @@ public abstract class DatabaseTable
 	private String primaryKeyString;
 	private Set<Constraint> tableInvarists;
 	private PrimaryKey primaryKey;
+	private String insertColsString;
 
 	protected DataField deletedField;
 	protected DataField timestampField;
@@ -41,7 +42,6 @@ public abstract class DatabaseTable
 	protected HashMap<Integer, DataField> sortedFieldsMap;
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 	protected List<String> fieldsNamesList;
-
 
 	protected static LWWField timestampLWW;
 
@@ -95,6 +95,18 @@ public abstract class DatabaseTable
 		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
 		this.primaryKey = new PrimaryKey(tempList);
+
+		StringBuffer buffer = new StringBuffer();
+
+		Iterator<DataField> fieldsIt = this.sortedFieldsMap.values().iterator();
+		while(fieldsIt.hasNext())
+		{
+			buffer.append(fieldsIt.next().getFieldName());
+			if(fieldsIt.hasNext())
+				buffer.append(",");
+		}
+
+		this.insertColsString = buffer.toString();
 	}
 
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
@@ -324,72 +336,6 @@ public abstract class DatabaseTable
 	}
 
 	/**
-	 * Gets the deleted flag.
-	 *
-	 * @return the deleted flag
-	 */
-	public DataField getDeletedFlag()
-	{
-		return this.deletedField;
-	}
-
-	/**
-	 * Gets the lww ts.
-	 *
-	 * @return the lww ts
-	 */
-	public DataField getLwwTs()
-	{
-		return this.timestampField;
-	}
-
-	/**
-	 * Gets the _ primary_ key.
-	 *
-	 * @param name
-	 * 		the kn
-	 *
-	 * @return the _ primary_ key
-	 */
-	public DataField getPrimaryKey(String name)
-	{
-
-		if(this.primaryKeyMap == null)
-		{
-			try
-			{
-				throw new RuntimeException("primary key map has not been initialized!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.NOINITIALIZATION);
-			}
-		}
-
-		if(!this.primaryKeyMap.containsKey(name))
-		{
-			try
-			{
-				throw new RuntimeException("record is not found " + name + "!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.HASHMAPNOEXIST);
-			}
-		}
-
-		return this.primaryKeyMap.get(name);
-	}
-
-	/**
-	 * Checks if is _ auto incremental.
-	 *
-	 * @return true, if is _ auto incremental
-	 */
-	public boolean isAutoIncremental()
-	{
-		return this.containsAutoIncrementField;
-	}
-
-	/**
 	 * Find mising data field.
 	 *
 	 * @param colList
@@ -454,11 +400,6 @@ public abstract class DatabaseTable
 		}
 		Debug.println("You didn't miss any primary key in the where clause of this statement");
 		return false;
-	}
-
-	public List<String> getFieldsNamesList()
-	{
-		return this.fieldsNamesList;
 	}
 
 	/*
@@ -594,11 +535,6 @@ public abstract class DatabaseTable
 		return pkStrBuilder.toString();
 	}
 
-	public HashMap<Integer, DataField> getSortedFieldsMap()
-	{
-		return this.sortedFieldsMap;
-	}
-
 	private void addScratchpadFields(String name, CrdtTableType tableType)
 	{
 		if(tableType == CrdtTableType.ARSETTABLE)
@@ -608,8 +544,8 @@ public abstract class DatabaseTable
 			this.deletedField = deletedField;
 			this.deletedField.setDefaultValue("FALSE");
 		}
-		timestampLWW = new LWWField(name, this.fieldsMap.size());
-		this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
+		//timestampLWW = new LWWField(name, this.fieldsMap.size());
+		//this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
 
 		DataField clockField = new LogicalClockField(name, fieldsMap.size());
 		this.fieldsMap.put(clockField.getFieldName(), clockField);
@@ -620,5 +556,21 @@ public abstract class DatabaseTable
 	public Set<Constraint> getTableInvarists()
 	{
 		return this.tableInvarists;
+	}
+
+	public String getInsertColsString()
+	{
+		return this.insertColsString;
+	}
+
+
+	public DataField getDeletedField()
+	{
+		return this.deletedField;
+	}
+
+	public DataField getTimestampField()
+	{
+		return this.timestampField;
 	}
 }

@@ -22,31 +22,40 @@ public class TableWriteSet
 	private String tableName;
 	// list of tupleId that were deleted, inserted and updates
 	private Set<PrimaryKeyValue> deletedTuples;
-	private Map<PrimaryKeyValue, String> insertedTuples;
-	private Set<PrimaryKeyValue> updatedTuples;
-
-	// only for updated tuples
-	private Map<PrimaryKeyValue, TupleWriteSet> writeSet;
-	private DatabaseTable dbTable;
+	private Map<PrimaryKeyValue, TupleWriteSet> insertedTuples;
+	private Map<PrimaryKeyValue, TupleWriteSet> updatedTuples;
 
 	public TableWriteSet(String tableName)
 	{
 		this.tableName = tableName;
-		this.dbTable = Configuration.getInstance().getDatabaseMetadata().getTable(this.tableName);
 		this.deletedTuples = new HashSet<>();
 		this.insertedTuples = new HashMap<>();
-		this.updatedTuples = new HashSet<>();
-		this.writeSet = new LinkedHashMap();
+		this.updatedTuples = new HashMap<>();
 	}
 
-	public Map<PrimaryKeyValue, TupleWriteSet> getTableWriteSetMap()
+	public void addUpdatedRow(PrimaryKeyValue pkValue, TupleWriteSet writeSet)
 	{
-		return this.writeSet;
+		this.updatedTuples.put(pkValue, writeSet);
 	}
 
-	public void addUpdatedRow(PrimaryKeyValue id)
+	public TupleWriteSet getTupleWriteSet(PrimaryKeyValue pkValue)
 	{
-		this.updatedTuples.add(id);
+		if(this.insertedTuples.containsKey(pkValue))
+			return this.insertedTuples.get(pkValue);
+		else if(this.updatedTuples.containsKey(pkValue))
+			return this.updatedTuples.get(pkValue);
+		else
+			return null;
+	}
+
+	public Collection<TupleWriteSet> getInsertedTuplesWriteSet()
+	{
+		return this.insertedTuples.values();
+	}
+
+	public Collection<TupleWriteSet> getUpdatedTuplesWriteSet()
+	{
+		return this.updatedTuples.values();
 	}
 
 	public void addDeletedRow(PrimaryKeyValue id)
@@ -54,9 +63,9 @@ public class TableWriteSet
 		this.deletedTuples.add(id);
 	}
 
-	public void addInsertedRow(PrimaryKeyValue id, String insertStatement)
+	public void addInsertedRow(PrimaryKeyValue pkValue, TupleWriteSet writeSet)
 	{
-		this.insertedTuples.put(id, insertStatement);
+		this.insertedTuples.put(pkValue, writeSet);
 	}
 
 	public void removeUpdatedRow(PrimaryKeyValue id)
@@ -74,7 +83,7 @@ public class TableWriteSet
 		return this.deletedTuples;
 	}
 
-	public Map<PrimaryKeyValue, String> getInsertedRows()
+	public Map<PrimaryKeyValue, TupleWriteSet> getInsertedRows()
 	{
 		return this.insertedTuples;
 	}
@@ -84,17 +93,11 @@ public class TableWriteSet
 		this.deletedTuples.clear();
 		this.insertedTuples.clear();
 		this.updatedTuples.clear();
-		this.writeSet.clear();
 	}
 
 	public String getTableName()
 	{
 		return this.tableName;
-	}
-
-	public Collection<TupleWriteSet> getTuplesWriteSet()
-	{
-		return this.writeSet.values();
 	}
 
 	public void generateDeleteStatements(List<String> statements)
@@ -126,9 +129,10 @@ public class TableWriteSet
 		if(this.updatedTuples.size() == 0)
 			return;
 
-		for(PrimaryKeyValue pkValue : this.updatedTuples)
+		LOG.debug("{} tuples updated", this.updatedTuples.size());
+		for(PrimaryKeyValue pkValue : this.updatedTuples.keySet())
 		{
-			TupleWriteSet tupleWriteSet = this.writeSet.get(pkValue);
+			TupleWriteSet tupleWriteSet = this.updatedTuples.get(pkValue);
 			tupleWriteSet.generateUpdateStatement(statements);
 		}
 	}
@@ -138,12 +142,11 @@ public class TableWriteSet
 		if(this.insertedTuples.size() == 0)
 			return;
 
-		LOG.debug("{} tuples inserted");
+		LOG.debug("{} tuples inserted", this.insertedTuples.size());
 		for(PrimaryKeyValue pkValue : this.insertedTuples.keySet())
 		{
-			String insertStatement = this.insertedTuples.get(pkValue);
-			LOG.debug("statement generated: {}", insertStatement);
-			statements.add(insertStatement);
+			TupleWriteSet tupleWriteSet = this.insertedTuples.get(pkValue);
+			tupleWriteSet.generateInsertStatement(statements);
 		}
 	}
 
@@ -165,10 +168,5 @@ public class TableWriteSet
 				buffer.append(", ");
 		}
 		return buffer.toString();
-	}
-
-	public DatabaseTable getDatabaseTable()
-	{
-		return this.dbTable;
 	}
 }

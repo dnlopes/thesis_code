@@ -51,7 +51,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	private Statement statBU;
 	private boolean batchEmpty;
 
-	private TransactionWriteSet writeSet;
+	private TransactionWriteSet txnWriteSet;
 
 	public DBExecuteScratchPad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
 	{
@@ -66,7 +66,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
 
-		this.writeSet = new TransactionWriteSet();
+		this.txnWriteSet = new TransactionWriteSet();
 		this.runtimeWatch = new StopWatch("txn runtime");
 
 		this.createDBExecuters();
@@ -273,7 +273,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.readOnly = true;
 		this.statBU.clearBatch();
 
-		this.writeSet.resetWriteSet();
+		this.txnWriteSet.resetWriteSet();
 
 		for(IExecuter executer : this.executers.values())
 			executer.resetExecuter(this);
@@ -286,9 +286,9 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	public TransactionWriteSet createTransactionWriteSet() throws SQLException
 	{
 		for(IExecuter executer : this.executers.values())
-			this.writeSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
+			this.txnWriteSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
 
-		return this.writeSet;
+		return this.txnWriteSet;
 	}
 
 	@Override
@@ -338,8 +338,8 @@ public class DBExecuteScratchPad implements IDBScratchPad
 
 		try
 		{
-			this.writeSet = this.createTransactionWriteSet();
-			List<RequestEntry> checkList = this.writeSet.verifyInvariants();
+			this.txnWriteSet = this.createTransactionWriteSet();
+			List<RequestEntry> checkList = this.txnWriteSet.verifyInvariants();
 
 			if(checkList.size() > 0)
 			{
@@ -353,13 +353,13 @@ public class DBExecuteScratchPad implements IDBScratchPad
 				List<ResponseEntry> responses = response.getResponses();
 
 				if(responses != null)
-					this.writeSet.processCoordinatorResponse(responses);
+					this.txnWriteSet.processCoordinatorResponse(responses);
 			}
 
-			this.writeSet.generateMinimalStatements();
+			this.txnWriteSet.generateMinimalStatements();
 
 			ShadowOperation shadowOp = new ShadowOperation(this.activeTransaction.getTxnId().getValue(),
-					this.writeSet.getStatements());
+					this.txnWriteSet.getStatements());
 			this.activeTransaction.setReadyToCommit(shadowOp);
 		} catch(SQLException | TException e)
 		{

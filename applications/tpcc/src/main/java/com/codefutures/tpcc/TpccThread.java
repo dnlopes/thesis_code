@@ -148,8 +148,6 @@ public class TpccThread extends Thread {
 
 			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
 
-
-
 			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 
 			conn = ConnectionFactory.getCRDTConnection(nodeConfig);

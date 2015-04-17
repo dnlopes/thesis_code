@@ -472,8 +472,7 @@ public class Tpcc implements TpccConstants
 		int proxyId = Integer.parseInt(argv[1]);
 		int usersNum = Integer.parseInt(argv[2]);
 
-		System.setProperty("config_file", configFile);
-
+		System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		System.setProperty("usersNum", String.valueOf(usersNum));
 

@@ -87,8 +87,6 @@ public class Coordinator extends AbstractNode
 	{
 		ResponseEntry newResult = new ResponseEntry();
 		newResult.setId(entry.getId());
-		newResult.setFieldName(entry.getFieldName());
-		newResult.setTableName(entry.getTableName());
 
 		String constraintId = entry.getConstraintId();
 		switch(entry.getType())

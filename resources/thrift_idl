@@ -23,20 +23,16 @@ struct CoordResponseMessage
 }
 
 struct ResponseEntry {
-    1: required string id; //the pk value that identifies this tuple
+    1: required string id; // the pk value that identifies this tuple
     2: required bool success;
-    3: required string fieldName;
-    4: required string tableName;
-    5: string resquestedValue;
+    3: string resquestedValue;
 }
 
 struct RequestEntry {
     1: required RequestType type;
-    2: required string id; //the pk value that identifies this tuple
-    3: required string fieldName;
-    4: required string tableName;
-    5: string value;
-    6: required string constraintId;
+    2: required string id; // the pk value that identifies this tuple
+    3: required string constraintId;
+    4: string value;
 }
 
 struct ThriftOperation {

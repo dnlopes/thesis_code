@@ -53,6 +53,7 @@ public class DBExecuter implements IExecuter
 	private List<SelectItem> selectAllItems;
 
 	private Set<PrimaryKeyValue> duplicatedRows;
+	private Map<String, PrimaryKeyValue> recordedPkValues;
 	private TableWriteSet writeSet;
 
 	public DBExecuter(int tableId, String tableName)
@@ -76,6 +77,7 @@ public class DBExecuter implements IExecuter
 		}
 
 		this.duplicatedRows = new HashSet<>();
+		this.recordedPkValues = new HashMap<>();
 	}
 
 	/**
@@ -634,7 +636,8 @@ public class DBExecuter implements IExecuter
 					else
 						buffer.append(",");
 					str = it.next().toString();
-					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str.startsWith(
+					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
+							.startsWith(
 
 							"max("))
 						aggregateQuery = true;
@@ -709,7 +712,8 @@ public class DBExecuter implements IExecuter
 				{
 					if(i > 0)
 						buffer.append(",");
-					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i], whereConditionStr);
+					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i],
+							whereConditionStr);
 					//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
 				}
 			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
@@ -763,6 +767,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(this.tempTableName);
 		pad.addToBatchUpdate(buffer.toString());
 		this.duplicatedRows.clear();
+		this.recordedPkValues.clear();
 		this.modified = false;
 	}
 
@@ -780,61 +785,57 @@ public class DBExecuter implements IExecuter
 	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
-		StringBuilder originBuffer = new StringBuilder();
 		buffer.append("insert into ");
-		originBuffer.append("insert into ");
 		buffer.append(tempTableName);
-		originBuffer.append(this.databaseTable.getName());
 
 		List columnsList = insertOp.getColumns();
 		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
+
+		List<String> pkValueList = new ArrayList<>();
+
+		// get pkValue here
+		for(int i = 0; i < pk.getSize(); i++)
+		{
+			HashMap<String, DataField> primaryKeysMap = databaseTable.getPrimaryKeysMap();
+
+			for(Map.Entry<String, DataField> entry : primaryKeysMap.entrySet())
+				pkValueList.add(valuesList.get(entry.getValue().getPosition()).toString());
+		}
+
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
+		this.recordedPkValues.put(pkValue.getValue(), pkValue);
+		TupleWriteSet tupleWriteSet = new TupleWriteSet(pkValue, databaseTable);
+		this.writeSet.addInsertedRow(pkValue, tupleWriteSet);
 
 		if(columnsList == null)
 		{
 			buffer.append("(");
 			buffer.append(tableDefinition.getPlainColumnList());
 			buffer.append(")");
-			originBuffer.append("(");
-			originBuffer.append(tableDefinition.getPlainColumnList());
-			originBuffer.append(")");
 		} else
 		{
 			buffer.append("(");
-			originBuffer.append("(");
 
-			Iterator it = columnsList.iterator();
+			Iterator colIt = columnsList.iterator();
+			Iterator valIt = columnsList.iterator();
 			boolean first = true;
-			while(it.hasNext())
+			while(colIt.hasNext())
 			{
-				String col = it.next().toString();
+				String col = colIt.next().toString();
+				String val = valIt.next().toString();
+				tupleWriteSet.addLwwEntry(col, val);
 
 				if(!first)
-				{
 					buffer.append(",");
-					originBuffer.append(",");
-				}
 
 				first = false;
 				buffer.append(col);
-				originBuffer.append(col);
 			}
 			buffer.append(")");
-			originBuffer.append(")");
 		}
-
-		List<String> pkValueList = new ArrayList<>();
-
-		for(int i = 0; i < pk.getSize(); i++)
-			pkValueList.add(valuesList.get(i).toString());
 
 		buffer.append(" values ");
 		buffer.append(insertOp.getItemsList());
-		originBuffer.append(" values ");
-		originBuffer.append(insertOp.getItemsList());
-
-		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
-		this.createWriteSetEntry(pkValue);
-		this.writeSet.addInsertedRow(pkValue, originBuffer.toString());
 
 		int result = db.executeUpdate(buffer.toString());
 
@@ -849,7 +850,7 @@ public class DBExecuter implements IExecuter
 			db.addToWriteSet(DBWriteSetEntry.createEntry(insertOp.getTable().toString(), uiqStr, true, false));
 		}
 
-		LOG.debug("new insert: {}", originBuffer.toString());
+		LOG.debug("new insert: {}", buffer.toString());
 		return DBUpdateResult.createResult(result);
 	}
 
@@ -902,9 +903,10 @@ public class DBExecuter implements IExecuter
 				rowsDeleted++;
 				String pkValueString = this.getPkValue(res);
 				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
+				this.recordedPkValues.put(pkValue.getValue(), pkValue);
 
-			/* we will remove this row.
-			thus, remove it form duplicatedRows and add it to deletedRows */
+				/* we will remove this row.
+				thus, remove it from duplicatedRows and add it to deletedRows */
 				if(this.writeSet.getInsertedRows().containsKey(pkValue))
 					this.writeSet.removeInsertedRow(pkValue);
 				else
@@ -955,7 +957,6 @@ public class DBExecuter implements IExecuter
 		// before writting in the scratchpad, add the missing rows
 		// we also use this method to capture all the tuples that will be affected by the update
 		this.addMissingRowsToScratchpad(updateOp, db);
-
 		List<String> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
 
 		// now perform the actual update only in the scratchpad
@@ -978,8 +979,15 @@ public class DBExecuter implements IExecuter
 			// we are updating this field, lets check if it is a valid value
 			this.verifyCheckConstraints(field, newValue);
 
-			for(String pkValue : affectedRows)
-				this.addNewEntry(new PrimaryKeyValue(pkValue, this.databaseTable.getName()), columnName, newValue);
+			for(String pkValueString : affectedRows)
+			{
+				PrimaryKeyValue pkValue = this.recordedPkValues.get(pkValueString);
+				TupleWriteSet tupleWriteSet = this.writeSet.getTupleWriteSet(pkValue);
+				if(tupleWriteSet == null)
+					RuntimeHelper.throwRunTimeException("tupleWriteSet cannot be null", ExitCode.ERRORNOTNULL);
+
+				tupleWriteSet.addLwwEntry(columnName, newValue);
+			}
 
 			buffer.append(columnName);
 			buffer.append(" = ");
@@ -1058,10 +1066,10 @@ public class DBExecuter implements IExecuter
 
 				String pkValueString = this.getPkValue(res);
 				PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
-
-				this.createWriteSetEntry(pkValue);
+				this.recordedPkValues.put(pkValueString, pkValue);
+				TupleWriteSet tupleWriteSet = new TupleWriteSet(pkValue, databaseTable);
 				this.duplicatedRows.add(pkValue);
-				this.writeSet.addUpdatedRow(pkValue);
+				this.writeSet.addUpdatedRow(pkValue, tupleWriteSet);
 
 				buffer.setLength(0);
 				buffer.append("insert into ");
@@ -1085,7 +1093,7 @@ public class DBExecuter implements IExecuter
 						buffer.append(",");
 
 					buffer.append(oldValueString);
-					this.addOldEntry(pkValue, this.tableDefinition.colsPlain[i], oldValueString);
+					tupleWriteSet.addOldEntry(this.tableDefinition.colsPlain[i], oldValueString);
 				}
 				buffer.append(");");
 				pad.executeUpdate(buffer.toString());
@@ -1134,14 +1142,6 @@ public class DBExecuter implements IExecuter
 	@Override
 	public TableWriteSet getWriteSet() throws SQLException
 	{
-		//FIXME: whaaat?
-		//this.writeSet.setWriteSet(this.tuplesWriteSet);
-		//ResultSet updateResultSet = this.getUpdateResultSet(pad);
-		//ResultSet insertResultSet = this.getInserteResultSet(pad);
-
-		//this.writeSet.setInsertResultSet(insertResultSet);
-		//this.writeSet.setUpdateResultSet(updateResultSet);
-
 		return this.writeSet;
 	}
 
@@ -1204,27 +1204,6 @@ public class DBExecuter implements IExecuter
 		{
 			DbUtils.closeQuietly(rs);
 		}
-	}
-
-	/**
-	 * Creates an write set entry for a tuple
-	 *
-	 * @param rowId
-	 */
-	private void createWriteSetEntry(PrimaryKeyValue pkValue)
-	{
-		TupleWriteSet set = new TupleWriteSet(pkValue, databaseTable);
-		this.writeSet.getTableWriteSetMap().put(pkValue, set);
-	}
-
-	private void addNewEntry(PrimaryKeyValue pkValue, String fieldName, String newValue)
-	{
-		this.writeSet.getTableWriteSetMap().get(pkValue).addLwwEntry(fieldName, newValue);
-	}
-
-	private void addOldEntry(PrimaryKeyValue pkValue, String fieldName, String oldValue)
-	{
-		this.writeSet.getTableWriteSetMap().get(pkValue).addOldEntry(fieldName, oldValue);
 	}
 
 	private String getPkValue(ResultSet rs) throws SQLException

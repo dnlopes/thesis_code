@@ -13,7 +13,6 @@ import java.util.Vector;
 
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
-import database.constraints.unique.UniqueConstraint;
 import database.util.DataField;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
