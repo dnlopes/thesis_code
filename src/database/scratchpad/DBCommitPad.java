@@ -3,11 +3,14 @@ package database.scratchpad;
 
 import database.jdbc.ConnectionFactory;
 import network.AbstractNodeConfig;
+import network.replicator.Replicator;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.LogicalClock;
 import runtime.operation.ShadowOperation;
+import util.defaults.DBDefaults;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,12 +26,17 @@ public class DBCommitPad implements IDBCommitPad
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitPad.class);
 	private static final int NUMBER_OF_RETRIES = 100;
 	private StopWatch watcher;
+	private Replicator replicator;
+	private AbstractNodeConfig config;
 
 	private Connection connection;
 
-	public DBCommitPad(AbstractNodeConfig config)
+	public DBCommitPad(Replicator replicator)
 	{
+		this.replicator = replicator;
+		this.config = this.replicator.getConfig();
 		this.watcher = new StopWatch();
+
 		try
 		{
 			this.connection = ConnectionFactory.getDefaultConnection(config);
@@ -36,13 +44,15 @@ public class DBCommitPad implements IDBCommitPad
 		{
 			LOG.error("failed to create connection for DBCommitPad", e);
 		}
-
 	}
 
 	@Override
 	public boolean commitShadowOperation(ShadowOperation op)
 	{
 		this.resetCommitPad();
+		LogicalClock newClock = this.replicator.getNextClock();
+		op.setLogicalClock(newClock);
+		LOG.debug("new clock assigned: {}", newClock.toString());
 
 		this.watcher.start();
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
@@ -68,8 +78,10 @@ public class DBCommitPad implements IDBCommitPad
 			stat = this.connection.createStatement();
 			for(String statement : op.getOperationList())
 			{
-				LOG.debug("executing on maindb: {}", statement);
-				stat.addBatch(statement);
+				String rebuiltStatement = this.replacePlaceholders(op, statement);
+				LOG.debug("executing on maindb: {}", rebuiltStatement);
+
+				stat.addBatch(rebuiltStatement);
 			}
 			stat.executeBatch();
 			this.connection.commit();
@@ -102,5 +114,15 @@ public class DBCommitPad implements IDBCommitPad
 	public long getCommitLatency()
 	{
 		return this.watcher.getTime();
+	}
+
+	private String replacePlaceholders(ShadowOperation op, String statement)
+	{
+		statement = statement.replaceFirst(DBDefaults.CLOCK_GENERATION_PLACEHOLDER, String.valueOf(op.getClock()
+			.getGeneration
+				()));
+		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, String.valueOf(op.getClock().getClockValue()));
+
+		return statement;
 	}
 }

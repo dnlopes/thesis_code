@@ -27,8 +27,8 @@ w_zip char(9),
 w_tax decimal(4,2), 
 w_ytd decimal(12,2),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 primary key (w_id) ) Engine=InnoDB;
 
 
@@ -45,8 +45,8 @@ d_tax decimal(4,2),
 d_ytd decimal(12,2), 
 d_next_o_id int,
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 primary key (d_w_id, d_id) ) Engine=InnoDB;
 
 
@@ -73,8 +73,8 @@ c_payment_cnt smallint,
 c_delivery_cnt smallint, 
 c_data varchar(500),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(c_w_id, c_d_id, c_id) ) Engine=InnoDB;
 
 
@@ -88,8 +88,8 @@ h_date date,
 h_amount decimal(6,2), 
 h_data varchar(24),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100)
+_SP_clock_gen int,
+_SP_clock int
 ) Engine=InnoDB;
 
 
@@ -98,8 +98,8 @@ no_o_id int not null,
 no_d_id tinyint not null,
 no_w_id smallint not null,
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(no_w_id, no_d_id, no_o_id)) Engine=InnoDB;
 
 
@@ -113,8 +113,8 @@ o_carrier_id tinyint,
 o_ol_cnt tinyint, 
 o_all_local tinyint,
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(o_w_id, o_d_id, o_id) ) Engine=InnoDB;
 
 
@@ -130,8 +130,8 @@ ol_quantity tinyint,
 ol_amount decimal(6,2), 
 ol_dist_info char(24),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number) ) Engine=InnoDB ;
 
 
@@ -142,8 +142,8 @@ i_name varchar(24),
 i_price decimal(5,2), 
 i_data varchar(50),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(i_id) ) Engine=InnoDB;
 
 
@@ -166,8 +166,8 @@ s_order_cnt smallint,
 s_remote_cnt smallint,
 s_data varchar(50),
 _SP_del bit default 0,
-_SP_ts int default 0,
-_SP_clock varchar(100),
+_SP_clock_gen int,
+_SP_clock int,
 PRIMARY KEY(s_w_id, s_i_id) ) Engine=InnoDB ;
 
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

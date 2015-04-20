@@ -159,18 +159,18 @@ public class DBExecuter implements IExecuter
 					String pk = tableDefinition.getPksPlain()[j];
 					if(subExpressionStrs[i].contains(pk))
 					{
-						LOG.debug("I identified one primary key from your where clause " + pk);
+						LOG.trace("I identified one primary key from your where clause " + pk);
 						if(subExpressionStrs[i].contains("="))
 						{
 							String tempStr = subExpressionStrs[i].replaceAll("\\s+", "");
-							LOG.debug("I remove all space " + tempStr);
+							LOG.trace("I remove all space " + tempStr);
 							int indexOfEqualSign = tempStr.indexOf('=');
 							if(indexOfEqualSign < tempStr.length() - 1)
 							{
 								String valuePart = tempStr.substring(indexOfEqualSign + 1);
 								if(this.isInteger(valuePart))
 								{
-									LOG.debug("We identified an integer");
+									LOG.trace("We identified an integer");
 									if(!isFirst)
 									{
 										pkValueStrBuilder.append("AND");
@@ -512,7 +512,7 @@ public class DBExecuter implements IExecuter
 	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
 			throws SQLException, ScratchpadException
 	{
-		LOG.debug("creating selection for query {}", selectOp.toString());
+		LOG.trace("creating selection for query {}", selectOp.toString());
 		String queryToOrigin;
 		String queryToTemp;
 
@@ -582,7 +582,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(")");
 
 		String finalQuery = buffer.toString();
-		LOG.debug("query generated: {}", finalQuery);
+		LOG.trace("query generated: {}", finalQuery);
 
 		return db.executeQuery(finalQuery);
 	}
@@ -638,8 +638,8 @@ public class DBExecuter implements IExecuter
 					str = it.next().toString();
 					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
 							.startsWith(
-
-							"max("))
+									
+									"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -846,7 +846,7 @@ public class DBExecuter implements IExecuter
 			db.addToWriteSet(DBWriteSetEntry.createEntry(insertOp.getTable().toString(), uiqStr, true, false));
 		}
 
-		LOG.debug("new insert: {}", buffer.toString());
+		LOG.trace("new insert: {}", buffer.toString());
 		return DBUpdateResult.createResult(result);
 	}
 
@@ -886,7 +886,7 @@ public class DBExecuter implements IExecuter
 		String query = buffer.toString();
 
 		// this should only return 1 row...
-		LOG.debug("selection for delete: {}", query);
+		LOG.trace("selection for delete: {}", query);
 
 		int rowsDeleted = 0;
 		ResultSet res = null;
@@ -995,7 +995,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(updateOp.getWhere().toString());
 
 		String updateStr = buffer.toString();
-		LOG.debug("transformed update: {}", updateStr);
+		LOG.trace("transformed update: {}", updateStr);
 		db.addToBatchUpdate(updateStr);
 		db.executeBatch();
 		this.modified = true;

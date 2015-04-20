@@ -1,7 +1,6 @@
 package runtime;
 
 import runtime.operation.ShadowOperation;
-import util.defaults.Configuration;
 import util.thrift.ThriftOperation;
 
 import java.util.List;
@@ -13,8 +12,7 @@ import java.util.List;
 public class Utils
 {
 
-	private static LogicalClock CURRENT_CLOCK = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig
-			().size());
+
 
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
@@ -30,13 +28,6 @@ public class Utils
 		List<String> ops = thriftOperation.getOperations();
 
 		return new ShadowOperation(thriftOperation.getTxnId(), ops);
-	}
-
-	public synchronized static LogicalClock getNextClock(int index)
-	{
-		LogicalClock newClock = new LogicalClock(CURRENT_CLOCK.getGeneration(), CURRENT_CLOCK.getDcEntries());
-		newClock.increment(index);
-		return newClock;
 	}
 
 }

@@ -20,8 +20,7 @@ package runtime.operation;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import runtime.LogicalClock;
 
 
 /**
@@ -30,10 +29,9 @@ import org.slf4j.LoggerFactory;
 public class ShadowOperation
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(ShadowOperation.class);
-
 	private List<String> operationList;
 	private int txnId;
+	private LogicalClock clock;
 
 	public ShadowOperation(int txnId, List<String> operations)
 	{
@@ -49,6 +47,16 @@ public class ShadowOperation
 	public int getTxnId()
 	{
 		return this.txnId;
+	}
+
+	public void setLogicalClock(LogicalClock clock)
+	{
+		this.clock = clock;
+	}
+
+	public LogicalClock getClock()
+	{
+		return this.clock;
 	}
 
 }

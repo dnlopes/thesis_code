@@ -8,6 +8,7 @@ import network.AbstractNodeConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.LogicalClock;
 import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
@@ -25,7 +26,9 @@ import java.util.Set;
 public class Replicator extends AbstractNode
 {
 	
-	static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
+	private static LogicalClock CURRENT_CLOCK;
+	private static int REPLICATOR_ID;
 
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
@@ -39,6 +42,8 @@ public class Replicator extends AbstractNode
 	public Replicator(AbstractNodeConfig config)
 	{
 		super(config);
+		CURRENT_CLOCK = new LogicalClock(this.config.getId());
+		REPLICATOR_ID = this.config.getId();
 
 		this.otherReplicators = new HashMap<>();
 		this.networkInterface = new ReplicatorNetwork(this.getConfig());
@@ -85,7 +90,7 @@ public class Replicator extends AbstractNode
 		if(pad == null)
 		{
 			LOG.warn("commitpad pool was empty");
-			pad = new DBCommitPad(this.config);
+			pad = new DBCommitPad(this);
 		}
 
 		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
@@ -123,8 +128,15 @@ public class Replicator extends AbstractNode
 
 		for(int i = 0; i < count; i++)
 		{
-			IDBCommitPad commitPad = new DBCommitPad(this.config);
+			IDBCommitPad commitPad = new DBCommitPad(this);
 			this.commitPadPool.addObject(commitPad);
 		}
+	}
+
+	public synchronized LogicalClock getNextClock()
+	{
+		LogicalClock newClock = new LogicalClock(CURRENT_CLOCK.getGeneration(), CURRENT_CLOCK.getDcEntries());
+		newClock.increment(REPLICATOR_ID);
+		return newClock;
 	}
 }

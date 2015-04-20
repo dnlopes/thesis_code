@@ -78,7 +78,7 @@ public class LogicalClock implements java.io.Serializable
 
 	public void increment(int index)
 	{
-		this.entries[index]++;
+		this.entries[index-1]++;
 	}
 
 	public boolean precedes(LogicalClock lc)
@@ -138,6 +138,20 @@ public class LogicalClock implements java.io.Serializable
 			}
 		}
 		return res && one;
+	}
+
+	public long getClockValue()
+	{
+		long result = 0;
+		long multiplier = 10 * this.entries.length;
+
+		for(int i = 0; i < this.entries.length; i++)
+		{
+			multiplier = multiplier / 10;
+			result += multiplier*this.entries[i];
+		}
+
+		return result;
 	}
 
 	@Override
