@@ -872,7 +872,7 @@ public class MyShadowOpCreator
 
 		// TODO: when to add these values?
 		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_TS);
-		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_CLOCK);
 	}
 
 }

@@ -7,6 +7,7 @@ import database.util.PrimaryKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.DBDefaults;
+import util.defaults.ScratchpadDefaults;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -21,6 +22,9 @@ public class TupleWriteSet
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TupleWriteSet.class);
+	private static final String CLOCK_PREBUILT_CLAUSE = ScratchpadDefaults.SCRATCHPAD_COL_CLOCK_GENERATION + " <= " +
+			DBDefaults.CLOCK_GENERATION_PLACEHOLDER + " AND " + ScratchpadDefaults.SCRATCHPAD_COL_CLOCK + " < " +
+			DBDefaults.CLOCK_VALUE_PLACEHOLDER;
 
 	private PrimaryKeyValue tupleId;
 	private Map<String, String> lwwFieldsValues;
@@ -65,8 +69,7 @@ public class TupleWriteSet
 		if(lwwFieldsValues.size() == 0)
 			return;
 
-		LOG.debug("{} fields modified for tuple {}", this.lwwFieldsValues.size(), this.tupleId
-				.getValue());
+		LOG.debug("{} fields modified for tuple {}", this.lwwFieldsValues.size(), this.tupleId.getValue());
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
 		buffer.append(this.dbTable.getName());
@@ -90,10 +93,12 @@ public class TupleWriteSet
 		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
 		buffer.append(") = (");
 		buffer.append(this.tupleId.getValue());
+		buffer.append(") AND (");
+		buffer.append(CLOCK_PREBUILT_CLAUSE);
 		buffer.append(")");
 
 		String statement = buffer.toString();
-		LOG.debug("statement generated: {}", statement);
+		LOG.debug("update statement generated: {}", statement);
 
 		statements.add(statement);
 	}
@@ -101,17 +106,17 @@ public class TupleWriteSet
 	public void generateInsertStatement(List<String> statements)
 	{
 		StringBuilder buffer = new StringBuilder();
-		StringBuffer colsBuffer = new StringBuffer("(");
-		StringBuffer valsBuffer = new StringBuffer("(");
+		StringBuffer colsBuffer = new StringBuffer();
+		StringBuffer valsBuffer = new StringBuffer();
 
-
-		if(this.dbTable.getTableType() != CrdtTableType.ARSETTABLE)
+		if(this.dbTable.getTableType() == CrdtTableType.ARSETTABLE)
 			this.lwwFieldsValues.put(dbTable.getDeletedField().getFieldName(), "FALSE");
 
 		if(this.dbTable.getTableType() != CrdtTableType.NONCRDTTABLE)
 		{
-			this.lwwFieldsValues.put(dbTable.getTimestampField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-			this.lwwFieldsValues.put(dbTable.getTimestampField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+			this.lwwFieldsValues.put(dbTable.getClockGenerationField().getFieldName(),
+					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
+			this.lwwFieldsValues.put(dbTable.getLocigalClockField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
 		}
 
 		buffer.append("insert into ");
@@ -132,15 +137,14 @@ public class TupleWriteSet
 			}
 		}
 
-		buffer.append("(");
+		buffer.append(" (");
 		buffer.append(colsBuffer.toString());
-		buffer.append(")");
-		buffer.append(" VALUES (");
+		buffer.append(") VALUES (");
 		buffer.append(valsBuffer.toString());
 		buffer.append(")");
 
 		String statement = buffer.toString();
-		LOG.debug("statement generated: {}", statement);
+		LOG.debug("insert statement generated: {}", statement);
 
 		statements.add(statement);
 	}

@@ -218,7 +218,7 @@ public class DBExecuter implements IExecuter
 	public void addKeyVVBothTable(StringBuffer buffer, String tableAlias)
 	{
 		//		return tableDefinition.getPkListAlias() + "," + tableDefinition.getNameAlias() + "." +
-		// ScratchpadDefaults.SCRATCHPAD_COL_VV;
+		// ScratchpadDefaults.SCRATCHPAD_COL_CLOCK;
 		String[] pks = tableDefinition.getPksPlain();
 		for(int i = 0; i < pks.length; i++)
 		{
@@ -229,7 +229,7 @@ public class DBExecuter implements IExecuter
 		}
 		buffer.append(tableAlias);
 		buffer.append(".");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_VV);
+		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_CLOCK);
 	}
 
 	/**
@@ -793,14 +793,10 @@ public class DBExecuter implements IExecuter
 
 		List<String> pkValueList = new ArrayList<>();
 
-		// get pkValue here
-		for(int i = 0; i < pk.getSize(); i++)
-		{
-			HashMap<String, DataField> primaryKeysMap = databaseTable.getPrimaryKeysMap();
+		HashMap<String, DataField> primaryKeysMap = databaseTable.getPrimaryKeysMap();
 
-			for(Map.Entry<String, DataField> entry : primaryKeysMap.entrySet())
-				pkValueList.add(valuesList.get(entry.getValue().getPosition()).toString());
-		}
+		for(Map.Entry<String, DataField> entry : primaryKeysMap.entrySet())
+			pkValueList.add(valuesList.get(entry.getValue().getPosition()).toString());
 
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueList, this.databaseTable.getName());
 		this.recordedPkValues.put(pkValue.getValue(), pkValue);
@@ -817,7 +813,7 @@ public class DBExecuter implements IExecuter
 			buffer.append("(");
 
 			Iterator colIt = columnsList.iterator();
-			Iterator valIt = columnsList.iterator();
+			Iterator valIt = valuesList.iterator();
 			boolean first = true;
 			while(colIt.hasNext())
 			{

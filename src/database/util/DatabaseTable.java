@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import database.constraints.Constraint;
 import database.constraints.unique.AutoIncrementConstraint;
+import database.util.field.hidden.ClockGenerationField;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
@@ -37,6 +38,9 @@ public abstract class DatabaseTable
 
 	protected DataField deletedField;
 	protected DataField timestampField;
+
+	protected DataField locigalClockField;
+	protected DataField clockGenerationField;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected HashMap<Integer, DataField> sortedFieldsMap;
@@ -544,13 +548,15 @@ public abstract class DatabaseTable
 			this.deletedField = deletedField;
 			this.deletedField.setDefaultValue("FALSE");
 		}
-		//timestampLWW = new LWWField(name, this.fieldsMap.size());
-		//this.fieldsMap.put(timestampLWW.getFieldName(), timestampLWW);
+
+		DataField clockGenerationField = new ClockGenerationField(name, fieldsMap.size());
+		this.fieldsMap.put(clockGenerationField.getFieldName(), clockGenerationField);
 
 		DataField clockField = new LogicalClockField(name, fieldsMap.size());
 		this.fieldsMap.put(clockField.getFieldName(), clockField);
 
-		this.timestampField = clockField;
+		this.locigalClockField = clockField;
+		this.clockGenerationField = clockGenerationField;
 	}
 
 	public Set<Constraint> getTableInvarists()
@@ -572,5 +578,15 @@ public abstract class DatabaseTable
 	public DataField getTimestampField()
 	{
 		return this.timestampField;
+	}
+
+	public DataField getLocigalClockField()
+	{
+		return this.locigalClockField;
+	}
+
+	public DataField getClockGenerationField()
+	{
+		return this.clockGenerationField;
 	}
 }
