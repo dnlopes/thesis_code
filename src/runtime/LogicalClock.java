@@ -20,6 +20,19 @@ public class LogicalClock implements java.io.Serializable
 		}
 	}
 
+	public LogicalClock(String s)
+	{
+		String tmp[] = s.split(":");
+		this.generation = Long.parseLong(tmp[0]);
+		String[] tmpEntries = tmp[1].split("-");
+		this.entries = new long[tmpEntries.length];
+
+		for(int i = 0; i < tmpEntries.length; i++)
+		{
+			this.entries[i] = Long.parseLong(tmpEntries[i]);
+		}
+	}
+
 	public LogicalClock(long generation, long[] entries)
 	{
 		this.generation = generation;
@@ -67,8 +80,8 @@ public class LogicalClock implements java.io.Serializable
 
 		for(int i = 0; i < tmpEntries.length; i++)
 		{
-			if(entries[i] > lc.entries[i])
-				tmpEntries[i] = entries[i];
+			if(this.entries[i] >= lc.entries[i])
+				tmpEntries[i] = this.entries[i];
 			else
 				tmpEntries[i] = lc.entries[i];
 		}
@@ -78,7 +91,7 @@ public class LogicalClock implements java.io.Serializable
 
 	public void increment(int index)
 	{
-		this.entries[index-1]++;
+		this.entries[index - 1]++;
 	}
 
 	public boolean precedes(LogicalClock lc)
@@ -143,12 +156,12 @@ public class LogicalClock implements java.io.Serializable
 	public long getClockValue()
 	{
 		long result = 0;
-		long multiplier = 10 * this.entries.length;
+		long multiplier = 1;
 
-		for(int i = 0; i < this.entries.length; i++)
+		for(int i = this.entries.length-1; i >= 0; i--)
 		{
-			multiplier = multiplier / 10;
-			result += multiplier*this.entries[i];
+			result += multiplier * this.entries[i];
+			multiplier = multiplier * 10;
 		}
 
 		return result;
@@ -157,11 +170,12 @@ public class LogicalClock implements java.io.Serializable
 	@Override
 	public String toString()
 	{
-		String tmp = "" + generation + ":";
+		String tmp = generation + ":";
 		for(int i = 0; i < entries.length; i++)
 		{
-
-			tmp += "-" + entries[i];
+			tmp += entries[i];
+			if(i < entries.length-1)
+				tmp +="-";
 		}
 
 		return tmp;

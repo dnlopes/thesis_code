@@ -50,9 +50,6 @@ public class DBCommitPad implements IDBCommitPad
 	public boolean commitShadowOperation(ShadowOperation op)
 	{
 		this.resetCommitPad();
-		LogicalClock newClock = this.replicator.getNextClock();
-		op.setLogicalClock(newClock);
-		LOG.debug("new clock assigned: {}", newClock.toString());
 
 		this.watcher.start();
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)

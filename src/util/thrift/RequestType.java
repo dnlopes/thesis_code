@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum RequestType implements org.apache.thrift.TEnum {
+public enum RequestType implements TEnum {
   UNIQUE(0),
   FOREIGN_KEY(1),
   REQUEST_ID(2),

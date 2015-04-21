@@ -4,6 +4,7 @@ package network.replicator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.LogicalClock;
 import runtime.RuntimeHelper;
 import runtime.Utils;
 import runtime.operation.ShadowOperation;
@@ -36,10 +37,16 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		ShadowOperation decodedOp = Utils.decodeThriftOperation(thriftOp);
 		boolean localCommit;
 
+		LogicalClock newClock = this.replicator.getNextClock();
+		decodedOp.setLogicalClock(newClock);
+		LOG.debug("new clock assigned: {}", newClock.toString());
+
 		// just deliver the operation to own replicator and wait for commit decision.
-		// if it suceeds then deliver the operation to other replicators
+		// if it suceeds then async deliver the operation to other replicators
 
 		localCommit = this.replicator.commitOperation(decodedOp);
+		thriftOp.setClock(decodedOp.getClock().toString());
+
 		if(localCommit)
 			network.sendOperationAsync(thriftOp);
 
@@ -57,7 +64,13 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	public void commitOperationAsync(ThriftOperation shadowOp) throws TException
 	{
 		LOG.debug("received op from other replicator");
+
 		ShadowOperation decodedOp = Utils.decodeThriftOperation(shadowOp);
+		LogicalClock remoteClock = new LogicalClock(shadowOp.getClock());
+		decodedOp.setLogicalClock(remoteClock);
+
+		this.replicator.mergeWithRemoteClock(remoteClock);
+
 		this.replicator.commitOperation(decodedOp);
 	}
 }

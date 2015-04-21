@@ -27,7 +27,7 @@ public class Replicator extends AbstractNode
 {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
-	private static LogicalClock CURRENT_CLOCK;
+	private LogicalClock clock;
 	private static int REPLICATOR_ID;
 
 	private IReplicatorNetwork networkInterface;
@@ -42,7 +42,7 @@ public class Replicator extends AbstractNode
 	public Replicator(AbstractNodeConfig config)
 	{
 		super(config);
-		CURRENT_CLOCK = new LogicalClock(this.config.getId());
+		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		REPLICATOR_ID = this.config.getId();
 
 		this.otherReplicators = new HashMap<>();
@@ -133,10 +133,23 @@ public class Replicator extends AbstractNode
 		}
 	}
 
-	public synchronized LogicalClock getNextClock()
+	public LogicalClock getNextClock()
 	{
-		LogicalClock newClock = new LogicalClock(CURRENT_CLOCK.getGeneration(), CURRENT_CLOCK.getDcEntries());
-		newClock.increment(REPLICATOR_ID);
-		return newClock;
+		synchronized(this)
+		{
+			LogicalClock newClock = new LogicalClock(this.clock.getGeneration(), this.clock.getDcEntries());
+			newClock.increment(REPLICATOR_ID);
+			return newClock;
+		}
+	}
+
+	public void mergeWithRemoteClock(LogicalClock clock)
+	{
+		synchronized(this)
+		{
+			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
+			this.clock = this.clock.maxClock(clock);
+			LOG.debug("merged clock is {}", this.clock.toString());
+		}
 	}
 }
