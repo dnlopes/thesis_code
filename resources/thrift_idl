@@ -38,6 +38,7 @@ struct RequestEntry {
 struct ThriftOperation {
  1: required i32 txnId;
  2: required list<string> operations;
+ 3: string clock
 }
 
 service ReplicatorRPC {
