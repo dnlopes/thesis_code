@@ -1,6 +1,8 @@
 package util.stats;
 
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,15 +12,19 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ProxyStatistics implements Statistics
 {
-	AtomicInteger commitsCounter;
-	AtomicInteger abortsCounter;
-	AtomicLong latencySum;
+	private String nodeName;
+	private AtomicInteger commitsCounter;
+	private AtomicInteger abortsCounter;
+	private AtomicLong latencySum;
 
-	public ProxyStatistics()
+	public ProxyStatistics(String nodeName)
 	{
+		this.nodeName = nodeName;
 		this.commitsCounter = new AtomicInteger();
 		this.abortsCounter= new AtomicInteger();
 		this.latencySum = new AtomicLong();
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
+
 	}
 
 	public void incrementCommitCounter()
@@ -36,11 +42,48 @@ public class ProxyStatistics implements Statistics
 		this.latencySum.addAndGet(latency);
 	}
 
-	@Override
-	public String toString()
+	public String getResults()
 	{
-		StringBuilder buffer = new StringBuilder();
+		long totalOps = commitsCounter.get() + abortsCounter.get();
+		long avgLatency = latencySum.get() / commitsCounter.get();
 
-		return "";
+		// TEMPLATE: NOME_NAME	TOTAL_OPS COMMITS_NUMBER ABORTS_NUMBER	AVG_LATENCY
+		StringBuilder buffer = new StringBuilder(this.nodeName);
+		buffer.append("\t");
+		buffer.append(totalOps);
+		buffer.append("\t");
+		buffer.append(this.commitsCounter.get());
+		buffer.append("\t");
+		buffer.append(this.abortsCounter.get());
+		buffer.append("\t");
+		buffer.append(avgLatency);
+
+		return buffer.toString();
+	}
+
+	private class ShutdownHook extends Thread
+	{
+		private ProxyStatistics stats;
+
+		protected ShutdownHook(ProxyStatistics stats)
+		{
+			this.stats = stats;
+		}
+
+		@Override
+		public void run()
+		{
+			String result = stats.getResults();
+			try
+			{
+				PrintWriter out = new PrintWriter(stats.nodeName + ".out");
+				out.write(result);
+				out.close();
+			} catch(FileNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+
+		}
 	}
 }

@@ -50,7 +50,7 @@ public class Proxy extends AbstractNode
 		super(config);
 
 		this.privateConfig = (ProxyConfig) config;
-		this.statistics = new ProxyStatistics();
+		this.statistics = new ProxyStatistics(this.config.getName());
 
 		this.scratchpadsPool = new ObjectPool<>();
 		this.activeScratchpads = new ConcurrentHashMap<>();
@@ -89,7 +89,6 @@ public class Proxy extends AbstractNode
 		if(pad == null)
 			return true;
 
-		//TODO: maybe assign logical clocks and timestamp here?
 		boolean commitResult = pad.commitTransaction(this.networkInterface);
 		if(commitResult)
 		{

@@ -53,7 +53,7 @@ public class Replicator extends AbstractNode
 
 		this.committedTxns = new HashSet<>();
 		this.commitPadPool = new ObjectPool<>();
-		this.statistics = new ReplicatorStatistics();
+		this.statistics = new ReplicatorStatistics(config.getName());
 
 		this.setup();
 
