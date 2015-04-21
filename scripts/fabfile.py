@@ -51,9 +51,11 @@ proxies_nodes = []
 database_map = dict()
 replicators_map = dict()
 coordinators_map = dict()
-
 proxies_map = dict()
 
+replicatorsHostToPortMap = dict()
+coordinatorsHostToPortMap = dict()
+proxiesHostToPortMap = dict()
 
 env_vars = dict()
 env.roledefs = {
@@ -94,16 +96,33 @@ def prepareTPCC():
 
 @task
 def startCoordinators():
-    pass
+    currentId = coordinators_map.get(env.host_string)    
+    port = coordinatorsHostToPortMap.get(env.host_string)
+
+    logFile = 'coordinator_' + currentId + ".log"
+    logger.info('starting coordinator at %s with id %s', env.host_string, currentId)
+    command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + logFile + ' &'
+    with cd(DEPLOY_DIR):
+        run(command)
+    time.sleep(5)
+    if not isPortOpen(port):
+        return '0'
+    return '1'
 
 @task
 def startReplicators():
     currentId = replicators_map.get(env.host_string)    
-    logFile = 'replicator_' + currentId
+    port = replicatorsHostToPortMap.get(env.host_string)
+
+    logFile = 'replicator_' + currentId + ".log"
     logger.info('starting replicator at %s with id %s', env.host_string, currentId)
     command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
+    time.sleep(5)
+    if not isPortOpen(port):
+        return '0'
+    return '1'
 
 @task
 def setupExperiment(configFile):
@@ -143,11 +162,21 @@ def distributeCode():
         put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
 
 @task
-def runTPCWExperiment(configFile):
+def runTPCCExperiment(configFile):
     global CONFIG_FILE
     CONFIG_FILE = configFile
     parseConfigFile()
-    execute(startReplicators, hosts=replicators_nodes)
+    coordResults = execute(startCoordinators, hosts=replicators_nodes)
+    for key, value in coordResults.iteritems():
+        if value == '0':
+            logger.error('coordinator at %s failed to start', key)
+            sys.exit()
+
+    replicatorResults = execute(startReplicators, hosts=replicators_nodes)
+    for key, value in replicatorResults.iteritems():
+        if value == '0':
+            logger.error('replicator at %s failed to start', key)
+            sys.exit()
     
 @task
 def exportDatabase(databaseName, outputFile):
@@ -169,6 +198,11 @@ def is_mysql_running():
         output = run('netstat -tan | grep 3306')
         return output.find('LISTEN') != -1
 
+def isPortOpen(port):
+    with settings(warn_only=True),hide('output'):
+        output = run('netstat -tan | grep ' + port)
+        return output.find('LISTEN') != -1
+
 def parseConfigFile():
     logger.info('parsing config file: %s', CONFIG_FILE)
     #print ">> parsing config file: " + CONFIG_FILE
@@ -178,30 +212,38 @@ def parseConfigFile():
     proxiesSet = Set()
     coordinatorsSet = Set()
     replicatorsSet = Set()
+    global coordinators_map, replicatorsHostToPortMap, proxiesHostToPortMap, coordinatorsHostToPortMap
+
     for replicator in e.iter('replicator'):
         replicatorId = replicator.get('id')
         host = replicator.get('host')
         dbHost = replicator.get('dbHost')
+        port = replicator.get('port')
         dbsSet.add(dbHost)
         replicatorsSet.add(host)
         distinctNodesSet.add(host)
+        replicatorsHostToPortMap[host] = port
         replicators_map[host] = replicatorId                 
     for proxy in e.iter('proxy'):
         proxyId = proxy.get('id')
         host = proxy.get('host')
         dbHost = proxy.get('dbHost')
+        port = proxy.get('port')
         dbsSet.add(dbHost)
         proxiesSet.add(host) 
         distinctNodesSet.add(host)
-        proxies_map[host] = proxyId         
+        proxies_map[host] = proxyId     
+        proxiesHostToPortMap[host] = port    
     for coordinator in e.iter('coordinator'):
         coordinatorId = coordinator.get('id')
+        port = coordinator.get('port')
         host = coordinator.get('host')
         dbHost = coordinator.get('dbHost')
         dbsSet.add(dbHost)
         coordinatorsSet.add(host)      
         distinctNodesSet.add(host) 
-        coordinators_map[host] = coordinatorId         
+        coordinators_map[host] = coordinatorId   
+        coordinatorsHostToPortMap[host] = port      
 
     global database_nodes
     global replicators_nodes

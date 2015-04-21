@@ -45,7 +45,9 @@ public class ProxyStatistics implements Statistics
 	public String getResults()
 	{
 		long totalOps = commitsCounter.get() + abortsCounter.get();
-		long avgLatency = latencySum.get() / commitsCounter.get();
+		long avgLatency = 0;
+		if(commitsCounter.get() > 0)
+			avgLatency = latencySum.get() / commitsCounter.get();
 
 		// TEMPLATE: NOME_NAME	TOTAL_OPS COMMITS_NUMBER ABORTS_NUMBER	AVG_LATENCY
 		StringBuilder buffer = new StringBuilder(this.nodeName);
