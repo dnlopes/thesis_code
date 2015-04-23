@@ -152,6 +152,10 @@ def startDatabases():
         return True     
 
 @task
+def startTPCCClients():
+   pass
+
+@task
 @parallel
 def distributeCode():
     with cd(BASE_DIR):
@@ -172,11 +176,16 @@ def runTPCCExperiment(configFile):
             logger.error('coordinator at %s failed to start', key)
             sys.exit()
 
+    logger.info('all coordinators are online')
     replicatorResults = execute(startReplicators, hosts=replicators_nodes)
     for key, value in replicatorResults.iteritems():
         if value == '0':
             logger.error('replicator at %s failed to start', key)
             sys.exit()
+
+    logger.info('all replicators are online')
+
+
     
 @task
 def exportDatabase(databaseName, outputFile):
