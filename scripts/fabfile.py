@@ -156,16 +156,12 @@ def startTPCCClients():
 @task
 def setupExperiment(configFile):
     loadInputFile(configFile)
-    global CONFIG_FILE
-    CONFIG_FILE = configsMap['config_file']
     parseConfigFile()
     prepareCode()
 
 @task
 def runTPCCExperiment(configFile):
-    loadInputFile(configFile)
-    global CONFIG_FILE, LOG_FILE_DIR
-    CONFIG_FILE = configsMap['config_file']
+    loadInputFile(configFile)    
     parseConfigFile()
     splittedConfifFile = CONFIG_FILE.split("/")
     LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + splittedConfifFile[-1]
@@ -205,8 +201,7 @@ def runTPCCExperiment(configFile):
 
 @task
 def killProcesses(configFile):
-    global CONFIG_FILE
-    CONFIG_FILE=configFile
+    loadInputFile(configFile)    
     parseConfigFile()
     execute(stopMySQL, hosts=database_nodes)
     execute(stopJava, hosts=coordinators_nodes)
@@ -327,7 +322,7 @@ def parseConfigFile():
     logger.debug('Distinct nodes: %s', distinct_nodes)
 
 def loadInputFile(configFile):
-    global configsMap
-    configsMap = parseConfigInput(configFile)     
-    
+    global configsMap, CONFIG_FILE
+    configsMap = parseConfigInput(configFile)        
+    CONFIG_FILE = configsMap['config_file']    
 
