@@ -9,8 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import network.AbstractNodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import util.defaults.Configuration;
+import util.props.DatabaseProperties;
 
 
 public class Tpcc implements TpccConstants
@@ -102,7 +105,6 @@ public class Tpcc implements TpccConstants
 
 	private int runBenchmark(boolean overridePropertiesFile, String[] argv)
 	{
-
 		System.out.println("***************************************");
 		System.out.println("****** Java TPC-C Load Generator ******");
 		System.out.println("***************************************");
@@ -188,7 +190,6 @@ public class Tpcc implements TpccConstants
 			dbPassword = properties.getProperty(PASSWORD);
 			numWare = Integer.parseInt(properties.getProperty(WAREHOUSECOUNT));
 			numConn = Integer.parseInt(properties.getProperty(CONNECTIONS));
-			numConn = Integer.parseInt(System.getProperty("usersNum"));
 			rampupTime = Integer.parseInt(properties.getProperty(RAMPUPTIME));
 			measureTime = Integer.parseInt(properties.getProperty(DURATION));
 			javaDriver = properties.getProperty(DRIVER);
@@ -202,6 +203,21 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
+
+		int proxyId = Integer.parseInt(System.getProperty("proxyid"));
+		AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+		boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
+		DatabaseProperties dbProperties = new DatabaseProperties(nodeConfig);
+
+		numConn = Integer.parseInt(System.getProperty("usersNum"));
+		dbUser = dbProperties.getDbUser();
+		dbPassword = dbProperties.getDbPwd();
+		jdbcUrl = dbProperties.getUrl();
+		if(isCustomJDBC)
+			javaDriver = "database.jdbc.CRDTDriver";
+		else
+			javaDriver = "com.mysql.jdbc.Driver";
+
 		if(num_node > 0)
 		{
 			if(numWare % num_node != 0)
@@ -284,7 +300,7 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < numConn; i++)
 		{
 			Runnable worker = new TpccThread(i, port, 1, dbUser, dbPassword, numWare, numConn, javaDriver, jdbcUrl,
-					fetchSize, success, late, retry, failure, success2, late2, retry2, failure2, joins);
+					fetchSize, success, late, retry, failure, success2, late2, retry2, failure2, joins, dbProperties);
 			executor.execute(worker);
 		}
 
@@ -463,18 +479,20 @@ public class Tpcc implements TpccConstants
 	public static void main(String[] argv)
 	{
 
-		if(argv.length != 3)
+		if(argv.length != 4)
 		{
-			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users>");
+			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users> <useCustomJDBC>");
 			System.exit(1);
 		}
 		String configFile = argv[0];
 		int proxyId = Integer.parseInt(argv[1]);
 		int usersNum = Integer.parseInt(argv[2]);
+		boolean useCustomJDBC = Boolean.parseBoolean(argv[3]);
 
 		System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		System.setProperty("usersNum", String.valueOf(usersNum));
+		System.setProperty("customJDBC", String.valueOf(useCustomJDBC));
 
 		System.out.println("TPCC version " + VERSION + " Number of Arguments: " + argv.length);
 

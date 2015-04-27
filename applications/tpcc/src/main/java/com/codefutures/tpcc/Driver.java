@@ -5,15 +5,19 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
+import network.AbstractNodeConfig;
 import org.perf4j.StopWatch;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import util.defaults.Configuration;
+import util.stats.ProxyStatistics;
 
 
 public class Driver implements TpccConstants {
 
     private static final Logger logger = LoggerFactory.getLogger(Driver.class);
     private static final boolean DEBUG = logger.isDebugEnabled();
+	public static ProxyStatistics statistics;
 
     /**
      * For debug use only.
@@ -75,7 +79,11 @@ public class Driver implements TpccConstants {
                   int[] success, int[] late, int[] retry, int[] failure,
                   int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, boolean joins) {
         try {
-            this.conn = conn;
+			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
+			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+			statistics = new ProxyStatistics(nodeConfig.getName());
+
+			this.conn = conn;
 
             pStmts = new TpccStatements(conn, fetchSize);
 
@@ -266,6 +274,8 @@ public class Driver implements TpccConstants {
             if (ret == 1) {
 
                 rt = (double) (endTime - beginTime);
+				statistics.incrementCommitCounter();
+				statistics.addLatency((long) rt);
                 if (DEBUG) logger.debug("BEFORE rt value: " + rt + " max_rt[0] value: " + max_rt[0]);
 
                 if (rt > max_rt[0])
@@ -290,7 +300,7 @@ public class Driver implements TpccConstants {
 
                 return (1); /* end */
             } else {
-
+				statistics.incrementAbortsCounter();
                 if (Tpcc.counting_on) {
 
                     retry[0]++;
@@ -388,6 +398,8 @@ public class Driver implements TpccConstants {
 
                 //rt = (double)(tbuf2.tv_sec * 1000.0 + tbuf2.tv_nsec/1000000.0-tbuf1.tv_sec * 1000.0 - tbuf1.tv_nsec/1000000.0);
                 rt = (double) (endTime - beginTime);
+				statistics.incrementCommitCounter();
+				statistics.addLatency((long) rt);
                 if (rt > max_rt[1])
                     max_rt[1] = rt;
                 RtHist.histInc(1, rt);
@@ -403,7 +415,7 @@ public class Driver implements TpccConstants {
 
                 return (1); /* end */
             } else {
-
+				statistics.incrementAbortsCounter();
                 if (Tpcc.counting_on) {
                     retry[1]++;
                     retry2[1][t_num]++;
@@ -466,9 +478,10 @@ public class Driver implements TpccConstants {
             endTime = System.currentTimeMillis();
 
             if (ret >= 1) {
-
                 //rt = (double)(tbuf2.tv_sec * 1000.0 + tbuf2.tv_nsec/1000000.0-tbuf1.tv_sec * 1000.0 - tbuf1.tv_nsec/1000000.0)
                 rt = (double) (endTime - beginTime);
+				statistics.incrementCommitCounter();
+				statistics.addLatency((long) rt);
                 if (rt > max_rt[2])
                     max_rt[2] = rt;
                 RtHist.histInc(2, rt);
@@ -484,7 +497,7 @@ public class Driver implements TpccConstants {
 
                 return (1); /* end */
             } else {
-
+				statistics.incrementAbortsCounter();
                 if (Tpcc.counting_on) {
                     retry[2]++;
                     retry2[2][t_num]++;
@@ -533,6 +546,8 @@ public class Driver implements TpccConstants {
             if (ret >= 1) {
 
                 rt = (double) (endTime - beginTime);
+				statistics.incrementCommitCounter();
+				statistics.addLatency((long) rt);
                 if (rt > max_rt[3])
                     max_rt[3] = rt;
                 RtHist.histInc(3, rt);
@@ -548,8 +563,9 @@ public class Driver implements TpccConstants {
 
                 return (1); /* end */
             } else {
+				statistics.incrementAbortsCounter();
 
-                if (Tpcc.counting_on) {
+				if (Tpcc.counting_on) {
                     retry[3]++;
                     retry2[3][t_num]++;
                 }
@@ -602,6 +618,8 @@ public class Driver implements TpccConstants {
             if (ret >= 1) {
 
                 rt = (double) (endTime - beginTime);
+				statistics.incrementCommitCounter();
+				statistics.addLatency((long) rt);
                 if (rt > max_rt[4])
                     max_rt[4] = rt;
                 RtHist.histInc(4, rt);
@@ -617,7 +635,7 @@ public class Driver implements TpccConstants {
 
                 return (1); /* end */
             } else {
-
+				statistics.incrementAbortsCounter();
                 if (Tpcc.counting_on) {
                     retry[4]++;
                     retry2[4][t_num]++;

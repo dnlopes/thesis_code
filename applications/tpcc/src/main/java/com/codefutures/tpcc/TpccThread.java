@@ -15,6 +15,8 @@ import network.AbstractNodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import util.defaults.Configuration;
+import util.props.DatabaseProperties;
+import util.stats.ProxyStatistics;
 
 
 public class TpccThread extends Thread {
@@ -26,6 +28,7 @@ public class TpccThread extends Thread {
      * Dedicated JDBC connection for this thread.
      */
     Connection conn;
+	DatabaseProperties dbProps;
 
     Driver driver;
 
@@ -57,8 +60,10 @@ public class TpccThread extends Thread {
     public TpccThread(int number, int port, int is_local, String db_user, String db_password,
                       int num_ware, int num_conn, String driverClassName, String dURL, int fetchSize,
                       int[] success, int[] late, int[] retry, int[] failure,
-                      int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, boolean joins) {
+                      int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, boolean joins,
+					  DatabaseProperties dbProps) {
 
+		this.dbProps = dbProps;
         this.number = number;
         this.port = port;
         this.db_password = db_password;
@@ -145,20 +150,20 @@ public class TpccThread extends Thread {
             prop.put("user", db_user);
             prop.put("password", db_password);
 
+			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
-			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
+			if(isCustomJDBC)
+				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
+			else
+				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
 
-			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
-
-			conn = ConnectionFactory.getCRDTConnection(nodeConfig);
-            //conn = DriverManager.getConnection(jdbcUrl, prop);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);
 
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("Failed to connect to database", e);
         }
-        return conn;
+		return conn;
     }
 }
 

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
+import util.defaults.DBDefaults;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -91,6 +92,17 @@ public class DatabaseProperties
 	public int getDbPort()
 	{
 		return dbPort;
+	}
+
+	public String getUrl()
+	{
+		StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		buffer.append(this.getDbHost());
+		buffer.append(":");
+		buffer.append(this.getDbPort());
+		buffer.append("/");
+
+		return buffer.toString();
 	}
 
 }
