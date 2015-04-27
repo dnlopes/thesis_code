@@ -7,6 +7,7 @@ import logging
 import shlex
 import subprocess, signal
 import os
+from parseConfigFile import parseConfigInput
 
 #------------------------------------------------------------------------------
 # Deployment Scripts
@@ -48,6 +49,7 @@ replicators_nodes = []
 coordinators_nodes = []
 proxies_nodes = []
 
+configsMap = dict()
 database_map = dict()
 replicators_map = dict()
 coordinators_map = dict()
@@ -133,34 +135,6 @@ def startReplicators():
         return '0'
     return '1'
 
-@task
-def setupExperiment(configFile):
-    global CONFIG_FILE
-    CONFIG_FILE=configFile
-    parseConfigFile()
-    execute(cleanProcesses, hosts=distinct_nodes)    
-    #sys.exit()
-    prepareCode()
-
-@task
-def killProcesses(configFile):
-    global CONFIG_FILE
-    CONFIG_FILE=configFile
-    parseConfigFile()
-    execute(stopMySQL, hosts=database_nodes)
-    execute(stopJava, hosts=coordinators_nodes)
-    execute(stopJava, hosts=replicators_nodes)
-    execute(stopJava, hosts=proxies_nodes)
-
-def prepareCode():
-    logger.info('compiling source code')
-    with lcd(PROJECT_DIR):
-        local('ant purge tpcc-dist')
-    logger.info('uploading distribution to nodes: %s', distinct_nodes)
-    logger.info('deploying jars, resources and config files')
-    with hide('output'):
-        execute(distributeCode, hosts=distinct_nodes)
-
 @parallel
 def startTPCCClients():
     with cd(DEPLOY_DIR):
@@ -171,7 +145,7 @@ def startTPCCClients():
 
     logFile = 'proxy_' + str(currentId) + ".log"
     logger.info('starting proxy at %s with id %s', env.host_string, currentId)
-    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
+    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
     time.sleep(5)
@@ -179,36 +153,24 @@ def startTPCCClients():
         return '0'
     return '1'
 
-@parallel
-def distributeCode():
-    with cd(BASE_DIR):
-        run('rm -rf ' + DEPLOY_DIR + ' ; mkdir -p ' + DEPLOY_DIR + '/logs')
-        put(JARS_DIR + '/*.jar', DEPLOY_DIR)
-        put(PROJECT_DIR + '/resources/configs', DEPLOY_DIR)
-        put(PROJECT_DIR + '/resources/*.sql', DEPLOY_DIR)
-        put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
-
-def stopJava():
-    proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
-    proc2 = subprocess.Popen(shlex.split('grep ' + env.user),stdin=proc1.stdout,
-                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    # Allow proc1 to receive a SIGPIPE if proc2 exits.
-    proc1.stdout.close()
-    out,err=proc2.communicate()            
-    for line in out.splitlines():                    
-        if 'java' in line:        
-            pid = int(line.split(None, 1)[0])
-            print 'killing ' + str(pid)
-            os.kill(pid, signal.SIGKILL)            
+@task
+def setupExperiment(configFile):
+    loadInputFile(configFile)
+    global CONFIG_FILE
+    CONFIG_FILE = configsMap[config_file]
+    parseConfigFile()
+    prepareCode()
 
 @task
 def runTPCCExperiment(configFile):
-    
+    loadInputFile(configFile)
     global CONFIG_FILE, LOG_FILE_DIR
-    CONFIG_FILE = configFile
+    CONFIG_FILE = configsMap[config_file]
     parseConfigFile()
-    LOG_FILE_DIR = time.strftime("%H_%M_%S")
-    
+    splittedConfifFile = CONFIG_FILE.split("/")
+    LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + splittedConfifFile[-1]
+    logger.info('this experiment will be logged to logs/' + LOG_FILE_DIR)
+
     dbResults = execute(startDatabases, hosts=database_nodes)
     for key, value in dbResults.iteritems():
         if value == '0':
@@ -240,6 +202,47 @@ def runTPCCExperiment(configFile):
 
     logger.info('all proxies are online')
     logger.info('the experiment is running')    
+
+@task
+def killProcesses(configFile):
+    global CONFIG_FILE
+    CONFIG_FILE=configFile
+    parseConfigFile()
+    execute(stopMySQL, hosts=database_nodes)
+    execute(stopJava, hosts=coordinators_nodes)
+    execute(stopJava, hosts=replicators_nodes)
+    execute(stopJava, hosts=proxies_nodes)
+
+def prepareCode():
+    logger.info('compiling source code')
+    with lcd(PROJECT_DIR):
+        local('ant purge tpcc-dist')
+    logger.info('uploading distribution to nodes: %s', distinct_nodes)
+    logger.info('deploying jars, resources and config files')
+    with hide('output'):
+        execute(distributeCode, hosts=distinct_nodes)
+
+@parallel
+def distributeCode():
+    with cd(BASE_DIR):
+        run('rm -rf ' + DEPLOY_DIR + ' ; mkdir -p ' + DEPLOY_DIR + '/logs')
+        put(JARS_DIR + '/*.jar', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/configs', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/*.sql', DEPLOY_DIR)
+        put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
+
+def stopJava():
+    proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
+    proc2 = subprocess.Popen(shlex.split('grep ' + env.user),stdin=proc1.stdout,
+                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    # Allow proc1 to receive a SIGPIPE if proc2 exits.
+    proc1.stdout.close()
+    out,err=proc2.communicate()            
+    for line in out.splitlines():                    
+        if 'java' in line:        
+            pid = int(line.split(None, 1)[0])
+            print 'killing ' + str(pid)
+            os.kill(pid, signal.SIGKILL)            
     
 def exportDatabase(databaseName, outputFile):
     with cd(MYSQL_DIR):
@@ -322,4 +325,9 @@ def parseConfigFile():
     logger.debug('Replicators: %s', replicators_nodes)
     logger.debug('Coordinators: %s', coordinators_nodes)
     logger.debug('Distinct nodes: %s', distinct_nodes)
+
+def loadInputFile(configFile):
+    global configsMap
+    configsMap = parseConfigInput(configFile)     
     
+
