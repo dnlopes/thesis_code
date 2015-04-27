@@ -8,7 +8,6 @@ import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.LogicalClock;
 import runtime.operation.ShadowOperation;
 import util.defaults.DBDefaults;
 
@@ -76,7 +75,7 @@ public class DBCommitPad implements IDBCommitPad
 			for(String statement : op.getOperationList())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				LOG.debug("executing on maindb: {}", rebuiltStatement);
+				LOG.trace("executing on maindb: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
 			}

@@ -1,5 +1,7 @@
 package network.coordinator;
 
+import net.sf.appia.protocols.total.token.TotalTokenLayer;
+import net.sf.appia.protocols.total.token.TotalTokenSession;
 import network.AbstractNode;
 
 /**
