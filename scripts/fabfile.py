@@ -145,7 +145,7 @@ def startTPCCClients():
 
     logFile = 'proxy_' + str(currentId) + ".log"
     logger.info('starting proxy at %s with id %s', env.host_string, currentId)
-    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
+    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' true > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
     time.sleep(5)
