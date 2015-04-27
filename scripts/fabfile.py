@@ -165,7 +165,7 @@ def setupExperiment(configFile):
 def runTPCCExperiment(configFile):
     loadInputFile(configFile)
     global CONFIG_FILE, LOG_FILE_DIR
-    CONFIG_FILE = configsMap[config_file]
+    CONFIG_FILE = configsMap['config_file']
     parseConfigFile()
     splittedConfifFile = CONFIG_FILE.split("/")
     LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + splittedConfifFile[-1]
