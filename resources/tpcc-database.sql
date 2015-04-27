@@ -23,7 +23,8 @@
 	@LWWINTEGER d_tax decimal(4,2), 
 	@LWWINTEGER d_ytd decimal(12,2), 
 	@LWWINTEGER d_next_o_id int,
-	PRIMARY KEY (d_w_id, d_id) 
+	PRIMARY KEY (d_w_id, d_id),
+	FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table customer (
@@ -48,7 +49,8 @@
 	@LWWINTEGER c_payment_cnt smallint, 
 	@LWWINTEGER c_delivery_cnt smallint, 
 	@LWWSTRING c_data varchar(500),
-	PRIMARY KEY(c_w_id, c_d_id, c_id) 
+	PRIMARY KEY(c_w_id, c_d_id, c_id),
+	FOREIGN KEY(c_w_id,c_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table history (
@@ -59,14 +61,16 @@
 	@LWWINTEGER h_w_id smallint,
 	@LWWDATETIME h_date date,
 	@LWWINTEGER h_amount decimal(6,2), 
-	@NORMALSTRING h_data varchar(24)
+	@NORMALSTRING h_data varchar(24),
+	FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table new_orders (
 	@LWWINTEGER no_o_id int not null,
 	@LWWINTEGER no_d_id tinyint not null,
 	@LWWINTEGER no_w_id smallint not null,
-	PRIMARY KEY(no_w_id, no_d_id, no_o_id)
+	PRIMARY KEY(no_w_id, no_d_id, no_o_id),
+	FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)	
 )Engine=InnoDB;
 
 @ARSETTABLE create table orders (
@@ -78,7 +82,8 @@
 	@LWWINTEGER o_carrier_id tinyint,
 	@LWWINTEGER o_ol_cnt tinyint, 
 	@LWWINTEGER o_all_local tinyint,
-	PRIMARY KEY(o_w_id, o_d_id, o_id)
+	PRIMARY KEY(o_w_id, o_d_id, o_id),
+	FOREIGN KEY(o_w_id,o_d_id,o_c_id) REFERENCES customer(c_w_id,c_d_id,c_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table order_line ( 
@@ -92,7 +97,8 @@
 	@LWWINTEGER ol_quantity tinyint, 
 	@LWWINTEGER ol_amount decimal(6,2), 
 	@LWWSTRING ol_dist_info char(24),
-	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number)
+	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number),
+	FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table item (
@@ -122,6 +128,8 @@
 	@LWWINTEGER s_order_cnt smallint, 
 	@LWWINTEGER s_remote_cnt smallint,
 	@LWWSTRING s_data varchar(50),
-	PRIMARY KEY(s_w_id, s_i_id)
+	PRIMARY KEY(s_w_id, s_i_id),
+	FOREIGN KEY(s_w_id) REFERENCES warehouse(w_id),
+	FOREIGN KEY(s_i_id) REFERENCES item(i_id)
 )Engine=InnoDB;
 

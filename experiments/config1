@@ -1,0 +1,12 @@
+######################
+### the benchmark to run
+#bench=tpcw
+bench=tpcc
+######################
+### the configuration file
+config_file=
+######################
+# the driver to use (either the original jdbc or the custom crdt_jdbc) 
+#jdbc=com.mysql.jdbc.Driver
+jdbc=database.jdbc.CRDTDriver
+######################

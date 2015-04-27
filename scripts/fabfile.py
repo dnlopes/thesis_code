@@ -14,7 +14,6 @@ import logging
 
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.DEBUG)
-
 ch = logging.StreamHandler()
 formatter = logging.Formatter('[%(levelname)s] %(message)s')
 ch.setFormatter(formatter)
@@ -177,6 +176,7 @@ def runTPCCExperiment(configFile):
             sys.exit()
 
     logger.info('all coordinators are online')
+    
     replicatorResults = execute(startReplicators, hosts=replicators_nodes)
     for key, value in replicatorResults.iteritems():
         if value == '0':
@@ -184,8 +184,6 @@ def runTPCCExperiment(configFile):
             sys.exit()
 
     logger.info('all replicators are online')
-
-
     
 @task
 def exportDatabase(databaseName, outputFile):
