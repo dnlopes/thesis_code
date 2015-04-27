@@ -157,7 +157,7 @@ def startTPCCClients():
 def setupExperiment(configFile):
     loadInputFile(configFile)
     global CONFIG_FILE
-    CONFIG_FILE = configsMap[config_file]
+    CONFIG_FILE = configsMap['config_file']
     parseConfigFile()
     prepareCode()
 
