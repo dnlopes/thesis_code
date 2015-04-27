@@ -164,7 +164,8 @@ def runTPCCExperiment(configFile):
     loadInputFile(configFile)    
     parseConfigFile()
     splittedConfifFile = CONFIG_FILE.split("/")
-    LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + splittedConfifFile[-1]
+    removedExtension = splittedConfifFile[-1].split(".")
+    LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + removedExtension[-1]
     logger.info('this experiment will be logged to logs/' + LOG_FILE_DIR)
 
     dbResults = execute(startDatabases, hosts=database_nodes)
