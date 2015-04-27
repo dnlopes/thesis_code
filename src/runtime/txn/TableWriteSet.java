@@ -142,7 +142,7 @@ public class TableWriteSet
 		if(this.insertedTuples.size() == 0)
 			return;
 
-		LOG.debug("{} tuples inserted", this.insertedTuples.size());
+		LOG.trace("{} tuples inserted", this.insertedTuples.size());
 		for(PrimaryKeyValue pkValue : this.insertedTuples.keySet())
 		{
 			TupleWriteSet tupleWriteSet = this.insertedTuples.get(pkValue);

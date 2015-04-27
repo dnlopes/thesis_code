@@ -93,12 +93,14 @@ public class TupleWriteSet
 		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
 		buffer.append(") = (");
 		buffer.append(this.tupleId.getValue());
-		buffer.append(") AND (");
-		buffer.append(CLOCK_PREBUILT_CLAUSE);
 		buffer.append(")");
 
+		/*buffer.append(") AND (");
+		buffer.append(CLOCK_PREBUILT_CLAUSE);
+		buffer.append(")");        */
+
 		String statement = buffer.toString();
-		LOG.debug("update statement generated: {}", statement);
+		LOG.trace("update statement generated: {}", statement);
 
 		statements.add(statement);
 	}
@@ -112,12 +114,13 @@ public class TupleWriteSet
 		if(this.dbTable.getTableType() == CrdtTableType.ARSETTABLE)
 			this.lwwFieldsValues.put(dbTable.getDeletedField().getFieldName(), "FALSE");
 
+		/*
 		if(this.dbTable.getTableType() != CrdtTableType.NONCRDTTABLE)
 		{
 			this.lwwFieldsValues.put(dbTable.getClockGenerationField().getFieldName(),
 					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
 			this.lwwFieldsValues.put(dbTable.getLocigalClockField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		}
+		}   */
 
 		buffer.append("insert into ");
 		buffer.append(this.dbTable.getName());

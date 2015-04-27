@@ -74,10 +74,10 @@ public class DBCommitPad implements IDBCommitPad
 			stat = this.connection.createStatement();
 			for(String statement : op.getOperationList())
 			{
-				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				LOG.trace("executing on maindb: {}", rebuiltStatement);
+				//String rebuiltStatement = this.replacePlaceholders(op, statement);
+				LOG.trace("executing on maindb: {}", statement);
 
-				stat.addBatch(rebuiltStatement);
+				stat.addBatch(statement);
 			}
 			stat.executeBatch();
 			this.connection.commit();
