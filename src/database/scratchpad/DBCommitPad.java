@@ -95,7 +95,7 @@ public class DBCommitPad implements IDBCommitPad
 			} catch(SQLException e1)
 			{
 				// this should not happen
-				LOG.error("failed to rollback txn {}", op.getTxnId(), e1);
+				LOG.error("failed to rollback txn {} (should not happen)", op.getTxnId(), e1);
 			}
 			LOG.error("txn {} rollback ({})", op.getTxnId(), e.getMessage());
 		}

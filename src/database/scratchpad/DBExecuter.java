@@ -1152,17 +1152,6 @@ public class DBExecuter implements IExecuter
 		}
 	}
 
-	/**
-	 * Returns a list of _SP_immut values that matches
-	 * the tuples that will be affected by the update operation
-	 *
-	 * @param updateOp
-	 * @param pad
-	 *
-	 * @return
-	 *
-	 * @throws SQLException
-	 */
 	private List<String> getResultSelectBeforeUpdate(Update updateOp, IDBScratchPad pad) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();

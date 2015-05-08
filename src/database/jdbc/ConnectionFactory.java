@@ -21,7 +21,6 @@ public class ConnectionFactory
 
 	private static final String CRDT_DRIVER = "database.jdbc.CRDTDriver";
 	private static final String DEFAULT_DRIVER = "com.mysql.jdbc.Driver";
-	private static final String DATABASE_NAME = Configuration.getInstance().getDatabaseName();
 
 	static
 	{
@@ -53,7 +52,7 @@ public class ConnectionFactory
 
 	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
 	{
-		return getDefaultConnection(props, DATABASE_NAME);
+		return getDefaultConnection(props, "");
 	}
 
 	public static Connection getCRDTConnection(DatabaseProperties props, String databaseName)
@@ -70,11 +69,6 @@ public class ConnectionFactory
 		c.setAutoCommit(false);
 
 		return c;
-	}
-
-	public static Connection getCRDTConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
-	{
-		return getCRDTConnection(props, DATABASE_NAME);
 	}
 
 	public static Connection getDefaultConnection(AbstractNodeConfig nodeInfo) throws SQLException

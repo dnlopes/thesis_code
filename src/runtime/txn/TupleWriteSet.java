@@ -119,7 +119,8 @@ public class TupleWriteSet
 		{
 			this.lwwFieldsValues.put(dbTable.getClockGenerationField().getFieldName(),
 					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
-			this.lwwFieldsValues.put(dbTable.getLocigalClockField().getFieldName(), DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+			this.lwwFieldsValues.put(dbTable.getLocigalClockField().getFieldName(), DBDefaults
+			.CLOCK_VALUE_PLACEHOLDER);
 		}   */
 
 		buffer.append("insert into ");

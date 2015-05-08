@@ -1,10 +1,7 @@
 package tests;
 
 
-import applications.micro.Micro_Populate;
 import database.jdbc.ConnectionFactory;
-import database.jdbc.Result;
-import network.proxy.ProxyConfig;
 import util.defaults.Configuration;
 
 import java.io.IOException;

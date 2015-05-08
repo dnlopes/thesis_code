@@ -27,6 +27,13 @@ public class DatabaseProperties
 	private String dbHost;
 	private int dbPort;
 
+	public DatabaseProperties (String user, String pwd, String host, int port)
+	{
+		this.dbHost = host;
+		this.dbPort = port;
+		this.dbUser = user;
+		this.dbPwd = pwd;
+	}
 	public DatabaseProperties(String propertiesFile, boolean inClassPath)
 	{
 		LOG.trace("loading database properties file: " + propertiesFile);
