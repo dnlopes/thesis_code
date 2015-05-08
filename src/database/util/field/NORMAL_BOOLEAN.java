@@ -25,7 +25,7 @@ public class NORMAL_BOOLEAN extends DataField {
 	public NORMAL_BOOLEAN(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NORMALBOOLEAN, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

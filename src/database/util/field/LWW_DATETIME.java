@@ -25,7 +25,7 @@ public class LWW_DATETIME extends DataField
 	 */
 	public LWW_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWDATETIME, dFN, tN, dT, iPK, iFK, iAIC, position);
+		super(CrdtDataFieldType.LWWDATETIME, dFN, tN, dT, iPK, iFK, iAIC, position, false);
 	}
 
 	/**

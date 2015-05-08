@@ -21,7 +21,7 @@ public class DeletedField extends DataField
 	public DeletedField(String tableName, int position)
 	{
 		super(CrdtDataFieldType.LWWDELETEDFLAG, FIELD_NAME, tableName, FIELD_TYPE, false, false, false,
-				position);
+				position, true);
 	}
 
 	/**

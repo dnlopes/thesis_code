@@ -25,7 +25,7 @@ public class LWW_STRING extends DataField {
 	public LWW_STRING(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.LWWSTRING, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

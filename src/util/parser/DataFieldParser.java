@@ -2,11 +2,9 @@ package util.parser;
 
 import database.util.field.LWW_BOOLEAN;
 import database.util.field.LWW_DATETIME;
-import database.util.field.LWW_DELETEDFLAG;
 import database.util.field.LWW_DOUBLE;
 import database.util.field.LWW_FLOAT;
 import database.util.field.LWW_INTEGER;
-import database.util.field.LWW_LOGICALTIMESTAMP;
 import database.util.field.LWW_STRING;
 import database.util.field.NONCRDT_Data_Field;
 import database.util.field.NORMAL_BOOLEAN;
@@ -136,47 +134,6 @@ public class DataFieldParser
 		return field;
 	}
 
-	/**
-	 * Create_ lww logical timestamp_ data_ field_ instance.
-	 *
-	 * @param tableName the table name
-	 * @param position  the position
-	 *
-	 * @return the data field
-	 */
-	public static DataField create_LwwLogicalTimestamp_Data_Field_Instance(String tableName, int position)
-	{
-		String dataType = "String";
-		boolean isPrimaryKey = false;
-		boolean isForeignKey = false;
-		boolean isAutoIncremantal = false;
-
-		DataField dF = new LWW_LOGICALTIMESTAMP(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
-				position);
-		setDefaultValue(dF, "");
-		return dF;
-	}
-
-	/**
-	 * Create_ lww deleted flag_ data_ field_ instance.
-	 *
-	 * @param tableName the table name
-	 * @param position  the position
-	 *
-	 * @return the data field
-	 */
-	public static DataField create_LwwDeletedFlag_Data_Field_Instance(String tableName, int position)
-	{
-		String dataType = "boolean";
-		boolean isPrimaryKey = false;
-		boolean isForeignKey = false;
-		boolean isAutoIncremantal = false;
-
-		DataField dF = new LWW_DELETEDFLAG(tableName, dataType, isPrimaryKey, isForeignKey, isAutoIncremantal,
-				position);
-		setDefaultValue(dF, "false");
-		return dF;
-	}
 
 	/**
 	 * Gets the _ annotation_ type.

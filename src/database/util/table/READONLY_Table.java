@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import database.util.ExecutionPolicy;
 import database.util.CrdtDataFieldType;
 import database.util.CrdtTableType;
 import database.util.DataField;
@@ -28,9 +29,9 @@ public class READONLY_Table extends DatabaseTable
 	 * @param tableName  the t n
 	 * @param dataFields the d hm
 	 */
-	public READONLY_Table(String tableName, LinkedHashMap<String, DataField> dataFields)
+	public READONLY_Table(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.NONCRDTTABLE, dataFields);
+		super(tableName, CrdtTableType.NONCRDTTABLE, dataFields, policy);
 		for(Map.Entry<String, DataField> entry : dataFields.entrySet())
 		{
 			DataField df = entry.getValue();

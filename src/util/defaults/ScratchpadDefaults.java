@@ -17,7 +17,5 @@ public final class ScratchpadDefaults
 	public static final String SCRATCHPAD_COL_DELETED = "_SP_del";
 	public static final String SCRATCHPAD_COL_TS = "_SP_ts";
 	public static final String SCRATCHPAD_COL_CLOCK = "_SP_clock";
-	public static final String SCRATCHPAD_COL_CLOCK_GENERATION = "_SP_clock_gen";
 
-	public static final String SCRATCHPAD_DELETED_FALSE = "FALSE";
 }

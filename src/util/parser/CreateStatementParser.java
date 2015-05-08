@@ -14,8 +14,12 @@ import java.util.Vector;
 import database.constraints.*;
 import database.constraints.check.*;
 import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.fk.ForeignKeyPolicy;
+import database.util.ExecutionPolicy;
+import database.constraints.fk.ForeignKeyAction;
 import database.constraints.unique.UniqueConstraint;
 import database.util.CrdtDataFieldType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -70,6 +74,7 @@ public class CreateStatementParser
 			String tableTitleStr = get_Table_Title_String(schemaStr);
 			String bodyStr = get_Table_Body_String(schemaStr);
 			CrdtTableType tableType = get_Table_Type(tableTitleStr);
+			ExecutionPolicy tableExecutionPolicy = getTableExecutionPolicy(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
 			//create base fields here
 			LinkedHashMap<String, DataField> fieldsMap = createFields(tableName, bodyStr);
@@ -79,19 +84,19 @@ public class CreateStatementParser
 			switch(tableType)
 			{
 			case NONCRDTTABLE:
-				dT = new READONLY_Table(tableName, fieldsMap);
+				dT = new READONLY_Table(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			case AOSETTABLE:
-				dT = new AosetTable(tableName, fieldsMap);
+				dT = new AosetTable(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			case ARSETTABLE:
-				dT = new ArsetTable(tableName, fieldsMap);
+				dT = new ArsetTable(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			case UOSETTABLE:
-				dT = new UosetTable(tableName, fieldsMap);
+				dT = new UosetTable(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			case AUSETTABLE:
-				dT = new AusetTable(tableName, fieldsMap);
+				dT = new AusetTable(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			default:
 				try
@@ -160,6 +165,19 @@ public class CreateStatementParser
 		return annotationStr;
 	}
 
+	private static ExecutionPolicy getForeignKeyExecutionPolicy(String titleStr)
+	{
+		int startIndex = titleStr.indexOf("@");
+
+		// default value is UPDATE_WINS
+		if(startIndex == -1)
+			return ExecutionPolicy.UPDATEWINS;
+
+		int endIndex = titleStr.indexOf(" ", startIndex);
+		String annotationStr = titleStr.substring(startIndex + 1, endIndex);
+		return ExecutionPolicy.valueOf(annotationStr);
+	}
+
 	/**
 	 * Gets the _ table_ type.
 	 *
@@ -177,6 +195,23 @@ public class CreateStatementParser
 		else
 			return CrdtTableType.valueOf(annotStr);
 
+	}
+
+	public static ExecutionPolicy getTableExecutionPolicy(String titleStr)
+	{
+		String annotation;
+
+		int startIndex = StringUtils.ordinalIndexOf(titleStr, "@", 2);
+		if(startIndex == -1)
+			annotation = "";
+
+		int endIndex = titleStr.indexOf(" ", startIndex);
+		annotation = titleStr.substring(startIndex + 1, endIndex);
+
+		if(annotation.equals(""))
+			return ExecutionPolicy.UPDATEWINS;
+		else
+			return ExecutionPolicy.valueOf(annotation);
 	}
 
 	/**
@@ -334,7 +369,7 @@ public class CreateStatementParser
 					"FOREIGN KEY") || declarationStrs[i].toUpperCase().contains(
 					"CHECK") || declarationStrs[i].toUpperCase().contains("UNIQUE"))
 
-			constraintStrs.add(declarationStrs[i]);
+				constraintStrs.add(declarationStrs[i]);
 
 		}
 		return constraintStrs;
@@ -429,14 +464,29 @@ public class CreateStatementParser
 				uniqueConstraint.generateIdentifier();
 			} else if(constraint.toUpperCase().contains("FOREIGN KEY"))
 			{
-				boolean isCascade = constraint.toUpperCase().contains("CASCADE");
-				boolean isSetNull = constraint.toUpperCase().contains("SET NULL");
+				ExecutionPolicy executionPolicy = getForeignKeyExecutionPolicy(constraint);
 
-				if (isCascade && isSetNull)
-					RuntimeHelper.throwRunTimeException("fk constraint cannot be both _cascade_ and _not_null_",
-							ExitCode.INVALIDUSAGE);
+				//TODO: here use the default behaviour of MySQL
+				ForeignKeyAction updatePolicy = ForeignKeyAction.RESTRICT;
+				ForeignKeyAction deletePolicy = ForeignKeyAction.RESTRICT;
 
-				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint(isCascade, isSetNull);
+				if(constraint.toUpperCase().contains("ON UPDATE CASCADE"))
+					updatePolicy = ForeignKeyAction.CASCADE;
+				if(constraint.toUpperCase().contains("ON UPDATE SET NULL"))
+					updatePolicy = ForeignKeyAction.SET_NULL;
+				if(constraint.toUpperCase().contains("ON UPDATE RESTRICT"))
+					updatePolicy = ForeignKeyAction.RESTRICT;
+
+				if(constraint.toUpperCase().contains("ON DELETE CASCADE"))
+					deletePolicy = ForeignKeyAction.CASCADE;
+				if(constraint.toUpperCase().contains("ON DELETE SET NULL"))
+					deletePolicy = ForeignKeyAction.SET_NULL;
+				if(constraint.toUpperCase().contains("ON DELETE RESTRICT"))
+					deletePolicy = ForeignKeyAction.RESTRICT;
+
+				ForeignKeyPolicy fkPolicy = new ForeignKeyPolicy(updatePolicy, deletePolicy, executionPolicy);
+
+				ForeignKeyConstraint fkConstraint = new ForeignKeyConstraint(fkPolicy);
 
 				int locationIndex = constraint.toUpperCase().indexOf("FOREIGN KEY");
 				int startIndex = constraint.indexOf("(", locationIndex);

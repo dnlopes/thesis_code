@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 
 import database.constraints.Constraint;
 import database.constraints.unique.AutoIncrementConstraint;
-import database.util.field.hidden.ClockGenerationField;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
@@ -18,8 +17,6 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
-import util.defaults.ScratchpadDefaults;
-
 
 /**
  * The Class DatabaseTable.
@@ -27,6 +24,7 @@ import util.defaults.ScratchpadDefaults;
 public abstract class DatabaseTable
 {
 
+	private ExecutionPolicy executionPolicy;
 	private String name;
 	private CrdtTableType tag;
 	private boolean containsAutoIncrementField;
@@ -39,8 +37,8 @@ public abstract class DatabaseTable
 	protected DataField deletedField;
 	protected DataField timestampField;
 
-	protected DataField locigalClockField;
-	protected DataField clockGenerationField;
+	protected DataField contentClockField;
+	protected DataField deletedClockField;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected HashMap<Integer, DataField> sortedFieldsMap;
@@ -49,15 +47,17 @@ public abstract class DatabaseTable
 
 	protected static LWWField timestampLWW;
 
-	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap)
+	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
+							ExecutionPolicy policy)
 	{
+		this.executionPolicy = policy;
 		this.fieldsMap = fieldsMap;
 		this.name = name;
 		this.tag = tableType;
 		this.fieldsNamesList = new ArrayList<>();
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
-			this.addScratchpadFields(name, tableType);
+			this.addHiddenFields(name, tableType);
 
 		this.containsAutoIncrementField = false;
 		this.primaryKeyMap = new LinkedHashMap<>();
@@ -71,7 +71,7 @@ public abstract class DatabaseTable
 		{
 			this.tableInvarists.addAll(entry.getValue().getInvariants());
 
-			if(entry.getValue().getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
+			if(entry.getValue().isHiddenField())
 				totalHiddenFields++;
 			else
 				this.fieldsNamesList.add(entry.getValue().getFieldName());
@@ -539,24 +539,23 @@ public abstract class DatabaseTable
 		return pkStrBuilder.toString();
 	}
 
-	private void addScratchpadFields(String name, CrdtTableType tableType)
+	private void addHiddenFields(String tableName, CrdtTableType tableType)
 	{
 		if(tableType == CrdtTableType.ARSETTABLE)
 		{
-			DataField deletedField = new DeletedField(name, fieldsMap.size());
+			DataField deletedField = new DeletedField(tableName, fieldsMap.size());
 			this.fieldsMap.put(deletedField.getFieldName(), deletedField);
 			this.deletedField = deletedField;
 			this.deletedField.setDefaultValue("FALSE");
 		}
 
-		DataField clockGenerationField = new ClockGenerationField(name, fieldsMap.size());
-		this.fieldsMap.put(clockGenerationField.getFieldName(), clockGenerationField);
+		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size());
+		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
+		this.contentClockField = contentClock;
 
-		DataField clockField = new LogicalClockField(name, fieldsMap.size());
-		this.fieldsMap.put(clockField.getFieldName(), clockField);
-
-		this.locigalClockField = clockField;
-		this.clockGenerationField = clockGenerationField;
+		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size());
+		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
+		this.deletedClockField = deletedClock;
 	}
 
 	public Set<Constraint> getTableInvarists()
@@ -569,7 +568,6 @@ public abstract class DatabaseTable
 		return this.insertColsString;
 	}
 
-
 	public DataField getDeletedField()
 	{
 		return this.deletedField;
@@ -580,13 +578,13 @@ public abstract class DatabaseTable
 		return this.timestampField;
 	}
 
-	public DataField getLocigalClockField()
+	public DataField getContentClockField()
 	{
-		return this.locigalClockField;
+		return this.contentClockField;
 	}
 
-	public DataField getClockGenerationField()
+	public ExecutionPolicy getExecutionPolicy()
 	{
-		return this.clockGenerationField;
+		return this.executionPolicy;
 	}
 }

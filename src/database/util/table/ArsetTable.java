@@ -3,6 +3,7 @@ package database.util.table;
 import java.sql.ResultSet;
 import java.util.*;
 
+import database.util.ExecutionPolicy;
 import database.util.field.LWW_DELETEDFLAG;
 import database.util.field.LWW_LOGICALTIMESTAMP;
 import database.util.CrdtTableType;
@@ -10,8 +11,6 @@ import database.util.DataField;
 import database.util.DatabaseTable;
 import util.ExitCode;
 import util.debug.Debug;
-
-import util.parser.DataFieldParser;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.schema.Column;
@@ -32,21 +31,9 @@ public class ArsetTable extends DatabaseTable
 	 * @param tableName  the t n
 	 * @param dataFields the d hm
 	 */
-	public ArsetTable(String tableName, LinkedHashMap<String, DataField> dataFields)
+	public ArsetTable(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.ARSETTABLE, dataFields);
-	}
-
-	/**
-	 * Adds the lww deleted flag data field.
-	 *
-	 * @param tableName the table name
-	 * @param dHM       the d hm
-	 */
-	public static void addLwwDeletedFlagDataField(String tableName, LinkedHashMap<String, DataField> dHM)
-	{
-		DataField lwwDeletedFlagDf = DataFieldParser.create_LwwDeletedFlag_Data_Field_Instance(tableName, dHM.size());
-		dHM.put(lwwDeletedFlagDf.getFieldName(), lwwDeletedFlagDf);
+		super(tableName, CrdtTableType.ARSETTABLE, dataFields, policy);
 	}
 
 	/**

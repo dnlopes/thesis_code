@@ -25,7 +25,7 @@ public class NORMAL_INTEGER extends DataField {
 	public NORMAL_INTEGER(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NORMALINTEGER, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

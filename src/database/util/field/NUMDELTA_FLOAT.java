@@ -27,7 +27,7 @@ public class NUMDELTA_FLOAT extends DataField {
 	public NUMDELTA_FLOAT(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NUMDELTAFLOAT, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

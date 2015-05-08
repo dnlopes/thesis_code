@@ -6,8 +6,6 @@ import database.util.DatabaseTable;
 import database.util.PrimaryKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.DBDefaults;
-import util.defaults.ScratchpadDefaults;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -22,19 +20,15 @@ public class TupleWriteSet
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TupleWriteSet.class);
-	private static final String CLOCK_PREBUILT_CLAUSE = ScratchpadDefaults.SCRATCHPAD_COL_CLOCK_GENERATION + " <= " +
-			DBDefaults.CLOCK_GENERATION_PLACEHOLDER + " AND " + ScratchpadDefaults.SCRATCHPAD_COL_CLOCK + " < " +
-			DBDefaults.CLOCK_VALUE_PLACEHOLDER;
-
 	private PrimaryKeyValue tupleId;
 	private Map<String, String> lwwFieldsValues;
 	private Map<String, String> oldFieldsValues;
-	private DatabaseTable dbTable;
+	private DatabaseTable table;
 
-	public TupleWriteSet(PrimaryKeyValue tuplePkValue, DatabaseTable dbTable)
+	public TupleWriteSet(PrimaryKeyValue tuplePkValue, DatabaseTable table)
 	{
 		this.tupleId = tuplePkValue;
-		this.dbTable = dbTable;
+		this.table = table;
 		this.lwwFieldsValues = new LinkedHashMap<>();
 		this.oldFieldsValues = new LinkedHashMap<>();
 	}
@@ -72,7 +66,7 @@ public class TupleWriteSet
 		LOG.debug("{} fields modified for tuple {}", this.lwwFieldsValues.size(), this.tupleId.getValue());
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
-		buffer.append(this.dbTable.getName());
+		buffer.append(this.table.getName());
 		buffer.append(" set ");
 
 		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
@@ -90,7 +84,7 @@ public class TupleWriteSet
 		}
 
 		buffer.append(" WHERE (");
-		buffer.append(this.dbTable.getPrimaryKey().getQueryClause());
+		buffer.append(this.table.getPrimaryKey().getQueryClause());
 		buffer.append(") = (");
 		buffer.append(this.tupleId.getValue());
 		buffer.append(")");
@@ -111,20 +105,20 @@ public class TupleWriteSet
 		StringBuffer colsBuffer = new StringBuffer();
 		StringBuffer valsBuffer = new StringBuffer();
 
-		if(this.dbTable.getTableType() == CrdtTableType.ARSETTABLE)
-			this.lwwFieldsValues.put(dbTable.getDeletedField().getFieldName(), "FALSE");
+		if(this.table.getTableType() == CrdtTableType.ARSETTABLE)
+			this.lwwFieldsValues.put(table.getDeletedField().getFieldName(), "FALSE");
 
 		/*
-		if(this.dbTable.getTableType() != CrdtTableType.NONCRDTTABLE)
+		if(this.table.getTableType() != CrdtTableType.NONCRDTTABLE)
 		{
-			this.lwwFieldsValues.put(dbTable.getClockGenerationField().getFieldName(),
+			this.lwwFieldsValues.put(table.getClockGenerationField().getFieldName(),
 					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
-			this.lwwFieldsValues.put(dbTable.getLocigalClockField().getFieldName(), DBDefaults
+			this.lwwFieldsValues.put(table.getContentClockField().getFieldName(), DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER);
 		}   */
 
 		buffer.append("insert into ");
-		buffer.append(this.dbTable.getName());
+		buffer.append(this.table.getName());
 
 		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
 

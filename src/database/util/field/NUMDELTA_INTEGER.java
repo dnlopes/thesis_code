@@ -27,7 +27,7 @@ public class NUMDELTA_INTEGER extends DataField {
 	public NUMDELTA_INTEGER(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NUMDELTAINTEGER, dFN, tN, dT, iPK, iFK,
-				iAIC, position);
+				iAIC, position, false);
 		// TODO Auto-generated constructor stub
 	}
 

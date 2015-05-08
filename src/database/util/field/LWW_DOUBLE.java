@@ -27,7 +27,7 @@ public class LWW_DOUBLE extends DataField
 	 */
 	public LWW_DOUBLE(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWDOUBLE, dFN, tN, dT, iPK, iFK, iAIC, position);
+		super(CrdtDataFieldType.LWWDOUBLE, dFN, tN, dT, iPK, iFK, iAIC, position, false);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -11,13 +11,13 @@ import java.sql.ResultSet;
 public class LogicalClockField extends DataField
 {
 
-	/** The Constant logical_Timestamp_Name. */
 	private static final String FIELD_NAME = ScratchpadDefaults.SCRATCHPAD_COL_CLOCK;
 	private static final String FIELD_TYPE = "integer";
 
 	public LogicalClockField(String tableName, int position)
 	{
-		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, FIELD_NAME, tableName, FIELD_TYPE, false, false, false, position);
+		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, FIELD_NAME, tableName, FIELD_TYPE, false, false, false,
+				position, true);
 	}
 
 	@Override

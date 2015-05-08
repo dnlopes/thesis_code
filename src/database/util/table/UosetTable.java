@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import database.util.ExecutionPolicy;
 import database.util.CrdtTableType;
 import database.util.DataField;
 import database.util.DatabaseTable;
@@ -28,9 +29,9 @@ public class UosetTable extends DatabaseTable
 	 * @param tableName  the t n
 	 * @param dataFields the d hm
 	 */
-	public UosetTable(String tableName, LinkedHashMap<String, DataField> dataFields)
+	public UosetTable(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.UOSETTABLE, dataFields);
+		super(tableName, CrdtTableType.UOSETTABLE, dataFields, policy);
 	}
 
 	/**

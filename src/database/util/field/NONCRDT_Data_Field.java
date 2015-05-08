@@ -26,7 +26,7 @@ public class NONCRDT_Data_Field extends DataField {
 	public NONCRDT_Data_Field(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NONCRDTFIELD, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

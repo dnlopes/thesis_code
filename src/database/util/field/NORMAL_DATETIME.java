@@ -25,7 +25,7 @@ public class NORMAL_DATETIME extends DataField {
 	public NORMAL_DATETIME(String dFN, String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.NORMALDATETIME, dFN, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -14,6 +14,7 @@ import database.constraints.Constraint;
 public abstract class DataField
 {
 
+	private boolean isHiddenField;
 	private List<Constraint> invariants;
 	private List<DataField> referencedBy;
 	private CrdtDataFieldType crdtDataType;
@@ -28,7 +29,7 @@ public abstract class DataField
 	private int position;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
-						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos)
+						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos, boolean isHiddenField)
 	{
 		this.defaultValue = null;
 		this.isAllowedNULL = false;
@@ -44,6 +45,7 @@ public abstract class DataField
 		this.position = pos;
 		this.invariants = new LinkedList<>();
 		this.referencedBy= new LinkedList<>();
+		this.isHiddenField = isHiddenField;
 	}
 
 	public abstract String get_Crdt_Form(ResultSet rs, String Value);
@@ -169,5 +171,10 @@ public abstract class DataField
 	public void addReferencedByField(DataField field)
 	{
 		this.referencedBy.add(field);
+	}
+
+	public boolean isHiddenField()
+	{
+		return this.isHiddenField;
 	}
 }

@@ -27,7 +27,7 @@ public class LWW_LOGICALTIMESTAMP extends DataField {
 	public LWW_LOGICALTIMESTAMP(String tN, String dT, boolean iPK,
 			boolean iFK, boolean iAIC, int position) {
 		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, logical_Timestamp_Name, tN, dT, iPK, iFK, iAIC,
-				position);
+				position, false);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -30,7 +30,7 @@ public class LWW_DELETEDFLAG extends DataField
 	 */
 	public LWW_DELETEDFLAG(String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWDELETEDFLAG, deleted_Flag_Name, tN, dT, iPK, iFK, iAIC, position);
+		super(CrdtDataFieldType.LWWDELETEDFLAG, deleted_Flag_Name, tN, dT, iPK, iFK, iAIC, position, false);
 		// TODO Auto-generated constructor stub
 	}
 

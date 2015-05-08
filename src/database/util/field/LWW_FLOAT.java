@@ -27,7 +27,7 @@ public class LWW_FLOAT extends DataField
 	 */
 	public LWW_FLOAT(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWFLOAT, dFN, tN, dT, iPK, iFK, iAIC, position);
+		super(CrdtDataFieldType.LWWFLOAT, dFN, tN, dT, iPK, iFK, iAIC, position, false);
 		// TODO Auto-generated constructor stub
 	}
 
