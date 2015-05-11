@@ -1,8 +1,8 @@
 package runtime.txn;
 
 
-import database.util.CrdtTableType;
 import database.util.DatabaseTable;
+import database.util.FieldValue;
 import database.util.PrimaryKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,65 +16,65 @@ import java.util.Map;
 /**
  * Created by dnlopes on 21/03/15.
  */
-public class TupleWriteSet
+public class RowWriteSet
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TupleWriteSet.class);
-	private PrimaryKeyValue tupleId;
-	private Map<String, String> lwwFieldsValues;
-	private Map<String, String> oldFieldsValues;
-	private DatabaseTable table;
+	protected static final Logger LOG = LoggerFactory.getLogger(RowWriteSet.class);
+	protected PrimaryKeyValue pkValue;
+	protected Map<String, FieldValue> newContent;
+	protected Map<String, FieldValue> oldContent;
+	protected DatabaseTable table;
 
-	public TupleWriteSet(PrimaryKeyValue tuplePkValue, DatabaseTable table)
+	public RowWriteSet(PrimaryKeyValue pkValue, DatabaseTable table)
 	{
-		this.tupleId = tuplePkValue;
+		this.pkValue = pkValue;
 		this.table = table;
-		this.lwwFieldsValues = new LinkedHashMap<>();
-		this.oldFieldsValues = new LinkedHashMap<>();
+		this.newContent = new LinkedHashMap<>();
+		this.oldContent = new LinkedHashMap<>();
 	}
 
-	public void addLwwEntry(String fieldName, String lwwValue)
+	public void addNewContent(String fieldName, FieldValue lwwValue)
 	{
-		this.lwwFieldsValues.put(fieldName, lwwValue);
+		this.newContent.put(fieldName, lwwValue);
 	}
 
-	public void addOldEntry(String fieldName, String oldValue)
+	public void addOldContent(String fieldName, FieldValue oldValue)
 	{
-		this.oldFieldsValues.put(fieldName, oldValue);
+		this.oldContent.put(fieldName, oldValue);
 	}
 
 	public PrimaryKeyValue getTuplePkValue()
 	{
-		return this.tupleId;
+		return this.pkValue;
 	}
 
-	public Map<String, String> getModifiedValuesMap()
+	public Map<String, FieldValue> getModifiedValuesMap()
 	{
-		return this.lwwFieldsValues;
+		return this.newContent;
 	}
 
-	public Map<String, String> getOldValuesMap()
+	public Map<String, FieldValue> getOldValuesMap()
 	{
-		return this.oldFieldsValues;
+		return this.oldContent;
 	}
 
 	public void generateUpdateStatement(List<String> statements)
 	{
-		if(lwwFieldsValues.size() == 0)
+		if(newContent.size() == 0)
 			return;
 
-		LOG.debug("{} fields modified for tuple {}", this.lwwFieldsValues.size(), this.tupleId.getValue());
+		LOG.debug("{} fields modified for tuple {}", this.newContent.size(), this.pkValue.getValue());
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
 		buffer.append(this.table.getName());
 		buffer.append(" set ");
 
-		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
+		Iterator<String> modifiedFieldsIterator = this.newContent.keySet().iterator();
 
 		while(modifiedFieldsIterator.hasNext())
 		{
 			String fieldName = modifiedFieldsIterator.next();
-			String newValue = this.lwwFieldsValues.get(fieldName);
+			FieldValue newValue = this.newContent.get(fieldName);
 			buffer.append(fieldName);
 			buffer.append("=");
 			buffer.append(newValue);
@@ -86,7 +86,7 @@ public class TupleWriteSet
 		buffer.append(" WHERE (");
 		buffer.append(this.table.getPrimaryKey().getQueryClause());
 		buffer.append(") = (");
-		buffer.append(this.tupleId.getValue());
+		buffer.append(this.pkValue.getValue());
 		buffer.append(")");
 
 		/*buffer.append(") AND (");
@@ -105,27 +105,27 @@ public class TupleWriteSet
 		StringBuffer colsBuffer = new StringBuffer();
 		StringBuffer valsBuffer = new StringBuffer();
 
-		if(this.table.getTableType() == CrdtTableType.ARSETTABLE)
-			this.lwwFieldsValues.put(table.getDeletedField().getFieldName(), "FALSE");
+		//if(this.table.getTableType() == CrdtTableType.ARSETTABLE)
+			//this.newContent.put(table.getDeletedField().getFieldName(), "FALSE");
 
 		/*
 		if(this.table.getTableType() != CrdtTableType.NONCRDTTABLE)
 		{
-			this.lwwFieldsValues.put(table.getClockGenerationField().getFieldName(),
+			this.newContent.put(table.getClockGenerationField().getFieldName(),
 					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
-			this.lwwFieldsValues.put(table.getContentClockField().getFieldName(), DBDefaults
+			this.newContent.put(table.getContentClockField().getFieldName(), DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER);
 		}   */
 
 		buffer.append("insert into ");
 		buffer.append(this.table.getName());
 
-		Iterator<String> modifiedFieldsIterator = this.lwwFieldsValues.keySet().iterator();
+		Iterator<String> modifiedFieldsIterator = this.newContent.keySet().iterator();
 
 		while(modifiedFieldsIterator.hasNext())
 		{
 			String fieldName = modifiedFieldsIterator.next();
-			String newValue = this.lwwFieldsValues.get(fieldName);
+			FieldValue newValue = this.newContent.get(fieldName);
 			colsBuffer.append(fieldName);
 			valsBuffer.append(newValue);
 			if(modifiedFieldsIterator.hasNext())

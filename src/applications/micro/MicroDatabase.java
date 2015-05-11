@@ -94,7 +94,7 @@ public class MicroDatabase
 	private void createTables(boolean useForeignKeys) throws SQLException
 	{
 		int dumb = 0;
-		for(int i = 0; i < TABLE_NUM; i++)
+		for(int i = 1; i <= TABLE_NUM; i++)
 		{
 			stat.execute("DROP TABLE IF EXISTS t" + i);
 			conn.commit();
@@ -144,7 +144,7 @@ public class MicroDatabase
 
 	private void insertIntoTables() throws SQLException
 	{
-		for(int i = 0; i < TABLE_NUM; i++)
+		for(int i = 1; i <= TABLE_NUM; i++)
 		{
 			for(int j = 0; j < RECORDS_NUM; j++)
 			{

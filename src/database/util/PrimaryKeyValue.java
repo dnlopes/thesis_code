@@ -4,8 +4,9 @@ package database.util;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -14,47 +15,47 @@ import java.util.List;
 public final class PrimaryKeyValue
 {
 
-	private final String valuesClause;
-	private final String tableName;
+	private String tableName;
+	private Map<String, FieldValue> values;
+	private String pkString;
+	private boolean isGenerated;
 
-	public PrimaryKeyValue(List<String> values, String tableName)
+	public PrimaryKeyValue(String tableName)
 	{
-		this.valuesClause = this.generateValue(values);
 		this.tableName = tableName;
-	}
-
-	public PrimaryKeyValue(String compiledValue, String tableName)
-	{
-		this.valuesClause = compiledValue;
-		this.tableName = tableName;
+		this.values = new HashMap<>();
+		this.isGenerated = false;
 	}
 
 	public String getValue()
 	{
-		return this.valuesClause;
+		if(!isGenerated)
+			this.generateValue();
+
+		return this.pkString;
 	}
 
-	private String generateValue(List<String> values)
+	public void addFieldValue(FieldValue fieldValue)
 	{
-		StringBuilder buffer = new StringBuilder();
+		this.values.put(fieldValue.getFieldName(), fieldValue);
+		this.isGenerated = false;
+	}
 
-		Iterator<String> it = values.iterator();
-		while(it.hasNext())
-		{
-			buffer.append(it.next());
-			if(it.hasNext())
-				buffer.append(",");
-		}
+	public FieldValue getFieldValue(String fieldName)
+	{
+		return this.values.get(fieldName);
+	}
 
-		//buffer.append(")");
-		return buffer.toString();
+	public String getTableName()
+	{
+		return this.tableName;
 	}
 
 	@Override
 	public int hashCode()
 	{
 		return new HashCodeBuilder(17, 31). // two randomly chosen prime numbers
-				append(valuesClause).
+				append(this.pkString).
 				toHashCode();
 	}
 
@@ -68,8 +69,24 @@ public final class PrimaryKeyValue
 
 		PrimaryKeyValue otherObject = (PrimaryKeyValue) obj;
 		return new EqualsBuilder().
-				append(this.valuesClause, otherObject.getValue()).
+				append(this.pkString, otherObject.getValue()).
 				isEquals();
+	}
+
+	private void generateValue()
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		Iterator<FieldValue> it = values.values().iterator();
+		while(it.hasNext())
+		{
+			buffer.append(it.next());
+			if(it.hasNext())
+				buffer.append(",");
+		}
+
+		this.isGenerated = true;
+		this.pkString = buffer.toString();
 	}
 	
 }

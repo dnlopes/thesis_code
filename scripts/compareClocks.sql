@@ -31,9 +31,6 @@ loopTag: WHILE (TRUE) DO
     		LEAVE loopTag;
     	END IF;    
     	SET @isLesser = TRUE;  
-    ELSE
-        -- TODO  
-        SET @isLesser = TRUE;
     END IF;
  
 	IF (LENGTH(currentClock) = 1) then

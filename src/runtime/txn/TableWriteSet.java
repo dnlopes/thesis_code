@@ -22,8 +22,8 @@ public class TableWriteSet
 	private String tableName;
 	// list of tupleId that were deleted, inserted and updates
 	private Set<PrimaryKeyValue> deletedTuples;
-	private Map<PrimaryKeyValue, TupleWriteSet> insertedTuples;
-	private Map<PrimaryKeyValue, TupleWriteSet> updatedTuples;
+	private Map<PrimaryKeyValue, RowWriteSet> insertedTuples;
+	private Map<PrimaryKeyValue, RowWriteSet> updatedTuples;
 
 	public TableWriteSet(String tableName)
 	{
@@ -33,12 +33,12 @@ public class TableWriteSet
 		this.updatedTuples = new HashMap<>();
 	}
 
-	public void addUpdatedRow(PrimaryKeyValue pkValue, TupleWriteSet writeSet)
+	public void addUpdatedRow(PrimaryKeyValue pkValue, RowWriteSet writeSet)
 	{
 		this.updatedTuples.put(pkValue, writeSet);
 	}
 
-	public TupleWriteSet getTupleWriteSet(PrimaryKeyValue pkValue)
+	public RowWriteSet getTupleWriteSet(PrimaryKeyValue pkValue)
 	{
 		if(this.insertedTuples.containsKey(pkValue))
 			return this.insertedTuples.get(pkValue);
@@ -48,12 +48,12 @@ public class TableWriteSet
 			return null;
 	}
 
-	public Collection<TupleWriteSet> getInsertedTuplesWriteSet()
+	public Collection<RowWriteSet> getInsertedTuplesWriteSet()
 	{
 		return this.insertedTuples.values();
 	}
 
-	public Collection<TupleWriteSet> getUpdatedTuplesWriteSet()
+	public Collection<RowWriteSet> getUpdatedTuplesWriteSet()
 	{
 		return this.updatedTuples.values();
 	}
@@ -63,7 +63,7 @@ public class TableWriteSet
 		this.deletedTuples.add(id);
 	}
 
-	public void addInsertedRow(PrimaryKeyValue pkValue, TupleWriteSet writeSet)
+	public void addInsertedRow(PrimaryKeyValue pkValue, RowWriteSet writeSet)
 	{
 		this.insertedTuples.put(pkValue, writeSet);
 	}
@@ -83,7 +83,7 @@ public class TableWriteSet
 		return this.deletedTuples;
 	}
 
-	public Map<PrimaryKeyValue, TupleWriteSet> getInsertedRows()
+	public Map<PrimaryKeyValue, RowWriteSet> getInsertedRows()
 	{
 		return this.insertedTuples;
 	}
@@ -132,8 +132,8 @@ public class TableWriteSet
 		LOG.debug("{} tuples updated", this.updatedTuples.size());
 		for(PrimaryKeyValue pkValue : this.updatedTuples.keySet())
 		{
-			TupleWriteSet tupleWriteSet = this.updatedTuples.get(pkValue);
-			tupleWriteSet.generateUpdateStatement(statements);
+			RowWriteSet rowWriteSet = this.updatedTuples.get(pkValue);
+			rowWriteSet.generateUpdateStatement(statements);
 		}
 	}
 
@@ -145,8 +145,8 @@ public class TableWriteSet
 		LOG.trace("{} tuples inserted", this.insertedTuples.size());
 		for(PrimaryKeyValue pkValue : this.insertedTuples.keySet())
 		{
-			TupleWriteSet tupleWriteSet = this.insertedTuples.get(pkValue);
-			tupleWriteSet.generateInsertStatement(statements);
+			RowWriteSet rowWriteSet = this.insertedTuples.get(pkValue);
+			rowWriteSet.generateInsertStatement(statements);
 		}
 	}
 

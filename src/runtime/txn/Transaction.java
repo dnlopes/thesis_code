@@ -2,9 +2,13 @@ package runtime.txn;
 
 
 import org.perf4j.StopWatch;
+import runtime.operation.Operation;
 import runtime.operation.ShadowOperation;
 import util.LogicalClock;
 import util.TimeStamp;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -21,6 +25,7 @@ public class Transaction
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
 	private boolean readyToCommit;
+	private List<Operation> txnOps;
 
 	public Transaction(TransactionIdentifier txnId)
 	{
@@ -31,6 +36,12 @@ public class Transaction
 		this.lc = null;
 		this.timer = new StopWatch();
 		this.readyToCommit = false;
+		this.txnOps = new ArrayList<>();
+	}
+
+	public void addOperation(Operation op)
+	{
+		this.txnOps.add(op);
 	}
 
 	public TransactionIdentifier getTxnId()

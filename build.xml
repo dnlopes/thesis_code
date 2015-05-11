@@ -166,6 +166,7 @@
 				<include name="config.xml" />
 				<include name="tpcc-database.sql" />
 				<include name="tpcw-database.sql" />
+				<include name="micro-database.sql" />
 			</fileset>
 		</jar>
 	</target>
@@ -179,6 +180,7 @@
 				<include name="database.properties" />
 				<include name="tpcc-database.sql" />
 				<include name="tpcw-database.sql" />
+				<include name="micro-database.sql" />
 				<include name="log4j.properties" />
 			</fileset>
 		</copy>
@@ -217,6 +219,7 @@
 				<include name="config.xml" />
 				<include name="tpcc-database.sql" />
 				<include name="tpcw-database.sql" />
+				<include name="micro-database.sql" />
 			</fileset>
 		</jar>
 		<copy file="${jars.dir}/tpcc-client.jar" todir="${deploy.dir}" />

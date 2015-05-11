@@ -203,15 +203,12 @@ public class CreateStatementParser
 
 		int startIndex = StringUtils.ordinalIndexOf(titleStr, "@", 2);
 		if(startIndex == -1)
-			annotation = "";
+			return ExecutionPolicy.UPDATEWINS;
 
 		int endIndex = titleStr.indexOf(" ", startIndex);
 		annotation = titleStr.substring(startIndex + 1, endIndex);
 
-		if(annotation.equals(""))
-			return ExecutionPolicy.UPDATEWINS;
-		else
-			return ExecutionPolicy.valueOf(annotation);
+		return ExecutionPolicy.valueOf(annotation);
 	}
 
 	/**
@@ -338,7 +335,7 @@ public class CreateStatementParser
 					"PRIMARY KEY") || declarationStrs[i].toUpperCase().startsWith(
 					"INDEX") || declarationStrs[i].toUpperCase().startsWith(
 					"KEY") || declarationStrs[i].toUpperCase().startsWith(
-					"UNIQUE") || declarationStrs[i].toUpperCase().startsWith(
+					"UNIQUE") || declarationStrs[i].toUpperCase().contains(
 					"FOREIGN KEY") || declarationStrs[i].toUpperCase().startsWith("CHECK")))
 			{
 				attrStrs.add(declarationStrs[i]);

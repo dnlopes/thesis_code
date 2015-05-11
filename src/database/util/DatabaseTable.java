@@ -55,6 +55,7 @@ public abstract class DatabaseTable
 		this.name = name;
 		this.tag = tableType;
 		this.fieldsNamesList = new ArrayList<>();
+		this.primaryKey = new PrimaryKey();
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
 			this.addHiddenFields(name, tableType);
@@ -78,6 +79,7 @@ public abstract class DatabaseTable
 
 			if(entry.getValue().isPrimaryKey())
 			{
+				this.primaryKey.addField(entry.getValue());
 				this.addPrimaryKey(entry.getValue());
 				tempList.add(entry.getValue());
 			}
@@ -98,7 +100,6 @@ public abstract class DatabaseTable
 
 		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
-		this.primaryKey = new PrimaryKey(tempList);
 
 		StringBuffer buffer = new StringBuffer();
 

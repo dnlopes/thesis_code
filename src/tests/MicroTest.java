@@ -1,8 +1,10 @@
 package tests;
 
 
+import applications.micro.MicroDatabase;
 import database.jdbc.ConnectionFactory;
 import util.defaults.Configuration;
+import util.props.DatabaseProperties;
 
 import java.io.IOException;
 import java.sql.*;
@@ -13,21 +15,29 @@ import java.sql.*;
  */
 public class MicroTest
 {
+	private final static String DB_HOST = "172.16.24.190";
+
 
 
 	public static void main(String args[]) throws IOException, ClassNotFoundException, SQLException
 	{
-		//Micro_Populate db = new Micro_Populate();
+
+		DatabaseProperties props = new DatabaseProperties("sa", "101010", DB_HOST, 3306);
+
+		System.setProperty("configPath","/Users/dnlopes/devel/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml");
+		System.setProperty("proxyid", "1");
+		//MicroDatabase microDatabase = new MicroDatabase(props);
+		//microDatabase.setupDatabase(false);
 
 		Configuration config = Configuration.getInstance();
 
 		Connection conn = null;
-		PreparedStatement stat = null;
+		Statement stat = null;
 		try
 		{
-			conn = ConnectionFactory.getCRDTConnection(config.getProxyConfigWithIndex(1));
+			conn = ConnectionFactory.getCRDTConnection(props, "micro");
 
-			stat = conn.prepareStatement("SELECT a,b FROM t1 WHERE c = ?");
+			stat = conn.createStatement();
 		} catch(SQLException e)
 		{
 			e.printStackTrace();
@@ -35,9 +45,7 @@ public class MicroTest
 		int res;
 		ResultSet rs;
 
-			stat.setInt(1, 2);
-			rs = stat.executeQuery();
-
+		stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,10,10,'aaa')");
 		res = stat.executeUpdate("update t3 set b=9, d=10 where a>8");
 			res = stat.executeUpdate("update t3 set e='teste' where a>6");
 			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");

@@ -8,6 +8,7 @@ public class DBDefaults
 
 	public static final String CONTENT_CLOCK_COLUMN = "_cclock";
 	public static final String DELETED_CLOCK_COLUMN = "_dclock";
+	public static final String DELETED_COLUMN = "_del";
 	public static final String CLOCK_VALUE_PLACEHOLDER = "_cvalue_placeholder";
 	public static final String CLOCK_GENERATION_PLACEHOLDER = "_cgen_placeholder";
 

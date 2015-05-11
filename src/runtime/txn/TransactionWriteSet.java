@@ -34,8 +34,8 @@ public class TransactionWriteSet
 
 	// list of tuples that will be modified after contacting the coordinator
 	// for instance when requesting a new id
-	private Map<String, TupleWriteSet> modifiedTuples;
-	private Map<TupleWriteSet, String> modifiedFieldName;
+	private Map<String, RowWriteSet> modifiedTuples;
+	private Map<RowWriteSet, String> modifiedFieldName;
 
 	public TransactionWriteSet()
 	{
@@ -113,35 +113,38 @@ public class TransactionWriteSet
 
 	public void processCoordinatorResponse(List<ResponseEntry> results)
 	{
+		/*
 		for(ResponseEntry result : results)
 		{
 			if(result.getResquestedValue() != null)
 			{
 				String pkValueString = result.getId();
-				TupleWriteSet tupleWriteSet = this.modifiedTuples.get(pkValueString);
-				tupleWriteSet.addLwwEntry(this.modifiedFieldName.get(tupleWriteSet), result.getResquestedValue());
+				RowWriteSet rowWriteSet = this.modifiedTuples.get(pkValueString);
+				rowWriteSet.addNewContent(this.modifiedFieldName.get(rowWriteSet), result.getResquestedValue());
 				LOG.trace("tuple updated with value received from coordinator");
 			}
 		}
+		*/
 	}
 
 	private void verifyInvariantsForTable(TableWriteSet writeSet, List<RequestEntry> checkList)
 	{
 		// check inserts
-		for(TupleWriteSet tupleWriteSet : writeSet.getInsertedTuplesWriteSet())
-			this.createCheckListForInserts(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTuplePkValue(),
+		for(RowWriteSet rowWriteSet : writeSet.getInsertedTuplesWriteSet())
+			this.createCheckListForInserts(rowWriteSet, writeSet.getTableName(), rowWriteSet.getTuplePkValue(),
 					checkList);
 		// check updates
-		for(TupleWriteSet tupleWriteSet : writeSet.getUpdatedTuplesWriteSet())
-			this.createCheckListForUpdates(tupleWriteSet, writeSet.getTableName(), tupleWriteSet.getTuplePkValue(),
+		for(RowWriteSet rowWriteSet : writeSet.getUpdatedTuplesWriteSet())
+			this.createCheckListForUpdates(rowWriteSet, writeSet.getTableName(), rowWriteSet.getTuplePkValue(),
 					checkList);
 	}
 
-	private void createCheckListForInserts(TupleWriteSet tupleWriteSet, String tableName, PrimaryKeyValue pkValue,
+	private void createCheckListForInserts(RowWriteSet rowWriteSet, String tableName, PrimaryKeyValue pkValue,
 										   List<RequestEntry> checkList)
 	{
+		/*
 		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
-		Map<String, String> lwwFields = tupleWriteSet.getModifiedValuesMap();
+		Map<String, String> lwwFields = rowWriteSet.getModifiedValuesMap();
 
 		for(Constraint c : table.getTableInvarists())
 		{
@@ -153,8 +156,8 @@ public class TransactionWriteSet
 			{
 			case AUTO_INCREMENT:
 				newEntry.setType(RequestType.REQUEST_ID);
-				this.modifiedTuples.put(pkValue.getValue(), tupleWriteSet);
-				this.modifiedFieldName.put(tupleWriteSet, c.getFields().get(0).getFieldName());
+				this.modifiedTuples.put(pkValue.getValue(), rowWriteSet);
+				this.modifiedFieldName.put(rowWriteSet, c.getFields().get(0).getFieldName());
 				LOG.debug("new request id entry added for constraint {}", c.getConstraintIdentifier());
 				checkList.add(newEntry);
 				break;
@@ -177,14 +180,16 @@ public class TransactionWriteSet
 				break;
 			}
 		}
+		*/
 	}
 
-	private void createCheckListForUpdates(TupleWriteSet tupleWriteSet, String tableName, PrimaryKeyValue pkValue,
+	private void createCheckListForUpdates(RowWriteSet rowWriteSet, String tableName, PrimaryKeyValue pkValue,
 										   List<RequestEntry> checkList)
 	{
+		/*
 		DatabaseTable table = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
-		Map<String, String> lwwFields = tupleWriteSet.getModifiedValuesMap();
-		Map<String, String> oldFields = tupleWriteSet.getOldValuesMap();
+		//Map<String, String> lwwFields = rowWriteSet.getModifiedValuesMap();
+		//Map<String, String> oldFields = rowWriteSet.getOldValuesMap();
 
 		for(String fieldName : lwwFields.keySet())
 		{
@@ -206,8 +211,8 @@ public class TransactionWriteSet
 				{
 				case AUTO_INCREMENT:
 					newEntry.setType(RequestType.REQUEST_ID);
-					this.modifiedTuples.put(pkValue.getValue(), tupleWriteSet);
-					this.modifiedFieldName.put(tupleWriteSet, fieldName);
+					this.modifiedTuples.put(pkValue.getValue(), rowWriteSet);
+					this.modifiedFieldName.put(rowWriteSet, fieldName);
 					LOG.trace("new request id check entry added for field {}", fieldName);
 					checkList.add(newEntry);
 					break;
@@ -243,15 +248,11 @@ public class TransactionWriteSet
 						LOG.trace("new delta check entry added for field {}", fieldName);
 					}
 					break;
-				case FOREIGN_KEY:
-					RuntimeHelper.throwRunTimeException("invariant not supported yet", ExitCode
-							.MISSING_IMPLEMENTATION);
-					break;
 				default:
 					LOG.error("unexpected constraint ");
 					RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
 				}
 			}
 		}
-	}
+	*/}
 }

@@ -1,8 +1,9 @@
 package database.util;
 
 
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -11,17 +12,33 @@ import java.util.List;
 public class PrimaryKey
 {
 
-	private List<DataField> fields;
-	private final String queryClause;
-	private final int pkSize;
+	private String queryClause;
+	private int pkSize;
+	private Map<String, DataField> fields;
+	private boolean isGenerated;
 
-	public PrimaryKey(List<DataField> fields)
+
+	public PrimaryKey()
 	{
-		this.fields = fields;
+		this.fields = new HashMap<>();
+		this.isGenerated = false;
+	}
 
-		this.pkSize = fields.size();
-		this.queryClause = this.generateQueryClause();
+	public void addField(DataField field)
+	{
+		this.fields.put(field.getFieldName(), field);
+		this.isGenerated = false;
+	}
 
+	public Map<String, DataField> getPrimaryKeyFields()
+	{
+		return this.fields;
+	}
+
+	public PrimaryKey(String formatedPk, int size)
+	{
+		this.queryClause = formatedPk;
+		pkSize = size;
 	}
 
 	public int getSize()
@@ -31,14 +48,17 @@ public class PrimaryKey
 
 	public String getQueryClause()
 	{
+		if(!this.isGenerated)
+			this.generateQueryClause();
+
 		return this.queryClause;
 	}
 
-	private String generateQueryClause()
+	private void generateQueryClause()
 	{
 		StringBuilder buffer = new StringBuilder();
 
-		Iterator<DataField> it = this.fields.iterator();
+		Iterator<DataField> it = this.fields.values().iterator();
 		while(it.hasNext())
 		{
 			buffer.append(it.next().getFieldName());
@@ -46,7 +66,8 @@ public class PrimaryKey
 				buffer.append(",");
 		}
 
-		return buffer.toString();
+		this.isGenerated = true;
+		this.queryClause = buffer.toString();
 	}
 	
 }
