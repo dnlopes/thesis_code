@@ -3,15 +3,14 @@ package database.scratchpad;
 
 import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
+import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.jdbc.Result;
 import database.jdbc.util.DBUpdateResult;
-import database.jdbc.util.DBWriteSetEntry;
 import database.util.*;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Database;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -21,15 +20,11 @@ import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.operation.InsertChildOperation;
-import runtime.operation.InsertOperation;
-import runtime.operation.Operation;
+import runtime.operation.*;
 import runtime.txn.TableWriteSet;
-import runtime.txn.RowWriteSet;
 import util.exception.CheckConstraintViolatedException;
 import util.defaults.Configuration;
 import runtime.RuntimeHelper;
-import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.ScratchpadDefaults;
@@ -77,14 +72,13 @@ public class DBExecuter implements IExecuter
 		this.pk = databaseTable.getPrimaryKey();
 		this.modified = false;
 		this.selectAllItems = new ArrayList<>();
-		this.fields = new HashMap<>();
+		this.fields = this.databaseTable.getFieldsMap();
 
 		this.writeSet = new TableWriteSet(this.databaseTable.getName());
 
-		for(DataField field : databaseTable.getFieldsList())
+		for(DataField field : this.fields.values())
 		{
-			this.fields.put(field.getFieldName(), field);
-			if(field.getFieldName().startsWith(ScratchpadDefaults.SCRATCHPAD_COL_PREFIX))
+			if(field.isHiddenField())
 				continue;
 
 			Column column = new Column(field.getFieldName());
@@ -655,7 +649,7 @@ public class DBExecuter implements IExecuter
 					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
 							.startsWith(
 
-							"max("))
+									"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -827,7 +821,7 @@ public class DBExecuter implements IExecuter
 				String col = colIt.next().toString();
 				String val = valIt.next().toString();
 				DataField field = this.fields.get(col);
-				FieldValue newContentField = new FieldValue(field.getCrdtType(), field.getFieldName(), val);
+				FieldValue newContentField = new FieldValue(field, val);
 				insertedRow.addFieldValue(newContentField);
 
 				if(field.isPrimaryKey())
@@ -846,8 +840,8 @@ public class DBExecuter implements IExecuter
 
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
-			op = new InsertChildOperation(this.databaseTable.getExecutionPolicy(),
-					DatabaseCommon.findParentRows(insertedRow, this.fkConstraints, db),insertedRow);
+			List<Row> parents = DatabaseCommon.findParentRows(insertedRow, this.fkConstraints, db);
+			op = new InsertChildOperation(this.databaseTable.getExecutionPolicy(), parents, insertedRow);
 		} else // its a "neutral" or "parent" row
 			op = new InsertOperation(this.databaseTable.getExecutionPolicy(), insertedRow);
 
@@ -880,8 +874,8 @@ public class DBExecuter implements IExecuter
 	{
 		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(SELECT ");
-		buffer.append(this.pk.getQueryClause());
+		buffer.append("(SELECT *");
+		//buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
@@ -890,15 +884,14 @@ public class DBExecuter implements IExecuter
 			buffer.append("AND ");
 			this.generateNotInDeletedAndUpdatedClause(buffer);
 		}
-		buffer.append(") UNION (SELECT ");
-		buffer.append(this.pk.getQueryClause());
+		buffer.append(") UNION (SELECT *");
+		//buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
 		buffer.append(")");
 		String query = buffer.toString();
 
-		// this should only return 1 row...
 		LOG.trace("selection for delete: {}", query);
 
 		int rowsDeleted = 0;
@@ -907,39 +900,17 @@ public class DBExecuter implements IExecuter
 		try
 		{
 			res = db.executeQuery(query);
+			Row rowToDelete = null;
 			while(res.next())
 			{
+				if(!res.isLast())
+					RuntimeHelper.throwRunTimeException("ResultSet should contain exactly 1 row",
+							ExitCode.FETCH_RESULTS_ERROR);
+
 				rowsDeleted++;
-				//String pkValueString = this.getPkValue(res);
-				//PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
-				PrimaryKeyValue pkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable.getName());
-				this.recordedPkValues.put(pkValue.getValue(), pkValue);
+				rowToDelete = DatabaseCommon.getFullRow(res, this.databaseTable);
 
-				/* we will remove this row.
-				thus, remove it from duplicatedRows and add it to deletedRows */
-				if(this.writeSet.getInsertedRows().containsKey(pkValue))
-					this.writeSet.removeInsertedRow(pkValue);
-				else
-					this.writeSet.removeUpdatedRow(pkValue);
-
-				this.writeSet.addDeletedRow(pkValue);
-
-				int nPks = tableDefinition.getPksPlain().length;
-				if(nPks > 0)
-				{
-					String[] pkVal = new String[nPks];
-					for(int i = 0; i < pkVal.length; i++)
-						pkVal[i] = res.getObject(i + 1).toString();
-					db.addToWriteSet(DBWriteSetEntry.createEntry(deleteOp.getTable().toString(), pkVal, true, true));
-				}
-
-				String[] uniqueIndexStrs = tableDefinition.getUqIndicesPlain();
-				for(int k = 0; k < uniqueIndexStrs.length; k++)
-				{
-					String[] uqStr = new String[1];
-					uqStr[0] = res.getString(uniqueIndexStrs[k]);
-					db.addToWriteSet(DBWriteSetEntry.createEntry(tableDefinition.name, uqStr, true, true));
-				}
+				this.recordedPkValues.put(rowToDelete.getPkValue().getValue(), rowToDelete.getPkValue());
 			}
 
 			buffer = new StringBuffer();
@@ -951,6 +922,19 @@ public class DBExecuter implements IExecuter
 			String delete = buffer.toString();
 
 			rowsDeleted += db.executeUpdate(delete);
+
+			Operation op;
+			if(this.databaseTable.isParentTable())
+			{
+				op = new DeleteParentOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
+				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete, db);
+
+			} else
+				op = new DeleteOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
+
+			db.getActiveTransaction().addOperation(op);
+			op.generateOperationStatements();
+
 			return DBUpdateResult.createResult(rowsDeleted);
 		} catch(SQLException e)
 		{
@@ -964,10 +948,9 @@ public class DBExecuter implements IExecuter
 
 	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
 	{
-		// before writting in the scratchpad, add the missing rows
-		// we also use this method to capture all the tuples that will be affected by the update
+		// before writting in the scratchpad, add the missing rows to the scratchpad
 		this.addMissingRowsToScratchpad(updateOp, db);
-		List<String> affectedRows = this.getResultSelectBeforeUpdate(updateOp, db);
+		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp, db);
 
 		// now perform the actual update only in the scratchpad
 		StringBuffer buffer = new StringBuffer();
@@ -982,46 +965,56 @@ public class DBExecuter implements IExecuter
 			String columnName = colIt.next().toString();
 			String newValue = expIt.next().toString();
 			DataField field = this.fields.get(columnName);
-			FieldValue newFieldContent = new FieldValue(field.getCrdtType(), field.getFieldName(), newValue);
 
 			if(field.isImmutableField())
 				RuntimeHelper.throwRunTimeException("trying to modify an immutable field", ExitCode.UNEXPECTED_OP);
 
-			// we are updating this field, lets check if it is a valid value
-			//this.verifyCheckConstraints(field, newValue);
+			if(newValue == null)
+				newValue = "NULL";
 
-			for(String pkValueString : affectedRows)
-			{
-				PrimaryKeyValue pkValue = this.recordedPkValues.get(pkValueString);
-				RowWriteSet rowWriteSet = this.writeSet.getTupleWriteSet(pkValue);
-				if(rowWriteSet == null)
-					RuntimeHelper.throwRunTimeException("rowWriteSet cannot be null", ExitCode.ERRORNOTNULL);
+			FieldValue newFieldValue = new FieldValue(field, newValue);
 
-				rowWriteSet.addNewContent(columnName, newFieldContent);
-			}
+			updatedRow.updateFieldValue(newFieldValue);
 
 			buffer.append(columnName);
-			buffer.append(" = ");
+			buffer.append("=");
 			buffer.append(newValue);
 			if(colIt.hasNext())
-				buffer.append(" , ");
+				buffer.append(",");
 		}
+
+		Operation op;
+		int affectedRows = 0;
+
+		// if is parent table, check if this op has side effects
+		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
+		{
+			op = new UpdateParentOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
+			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
+			affectedRows = ((UpdateParentOperation) op).getNumberOfRows();
+
+		} else // if a parent row update has no side effects its the same as update neutral row
+		{
+			op = new UpdateOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
+			affectedRows = 1;
+		}
+
+		db.getActiveTransaction().addOperation(op);
+
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
-
 		String updateStr = buffer.toString();
 		LOG.trace("transformed update: {}", updateStr);
 		db.addToBatchUpdate(updateStr);
 		db.executeBatch();
 		this.modified = true;
 
-		return DBUpdateResult.createResult(affectedRows.size());
+		return DBUpdateResult.createResult(affectedRows);
 	}
 
 	/**
-	 * Inserts missing rows in the temporary table.
+	 * Inserts missing rows in the temporary table and returns the list of rows
 	 * This must be done before updating rows in the scratchpad.
-	 * This allows the update operation to be executed only in the scratchpad while affecting the intended rows.
 	 *
 	 * @param updateOp
 	 * @param pad
@@ -1044,13 +1037,9 @@ public class DBExecuter implements IExecuter
 		ResultSet res = null;
 		try
 		{
-
 			res = pad.executeQuery(buffer.toString());
 			while(res.next())
 			{
-				// since we must iterate all the result set to check which tuples must be added to the temp table,
-				// we can capture here what tuples will be affected and track theirs rowIds
-
 				if(!res.getString("tname").equals(this.tempTableName))
 				{
 					if(!res.next())
@@ -1073,18 +1062,8 @@ public class DBExecuter implements IExecuter
 				} else
 				{
 					//Debug.println("record exist in temporary table but not real table");
-					//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 					continue;
 				}
-
-				//String pkValueString = this.getPkValue(res);
-				//PrimaryKeyValue pkValue = new PrimaryKeyValue(pkValueString, this.databaseTable.getName());
-				PrimaryKeyValue pkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable.getName());
-
-				this.recordedPkValues.put(pkValue.getValue(), pkValue);
-				RowWriteSet rowWriteSet = new RowWriteSet(pkValue, databaseTable);
-				this.duplicatedRows.add(pkValue);
-				this.writeSet.addUpdatedRow(pkValue, rowWriteSet);
 
 				buffer.setLength(0);
 				buffer.append("insert into ");
@@ -1108,9 +1087,6 @@ public class DBExecuter implements IExecuter
 						buffer.append(",");
 
 					buffer.append(oldValueString);
-					FieldValue oldFieldValue = new FieldValue(field.getCrdtType(), field.getFieldName(),
-							oldValueString);
-					rowWriteSet.addOldContent(field.getFieldName(), oldFieldValue);
 				}
 
 				buffer.append(")");
@@ -1174,16 +1150,15 @@ public class DBExecuter implements IExecuter
 		}
 	}
 
-	private List<String> getResultSelectBeforeUpdate(Update updateOp, IDBScratchPad pad) throws SQLException
+	private Row getUpdatedRowFromDatabase(Update updateOp, IDBScratchPad pad) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();
 		if(whereClause == null)
-			RuntimeHelper.throwRunTimeException("operation with no where clause not yey supported",
-					ExitCode.MISSING_IMPLEMENTATION);
+			RuntimeHelper.throwRunTimeException("update operation should specify a primary key in the where clause",
+					ExitCode.INVALIDUSAGE);
 
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("SELECT ");
-		buffer.append(this.databaseTable.getPrimaryKey().getQueryClause());
+		buffer.append("SELECT *");
 		buffer.append(" from ");
 		buffer.append(this.tempTableName);
 		buffer.append(" where ");
@@ -1193,16 +1168,18 @@ public class DBExecuter implements IExecuter
 		try
 		{
 			rs = pad.executeQuery(buffer.toString());
+			rs.next();
 
-			List<String> pksList = new LinkedList<>();
+			if(!rs.isLast())
+				RuntimeHelper.throwRunTimeException("ResultSet should contain exactly 1 row",
+						ExitCode.FETCH_RESULTS_ERROR);
 
-			while(rs.next())
-			{
-				String pkValue = this.getPkValue(rs);
-				pksList.add(pkValue);
-			}
+			Row row = DatabaseCommon.getFullRow(rs, this.databaseTable);
+			if(row != null)
+				return row;
 
-			return pksList;
+			RuntimeHelper.throwRunTimeException("error fetching updated row from database",
+					ExitCode.FETCH_RESULTS_ERROR);
 
 		} catch(SQLException e)
 		{
@@ -1211,28 +1188,8 @@ public class DBExecuter implements IExecuter
 		{
 			DbUtils.closeQuietly(rs);
 		}
-	}
 
-	private String getPkValue(ResultSet rs) throws SQLException
-	{
-		StringBuilder pkBuffer = new StringBuilder();
-
-		for(int i = 0; i < this.pk.getSize(); i++)
-		{
-			String fieldValue = rs.getObject(i + 1).toString();
-
-			if(this.tableDefinition.colsStr[i])
-				fieldValue = "\"" + fieldValue + "\"";
-
-			if(i == 0)
-				pkBuffer.append(fieldValue);
-			else
-			{
-				pkBuffer.append(",");
-				pkBuffer.append(fieldValue);
-			}
-		}
-		return pkBuffer.toString();
+		return null;
 	}
 
 	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
@@ -1288,6 +1245,30 @@ public class DBExecuter implements IExecuter
 		public void accept(ExpressionVisitor expressionVisitor)
 		{
 		}
+	}
+
+	private void calculateOperationSideEffects(ParentOperation op, Row parentRow, IDBScratchPad pad) throws
+			SQLException
+	{
+
+		for(ForeignKeyConstraint fkConstraint : parentRow.getTable().getChildTablesConstraints())
+		{
+
+			List<Row> childRows = DatabaseCommon.findChildsFromTable(parentRow, fkConstraint.getChildTable(),
+					fkConstraint.getFieldsRelations(), pad);
+
+			if(op.getOpType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() == ForeignKeyAction.RESTRICT)
+				if(childRows.size() > 0)
+					throw new SQLException("cannot delete parent row because of foreign key restriction");
+
+			if(op.getOpType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction
+					.RESTRICT)
+				if(childRows.size() > 0)
+					throw new SQLException("cannot update parent row because of foreign key restriction");
+
+			op.addSideEffects(fkConstraint, childRows);
+		}
+
 	}
 
 }

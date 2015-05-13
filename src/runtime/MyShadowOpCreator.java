@@ -176,7 +176,7 @@ public class MyShadowOpCreator
 					} else
 					{
 						/*valueList.add(Integer.toString(iDFactory.getNextId(
-								tableName, dF.getFieldName())));*/
+								tableName, dF.getDataField())));*/
 						throw new RuntimeException("The primary keys' values should not be missing");
 					}
 				} else

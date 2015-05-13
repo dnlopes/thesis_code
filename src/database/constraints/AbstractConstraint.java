@@ -16,8 +16,6 @@ public abstract class AbstractConstraint implements Constraint
 	protected List<DataField> fields;
 	protected ConstraintType constraintType;
 	private String constraintIdentifier;
-
-
 	private String tableName;
 
 	public AbstractConstraint(ConstraintType type)

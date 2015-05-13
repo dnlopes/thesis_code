@@ -4,9 +4,12 @@ package database.constraints.fk;
 import database.constraints.AbstractConstraint;
 import database.constraints.ConstraintType;
 import database.util.DataField;
+import database.util.DatabaseTable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -16,43 +19,77 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 {
 
 	private ForeignKeyPolicy policy;
-	private List<String> remoteFields;
-	private String remoteTable;
-
+	private List<String> parentFieldsNames;
+	private List<DataField> parentFields;
+	private List<ParentChildRelation> relationsList;
+	private Map<DataField, ParentChildRelation> relationsMap;
+	private DatabaseTable parentTable;
+	private DatabaseTable childTable;
 
 	public ForeignKeyConstraint(ForeignKeyPolicy policy)
 	{
 		super(ConstraintType.FOREIGN_KEY);
 		this.policy = policy;
-		this.remoteFields = new ArrayList<>();
+		this.parentFieldsNames= new ArrayList<>();
+		this.parentFields = new ArrayList<>();
+		this.relationsList = new ArrayList<>();
+		this.relationsMap = new HashMap<>();
 	}
-	
-	@Override
-	public void addPair(DataField field, String remoteField)
+
+	public void addRemoteField(DataField originalField)
 	{
-		this.fields.add(fields.size(), field);
-		this.remoteFields.add(this.remoteFields.size(), remoteField);
+		this.parentFields.add(originalField);
+	}
+
+	public void addParentChildRelation(DataField parent, DataField child)
+	{
+		ParentChildRelation relation = new ParentChildRelation(parent, child);
+		parent.addChildField(child);
+		child.addParentField(parent);
+		this.relationsList.add(relation);
+		this.relationsMap.put(child, relation);
 	}
 
 	@Override
-	public void setRemoteTable(String table)
+	public void setParentTable(DatabaseTable table)
 	{
-		this.remoteTable = table;
+		this.parentTable = table;
 	}
 
 	@Override
-	public String getRemoteTable()
+	public void setChildTable(DatabaseTable childTable)
 	{
-		return this.remoteTable;
+		this.childTable = childTable;
 	}
 
-	public List<String> getRemoteFields()
+	@Override
+	public DatabaseTable getParentTable()
 	{
-		return this.remoteFields;
+		return this.parentTable;
+	}
+
+	public List<String> getParentFields()
+	{
+		return this.parentFieldsNames;
 	}
 
 	public ForeignKeyPolicy getPolicy()
 	{
 		return this.policy;
+	}
+
+	public DataField getMatchingParent(DataField child)
+	{
+		return this.relationsMap.get(child).getParent();
+	}
+
+	public List<ParentChildRelation> getFieldsRelations()
+	{
+		return this.relationsList;
+	}
+
+	public DatabaseTable getChildTable()
+	{
+		return this.childTable;
 	}
 }

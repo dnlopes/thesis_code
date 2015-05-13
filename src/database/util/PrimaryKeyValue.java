@@ -18,13 +18,16 @@ public final class PrimaryKeyValue
 	private String tableName;
 	private Map<String, FieldValue> values;
 	private String pkString;
+	private String primaryKeyWhereClause;
 	private boolean isGenerated;
+	private boolean isPkGenerated;
 
 	public PrimaryKeyValue(String tableName)
 	{
 		this.tableName = tableName;
 		this.values = new HashMap<>();
 		this.isGenerated = false;
+		this.isPkGenerated = false;
 	}
 
 	public String getValue()
@@ -37,7 +40,7 @@ public final class PrimaryKeyValue
 
 	public void addFieldValue(FieldValue fieldValue)
 	{
-		this.values.put(fieldValue.getFieldName(), fieldValue);
+		this.values.put(fieldValue.getDataField().getFieldName(), fieldValue);
 		this.isGenerated = false;
 	}
 
@@ -75,12 +78,16 @@ public final class PrimaryKeyValue
 
 	private void generateValue()
 	{
-		StringBuilder buffer = new StringBuilder();
+		StringBuilder buffer = new StringBuilder(this.tableName);
+		buffer.append(":");
 
 		Iterator<FieldValue> it = values.values().iterator();
 		while(it.hasNext())
 		{
-			buffer.append(it.next());
+			FieldValue fValue = it.next();
+			buffer.append(fValue.getDataField().getFieldName());
+			buffer.append("=");
+			buffer.append(fValue.getValue());
 			if(it.hasNext())
 				buffer.append(",");
 		}
@@ -88,5 +95,32 @@ public final class PrimaryKeyValue
 		this.isGenerated = true;
 		this.pkString = buffer.toString();
 	}
-	
+
+	public String getPrimaryKeyWhereClause()
+	{
+		if(!isPkGenerated)
+			this.generatePkWhereClause();
+
+		return this.primaryKeyWhereClause;
+	}
+
+
+	private void generatePkWhereClause()
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		Iterator<FieldValue> it = values.values().iterator();
+		while(it.hasNext())
+		{
+			FieldValue fValue = it.next();
+			buffer.append(fValue.getDataField().getFieldName());
+			buffer.append("=");
+			buffer.append(fValue.getValue());
+			if(it.hasNext())
+				buffer.append(" AND ");
+		}
+
+		this.isPkGenerated = true;
+		this.primaryKeyWhereClause = buffer.toString();
+	}
 }

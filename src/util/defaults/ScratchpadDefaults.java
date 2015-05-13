@@ -14,7 +14,7 @@ public final class ScratchpadDefaults
 	public static final String SCRATCHPAD_TABLE_ALIAS_PREFIX = "_SPT_";
 	public static final String SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX = "_TSPT_";
 	public static final String SCRATCHPAD_COL_PREFIX = "_SP_";
-	public static final String SCRATCHPAD_COL_DELETED = "_SP_del";
+	public static final String SCRATCHPAD_COL_DELETED = "_del";
 	public static final String SCRATCHPAD_COL_TS = "_SP_ts";
 	public static final String SCRATCHPAD_COL_CLOCK = "_SP_clock";
 

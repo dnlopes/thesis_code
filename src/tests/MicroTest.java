@@ -15,16 +15,16 @@ import java.sql.*;
  */
 public class MicroTest
 {
-	private final static String DB_HOST = "172.16.24.190";
 
-
+	private final static String DB_HOST = "172.16.24.193";
 
 	public static void main(String args[]) throws IOException, ClassNotFoundException, SQLException
 	{
 
 		DatabaseProperties props = new DatabaseProperties("sa", "101010", DB_HOST, 3306);
 
-		System.setProperty("configPath","/Users/dnlopes/devel/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml");
+		System.setProperty("configPath",
+				"/Users/dnlopes/devel/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml");
 		System.setProperty("proxyid", "1");
 		//MicroDatabase microDatabase = new MicroDatabase(props);
 		//microDatabase.setupDatabase(false);
@@ -45,21 +45,18 @@ public class MicroTest
 		int res;
 		ResultSet rs;
 
-		stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,10,10,'aaa')");
+		stat.executeUpdate("delete from t1 where b=1");
+		//stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
 		res = stat.executeUpdate("update t3 set b=9, d=10 where a>8");
-			res = stat.executeUpdate("update t3 set e='teste' where a>6");
-			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
-			conn.commit();
-			System.exit(1);
-			//rs = stat.executeQuery("SELECT * from t2 where a=5");
+		res = stat.executeUpdate("update t3 set e='teste' where a>6");
+		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
+		conn.commit();
+		System.exit(1);
+		//rs = stat.executeQuery("SELECT * from t2 where a=5");
 
-			//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
-			res = stat.executeUpdate("update t2 set d=21 where a=2");
-			//res = stat.executeUpdate("update t1 set b=20 where a=3");
-
-
-
-
+		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+		res = stat.executeUpdate("update t2 set d=21 where a=2");
+		//res = stat.executeUpdate("update t1 set b=20 where a=3");
 
 		try
 		{

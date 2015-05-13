@@ -106,14 +106,14 @@ public class RowWriteSet
 		StringBuffer valsBuffer = new StringBuffer();
 
 		//if(this.table.getTableType() == CrdtTableType.ARSETTABLE)
-			//this.newContent.put(table.getDeletedField().getFieldName(), "FALSE");
+			//this.newContent.put(table.getDeletedField().getDataField(), "FALSE");
 
 		/*
 		if(this.table.getTableType() != CrdtTableType.NONCRDTTABLE)
 		{
-			this.newContent.put(table.getClockGenerationField().getFieldName(),
+			this.newContent.put(table.getClockGenerationField().getDataField(),
 					DBDefaults.CLOCK_GENERATION_PLACEHOLDER);
-			this.newContent.put(table.getContentClockField().getFieldName(), DBDefaults
+			this.newContent.put(table.getContentClockField().getDataField(), DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER);
 		}   */
 

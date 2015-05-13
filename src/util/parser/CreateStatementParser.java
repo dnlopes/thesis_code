@@ -15,10 +15,9 @@ import database.constraints.*;
 import database.constraints.check.*;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ForeignKeyPolicy;
-import database.util.ExecutionPolicy;
+import database.util.*;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.unique.UniqueConstraint;
-import database.util.CrdtDataFieldType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +30,6 @@ import database.util.table.ArsetTable;
 import database.util.table.AusetTable;
 import database.util.table.READONLY_Table;
 import database.util.table.UosetTable;
-import database.util.CrdtTableType;
-import database.util.DataField;
-import database.util.DatabaseTable;
 
 
 /**
@@ -65,7 +61,7 @@ public class CreateStatementParser
 	 *
 	 * @return the database table
 	 */
-	public static DatabaseTable createTable(String schemaStr)
+	public static DatabaseTable createTable(DatabaseMetadata metadata, String schemaStr)
 	{
 		if(!is_Create_Table_Statement(schemaStr))
 			return null;
@@ -77,7 +73,7 @@ public class CreateStatementParser
 			ExecutionPolicy tableExecutionPolicy = getTableExecutionPolicy(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
 			//create base fields here
-			LinkedHashMap<String, DataField> fieldsMap = createFields(tableName, bodyStr);
+			LinkedHashMap<String, DataField> fieldsMap = createFields(metadata, tableName, bodyStr);
 
 			DatabaseTable dT = null;
 
@@ -108,6 +104,10 @@ public class CreateStatementParser
 					RuntimeHelper.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
 				}
 			}
+
+			for(DataField f : dT.getFieldsMap().values())
+				f.setDatabaseTable(dT);
+
 			return dT;
 		}
 	}
@@ -411,7 +411,7 @@ public class CreateStatementParser
 	 * @param constraintStrs
 	 * 		the constraint strs
 	 */
-	public static void setFieldsConstraints(LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
+	public static void setFieldsConstraints(DatabaseMetadata metadata, LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
 	{
 		for(int i = 0; i < constraintStrs.size(); i++)
 		{
@@ -519,12 +519,15 @@ public class CreateStatementParser
 						RuntimeHelper.throwRunTimeException("foreign attributes size do not match",
 								ExitCode.WRONGCREATTABLEFORMAT);
 
-					DataField originField = fieldsMap.get(fKeys[t]);
-					fkConstraint.addPair(originField, foreignAttributes[t]);
-					fkConstraint.setRemoteTable(foreignKeyTable);
-					fkConstraint.setTableName(originField.getTableName());
-					originField.setForeignKey();
-					originField.addInvariant(fkConstraint);
+					DataField childField = fieldsMap.get(fKeys[t]);
+					DataField parentField = metadata.getTable(foreignKeyTable).getField(foreignAttributes[t]);
+
+					parentField.getTable().addChildTableConstraint(fkConstraint);
+					fkConstraint.addParentChildRelation(parentField, childField);
+					fkConstraint.setParentTable(parentField.getTable());
+					fkConstraint.setTableName(childField.getTableName());
+					childField.setForeignKey();
+					childField.addInvariant(fkConstraint);
 				}
 
 				fkConstraint.generateIdentifier();
@@ -659,14 +662,15 @@ public class CreateStatementParser
 	 *
 	 * @return the _ data_ field_ hash map
 	 */
-	public static LinkedHashMap<String, DataField> createFields(String tableName, String bodyStr)
+	public static LinkedHashMap<String, DataField> createFields(DatabaseMetadata metadata, String tableName, String
+			bodyStr)
 	{
 		String[] declarations = getDeclarationsStrs(bodyStr);
 		Vector<String> attrStrs = getAttributesStrs(declarations);
 		Vector<String> consStrs = getConstraintStrs(declarations);
 
 		LinkedHashMap<String, DataField> fieldsMap = createTableFields(tableName, attrStrs);
-		setFieldsConstraints(fieldsMap, consStrs);
+		setFieldsConstraints(metadata, fieldsMap, consStrs);
 		return fieldsMap;
 	}
 

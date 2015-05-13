@@ -3,6 +3,7 @@ package database.constraints.fk;
 
 import database.constraints.Constraint;
 import database.util.DataField;
+import database.util.DatabaseTable;
 
 
 /**
@@ -11,9 +12,8 @@ import database.util.DataField;
 public interface IForeignKeyConstraint extends Constraint
 {
 
-	public void addPair(DataField origin, String remote);
+	public void setParentTable(DatabaseTable table);
+	public void setChildTable(DatabaseTable childTable);
 
-	public void setRemoteTable(String table);
-
-	public String getRemoteTable();
+	public DatabaseTable getParentTable();
 }

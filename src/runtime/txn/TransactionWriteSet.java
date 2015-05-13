@@ -157,7 +157,7 @@ public class TransactionWriteSet
 			case AUTO_INCREMENT:
 				newEntry.setType(RequestType.REQUEST_ID);
 				this.modifiedTuples.put(pkValue.getValue(), rowWriteSet);
-				this.modifiedFieldName.put(rowWriteSet, c.getFields().get(0).getFieldName());
+				this.modifiedFieldName.put(rowWriteSet, c.getFields().get(0).getDataField());
 				LOG.debug("new request id entry added for constraint {}", c.getConstraintIdentifier());
 				checkList.add(newEntry);
 				break;
@@ -168,7 +168,7 @@ public class TransactionWriteSet
 				while(it.hasNext())
 				{
 					DataField currField = it.next();
-					buffer.append(lwwFields.get(currField.getFieldName()));
+					buffer.append(lwwFields.get(currField.getDataField()));
 					if(it.hasNext())
 						buffer.append(",");
 				}
@@ -225,10 +225,10 @@ public class TransactionWriteSet
 					while(it.hasNext())
 					{
 						DataField currField = it.next();
-						if(lwwFields.containsKey(currField.getFieldName()))
-							buffer.append(lwwFields.get(currField.getFieldName()));
+						if(lwwFields.containsKey(currField.getDataField()))
+							buffer.append(lwwFields.get(currField.getDataField()));
 						else
-							buffer.append(oldFields.get(currField.getFieldName()));
+							buffer.append(oldFields.get(currField.getDataField()));
 						if(it.hasNext())
 							buffer.append(",");
 					}

@@ -106,7 +106,7 @@ public class LWW_LOGICALTIMESTAMP extends DataField {
 	}
 
 	/* (non-Javadoc)
-	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#getFieldName()
+	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#getDataField()
 	 */
 	/**
 	 * @see database.util.DataField#getFieldName()

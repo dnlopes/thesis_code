@@ -4,6 +4,8 @@ package runtime.operation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
 
+import java.util.List;
+
 
 /**
  * Created by dnlopes on 11/05/15.
@@ -11,16 +13,16 @@ import database.util.Row;
 public class InsertChildOperation extends InsertOperation
 {
 
-	private Row[] parentRows;
+	private List<Row> parentRows;
 
-	public InsertChildOperation(ExecutionPolicy policy, Row[] parents, Row newRow)
+	public InsertChildOperation(ExecutionPolicy policy, List<Row> parents, Row newRow)
 	{
 		super(policy, newRow);
 		this.parentRows = parents;
 	}
 
 	@Override
-	public String[] generateOperationStatements()
+	public List<String> generateOperationStatements()
 	{
 		//TODO implement
 		return null;

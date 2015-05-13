@@ -17,6 +17,4 @@ public class RuntimeHelper
 			System.exit(exitCode);
 		}
 	}
-
-
 }

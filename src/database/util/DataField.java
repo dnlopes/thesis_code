@@ -2,8 +2,10 @@ package database.util;
 
 
 import java.sql.ResultSet;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import database.constraints.Constraint;
 
@@ -16,7 +18,8 @@ public abstract class DataField
 
 	private boolean isHiddenField;
 	private List<Constraint> invariants;
-	private List<DataField> referencedBy;
+	private Set<DataField> childFields;
+	private Set<DataField> parentsFields;
 	private CrdtDataFieldType crdtDataType;
 	private String fieldName;
 	private String tableName;
@@ -27,14 +30,20 @@ public abstract class DataField
 	private boolean isAutoIncremental;
 	private boolean isAllowedNULL;
 	private int position;
+	private DatabaseTable dbTable;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
-						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos, boolean isHiddenField)
+						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos,
+						boolean isHiddenField)
 	{
+
+		this.invariants = new LinkedList<>();
+		this.childFields = new HashSet<>();
+		this.parentsFields = new HashSet<>();
+
 		this.defaultValue = null;
 		this.isAllowedNULL = false;
 		this.position = -1;
-
 		this.crdtDataType = fieldTag;
 		this.fieldName = name;
 		this.tableName = tableName;
@@ -43,8 +52,6 @@ public abstract class DataField
 		this.isForeignKey = isForeignKey;
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
-		this.invariants = new LinkedList<>();
-		this.referencedBy= new LinkedList<>();
 		this.isHiddenField = isHiddenField;
 	}
 
@@ -67,11 +74,6 @@ public abstract class DataField
 	public String getTableName()
 	{
 		return this.tableName;
-	}
-
-	public String getFieldType()
-	{
-		return this.dataType;
 	}
 
 	public void setDefaultValue(String value)
@@ -124,11 +126,6 @@ public abstract class DataField
 		this.invariants.add(inv);
 	}
 
-	public boolean hasInvariants()
-	{
-		return this.invariants.size() > 0;
-	}
-
 	public String toString()
 	{
 		String status = " TableName: " + this.tableName + "\n";
@@ -147,18 +144,6 @@ public abstract class DataField
 		return status;
 	}
 
-	public boolean isDeltaField()
-	{
-		return this.crdtDataType == CrdtDataFieldType.NUMDELTADATETIME || this.crdtDataType == CrdtDataFieldType
-				.NUMDELTADOUBLE || this.crdtDataType == CrdtDataFieldType.NUMDELTAFLOAT || this.crdtDataType ==
-				CrdtDataFieldType.NUMDELTAINTEGER;
-	}
-
-	public boolean isTextField()
-	{
-		return this.crdtDataType == CrdtDataFieldType.LWWSTRING || this.crdtDataType == CrdtDataFieldType.NORMALSTRING;
-	}
-
 	public boolean isImmutableField()
 	{
 		return this.crdtDataType == CrdtDataFieldType.IMMUTABLE_FIELD || this.crdtDataType == CrdtDataFieldType
@@ -168,13 +153,43 @@ public abstract class DataField
 				.NORMALSTRING;
 	}
 
-	public void addReferencedByField(DataField field)
-	{
-		this.referencedBy.add(field);
-	}
-
 	public boolean isHiddenField()
 	{
 		return this.isHiddenField;
+	}
+
+	public void setDatabaseTable(DatabaseTable table)
+	{
+		this.dbTable = table;
+	}
+
+	public DatabaseTable getTable()
+	{
+		return this.dbTable;
+	}
+
+	public void addChildField(DataField field)
+	{
+		this.childFields.add(field);
+	}
+
+	public boolean hasChilds()
+	{
+		return this.childFields.size() > 0;
+	}
+
+	public void addParentField(DataField parent)
+	{
+		this.parentsFields.add(parent);
+	}
+
+	public Set<DataField> getParentFields()
+	{
+		return this.parentsFields;
+	}
+
+	public boolean isMyParent(DataField parent)
+	{
+		return this.parentsFields.contains(parent);
 	}
 }

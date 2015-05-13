@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import database.constraints.Constraint;
+import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
@@ -18,6 +19,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 
+
 /**
  * The Class DatabaseTable.
  */
@@ -25,27 +27,34 @@ public abstract class DatabaseTable
 {
 
 	private ExecutionPolicy executionPolicy;
+	private boolean isParentTable;
 	private String name;
 	private CrdtTableType tag;
 	private boolean containsAutoIncrementField;
-	private int numOfHiddenFields;
 	private String primaryKeyString;
 	private Set<Constraint> tableInvarists;
 	private PrimaryKey primaryKey;
 	private String insertColsString;
-
-	protected DataField deletedField;
+	private Set<ForeignKeyConstraint> childTablesConstraints;
 	protected DataField timestampField;
 
 	protected DataField contentClockField;
 	protected DataField deletedClockField;
+	protected DataField deletedField;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
-	protected HashMap<Integer, DataField> sortedFieldsMap;
+	protected Map<Integer, DataField> sortedFieldsMap;
+	protected Map<String, DataField> hiddenFields;
+
+	protected Map<String, DataField> normalFields;
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
-	protected List<String> fieldsNamesList;
 
 	protected static LWWField timestampLWW;
+
+	public CrdtTableType getTag()
+	{
+		return tag;
+	}
 
 	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
 							ExecutionPolicy policy)
@@ -54,51 +63,48 @@ public abstract class DatabaseTable
 		this.fieldsMap = fieldsMap;
 		this.name = name;
 		this.tag = tableType;
-		this.fieldsNamesList = new ArrayList<>();
 		this.primaryKey = new PrimaryKey();
+		this.primaryKeyMap = new LinkedHashMap<>();
+		this.childTablesConstraints = new HashSet<>();
+		this.sortedFieldsMap = new HashMap<>();
+		this.hiddenFields = new HashMap<>();
+		this.normalFields = new HashMap<>();
+		this.tableInvarists = new LinkedHashSet<>();
+		this.containsAutoIncrementField = false;
+		this.isParentTable = false;
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
 			this.addHiddenFields(name, tableType);
 
-		this.containsAutoIncrementField = false;
-		this.primaryKeyMap = new LinkedHashMap<>();
-		this.sortedFieldsMap = new HashMap<>();
-		this.tableInvarists = new LinkedHashSet<>();
-
-		int totalHiddenFields = 0;
-		List<DataField> tempList = new ArrayList<>();
-
-		for(Entry<String, DataField> entry : this.fieldsMap.entrySet())
+		for(DataField entry : this.fieldsMap.values())
 		{
-			this.tableInvarists.addAll(entry.getValue().getInvariants());
+			this.sortedFieldsMap.put(entry.getPosition(), entry);
+			this.tableInvarists.addAll(entry.getInvariants());
 
-			if(entry.getValue().isHiddenField())
-				totalHiddenFields++;
+			if(entry.isHiddenField())
+				this.hiddenFields.put(entry.getFieldName(), entry);
 			else
-				this.fieldsNamesList.add(entry.getValue().getFieldName());
+				this.normalFields.put(entry.getFieldName(), entry);
 
-			if(entry.getValue().isPrimaryKey())
+			if(entry.isPrimaryKey())
 			{
-				this.primaryKey.addField(entry.getValue());
-				this.addPrimaryKey(entry.getValue());
-				tempList.add(entry.getValue());
+				this.primaryKey.addField(entry);
+				// soon deprecated?
+				this.addPrimaryKey(entry);
 			}
 
-			if(entry.getValue().isAutoIncrement())
+			if(entry.isAutoIncrement())
 			{
 				Constraint autoIncrementConstraint = new AutoIncrementConstraint();
 				autoIncrementConstraint.setTableName(this.name);
-				autoIncrementConstraint.addField(entry.getValue());
+				autoIncrementConstraint.addField(entry);
 				autoIncrementConstraint.generateIdentifier();
 				this.tableInvarists.add(autoIncrementConstraint);
-				entry.getValue().addInvariant(autoIncrementConstraint);
+				entry.addInvariant(autoIncrementConstraint);
 				this.containsAutoIncrementField = true;
 			}
-
-			this.sortedFieldsMap.put(entry.getValue().getPosition(), entry.getValue());
 		}
 
-		this.setNumOfHiddenFields(totalHiddenFields);
 		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
 
 		StringBuffer buffer = new StringBuffer();
@@ -181,7 +187,7 @@ public abstract class DatabaseTable
 	 *
 	 * @return the _ data_ field_ list
 	 */
-	public HashMap<String, DataField> getFieldsMap()
+	public Map<String, DataField> getFieldsMap()
 	{
 		return this.fieldsMap;
 	}
@@ -468,24 +474,13 @@ public abstract class DatabaseTable
 	}
 
 	/**
-	 * Sets the num of hidden fields.
-	 *
-	 * @param numOfHiddenFields
-	 * 		the numOfHiddenFields to set
-	 */
-	public void setNumOfHiddenFields(int numOfHiddenFields)
-	{
-		this.numOfHiddenFields = numOfHiddenFields;
-	}
-
-	/**
 	 * Gets the num of hidden fields.
 	 *
 	 * @return the numOfHiddenFields
 	 */
 	public int getNumOfHiddenFields()
 	{
-		return this.numOfHiddenFields;
+		return this.hiddenFields.size();
 	}
 
 	/**
@@ -547,15 +542,19 @@ public abstract class DatabaseTable
 			DataField deletedField = new DeletedField(tableName, fieldsMap.size());
 			this.fieldsMap.put(deletedField.getFieldName(), deletedField);
 			this.deletedField = deletedField;
-			this.deletedField.setDefaultValue("FALSE");
+			this.deletedField.setDefaultValue("1");
+			this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 		}
 
 		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size());
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
-		this.contentClockField = contentClock;
+		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
 		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size());
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
+		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
+
+		this.contentClockField = contentClock;
 		this.deletedClockField = deletedClock;
 	}
 
@@ -574,11 +573,6 @@ public abstract class DatabaseTable
 		return this.deletedField;
 	}
 
-	public DataField getTimestampField()
-	{
-		return this.timestampField;
-	}
-
 	public DataField getContentClockField()
 	{
 		return this.contentClockField;
@@ -587,5 +581,30 @@ public abstract class DatabaseTable
 	public ExecutionPolicy getExecutionPolicy()
 	{
 		return this.executionPolicy;
+	}
+
+	public Map<String, DataField> getNormalFields()
+	{
+		return this.normalFields;
+	}
+
+	public void setParentTable()
+	{
+		this.isParentTable = true;
+	}
+
+	public boolean isParentTable()
+	{
+		return this.isParentTable;
+	}
+
+	public void addChildTableConstraint(ForeignKeyConstraint fkConstraint)
+	{
+		this.childTablesConstraints.add(fkConstraint);
+	}
+
+	public Set<ForeignKeyConstraint> getChildTablesConstraints()
+	{
+		return this.childTablesConstraints;
 	}
 }

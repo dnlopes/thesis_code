@@ -119,7 +119,8 @@ public class DDLParser
 
 		for(int i = 0; i < allTableStrings.size(); i++)
 		{
-			DatabaseTable table = CreateStatementParser.createTable(allTableStrings.elementAt(i));
+			DatabaseTable table = CreateStatementParser.createTable(this.databaseMetadata, allTableStrings.elementAt
+					(i));
 			if(table != null)
 			{
 				this.databaseMetadata.addTable(table);
@@ -201,12 +202,17 @@ public class DDLParser
 					{
 						if(constraint instanceof ForeignKeyConstraint)
 						{
-							String remoteTableString = ((ForeignKeyConstraint) constraint).getRemoteTable();
-							for(String remoteFieldString : ((ForeignKeyConstraint) constraint).getRemoteFields())
+							((ForeignKeyConstraint) constraint).getParentTable().setParentTable();
+							((ForeignKeyConstraint) constraint).setChildTable(((ForeignKeyConstraint) constraint)
+									.getFieldsRelations().get(0).getChild().getTable());
+							String remoteTableString = ((ForeignKeyConstraint) constraint).getParentTable().getName();
+
+							for(String remoteFieldString : ((ForeignKeyConstraint) constraint).getParentFields())
 							{
 								DataField originField = this.databaseMetadata.getTable(remoteTableString).getField(
 										remoteFieldString);
-								originField.addReferencedByField(field);
+								//originField.addChildField(field);
+								((ForeignKeyConstraint) constraint).addRemoteField(originField);
 							}
 						}
 					}
