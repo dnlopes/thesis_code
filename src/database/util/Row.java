@@ -13,12 +13,9 @@ public class Row
 {
 
 	private DatabaseTable table;
-
-
 	private PrimaryKeyValue pkValue;
 	private Map<String, FieldValue> fieldValues;
 	private Map<String, FieldValue> newFieldValues;
-
 	private boolean hasSideEffects;
 
 	public Row(DatabaseTable databaseTable, PrimaryKeyValue pkValue)

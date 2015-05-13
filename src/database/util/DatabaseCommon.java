@@ -66,7 +66,6 @@ public class DatabaseCommon
 
 		for(DataField field : dbTable.getNormalFields().values())
 		{
-
 			String fieldValue = rs.getObject(field.getFieldName()).toString();
 
 			if(fieldValue == null)
@@ -81,7 +80,7 @@ public class DatabaseCommon
 
 	public static List<Row> findChildsFromTable(Row parentRow, DatabaseTable table, List<ParentChildRelation>
 			relations,
-										IDBScratchPad pad) throws SQLException
+												IDBScratchPad pad) throws SQLException
 	{
 		List<Row> childs = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();

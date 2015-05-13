@@ -894,7 +894,7 @@ public class DBExecuter implements IExecuter
 
 		LOG.trace("selection for delete: {}", query);
 
-		int rowsDeleted = 0;
+		int rowsDeleted = 1;
 		ResultSet res = null;
 
 		try
@@ -921,19 +921,19 @@ public class DBExecuter implements IExecuter
 			buffer.append(";");
 			String delete = buffer.toString();
 
-			rowsDeleted += db.executeUpdate(delete);
+			db.executeUpdate(delete);
 
 			Operation op;
 			if(this.databaseTable.isParentTable())
 			{
 				op = new DeleteParentOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
 				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete, db);
+				rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
 
 			} else
 				op = new DeleteOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
 
 			db.getActiveTransaction().addOperation(op);
-			op.generateOperationStatements();
 
 			return DBUpdateResult.createResult(rowsDeleted);
 		} catch(SQLException e)
@@ -943,7 +943,6 @@ public class DBExecuter implements IExecuter
 		{
 			DbUtils.closeQuietly(res);
 		}
-
 	}
 
 	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
@@ -966,8 +965,10 @@ public class DBExecuter implements IExecuter
 			String newValue = expIt.next().toString();
 			DataField field = this.fields.get(columnName);
 
-			if(field.isImmutableField())
-				RuntimeHelper.throwRunTimeException("trying to modify an immutable field", ExitCode.UNEXPECTED_OP);
+			//FIXME: currently, we do not allow primary keys, immutable fields and fields that have childs to be updated
+			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
+				RuntimeHelper.throwRunTimeException("trying to modify a primary key or immutable field",
+						ExitCode.UNEXPECTED_OP);
 
 			if(newValue == null)
 				newValue = "NULL";
@@ -984,20 +985,17 @@ public class DBExecuter implements IExecuter
 		}
 
 		Operation op;
-		int affectedRows = 0;
+		int affectedRows = 1;
 
 		// if is parent table, check if this op has side effects
 		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 		{
 			op = new UpdateParentOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
 			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
-			affectedRows = ((UpdateParentOperation) op).getNumberOfRows();
+			affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
 
 		} else // if a parent row update has no side effects its the same as update neutral row
-		{
 			op = new UpdateOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
-			affectedRows = 1;
-		}
 
 		db.getActiveTransaction().addOperation(op);
 
@@ -1181,6 +1179,8 @@ public class DBExecuter implements IExecuter
 			RuntimeHelper.throwRunTimeException("error fetching updated row from database",
 					ExitCode.FETCH_RESULTS_ERROR);
 
+			return null;
+
 		} catch(SQLException e)
 		{
 			throw e;
@@ -1188,8 +1188,6 @@ public class DBExecuter implements IExecuter
 		{
 			DbUtils.closeQuietly(rs);
 		}
-
-		return null;
 	}
 
 	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
@@ -1257,12 +1255,13 @@ public class DBExecuter implements IExecuter
 			List<Row> childRows = DatabaseCommon.findChildsFromTable(parentRow, fkConstraint.getChildTable(),
 					fkConstraint.getFieldsRelations(), pad);
 
-			if(op.getOpType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() == ForeignKeyAction.RESTRICT)
+			if(op.getOpType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() ==
+					ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot delete parent row because of foreign key restriction");
 
-			if(op.getOpType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction
-					.RESTRICT)
+			if(op.getOpType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() ==
+					ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot update parent row because of foreign key restriction");
 

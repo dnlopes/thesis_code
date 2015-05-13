@@ -15,9 +15,8 @@ import java.util.Map;
  */
 public class UpdateParentOperation extends UpdateOperation implements ParentOperation
 {
-
-	private int numberRows;
 	private Map<ForeignKeyConstraint, List<Row>> childsByConstraint;
+	private int numberRows;
 
 	public UpdateParentOperation(ExecutionPolicy policy, Row updatedRow)
 	{
