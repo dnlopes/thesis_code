@@ -4,7 +4,6 @@ package runtime.operation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
 import util.defaults.DBDefaults;
-import util.thrift.CoordinatorRequest;
 
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class DeleteOperation extends AbstractOperation implements Operation
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
-			.CLOCK_VALUE_PLACEHOLDER;
+			.CONTENT_CLOCK_PLACEHOLDER;
 	private static final String FUNCTION_CLAUSE = " AND compareClocks(" + DBDefaults.DELETED_CLOCK_COLUMN + "," +
 			DBDefaults.DELETED_CLOCK_PLACEHOLDER + ")";
 
@@ -29,6 +28,8 @@ public class DeleteOperation extends AbstractOperation implements Operation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
+		this.row.mergeUpdates();
+
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
 		buffer.append(this.row.getTable().getName());
@@ -43,7 +44,7 @@ public class DeleteOperation extends AbstractOperation implements Operation
 		buffer.append("compareClocks(");
 		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append(",");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		buffer.append(DBDefaults.CONTENT_CLOCK_PLACEHOLDER);
 		buffer.append(")");                                */
 
 		if(this.tablePolicy == ExecutionPolicy.DELETEWINS)
@@ -54,9 +55,4 @@ public class DeleteOperation extends AbstractOperation implements Operation
 		shadowStatements.add(buffer.toString());
 	}
 
-	@Override
-	public void createRequestsToCoordinate(CoordinatorRequest request)
-	{
-
-	}
 }

@@ -1,6 +1,5 @@
 package database.util;
 
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,11 +52,6 @@ public class Row
 		return this.newFieldValues.get(fieldName);
 	}
 
-	public Collection<FieldValue> getUpdatedFields()
-	{
-		return this.newFieldValues.values();
-	}
-
 	public boolean hasSideEffects()
 	{
 		return this.hasSideEffects;
@@ -73,6 +67,11 @@ public class Row
 		return this.fieldValues;
 	}
 
+	public Map<String, FieldValue> getUpdatesValuesMap()
+	{
+		return this.newFieldValues;
+	}
+
 	public DatabaseTable getTable()
 	{
 		return this.table;
@@ -86,5 +85,25 @@ public class Row
 	public boolean containsNewField(String key)
 	{
 		return this.newFieldValues.containsKey(key);
+	}
+
+	public void mergeUpdates()
+	{
+		for(Map.Entry<String, FieldValue> entry : this.newFieldValues.entrySet())
+		{
+			if(entry.getValue().getDataField().isDeltaField())
+			{
+				FieldValue oldFieldValue = this.fieldValues.get(entry.getKey());
+
+				double oldValue = Double.parseDouble(oldFieldValue.getValue());
+				double newValue = Double.parseDouble(entry.getValue().getValue());
+
+				double delta = oldValue + newValue;
+				String updatedWithDelta = entry.getValue().getDataField().getFieldName() + "+" + String.valueOf(delta);
+				entry.getValue().setValue(updatedWithDelta);
+			}
+
+			this.fieldValues.put(entry.getKey(), entry.getValue());
+		}
 	}
 }

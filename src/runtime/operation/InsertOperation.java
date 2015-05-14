@@ -5,6 +5,7 @@ import database.constraints.Constraint;
 import database.util.*;
 import runtime.RuntimeHelper;
 import util.ExitCode;
+import util.defaults.DBDefaults;
 import util.thrift.*;
 
 import java.util.*;
@@ -24,6 +25,9 @@ public class InsertOperation extends AbstractOperation implements Operation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
+
+		this.row.mergeUpdates();
+
 		StringBuilder buffer = new StringBuilder();
 		StringBuilder valuesBuffer = new StringBuilder();
 
@@ -51,9 +55,46 @@ public class InsertOperation extends AbstractOperation implements Operation
 			}
 		}
 
+
+		valuesBuffer.append(",0");
+		valuesBuffer.append(",");
+		valuesBuffer.append(DBDefaults.CONTENT_CLOCK_PLACEHOLDER);
+		valuesBuffer.append(",");
+		valuesBuffer.append(DBDefaults.DELETED_CLOCK_PLACEHOLDER);
+
 		// add hidden columns by hand
+		buffer.append(",");
+		buffer.append(DBDefaults.DELETED_COLUMN);
+		buffer.append(",");
+		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+		buffer.append(",");
+		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append(") VALUES (");
 		buffer.append(valuesBuffer.toString());
+		buffer.append(") ON DUPLICATE KEY UPDATE ");
+
+
+		fieldsValuesIt = this.row.getFieldValues().iterator();
+		while(fieldsValuesIt.hasNext())
+		{
+			FieldValue fValue = fieldsValuesIt.next();
+			buffer.append(fValue.getDataField().getFieldName());
+			buffer.append("=VALUES(");
+			buffer.append(fValue.getDataField().getFieldName());
+			buffer.append(")");
+
+			if(fieldsValuesIt.hasNext())
+				buffer.append(",");
+		}
+
+		buffer.append(",_del=VALUES(_del),");
+		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+		buffer.append("=VALUES(");
+		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+		buffer.append("),");
+		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+		buffer.append("=VALUES(");
+		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append(")");
 
 		shadowStatements.add(buffer.toString());

@@ -41,10 +41,7 @@ public abstract class AbstractNetwork
 	protected void addNode(AbstractNodeConfig newNode) throws TTransportException
 	{
 		if(newNode.getName().compareTo(this.me.getName()) == 0)
-		{
-			LOG.warn("should not be adding myself to the nodes list");
 			return;
-		}
 
 		if(newNode.getRole() == Role.COORDINATOR)
 			this.addCoordinatorNode(newNode);

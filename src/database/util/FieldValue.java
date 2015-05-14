@@ -90,4 +90,10 @@ public class FieldValue
 			this.value = String.valueOf(finalValue);
 		}
 	}
+
+	@Override
+	public String toString()
+	{
+		return this.value;
+	}
 }

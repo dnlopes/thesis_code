@@ -27,7 +27,7 @@ public class OperationTransformer
 		buffer.append("=1,");
 		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append("=");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		buffer.append(DBDefaults.CONTENT_CLOCK_PLACEHOLDER);
 		buffer.append(" WHERE (");
 		buffer.append(pk.getQueryClause());
 		buffer.append(") IN (");
@@ -35,7 +35,7 @@ public class OperationTransformer
 		buffer.append(") AND compareClocks(");
 		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
 		buffer.append(",'");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		buffer.append(DBDefaults.CONTENT_CLOCK_PLACEHOLDER);
 		buffer.append("')");
 		if(tablePolicy == ExecutionPolicy.DELETEWINS)
 			buffer.append(" > 0");

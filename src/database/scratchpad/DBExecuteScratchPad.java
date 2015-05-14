@@ -322,8 +322,14 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		try
 		{
 			CoordinatorRequest req = new CoordinatorRequest();
+
+			req.setDeltaValues(new ArrayList<ApplyDelta>());
+			req.setRequests(new ArrayList<RequestValue>());
+			req.setUniqueValues(new ArrayList<UniqueValue>());
+
 			for(Operation op : this.activeTransaction.getTxnOps())
 				op.createRequestsToCoordinate(req);
+
 
 			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
 			{

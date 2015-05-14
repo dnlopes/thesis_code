@@ -123,7 +123,7 @@ public class DatabaseCommon
 		buffer.append("SELECT *");
 		//buffer.append(remoteTable.getPrimaryKey().getQueryClause());
 		buffer.append(" FROM ");
-		buffer.append(constraint.getParentTable());
+		buffer.append(remoteTable.getName());
 		buffer.append(" WHERE ");
 
 		Iterator<ParentChildRelation> relationsIt = constraint.getFieldsRelations().iterator();
@@ -143,12 +143,14 @@ public class DatabaseCommon
 		}
 
 		ResultSet rs = pad.executeQuery(buffer.toString());
+		if(!rs.isBeforeFirst())
+		{
+			DbUtils.closeQuietly(rs);
+			throw new SQLException("parent row not found. Foreing key violated");
+		}
+
 		rs.next();
 		PrimaryKeyValue parentPk = getPrimaryKeyValue(rs, remoteTable);
-
-		if(parentPk == null)
-			throw new SQLException("parent row not found. Foreing key violated");
-
 		DbUtils.closeQuietly(rs);
 
 		return new Row(remoteTable, parentPk);

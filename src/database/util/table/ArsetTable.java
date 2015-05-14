@@ -464,16 +464,4 @@ public class ArsetTable extends DatabaseTable
 		return transformedSqls;
 	}
 
-	/**
-	 * @return
-	 *
-	 * @see database.util.DatabaseTable#toString()
-	 */
-	public String toString()
-	{
-		String myString = super.toString();
-		myString += deletedField.toString() + "\n";
-		myString += timestampLWW.toString() + "\n";
-		return myString;
-	}
 }

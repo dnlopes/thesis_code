@@ -548,11 +548,11 @@ public abstract class DatabaseTable
 			this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 		}
 
-		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size());
+		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size(), "_cclock");
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
 		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
-		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size());
+		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size(), "_dclock");
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
 		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
 

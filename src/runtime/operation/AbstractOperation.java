@@ -5,8 +5,7 @@ import database.util.ExecutionPolicy;
 import database.util.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
-import util.ExitCode;
+import util.thrift.CoordinatorRequest;
 
 import java.util.List;
 
@@ -54,9 +53,10 @@ public abstract class AbstractOperation implements Operation
 
 	public abstract void generateOperationStatements(List<String> shadowStatements);
 
-	public void createRequestsToCoordinate()
+	@Override
+	public void createRequestsToCoordinate(CoordinatorRequest request)
 	{
-		RuntimeHelper.throwRunTimeException("this method should always be overrided if one wants to call it",
-				ExitCode.UNEXPECTED_OP);
+		// do nothing
+		// if one wants to coordinate, then override this method
 	}
 }

@@ -153,32 +153,29 @@ public class LogicalClock implements java.io.Serializable
 		return res && one;
 	}
 
-	public long getClockValue()
+	public String getClockValue()
 	{
-		long result = 0;
-		long multiplier = 1;
 
-		for(int i = this.entries.length-1; i >= 0; i--)
+		StringBuilder buffer = new StringBuilder();
+
+		for(int i = 0; i < this.entries.length; i++)
 		{
-			result += multiplier * this.entries[i];
-			multiplier = multiplier * 10;
+			buffer.append(this.entries[i]);
+			if(i < this.entries.length -1)
+				buffer.append("-");
 		}
 
-		return result;
+		return buffer.toString();
 	}
 
 	@Override
 	public String toString()
 	{
-		String tmp = generation + ":";
-		for(int i = 0; i < entries.length; i++)
-		{
-			tmp += entries[i];
-			if(i < entries.length-1)
-				tmp +="-";
-		}
-
-		return tmp;
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("'");
+		buffer.append(this.getClockValue());
+		buffer.append("'");
+		return buffer.toString();
 	}
 
 	public int hashcode()

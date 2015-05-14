@@ -16,7 +16,7 @@ import java.sql.*;
 public class MicroTest
 {
 
-	private final static String DB_HOST = "172.16.24.193";
+	private final static String DB_HOST = "172.16.24.194";
 
 	public static void main(String args[]) throws IOException, ClassNotFoundException, SQLException
 	{
@@ -26,10 +26,8 @@ public class MicroTest
 		System.setProperty("configPath",
 				"/Users/dnlopes/devel/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml");
 		System.setProperty("proxyid", "1");
-		//MicroDatabase microDatabase = new MicroDatabase(props);
-		//microDatabase.setupDatabase(false);
-
-		Configuration config = Configuration.getInstance();
+		MicroDatabase microDatabase = new MicroDatabase(props);
+		microDatabase.setupDatabase(false);
 
 		Connection conn = null;
 		Statement stat = null;
@@ -45,8 +43,9 @@ public class MicroTest
 		int res;
 		ResultSet rs;
 
-		stat.executeUpdate("delete from t1 where b=1");
-		//stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
+		//stat.executeUpdate("delete from t1 where b=1");
+		stat.executeUpdate("insert into t1 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
+		conn.commit();
 		res = stat.executeUpdate("update t3 set b=9, d=10 where a>8");
 		res = stat.executeUpdate("update t3 set e='teste' where a>6");
 		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");

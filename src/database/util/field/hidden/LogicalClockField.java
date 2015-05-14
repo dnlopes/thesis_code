@@ -3,7 +3,6 @@ package database.util.field.hidden;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
-import util.defaults.ScratchpadDefaults;
 
 import java.sql.ResultSet;
 
@@ -11,12 +10,11 @@ import java.sql.ResultSet;
 public class LogicalClockField extends DataField
 {
 
-	private static final String FIELD_NAME = ScratchpadDefaults.SCRATCHPAD_COL_CLOCK;
-	private static final String FIELD_TYPE = "integer";
+	private static final String FIELD_TYPE = "string";
 
-	public LogicalClockField(String tableName, int position)
+	public LogicalClockField(String tableName, int position, String fieldName)
 	{
-		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, FIELD_NAME, tableName, FIELD_TYPE, false, false, false,
+		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, fieldName, tableName, FIELD_TYPE, false, false, false,
 				position, true);
 	}
 
@@ -45,16 +43,12 @@ public class LogicalClockField extends DataField
 
 	public String get_Set_Logical_Timestamp(String value)
 	{
-		return FIELD_NAME + "= '" + value + "' ";
+		return getFieldName() + "= '" + value + "' ";
 	}
 
 	public String get_Set_Logical_Timestamp()
 	{
-		return FIELD_NAME + "= ?";
+		return getFieldName() + "= ?";
 	}
 
-	public String getFieldName()
-	{
-		return FIELD_NAME;
-	}
 }

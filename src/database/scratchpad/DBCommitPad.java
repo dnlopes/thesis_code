@@ -74,10 +74,10 @@ public class DBCommitPad implements IDBCommitPad
 			stat = this.connection.createStatement();
 			for(String statement : op.getOperationList())
 			{
-				//String rebuiltStatement = this.replacePlaceholders(op, statement);
-				LOG.trace("executing on maindb: {}", statement);
+				String rebuiltStatement = this.replacePlaceholders(op, statement);
+				LOG.info("executing on maindb: {}", rebuiltStatement);
 
-				stat.addBatch(statement);
+				stat.addBatch(rebuiltStatement);
 			}
 			stat.executeBatch();
 			this.connection.commit();
@@ -114,11 +114,9 @@ public class DBCommitPad implements IDBCommitPad
 
 	private String replacePlaceholders(ShadowOperation op, String statement)
 	{
-		statement = statement.replaceFirst(DBDefaults.CLOCK_GENERATION_PLACEHOLDER, String.valueOf(op.getClock()
-			.getGeneration
-				()));
-		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, String.valueOf(op.getClock().getClockValue()));
-
+		String clockString = op.getClock().toString();
+		statement = statement.replaceFirst(DBDefaults.CONTENT_CLOCK_PLACEHOLDER, clockString);
+		statement = statement.replaceFirst(DBDefaults.DELETED_CLOCK_PLACEHOLDER, clockString);
 		return statement;
 	}
 }

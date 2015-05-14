@@ -804,12 +804,12 @@ public class DBExecuter implements IExecuter
 
 		if(columnsList == null)
 		{
-			buffer.append("(");
+			buffer.append(" (");
 			buffer.append(tableDefinition.getPlainColumnList());
 			buffer.append(")");
 		} else
 		{
-			buffer.append("(");
+			buffer.append(" (");
 
 			Iterator colIt = columnsList.iterator();
 			Iterator valIt = valuesList.iterator();
