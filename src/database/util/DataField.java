@@ -16,7 +16,6 @@ import database.constraints.Constraint;
 public abstract class DataField
 {
 
-	private boolean isHiddenField;
 	private List<Constraint> invariants;
 	private Set<DataField> childFields;
 	private Set<DataField> parentsFields;
@@ -52,7 +51,6 @@ public abstract class DataField
 		this.isForeignKey = isForeignKey;
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
-		this.isHiddenField = isHiddenField;
 	}
 
 	public abstract String get_Crdt_Form(ResultSet rs, String Value);
@@ -106,6 +104,11 @@ public abstract class DataField
 		this.isForeignKey = true;
 	}
 
+	public boolean isStringField()
+	{
+		return false;
+	}
+
 	public boolean isAutoIncrement()
 	{
 		return this.isAutoIncremental;
@@ -126,24 +129,6 @@ public abstract class DataField
 		this.invariants.add(inv);
 	}
 
-	public String toString()
-	{
-		String status = " TableName: " + this.tableName + "\n";
-		status += " DataFieldName: " + this.fieldName + "\n";
-		status += " DataType: " + this.dataType + "\n";
-		status += " PrimaryKey: " + this.isPrimaryKey + "\n";
-		status += " ForeignKey: " + this.isForeignKey + "\n";
-		status += " AutoIncremental: " + this.isAutoIncremental + "\n";
-		status += " IsAllowedNULL: " + this.isAllowedNULL + "\n";
-		if(this.isAllowedNULL)
-		{
-			status += " DefaultValue: " + this.defaultValue + "\n";
-		}
-		status += " Position: " + this.position + "\n";
-		status += " CrdtType: " + this.crdtDataType + "\n";
-		return status;
-	}
-
 	public boolean isImmutableField()
 	{
 		return this.crdtDataType == CrdtDataFieldType.IMMUTABLE_FIELD || this.crdtDataType == CrdtDataFieldType
@@ -153,6 +138,11 @@ public abstract class DataField
 				.NORMALSTRING;
 	}
 
+	public boolean isDeletedFlagField()
+	{
+		return false;
+	}
+
 	public boolean isDeltaField()
 	{
 		return false;
@@ -160,7 +150,7 @@ public abstract class DataField
 
 	public boolean isHiddenField()
 	{
-		return this.isHiddenField;
+		return false;
 	}
 
 	public void setDatabaseTable(DatabaseTable table)
@@ -188,13 +178,23 @@ public abstract class DataField
 		this.parentsFields.add(parent);
 	}
 
-	public Set<DataField> getParentFields()
+	@Override
+	public String toString()
 	{
-		return this.parentsFields;
+		String status = " TableName: " + this.tableName + "\n";
+		status += " DataFieldName: " + this.fieldName + "\n";
+		status += " DataType: " + this.dataType + "\n";
+		status += " PrimaryKey: " + this.isPrimaryKey + "\n";
+		status += " ForeignKey: " + this.isForeignKey + "\n";
+		status += " AutoIncremental: " + this.isAutoIncremental + "\n";
+		status += " IsAllowedNULL: " + this.isAllowedNULL + "\n";
+		if(this.isAllowedNULL)
+		{
+			status += " DefaultValue: " + this.defaultValue + "\n";
+		}
+		status += " Position: " + this.position + "\n";
+		status += " CrdtType: " + this.crdtDataType + "\n";
+		return status;
 	}
 
-	public boolean isMyParent(DataField parent)
-	{
-		return this.parentsFields.contains(parent);
-	}
 }

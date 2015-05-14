@@ -839,11 +839,11 @@ public class DBExecuter implements IExecuter
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
 			List<Row> parents = DatabaseCommon.findParentRows(insertedRow, this.fkConstraints, db);
-			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable
-					.getExecutionPolicy(),
-					parents,	insertedRow);
+			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(),
+					this.databaseTable.getExecutionPolicy(), parents, insertedRow);
 		} else // its a "neutral" or "parent" row
-			op = new InsertOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), insertedRow);
+			op = new InsertOperation(db.getActiveTransaction().getNextOperationId(),
+					this.databaseTable.getExecutionPolicy(), insertedRow);
 
 		db.getActiveTransaction().addOperation(op);
 
@@ -927,12 +927,14 @@ public class DBExecuter implements IExecuter
 			Operation op;
 			if(this.databaseTable.isParentTable())
 			{
-				op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), rowToDelete);
+				op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(),
+						this.databaseTable.getExecutionPolicy(), rowToDelete);
 				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete, db);
 				rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
 
 			} else
-				op = new DeleteOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), rowToDelete);
+				op = new DeleteOperation(db.getActiveTransaction().getNextOperationId(),
+						this.databaseTable.getExecutionPolicy(), rowToDelete);
 
 			db.getActiveTransaction().addOperation(op);
 
@@ -992,12 +994,14 @@ public class DBExecuter implements IExecuter
 		// if is parent table, check if this op has side effects
 		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 		{
-			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), updatedRow);
+			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
+					this.databaseTable.getExecutionPolicy(), updatedRow);
 			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
 			affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
 
 		} else // if a parent row update has no side effects its the same as update neutral row
-			op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), updatedRow);
+			op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(),
+					this.databaseTable.getExecutionPolicy(), updatedRow);
 
 		db.getActiveTransaction().addOperation(op);
 
@@ -1075,18 +1079,27 @@ public class DBExecuter implements IExecuter
 				while(fieldsIt.hasNext())
 				{
 					DataField field = fieldsIt.next();
-					Object oldContent = res.getObject(field.getFieldName());
-					String oldValueString;
+					Object oldContent;
+
+					if(!field.isDeletedFlagField())
+						oldContent = res.getObject(field.getFieldName());
+					else
+						oldContent = Integer.toString(res.getInt(field.getFieldName()));
 
 					if(oldContent == null)
-						oldValueString = "NULL";
+						oldContent = "NULL";
+
+					if(field.isStringField())
+					{
+						buffer.append("'");
+						buffer.append(oldContent);
+						buffer.append("'");
+					}
 					else
-						oldValueString = oldContent.toString();
+						buffer.append(oldContent);
 
 					if(fieldsIt.hasNext())
 						buffer.append(",");
-
-					buffer.append(oldValueString);
 				}
 
 				buffer.append(")");
@@ -1256,8 +1269,7 @@ public class DBExecuter implements IExecuter
 				if(childRows.size() > 0)
 					throw new SQLException("cannot delete parent row because of foreign key restriction");
 
-			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() ==
-					ForeignKeyAction.RESTRICT)
+			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot update parent row because of foreign key restriction");
 

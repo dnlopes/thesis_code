@@ -95,4 +95,10 @@ public class NORMAL_STRING extends DataField
 			return Value;
 		return "'" + Value + "'";
 	}
+
+	@Override
+	public boolean isStringField()
+	{
+		return true;
+	}
 }

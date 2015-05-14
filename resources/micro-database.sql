@@ -2,7 +2,7 @@
 @LWWINTEGER a int(10) unsigned NOT NULL,
 @NUMDELTAINTEGER b int(10) unsigned,
 @LWWINTEGER c int(10),
-@LWWINTEGER d int(10) unsigned,
+@NUMDELTAINTEGER d int(10) unsigned,
 @LWWSTRING e varchar(50),
 PRIMARY KEY (a)
 ) ENGINE=INNODB;

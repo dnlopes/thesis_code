@@ -96,7 +96,7 @@ public class DatabaseCommon
 			ParentChildRelation relation = relationsIt.next();
 			buffer.append(relation.getChild().getFieldName());
 			buffer.append("=");
-			buffer.append(parentRow.getFieldValue(relation.getParent().getFieldName()).getValue());
+			buffer.append(parentRow.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
 
 			if(relationsIt.hasNext())
 				buffer.append(" AND ");
@@ -136,7 +136,7 @@ public class DatabaseCommon
 
 			buffer.append(parentField.getFieldName());
 			buffer.append("=");
-			buffer.append(childRow.getFieldValue(childField.getFieldName()).getValue());
+			buffer.append(childRow.getFieldValue(childField.getFieldName()).getFormattedValue());
 
 			if(relationsIt.hasNext())
 				buffer.append(" AND ");

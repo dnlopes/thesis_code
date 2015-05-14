@@ -26,6 +26,9 @@ public class InsertOperation extends AbstractOperation implements Operation
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
 
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), "1"));
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
 		this.row.mergeUpdates();
 
 		StringBuilder buffer = new StringBuilder();
@@ -40,13 +43,8 @@ public class InsertOperation extends AbstractOperation implements Operation
 		while(fieldsValuesIt.hasNext())
 		{
 			FieldValue fValue = fieldsValuesIt.next();
-
-			// we add by hand the hidden columns
-			if(fValue.getDataField().isHiddenField())
-				continue;
-
 			buffer.append(fValue.getDataField().getFieldName());
-			valuesBuffer.append(fValue.getValue());
+			valuesBuffer.append(fValue.getFormattedValue());
 
 			if(fieldsValuesIt.hasNext())
 			{
@@ -55,24 +53,9 @@ public class InsertOperation extends AbstractOperation implements Operation
 			}
 		}
 
-
-		valuesBuffer.append(",0");
-		valuesBuffer.append(",");
-		valuesBuffer.append(DBDefaults.CONTENT_CLOCK_PLACEHOLDER);
-		valuesBuffer.append(",");
-		valuesBuffer.append(DBDefaults.DELETED_CLOCK_PLACEHOLDER);
-
-		// add hidden columns by hand
-		buffer.append(",");
-		buffer.append(DBDefaults.DELETED_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append(") VALUES (");
 		buffer.append(valuesBuffer.toString());
 		buffer.append(") ON DUPLICATE KEY UPDATE ");
-
 
 		fieldsValuesIt = this.row.getFieldValues().iterator();
 		while(fieldsValuesIt.hasNext())
@@ -86,16 +69,6 @@ public class InsertOperation extends AbstractOperation implements Operation
 			if(fieldsValuesIt.hasNext())
 				buffer.append(",");
 		}
-
-		buffer.append(",_del=VALUES(_del),");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append("=VALUES(");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append("),");
-		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-		buffer.append("=VALUES(");
-		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-		buffer.append(")");
 
 		shadowStatements.add(buffer.toString());
 	}

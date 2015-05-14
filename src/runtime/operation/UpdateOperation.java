@@ -67,10 +67,10 @@ public class UpdateOperation extends AbstractOperation implements Operation
 				FieldValue oldFieldValue = this.row.getFieldValue(currField.getFieldName());
 				FieldValue newFieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
 
-				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getValue(), oldFieldValue.getValue()))
+				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getFormattedValue(), oldFieldValue.getFormattedValue()))
 				{
-					String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getValue(),
-							oldFieldValue.getValue());
+					String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getFormattedValue(),
+							oldFieldValue.getFormattedValue());
 					ApplyDelta applyDeltaRequest = new ApplyDelta();
 					applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
 					applyDeltaRequest.setDeltaValue(deltaValue);

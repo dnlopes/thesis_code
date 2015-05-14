@@ -23,14 +23,18 @@ public class FieldValue
 	public String getValue()
 	{
 		return this.value;
-		/*
-		if(this.fieldType == CrdtDataFieldType.LWWSTRING || this.fieldType == CrdtDataFieldType.NORMALSTRING)
-			return "'" + this.value + "'";
-		else if (this.fieldType == CrdtDataFieldType.NUMDELTADOUBLE || this.fieldType == CrdtDataFieldType
-				.NUMDELTAFLOAT || this.fieldType == CrdtDataFieldType.NUMDELTAINTEGER)
+	}
+
+	public String getFormattedValue()
+	{
+		CrdtDataFieldType fieldType = this.dataField.getCrdtType();
+
+		if(this.dataField.isDeltaField())
 			return this.dataField.getFieldName() + "+" + this.value;
+		else if(fieldType == CrdtDataFieldType.LWWSTRING || fieldType == CrdtDataFieldType.NORMALSTRING)
+			return "'" + this.value + "'";
 		else
-			return this.value;               */
+			return this.value;
 	}
 
 	public void setValue(String newValue)
@@ -49,8 +53,8 @@ public class FieldValue
 		{
 			String[] splitted = this.value.split("\\+");
 
-			for(String elem : splitted)
-				elem = elem.trim();
+			for(int i = 0; i < splitted.length; i++)
+				splitted[i] = splitted[i].trim();
 
 			if(splitted.length != 2)
 				RuntimeHelper.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
@@ -71,8 +75,8 @@ public class FieldValue
 		{
 			String[] splitted = this.value.split("-");
 
-			for(String elem : splitted)
-				elem = elem.trim();
+			for(int i = 0; i < splitted.length; i++)
+				splitted[i] = splitted[i].trim();
 
 			if(splitted.length != 2)
 				RuntimeHelper.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
@@ -86,8 +90,8 @@ public class FieldValue
 
 			double oldValue = Double.parseDouble(oldField.getValue());
 
-			double finalValue = oldValue - newValue;
-			this.value = String.valueOf(finalValue);
+			double deltaValue = oldValue - newValue;
+			this.value = String.valueOf(deltaValue);
 		}
 	}
 

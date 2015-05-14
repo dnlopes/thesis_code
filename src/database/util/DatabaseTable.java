@@ -18,6 +18,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import util.defaults.DBDefaults;
 
 
 /**
@@ -44,19 +45,12 @@ public abstract class DatabaseTable
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected Map<Integer, DataField> sortedFieldsMap;
-
-
 	protected Map<String, DataField> hiddenFields;
-
 	protected Map<String, DataField> normalFields;
+
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 
 	protected static LWWField timestampLWW;
-
-	public CrdtTableType getTag()
-	{
-		return tag;
-	}
 
 	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
 							ExecutionPolicy policy)
@@ -548,11 +542,11 @@ public abstract class DatabaseTable
 			this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 		}
 
-		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size(), "_cclock");
+		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size(), DBDefaults.CONTENT_CLOCK_COLUMN);
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
 		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
-		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size(), "_dclock");
+		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size(), DBDefaults.DELETED_CLOCK_COLUMN);
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
 		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
 
@@ -613,5 +607,10 @@ public abstract class DatabaseTable
 	public Collection<DataField> getHiddenFields()
 	{
 		return this.hiddenFields.values();
+	}
+
+	public DataField getDeletedClockField()
+	{
+		return this.deletedClockField;
 	}
 }

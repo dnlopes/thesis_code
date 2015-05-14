@@ -87,7 +87,7 @@ public final class PrimaryKeyValue
 			FieldValue fValue = it.next();
 			buffer.append(fValue.getDataField().getFieldName());
 			buffer.append("=");
-			buffer.append(fValue.getValue());
+			buffer.append(fValue.getFormattedValue());
 			if(it.hasNext())
 				buffer.append(",");
 		}
@@ -115,7 +115,7 @@ public final class PrimaryKeyValue
 			FieldValue fValue = it.next();
 			buffer.append(fValue.getDataField().getFieldName());
 			buffer.append("=");
-			buffer.append(fValue.getValue());
+			buffer.append(fValue.getFormattedValue());
 			if(it.hasNext())
 				buffer.append(" AND ");
 		}

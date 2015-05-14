@@ -1,8 +1,8 @@
 package database.util;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import database.constraints.Constraint;
+
+import java.util.*;
 
 
 /**
@@ -16,6 +16,7 @@ public class Row
 	private Map<String, FieldValue> fieldValues;
 	private Map<String, FieldValue> newFieldValues;
 	private boolean hasSideEffects;
+	private Set<Constraint> contraintsToCheck;
 
 	public Row(DatabaseTable databaseTable, PrimaryKeyValue pkValue)
 	{
@@ -23,11 +24,13 @@ public class Row
 		this.pkValue = pkValue;
 		this.fieldValues = new HashMap<>();
 		this.newFieldValues = new HashMap<>();
+		this.contraintsToCheck = new HashSet<>();
 		this.hasSideEffects = false;
 	}
 
 	public void updateFieldValue(FieldValue newValue)
 	{
+
 		this.newFieldValues.put(newValue.getDataField().getFieldName(), newValue);
 
 		if(newValue.getDataField().hasChilds())
@@ -62,16 +65,6 @@ public class Row
 		return this.fieldValues.values();
 	}
 
-	public Map<String, FieldValue> getValuesMap()
-	{
-		return this.fieldValues;
-	}
-
-	public Map<String, FieldValue> getUpdatesValuesMap()
-	{
-		return this.newFieldValues;
-	}
-
 	public DatabaseTable getTable()
 	{
 		return this.table;
@@ -95,8 +88,8 @@ public class Row
 			{
 				FieldValue oldFieldValue = this.fieldValues.get(entry.getKey());
 
-				double oldValue = Double.parseDouble(oldFieldValue.getValue());
-				double newValue = Double.parseDouble(entry.getValue().getValue());
+				double oldValue = Double.parseDouble(oldFieldValue.getFormattedValue());
+				double newValue = Double.parseDouble(entry.getValue().getFormattedValue());
 
 				double delta = oldValue + newValue;
 				String updatedWithDelta = entry.getValue().getDataField().getFieldName() + "+" + String.valueOf(delta);

@@ -73,26 +73,6 @@ public class DeletedField extends DataField
 	}
 
 	/**
-	 * Gets the _ mark_ deleted.
-	 *
-	 * @return the _ mark_ deleted
-	 */
-	public String get_Mark_Deleted()
-	{
-		return FIELD_NAME + " = " + true;
-	}
-
-	/**
-	 * Gets the _ unmark_ deleted.
-	 *
-	 * @return the _ unmark_ deleted
-	 */
-	public String get_Unmark_Deleted()
-	{
-		return FIELD_NAME + " = " + false;
-	}
-
-	/**
 	 * @return
 	 *
 	 * @see database.util.DataField#getDefaultValue()
@@ -102,13 +82,9 @@ public class DeletedField extends DataField
 		return "false";
 	}
 
-	/**
-	 * @return
-	 *
-	 * @see database.util.DataField#getFieldName()
-	 */
-	public String getFieldName()
+	@Override
+	public boolean isDeletedFlagField()
 	{
-		return FIELD_NAME;
+		return true;
 	}
 }

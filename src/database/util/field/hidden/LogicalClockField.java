@@ -41,14 +41,10 @@ public class LogicalClockField extends DataField
 		return "'" + Value + "'";
 	}
 
-	public String get_Set_Logical_Timestamp(String value)
+	@Override
+	public boolean isStringField()
 	{
-		return getFieldName() + "= '" + value + "' ";
-	}
-
-	public String get_Set_Logical_Timestamp()
-	{
-		return getFieldName() + "= ?";
+		return true;
 	}
 
 }
