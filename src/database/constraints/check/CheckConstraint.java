@@ -65,7 +65,7 @@ public class CheckConstraint extends AbstractConstraint
 	public boolean mustCoordinate(String newValue, String oldValue)
 	{
 		if(this.fieldType == 1)
-			RuntimeHelper.throwRunTimeException("delta operation unexpected for a string field",
+			RuntimeHelper.throwRunTimeException("unexpected delta operation for a string field",
 					ExitCode.UNEXPECTED_OP);
 		if(this.fieldType == 2)
 			return this.mustCoordinate(Integer.parseInt(newValue), Integer.parseInt(oldValue));

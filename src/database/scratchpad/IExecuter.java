@@ -4,7 +4,6 @@ package database.scratchpad;
 import database.jdbc.Result;
 import net.sf.jsqlparser.statement.select.Select;
 import runtime.operation.DBSingleOperation;
-import runtime.txn.TableWriteSet;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -82,7 +81,5 @@ public interface IExecuter
 	 * Cleans the state of the temporary table of this executer
 	 */
 	public void resetExecuter(IDBScratchPad pad) throws SQLException;
-
-	public TableWriteSet getWriteSet() throws SQLException;
 
 }

@@ -44,6 +44,8 @@ public abstract class DatabaseTable
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected Map<Integer, DataField> sortedFieldsMap;
+
+
 	protected Map<String, DataField> hiddenFields;
 
 	protected Map<String, DataField> normalFields;
@@ -606,5 +608,10 @@ public abstract class DatabaseTable
 	public Set<ForeignKeyConstraint> getChildTablesConstraints()
 	{
 		return this.childTablesConstraints;
+	}
+
+	public Collection<DataField> getHiddenFields()
+	{
+		return this.hiddenFields.values();
 	}
 }

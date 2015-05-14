@@ -4,13 +4,7 @@ package network.coordinator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.thrift.CoordRequestMessage;
-import util.thrift.CoordResponseMessage;
-import util.thrift.CoordinatorRPC;
-import util.thrift.ResponseEntry;
-
-import java.util.List;
-
+import util.thrift.*;
 
 /**
  * Created by dnlopes on 24/03/15.
@@ -28,25 +22,17 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	}
 
 	@Override
-	public CoordResponseMessage checkInvariants(CoordRequestMessage checkRequest) throws TException
+	public CoordinatorResponse checkInvariants(CoordinatorRequest request) throws TException
 	{
-		LOG.trace("request {} received", checkRequest.getMessageId());
-		CoordResponseMessage newResponse = new CoordResponseMessage();
-		newResponse.setMessageId(checkRequest.getMessageId());
+		LOG.trace("request {} received", request.getRequestId());
 
-		List<ResponseEntry> checkResultList = this.coordinator.processInvariants(checkRequest.getRequests());
+		CoordinatorResponse response = this.coordinator.processInvariants(request);
 
-		// something went wrong. set boolean false and send response
-		if(checkResultList == null)
-		{
-			newResponse.setSuccess(false);
+		if(!response.isSuccess())
 			LOG.error("txn is not allowed to commit. Please abort");
-			return newResponse;
-		}
+		else
+			LOG.info("txn is allowed to commit.");
 
-		newResponse.setSuccess(true);
-		newResponse.setResponses(checkResultList);
-		LOG.info("txn is allowed to commit.");
-		return newResponse;
+		return response;
 	}
 }

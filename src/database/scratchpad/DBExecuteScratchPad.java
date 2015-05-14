@@ -15,15 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import runtime.operation.DBSingleOperation;
-import runtime.operation.ShadowOperation;
+import runtime.operation.Operation;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
-import runtime.txn.TransactionWriteSet;
 import util.ExitCode;
 import util.defaults.ScratchpadDefaults;
-import util.thrift.CoordResponseMessage;
-import util.thrift.RequestEntry;
-import util.thrift.ResponseEntry;
+import util.thrift.*;
 
 import java.sql.*;
 import java.sql.Statement;
@@ -51,8 +48,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	private Statement statBU;
 	private boolean batchEmpty;
 
-	private TransactionWriteSet txnWriteSet;
-
 	public DBExecuteScratchPad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
 	{
 		this.id = id;
@@ -65,8 +60,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
-
-		this.txnWriteSet = new TransactionWriteSet();
 		this.runtimeWatch = new StopWatch("txn runtime");
 
 		this.createDBExecuters();
@@ -126,7 +119,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 						this.activeTransaction.getLatency());
 
 			} else
-				LOG.warn("txn {} failed to commit", this.activeTransaction.getTxnId().getValue());
+				LOG.warn("txn {} failed to commit on main storage", this.activeTransaction.getTxnId().getValue());
 
 			return commitDecision;
 		}
@@ -273,8 +266,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.readOnly = true;
 		this.statBU.clearBatch();
 
-		this.txnWriteSet.resetWriteSet();
-
 		for(IExecuter executer : this.executers.values())
 			executer.resetExecuter(this);
 
@@ -282,14 +273,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.batchEmpty = true;
 	}
 
-	@Override
-	public TransactionWriteSet createTransactionWriteSet() throws SQLException
-	{
-		for(IExecuter executer : this.executers.values())
-			this.txnWriteSet.addTableWriteSet(executer.getTableName(), executer.getWriteSet());
-
-		return this.txnWriteSet;
-	}
 
 	@Override
 	public boolean addToWriteSet(DBWriteSetEntry entry)
@@ -338,30 +321,27 @@ public class DBExecuteScratchPad implements IDBScratchPad
 
 		try
 		{
-			this.txnWriteSet = this.createTransactionWriteSet();
-			List<RequestEntry> checkList = this.txnWriteSet.verifyInvariants();
+			CoordinatorRequest req = new CoordinatorRequest();
+			for(Operation op : this.activeTransaction.getTxnOps())
+				op.createRequestsToCoordinate(req);
 
-			if(checkList.size() > 0)
+			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
 			{
 				//if we must coordinate then do it here. this is a blocking call
-				CoordResponseMessage response = network.checkInvariants(checkList, proxyConfig.getCoordinatorConfig());
+				CoordinatorResponse response = network.checkInvariants(req, proxyConfig.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
-					LOG.warn("coordinator didnt allow txn to commit.");
+					LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 					return;
 				}
-				List<ResponseEntry> responses = response.getResponses();
+				List<RequestValue> requestValues = response.getRequestedValues();
 
-				if(responses != null)
-					this.txnWriteSet.processCoordinatorResponse(responses);
+				if(requestValues != null)
+					this.activeTransaction.updatedWithRequestedValues(requestValues);
 			}
 
-			this.txnWriteSet.generateMinimalStatements();
-
-			ShadowOperation shadowOp = new ShadowOperation(this.activeTransaction.getTxnId().getValue(),
-					this.txnWriteSet.getStatements());
-			this.activeTransaction.setReadyToCommit(shadowOp);
-		} catch(SQLException | TException e)
+			this.activeTransaction.generateShadowOperation();
+		} catch(TException e)
 		{
 			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId().getValue(), e);
 		}

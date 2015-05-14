@@ -12,9 +12,6 @@ import runtime.Utils;
 import runtime.operation.ShadowOperation;
 import util.thrift.*;
 
-import java.util.List;
-
-
 /**
  * Created by dnlopes on 15/03/15.
  */
@@ -58,7 +55,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public CoordResponseMessage checkInvariants(List<RequestEntry> checkList, AbstractNodeConfig node) throws
+	public CoordinatorResponse checkInvariants(CoordinatorRequest req, AbstractNodeConfig node) throws
 			TException
 	{
 		if(!this.coordinatorsClients.containsKey(node.getName()))
@@ -71,10 +68,9 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 				throw e;
 			}
 
+		req.setRequestId(0);
 		CoordinatorRPC.Client client = this.coordinatorsClients.get(node.getName());
-		CoordRequestMessage newRequest = new CoordRequestMessage(this.requestId, checkList);
-
-		return client.checkInvariants(newRequest);
+		return client.checkInvariants(req);
 	}
 
 }

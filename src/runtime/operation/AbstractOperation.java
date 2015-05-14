@@ -3,6 +3,10 @@ package runtime.operation;
 
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import runtime.RuntimeHelper;
+import util.ExitCode;
 
 import java.util.List;
 
@@ -13,15 +17,29 @@ import java.util.List;
 public abstract class AbstractOperation implements Operation
 {
 
+	protected static final Logger LOG = LoggerFactory.getLogger(AbstractOperation.class);
+
 	protected final ExecutionPolicy tablePolicy;
 	protected final OperationType opType;
-	protected final Row row;
+	protected final int id;
+	protected Row row;
 
-	public AbstractOperation(ExecutionPolicy tablePolicy, OperationType opType, Row row)
+	public AbstractOperation(int id, ExecutionPolicy tablePolicy, OperationType opType, Row row)
 	{
+		this.id = id;
 		this.tablePolicy = tablePolicy;
 		this.opType = opType;
 		this.row = row;
+	}
+
+	public Row getRow()
+	{
+		return this.row;
+	}
+
+	public int getOperationId()
+	{
+		return this.id;
 	}
 
 	public ExecutionPolicy getTablePolicy()
@@ -29,10 +47,16 @@ public abstract class AbstractOperation implements Operation
 		return this.tablePolicy;
 	}
 
-	public OperationType getOpType()
+	public OperationType getOperationType()
 	{
 		return this.opType;
 	}
 
-	public abstract List<String> generateOperationStatements();
+	public abstract void generateOperationStatements(List<String> shadowStatements);
+
+	public void createRequestsToCoordinate()
+	{
+		RuntimeHelper.throwRunTimeException("this method should always be overrided if one wants to call it",
+				ExitCode.UNEXPECTED_OP);
+	}
 }

@@ -48,6 +48,12 @@ public class NUMDELTA_INTEGER extends DataField {
 		return transformedSql;
 	}
 
+	@Override
+	public boolean isDeltaField()
+	{
+		return true;
+	}
+
 	/* (non-Javadoc)
 	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
 	 */

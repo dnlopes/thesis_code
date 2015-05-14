@@ -15,21 +15,21 @@ import java.util.Map;
  */
 public class UpdateParentOperation extends UpdateOperation implements ParentOperation
 {
+
 	private Map<ForeignKeyConstraint, List<Row>> childsByConstraint;
 	private int numberRows;
 
-	public UpdateParentOperation(ExecutionPolicy policy, Row updatedRow)
+	public UpdateParentOperation(int id, ExecutionPolicy policy, Row updatedRow)
 	{
-		super(policy, updatedRow);
+		super(id, policy, updatedRow);
 		this.childsByConstraint = new HashMap<>();
 		this.numberRows = 0;
 	}
 
 	@Override
-	public List<String> generateOperationStatements()
+	public void generateOperationStatements(List<String> shadowStatements)
 	{
 		//TODO implement
-		return null;
 	}
 
 	@Override

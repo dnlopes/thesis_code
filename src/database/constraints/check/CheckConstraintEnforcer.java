@@ -4,6 +4,7 @@ package database.constraints.check;
 import database.jdbc.ConnectionFactory;
 import database.util.*;
 import network.coordinator.CoordinatorConfig;
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -62,25 +63,12 @@ public class CheckConstraintEnforcer
 
 			while(rs.next())
 			{
-				StringBuilder pkBuffer = new StringBuilder();
-
-				for(int i = 0; i < this.dbTable.getPrimaryKey().getSize(); i++)
-				{
-					if(i == 0)
-						pkBuffer.append(rs.getObject(i + 1).toString());
-					else
-					{
-						pkBuffer.append(",");
-						pkBuffer.append(rs.getObject(i + 1).toString());
-					}
-				}
+				PrimaryKeyValue pkValue = DatabaseCommon.getPrimaryKeyValue(rs, this.dbTable);
 				String currentValue = rs.getString(field.getFieldName());
-				currentValues.put(pkBuffer.toString(), Double.parseDouble(currentValue));
+				currentValues.put(pkValue.getValue(), Double.parseDouble(currentValue));
 			}
 
-			rs.close();
-			stmt.close();
-			tempConnection.close();
+			DbUtils.closeQuietly(tempConnection, stmt, rs);
 		} catch(SQLException e)
 		{
 			LOG.error("error while fetching all current values for field {}", this.field.getFieldName(), e);

@@ -153,6 +153,11 @@ public abstract class DataField
 				.NORMALSTRING;
 	}
 
+	public boolean isDeltaField()
+	{
+		return false;
+	}
+
 	public boolean isHiddenField()
 	{
 		return this.isHiddenField;

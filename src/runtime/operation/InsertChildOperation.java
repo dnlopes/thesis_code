@@ -15,16 +15,15 @@ public class InsertChildOperation extends InsertOperation
 
 	private List<Row> parentRows;
 
-	public InsertChildOperation(ExecutionPolicy policy, List<Row> parents, Row newRow)
+	public InsertChildOperation(int id, ExecutionPolicy policy, List<Row> parents, Row newRow)
 	{
-		super(policy, newRow);
+		super(id, policy, newRow);
 		this.parentRows = parents;
 	}
 
 	@Override
-	public List<String> generateOperationStatements()
+	public void generateOperationStatements(List<String> shadowStatements)
 	{
 		//TODO implement
-		return null;
 	}
 }

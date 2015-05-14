@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.*;
-import runtime.txn.TableWriteSet;
 import util.exception.CheckConstraintViolatedException;
 import util.defaults.Configuration;
 import runtime.RuntimeHelper;
@@ -53,8 +52,8 @@ public class DBExecuter implements IExecuter
 	private List<Operation> ops;
 
 	private Set<PrimaryKeyValue> duplicatedRows;
+	private Set<PrimaryKeyValue> deletedRows;
 	private Map<String, PrimaryKeyValue> recordedPkValues;
-	private TableWriteSet writeSet;
 
 	public DBExecuter(int tableId, String tableName)
 	{
@@ -74,8 +73,6 @@ public class DBExecuter implements IExecuter
 		this.selectAllItems = new ArrayList<>();
 		this.fields = this.databaseTable.getFieldsMap();
 
-		this.writeSet = new TableWriteSet(this.databaseTable.getName());
-
 		for(DataField field : this.fields.values())
 		{
 			if(field.isHiddenField())
@@ -87,6 +84,7 @@ public class DBExecuter implements IExecuter
 		}
 
 		this.duplicatedRows = new HashSet<>();
+		this.deletedRows = new HashSet<>();
 		this.recordedPkValues = new HashMap<>();
 	}
 
@@ -554,7 +552,7 @@ public class DBExecuter implements IExecuter
 
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
 
-		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
+		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			whereClauseOrig.append(" AND ");
 			this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
@@ -841,9 +839,11 @@ public class DBExecuter implements IExecuter
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
 			List<Row> parents = DatabaseCommon.findParentRows(insertedRow, this.fkConstraints, db);
-			op = new InsertChildOperation(this.databaseTable.getExecutionPolicy(), parents, insertedRow);
+			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable
+					.getExecutionPolicy(),
+					parents,	insertedRow);
 		} else // its a "neutral" or "parent" row
-			op = new InsertOperation(this.databaseTable.getExecutionPolicy(), insertedRow);
+			op = new InsertOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), insertedRow);
 
 		db.getActiveTransaction().addOperation(op);
 
@@ -879,7 +879,7 @@ public class DBExecuter implements IExecuter
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
-		if(this.duplicatedRows.size() > 0 || this.writeSet.getDeletedRows().size() > 0)
+		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
 			this.generateNotInDeletedAndUpdatedClause(buffer);
@@ -910,7 +910,8 @@ public class DBExecuter implements IExecuter
 				rowsDeleted++;
 				rowToDelete = DatabaseCommon.getFullRow(res, this.databaseTable);
 
-				this.recordedPkValues.put(rowToDelete.getPkValue().getValue(), rowToDelete.getPkValue());
+				this.recordedPkValues.put(rowToDelete.getPrimaryKeyValue().getValue(),
+						rowToDelete.getPrimaryKeyValue());
 			}
 
 			buffer = new StringBuffer();
@@ -926,12 +927,12 @@ public class DBExecuter implements IExecuter
 			Operation op;
 			if(this.databaseTable.isParentTable())
 			{
-				op = new DeleteParentOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
+				op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), rowToDelete);
 				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete, db);
 				rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
 
 			} else
-				op = new DeleteOperation(this.databaseTable.getExecutionPolicy(), rowToDelete);
+				op = new DeleteOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), rowToDelete);
 
 			db.getActiveTransaction().addOperation(op);
 
@@ -965,7 +966,8 @@ public class DBExecuter implements IExecuter
 			String newValue = expIt.next().toString();
 			DataField field = this.fields.get(columnName);
 
-			//FIXME: currently, we do not allow primary keys, immutable fields and fields that have childs to be updated
+			//FIXME: currently, we do not allow primary keys, immutable fields and fields that have childs to be
+			// updated
 			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
 				RuntimeHelper.throwRunTimeException("trying to modify a primary key or immutable field",
 						ExitCode.UNEXPECTED_OP);
@@ -990,12 +992,12 @@ public class DBExecuter implements IExecuter
 		// if is parent table, check if this op has side effects
 		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 		{
-			op = new UpdateParentOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
+			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), updatedRow);
 			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
 			affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
 
 		} else // if a parent row update has no side effects its the same as update neutral row
-			op = new UpdateOperation(this.databaseTable.getExecutionPolicy(), updatedRow);
+			op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(), this.databaseTable.getExecutionPolicy(), updatedRow);
 
 		db.getActiveTransaction().addOperation(op);
 
@@ -1131,12 +1133,6 @@ public class DBExecuter implements IExecuter
 		return true;
 	}
 
-	@Override
-	public TableWriteSet getWriteSet() throws SQLException
-	{
-		return this.writeSet;
-	}
-
 	private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolatedException
 	{
 		for(Constraint constraint : field.getInvariants())
@@ -1192,7 +1188,7 @@ public class DBExecuter implements IExecuter
 
 	private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
 	{
-		if(this.duplicatedRows.size() == 0 && this.writeSet.getDeletedRows().size() == 0)
+		if(this.duplicatedRows.size() == 0 && this.deletedRows.size() == 0)
 			return;
 
 		buffer.append("( ");
@@ -1208,7 +1204,7 @@ public class DBExecuter implements IExecuter
 			deletedItemsList.add(valueExpression);
 		}
 
-		for(PrimaryKeyValue pkValue : this.writeSet.getDeletedRows())
+		for(PrimaryKeyValue pkValue : this.deletedRows)
 		{
 			Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
 			deletedItemsList.add(valueExpression);
@@ -1255,12 +1251,12 @@ public class DBExecuter implements IExecuter
 			List<Row> childRows = DatabaseCommon.findChildsFromTable(parentRow, fkConstraint.getChildTable(),
 					fkConstraint.getFieldsRelations(), pad);
 
-			if(op.getOpType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() ==
+			if(op.getOperationType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() ==
 					ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot delete parent row because of foreign key restriction");
 
-			if(op.getOpType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() ==
+			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() ==
 					ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot update parent row because of foreign key restriction");

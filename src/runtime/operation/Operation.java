@@ -2,6 +2,8 @@ package runtime.operation;
 
 
 import database.util.ExecutionPolicy;
+import database.util.Row;
+import util.thrift.CoordinatorRequest;
 
 import java.util.List;
 
@@ -11,7 +13,10 @@ import java.util.List;
  */
 public interface Operation
 {
-	public List<String> generateOperationStatements();
+	public Row getRow();
+	public void generateOperationStatements(List<String> shadowStatements);
 	public ExecutionPolicy getTablePolicy();
-	public OperationType getOpType();
+	public OperationType getOperationType();
+	public void createRequestsToCoordinate(CoordinatorRequest request);
+	public int getOperationId();
 }

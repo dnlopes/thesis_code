@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import util.thrift.CoordinatorRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,18 +20,23 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 	private Map<ForeignKeyConstraint, List<Row>> childsByConstraint;
 	private int numberRows;
 
-	public DeleteParentOperation(ExecutionPolicy policy, Row deletedRow)
+	public DeleteParentOperation(int id, ExecutionPolicy policy, Row deletedRow)
 	{
-		super(policy, deletedRow);
+		super(id, policy, deletedRow);
 		this.childsByConstraint = new HashMap<>();
 		this.numberRows = 0;
 	}
 
 	@Override
-	public List<String> generateOperationStatements()
+	public void generateOperationStatements(List<String> shadowStatements)
 	{
-		//TODO implement
-		return null;
+		//TODO
+	}
+
+	@Override
+	public void createRequestsToCoordinate(CoordinatorRequest request)
+	{
+		//TODO
 	}
 
 	@Override

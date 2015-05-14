@@ -19,8 +19,7 @@ import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.defaults.Configuration;
-import util.thrift.RequestEntry;
-import util.thrift.ResponseEntry;
+import util.thrift.*;
 
 import java.util.*;
 
@@ -66,71 +65,82 @@ public class Coordinator extends AbstractNode
 		LOG.info("coordinator {} online", this.config.getId());
 	}
 
-	public List<ResponseEntry> processInvariants(List<RequestEntry> checkList)
+	public CoordinatorResponse processInvariants(CoordinatorRequest req)
 	{
-		List<ResponseEntry> results = new ArrayList<>();
+		CoordinatorResponse response = new CoordinatorResponse();
 
-		for(RequestEntry checkEntry : checkList)
+		for(UniqueValue uniqueValue : req.getUniqueValues())
 		{
-			ResponseEntry newResult = this.processRequestEntry(checkEntry);
-			//if any of the requests failed we can return now and avoid processing the rest
-			// either way, the txn on the other side will fail
-			if(!newResult.isSuccess())
-				return null;
+			boolean res = processUniqueValueRequest(response, uniqueValue);
+			if(!res)
+			{
+				response.setSuccess(false);
+				return response;
+			}
 		}
 
-		LOG.trace("all requets were successfully processed");
-		return results;
+		for(ApplyDelta applyDelta : req.getDeltaValues())
+		{
+			boolean res = processApplyDelta(response, applyDelta);
+			if(!res)
+			{
+				response.setSuccess(false);
+				return response;
+			}
+		}
+
+		for(RequestValue reqValue : req.getRequests())
+			this.processRequestValue(reqValue);
+
+		response.setRequestedValues(req.getRequests());
+		LOG.trace("all requests were successfully processed");
+		response.setSuccess(true);
+		return response;
 	}
 
-	private ResponseEntry processRequestEntry(RequestEntry entry)
+	private boolean processApplyDelta(CoordinatorResponse response, ApplyDelta applyDelta)
 	{
-		ResponseEntry newResult = new ResponseEntry();
-		newResult.setId(entry.getId());
+		String delta = applyDelta.getDeltaValue();
+		String rowId = applyDelta.getRowId();
+		String constraintId = applyDelta.getConstraintId();
 
-		String constraintId = entry.getConstraintId();
-		switch(entry.getType())
+		if(this.checkEnforcers.get(constraintId).applyDelta(rowId, delta))
 		{
-		case UNIQUE:
-			String desiredValue = entry.getValue();
-			if(this.uniquesEnforcers.get(constraintId).reservValue(desiredValue))
-			{
-				LOG.debug("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
-				newResult.setSuccess(true);
-			} else
-			{
-				LOG.debug("unique value already in use {} for table-field {}", desiredValue, constraintId);
-				newResult.setSuccess(false);
-			}
-			return newResult;
-		case REQUEST_ID:
-			int newId = this.autoIncrementsEnforcers.get(constraintId).getNextId();
-			newResult.setResquestedValue(String.valueOf(newId));
-			newResult.setSuccess(true);
-			LOG.debug("providing new auto incremented value {} for table-field {}", newId, constraintId);
-			return newResult;
-		case APPLY_DELTA:
-			String delta = entry.getValue();
-			String pkValue = entry.getId();
-			if(this.checkEnforcers.get(constraintId).applyDelta(pkValue, delta))
-			{
-				LOG.debug("delta value {} applied sucessfully", delta);
-				newResult.setSuccess(true);
-			} else
-			{
-				LOG.debug("delta value {} not valid", delta);
-				newResult.setSuccess(false);
-			}
-			return newResult;
-		case FOREIGN_KEY:
-			LOG.warn("not yet implemented");
-			break;
-		default:
-			LOG.warn("unexpected entry type");
-			return null;
+			LOG.trace("delta value {} applied sucessfully", delta);
+			return true;
+		} else
+		{
+			String error = "delta value " + delta + " not valid for constraint " + constraintId + " in row " + rowId;
+			response.setErrorMessage(error);
+			LOG.warn(error);
+			return false;
 		}
+	}
 
-		return newResult;
+	private boolean processUniqueValueRequest(CoordinatorResponse response, UniqueValue uniqueValue)
+	{
+		String desiredValue = uniqueValue.getValue();
+		String constraintId = uniqueValue.getConstraintId();
+		if(this.uniquesEnforcers.get(constraintId).reservValue(desiredValue))
+		{
+			LOG.trace("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
+			return true;
+		} else
+		{
+			String error = "unique value already in use: " + desiredValue;
+			response.setErrorMessage(error);
+			LOG.trace("unique value already in use {} for table-field {}", desiredValue, constraintId);
+			return false;
+		}
+	}
+
+	private boolean processRequestValue(RequestValue reqValue)
+	{
+		String constraintId = reqValue.getConstraintId();
+		int newId = this.autoIncrementsEnforcers.get(constraintId).getNextId();
+		reqValue.setRequestedValue(String.valueOf(newId));
+		LOG.trace("providing new auto incremented value {} for table-field {}", newId, constraintId);
+		return true;
 	}
 
 	private void setup()
@@ -164,7 +174,7 @@ public class Coordinator extends AbstractNode
 					this.autoIncrementsEnforcers.put(constraintId, autoIncrementEnforcer);
 					break;
 				case FOREIGN_KEY:
-					LOG.warn("not yet implemented");
+					LOG.warn("fk not yet implemented");
 					break;
 				case CHECK:
 					if(fields.size() > 1)

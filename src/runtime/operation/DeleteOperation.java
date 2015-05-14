@@ -4,8 +4,8 @@ package runtime.operation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
 import util.defaults.DBDefaults;
+import util.thrift.CoordinatorRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -18,37 +18,45 @@ public class DeleteOperation extends AbstractOperation implements Operation
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
+	private static final String FUNCTION_CLAUSE = " AND compareClocks(" + DBDefaults.DELETED_CLOCK_COLUMN + "," +
+			DBDefaults.DELETED_CLOCK_PLACEHOLDER + ")";
 
-	public DeleteOperation(ExecutionPolicy policy, Row newRow)
+	public DeleteOperation(int id, ExecutionPolicy policy, Row newRow)
 	{
-		super(policy, OperationType.DELETE, newRow);
+		super(id, policy, OperationType.DELETE, newRow);
 	}
 
-	public List<String> generateOperationStatements()
+	@Override
+	public void generateOperationStatements(List<String> shadowStatements)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("UPDATE ");
-		buffer.append(row.getTable().getName());
+		buffer.append(this.row.getTable().getName());
 		buffer.append(" SET ");
 		buffer.append(SET_DELETED_EXPRESSION);
 		buffer.append(",");
 		buffer.append(SET_DELETED_CLOCK_EXPRESION);
 		buffer.append(" WHERE ");
-		buffer.append(row.getPkValue().getPrimaryKeyWhereClause());
-		buffer.append(" AND ");
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		buffer.append(FUNCTION_CLAUSE);
+		/*buffer.append(" AND ");
 		buffer.append("compareClocks(");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 		buffer.append(",");
 		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
+		buffer.append(")");                                */
 
 		if(this.tablePolicy == ExecutionPolicy.DELETEWINS)
-			buffer.append(">= 0");
+			buffer.append(">=0");
 		else
-			buffer.append("> 0");
+			buffer.append(">0");
 
-		List<String> transformedOps = new ArrayList<>(1);
-		transformedOps.add(buffer.toString());
-		return transformedOps;
+		shadowStatements.add(buffer.toString());
+	}
+
+	@Override
+	public void createRequestsToCoordinate(CoordinatorRequest request)
+	{
+
 	}
 }

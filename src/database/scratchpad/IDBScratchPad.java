@@ -8,8 +8,6 @@ import network.proxy.IProxyNetwork;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
-import runtime.txn.TransactionWriteSet;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -47,8 +45,6 @@ public interface IDBScratchPad
 	public int executeUpdate(String op) throws SQLException;
 
 	public void resetScratchpad() throws SQLException;
-
-	public TransactionWriteSet createTransactionWriteSet() throws SQLException;
 
 	public Transaction getActiveTransaction();
 }

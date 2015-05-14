@@ -1,10 +1,14 @@
 package runtime.operation;
 
 
-import database.util.ExecutionPolicy;
-import database.util.Row;
+import database.constraints.Constraint;
+import database.constraints.check.CheckConstraint;
+import database.util.*;
+import runtime.RuntimeHelper;
+import util.ExitCode;
+import util.thrift.*;
 
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -13,14 +17,74 @@ import java.util.List;
 public class UpdateOperation extends AbstractOperation implements Operation
 {
 
-	public UpdateOperation(ExecutionPolicy policy, Row updatedRow)
+	public UpdateOperation(int id, ExecutionPolicy policy, Row updatedRow)
 	{
-		super(policy, OperationType.UPDATE, updatedRow);
+		super(id, policy, OperationType.UPDATE, updatedRow);
 	}
 
-	public List<String> generateOperationStatements()
+	@Override
+	public void generateOperationStatements(List<String> shadowStatements)
 	{
 		//TODO implement
-		return null;
 	}
+
+	@Override
+	public void createRequestsToCoordinate(CoordinatorRequest request)
+	{
+		for(Constraint c : this.row.getTable().getTableInvarists())
+		{
+			switch(c.getType())
+			{
+			case AUTO_INCREMENT:
+				// we do not consider updates at auto incremented fields
+				break;
+			case UNIQUE:
+				StringBuilder buffer = new StringBuilder();
+				Iterator<DataField> it = c.getFields().iterator();
+				boolean shouldCoordinate = false;
+				while(it.hasNext())
+				{
+					DataField currField = it.next();
+
+					if(this.row.containsNewField(currField.getFieldName()))
+					{
+						shouldCoordinate = true;
+						buffer.append(this.row.getUpdateFieldValue(currField.getFieldName()));
+					} else
+						buffer.append(this.row.getFieldValue(currField.getFieldName()));
+
+					if(it.hasNext())
+						buffer.append(",");
+				}
+				if(!shouldCoordinate)
+					break;
+				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
+				request.addToUniqueValues(uniqueValue);
+				LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
+				break;
+			case CHECK:
+				DataField currField = c.getFields().get(0);
+				FieldValue oldFieldValue = this.row.getFieldValue(currField.getFieldName());
+				FieldValue newFieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
+
+				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getValue(), oldFieldValue.getValue()))
+				{
+					String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getValue(),
+							oldFieldValue.getValue());
+					ApplyDelta applyDeltaRequest = new ApplyDelta();
+					applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
+					applyDeltaRequest.setDeltaValue(deltaValue);
+					applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getValue());
+					request.addToDeltaValues(applyDeltaRequest);
+					LOG.trace("new delta check entry added");
+				}
+				break;
+			case FOREIGN_KEY:
+				break;
+			default:
+				RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
+			}
+		}
+	}
+
 }

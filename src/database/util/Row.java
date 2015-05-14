@@ -33,6 +33,9 @@ public class Row
 
 		if(newValue.getDataField().hasChilds())
 			this.hasSideEffects = true;
+
+		if(newValue.getDataField().isDeltaField())
+			newValue.transformValueForDeltaField(this.fieldValues.get(newValue.getDataField().getFieldName()));
 	}
 
 	public void addFieldValue(FieldValue value)
@@ -43,6 +46,11 @@ public class Row
 	public FieldValue getFieldValue(String fieldName)
 	{
 		return this.fieldValues.get(fieldName);
+	}
+
+	public FieldValue getUpdateFieldValue(String fieldName)
+	{
+		return this.newFieldValues.get(fieldName);
 	}
 
 	public Collection<FieldValue> getUpdatedFields()
@@ -60,13 +68,23 @@ public class Row
 		return this.fieldValues.values();
 	}
 
+	public Map<String, FieldValue> getValuesMap()
+	{
+		return this.fieldValues;
+	}
+
 	public DatabaseTable getTable()
 	{
 		return this.table;
 	}
 
-	public PrimaryKeyValue getPkValue()
+	public PrimaryKeyValue getPrimaryKeyValue()
 	{
 		return this.pkValue;
+	}
+
+	public boolean containsNewField(String key)
+	{
+		return this.newFieldValues.containsKey(key);
 	}
 }
