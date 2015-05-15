@@ -23,7 +23,7 @@ public class DBCommitPad implements IDBCommitPad
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitPad.class);
-	private static final int NUMBER_OF_RETRIES = 100;
+	private static final int NUMBER_OF_RETRIES = 10;
 	private StopWatch watcher;
 	private Replicator replicator;
 	private AbstractNodeConfig config;

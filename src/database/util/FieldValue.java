@@ -11,7 +11,7 @@ import util.ExitCode;
 public class FieldValue
 {
 
-	private DataField dataField;
+	private final DataField dataField;
 	private String value;
 
 	public FieldValue(DataField field, String value)
@@ -49,6 +49,14 @@ public class FieldValue
 
 	public void transformValueForDeltaField(FieldValue oldField)
 	{
+		if(!this.value.contains("+") && !this.value.contains("-"))
+		{
+			double oldValue = Double.parseDouble(oldField.getValue());
+			double newValue = Double.parseDouble(this.value);
+			double delta = newValue - oldValue;
+			this.value = String.valueOf(delta);
+		}
+/*
 		if(this.value.contains("+"))
 		{
 			String[] splitted = this.value.split("\\+");
@@ -90,9 +98,9 @@ public class FieldValue
 
 			double oldValue = Double.parseDouble(oldField.getValue());
 
-			double deltaValue = oldValue - newValue;
+			double deltaValue = newValue - oldValue;
 			this.value = String.valueOf(deltaValue);
-		}
+		}                                       */
 	}
 
 	@Override

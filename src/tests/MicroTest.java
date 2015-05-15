@@ -44,8 +44,8 @@ public class MicroTest
 		ResultSet rs;
 
 		//stat.executeUpdate("delete from t1 where b=1");
-		stat.executeUpdate("insert into t1 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
-		res = stat.executeUpdate("update t1 set d=d-9 where a = 0;");
+		stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
+		//res = stat.executeUpdate("update t2 set d=5 where a = 0;");
 		conn.commit();
 		res = stat.executeUpdate("update t3 set e='teste' where a>6");
 		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");

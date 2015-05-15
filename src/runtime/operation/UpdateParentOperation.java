@@ -29,7 +29,23 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
-		//TODO implement
+		super.generateOperationStatements(shadowStatements);
+
+
+		if(this.row.hasSideEffects())
+		{
+
+			for(Map.Entry<ForeignKeyConstraint, List<Row>> entry : this.childsByConstraint.entrySet())
+			{
+				StringBuilder buffer = new StringBuilder();
+				buffer.append("UPDATE ");
+				buffer.append(entry.getKey().getChildTable().getName());
+				buffer.append(" SET ");
+
+
+
+			}
+		}
 	}
 
 	@Override

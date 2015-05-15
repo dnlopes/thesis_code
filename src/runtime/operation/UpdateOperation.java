@@ -6,6 +6,7 @@ import database.constraints.check.CheckConstraint;
 import database.util.*;
 import runtime.RuntimeHelper;
 import util.ExitCode;
+import util.defaults.DBDefaults;
 import util.thrift.*;
 
 import java.util.*;
@@ -25,7 +26,20 @@ public class UpdateOperation extends AbstractOperation implements Operation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
-		//TODO implement
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
+		this.row.mergeUpdates();
+
+		StringBuilder buffer = new StringBuilder();
+
+		String insertOrUpdateStatement = OperationTransformer.generateUpdateStatement(this.row);
+		buffer.append(insertOrUpdateStatement);
+		buffer.append(" AND ");
+		String compareClockClause = OperationTransformer.generateContentFunctionClause(this.tablePolicy);
+		buffer.append(compareClockClause);
+
+		shadowStatements.add(buffer.toString());
 	}
 
 	@Override

@@ -25,50 +25,18 @@ public class InsertOperation extends AbstractOperation implements Operation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
-
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), "1"));
+		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
 		this.row.mergeUpdates();
 
 		StringBuilder buffer = new StringBuilder();
-		StringBuilder valuesBuffer = new StringBuilder();
 
-		buffer.append("INSERT INTO ");
-		buffer.append(this.row.getTable().getName());
-		buffer.append(" (");
-
-		Iterator<FieldValue> fieldsValuesIt = this.row.getFieldValues().iterator();
-
-		while(fieldsValuesIt.hasNext())
-		{
-			FieldValue fValue = fieldsValuesIt.next();
-			buffer.append(fValue.getDataField().getFieldName());
-			valuesBuffer.append(fValue.getFormattedValue());
-
-			if(fieldsValuesIt.hasNext())
-			{
-				buffer.append(",");
-				valuesBuffer.append(",");
-			}
-		}
-
-		buffer.append(") VALUES (");
-		buffer.append(valuesBuffer.toString());
-		buffer.append(") ON DUPLICATE KEY UPDATE ");
-
-		fieldsValuesIt = this.row.getFieldValues().iterator();
-		while(fieldsValuesIt.hasNext())
-		{
-			FieldValue fValue = fieldsValuesIt.next();
-			buffer.append(fValue.getDataField().getFieldName());
-			buffer.append("=VALUES(");
-			buffer.append(fValue.getDataField().getFieldName());
-			buffer.append(")");
-
-			if(fieldsValuesIt.hasNext())
-				buffer.append(",");
-		}
+		String insertOrUpdateStatement = OperationTransformer.generateUpdateStatement(this.row);
+		buffer.append(insertOrUpdateStatement);
+		buffer.append(" AND ");
+		String compareClockClause = OperationTransformer.generateContentFunctionClause(this.tablePolicy);
+		buffer.append(compareClockClause);
 
 		shadowStatements.add(buffer.toString());
 	}

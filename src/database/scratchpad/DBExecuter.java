@@ -978,12 +978,11 @@ public class DBExecuter implements IExecuter
 				newValue = "NULL";
 
 			FieldValue newFieldValue = new FieldValue(field, newValue);
-
 			updatedRow.updateFieldValue(newFieldValue);
 
 			buffer.append(columnName);
 			buffer.append("=");
-			buffer.append(newValue);
+			buffer.append(newFieldValue.getFormattedValue());
 			if(colIt.hasNext())
 				buffer.append(",");
 		}
@@ -1084,7 +1083,10 @@ public class DBExecuter implements IExecuter
 					if(!field.isDeletedFlagField())
 						oldContent = res.getObject(field.getFieldName());
 					else
+					{
 						oldContent = Integer.toString(res.getInt(field.getFieldName()));
+						oldContent = Boolean.parseBoolean(oldContent.toString());
+					}
 
 					if(oldContent == null)
 						oldContent = "NULL";

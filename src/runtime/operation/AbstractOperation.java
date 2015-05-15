@@ -5,6 +5,7 @@ import database.util.ExecutionPolicy;
 import database.util.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.DBDefaults;
 import util.thrift.CoordinatorRequest;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public abstract class AbstractOperation implements Operation
 {
 
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractOperation.class);
+	protected static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+
 
 	protected final ExecutionPolicy tablePolicy;
 	protected final OperationType opType;

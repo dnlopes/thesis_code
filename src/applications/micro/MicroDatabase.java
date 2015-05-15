@@ -108,7 +108,7 @@ public class MicroDatabase
 						"c int(10) NOT NULL, " +
 						"d int(10) NOT NULL, " +
 						"e varchar(50) NOT NULL, " +
-						"_del BOOL NOT NULL DEFAULT 0, " +
+						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +
 						"_dclock varchar(20) DEFAULT '0', " +
 						"PRIMARY KEY(a)" +
@@ -120,7 +120,7 @@ public class MicroDatabase
 						"c int(10) NOT NULL, " +
 						"d int(10) NOT NULL, " +
 						"e varchar(50) NOT NULL, " +
-						"_del BOOL NOT NULL DEFAULT 0, " +
+						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +
 						"_dclock varchar(20) DEFAULT '0', " +
 						"PRIMARY KEY(a), " +
@@ -133,7 +133,7 @@ public class MicroDatabase
 						"c int(10) NOT NULL, " +
 						"d int(10) NOT NULL, " +
 						"e varchar(50) NOT NULL, " +
-						"_del BOOL NOT NULL DEFAULT 0, " +
+						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +
 						"_dclock varchar(20) DEFAULT '0', " +
 						"PRIMARY KEY(a)" +
