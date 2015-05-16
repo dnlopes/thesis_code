@@ -721,7 +721,7 @@ public class DBExecuter implements IExecuter
 				{
 					if(i > 0)
 						buffer.append(",");
-					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.isReadOnly(), tables[i],
+					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.getActiveTransaction().isReadOnly(), tables[i],
 							whereConditionStr);
 					//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
 				}

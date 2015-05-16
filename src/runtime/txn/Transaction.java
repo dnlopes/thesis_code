@@ -5,7 +5,6 @@ import database.util.FieldValue;
 import org.perf4j.StopWatch;
 import runtime.operation.Operation;
 import runtime.operation.ShadowOperation;
-import util.TimeStamp;
 import util.thrift.RequestValue;
 
 import java.util.ArrayList;
@@ -22,8 +21,6 @@ public class Transaction
 
 	private TransactionIdentifier txnId;
 	private long latency;
-
-	private TimeStamp timestamp;
 	private StopWatch timer;
 	private ShadowOperation shadowOp;
 	private boolean readyToCommit;
@@ -37,7 +34,6 @@ public class Transaction
 		this.latency = 0;
 		this.opsCounter = 0;
 		this.shadowOp = null;
-		this.timestamp = null;
 		this.timer = new StopWatch();
 		this.readyToCommit = false;
 		this.txnOps = new ArrayList<>();
@@ -53,16 +49,6 @@ public class Transaction
 	public TransactionIdentifier getTxnId()
 	{
 		return this.txnId;
-	}
-
-	public TimeStamp getTimestamp()
-	{
-		return this.timestamp;
-	}
-
-	public void setTimestamp(TimeStamp timestamp)
-	{
-		this.timestamp = timestamp;
 	}
 
 	public ShadowOperation getShadowOp()
@@ -121,5 +107,10 @@ public class Transaction
 
 		this.shadowOp = new ShadowOperation(this.txnId.getValue(), shadowStatements);
 		this.readyToCommit = true;
+	}
+
+	public boolean isReadOnly()
+	{
+		return this.txnOps.size() == 0;
 	}
 }

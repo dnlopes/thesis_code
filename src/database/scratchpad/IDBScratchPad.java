@@ -8,6 +8,7 @@ import network.proxy.IProxyNetwork;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -22,29 +23,19 @@ public interface IDBScratchPad
 
 	public boolean commitTransaction(IProxyNetwork proxy);
 
-	public void closeTransaction(IProxyNetwork network);
-
 	public int getScratchpadId();
 
-	public boolean isReadOnly();
+	public Transaction getActiveTransaction();
 
-	public void setNotReadOnly();
+	public Result executeUpdate(DBSingleOperation op) throws SQLException;
 
-	public Result executeUpdate(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException;
-
-	public ResultSet executeQuery(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException;
+	public ResultSet executeQuery(DBSingleOperation op) throws SQLException;
 
 	public void addToBatchUpdate(String op) throws SQLException;
 
 	public int executeBatch() throws SQLException;
 
-	public boolean addToWriteSet(DBWriteSetEntry entry);
-
 	public ResultSet executeQuery(String op) throws SQLException;
 
 	public int executeUpdate(String op) throws SQLException;
-
-	public void resetScratchpad() throws SQLException;
-
-	public Transaction getActiveTransaction();
 }

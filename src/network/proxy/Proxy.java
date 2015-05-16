@@ -41,8 +41,7 @@ public class Proxy extends AbstractNode
 	private AtomicInteger transactionsCounter;
 	private AtomicInteger scratchpadsCount;
 	private ProxyStatistics statistics;
-
-	// a small hack to avoid casting the same object over and over during txn execution
+	// a small hack to avoid casting the same object over and over at runtime
 	private ProxyConfig privateConfig;
 
 	public Proxy(AbstractNodeConfig config)
@@ -65,19 +64,16 @@ public class Proxy extends AbstractNode
 		LOG.info("proxy {} online.", this.config.getId());
 	}
 
-	public ResultSet executeQuery(DBSingleOperation op, TransactionIdentifier txnId)
-			throws SQLException, ScratchpadException, JSQLParserException
-	{
-
-		return this.activeScratchpads.get(txnId).executeQuery(op);
-	}
-
-	public Result executeUpdate(DBSingleOperation op, TransactionIdentifier txnId)
-			throws JSQLParserException, SQLException, ScratchpadException
+	public ResultSet executeQuery(DBSingleOperation op, TransactionIdentifier txnId) throws SQLException
 	{
 		IDBScratchPad pad = this.activeScratchpads.get(txnId);
-		pad.setNotReadOnly();
-		return this.activeScratchpads.get(txnId).executeUpdate(op);
+		return pad.executeQuery(op);
+	}
+
+	public Result executeUpdate(DBSingleOperation op, TransactionIdentifier txnId) throws SQLException
+	{
+		IDBScratchPad pad = this.activeScratchpads.get(txnId);
+		return pad.executeUpdate(op);
 	}
 
 	public boolean commit(TransactionIdentifier txnId)
@@ -98,8 +94,8 @@ public class Proxy extends AbstractNode
 			statistics.incrementAbortsCounter();
 
 		this.activeScratchpads.remove(txnId);
-
 		this.scratchpadsPool.returnObject(pad);
+
 		txnId.resetValue();
 
 		return commitResult;
@@ -124,7 +120,7 @@ public class Proxy extends AbstractNode
 		if(pad == null)
 			return;
 
-		if(!pad.isReadOnly())
+		if(!pad.getActiveTransaction().isReadOnly())
 			this.commit(txnId);
 		else
 		{
@@ -134,7 +130,6 @@ public class Proxy extends AbstractNode
 			LOG.trace("closing txn {}", txnId.getValue());
 			txnId.resetValue();
 		}
-
 	}
 
 	public void beginTransaction(TransactionIdentifier txnId)

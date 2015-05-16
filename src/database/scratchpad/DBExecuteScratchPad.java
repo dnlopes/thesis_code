@@ -3,8 +3,6 @@ package database.scratchpad;
 
 import database.jdbc.ConnectionFactory;
 import database.jdbc.Result;
-import database.jdbc.util.DBWriteSetEntry;
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.select.Select;
 import network.proxy.IProxyNetwork;
@@ -40,7 +38,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	private StopWatch runtimeWatch;
 	private int id;
 	private Map<String, IExecuter> executers;
-	private boolean readOnly;
 	private CCJSqlParserManager parser;
 	private Connection defaultConnection;
 	private Statement statQ;
@@ -54,7 +51,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.proxyConfig = proxyConfig;
 		this.defaultConnection = ConnectionFactory.getDefaultConnection(proxyConfig);
 		this.executers = new HashMap<>();
-		this.readOnly = false;
 		this.batchEmpty = true;
 		this.parser = new CCJSqlParserManager();
 		this.statQ = this.defaultConnection.createStatement();
@@ -89,7 +85,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.runtimeWatch.stop();
 		LOG.debug("txn runtime: {} ms", runtimeWatch.getElapsedTime());
 
-		if(this.readOnly)
+		if(this.activeTransaction.isReadOnly())
 		{
 			this.activeTransaction.finish();
 			LOG.info("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
@@ -126,37 +122,13 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	}
 
 	@Override
-	public void closeTransaction(IProxyNetwork network)
-	{
-		this.runtimeWatch.stop();
-		this.activeTransaction.finish();
-
-		if(!this.readOnly)
-		{
-			LOG.trace("this txn is not read-only, we should commit but instead we are closing. Lets commit!");
-			this.commitTransaction(network);
-		}
-	}
-
-	@Override
 	public int getScratchpadId()
 	{
 		return this.id;
 	}
 
 	@Override
-	public boolean isReadOnly()
-	{
-		return this.readOnly;
-	}
-
-	public void setNotReadOnly()
-	{
-		this.readOnly = false;
-	}
-
-	@Override
-	public Result executeUpdate(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
+	public Result executeUpdate(DBSingleOperation op) throws SQLException
 	{
 		op.parse(this.parser);
 		LOG.trace("query: {}", op.toString());
@@ -176,13 +148,19 @@ public class DBExecuteScratchPad implements IDBScratchPad
 			RuntimeHelper.throwRunTimeException("could not find a proper executor for this operation",
 					ExitCode.EXECUTOR_NOT_FOUND);
 		} else
-			return executor.executeTemporaryUpdate(op, this);
+			try
+			{
+				return executor.executeTemporaryUpdate(op, this);
+			} catch(ScratchpadException e)
+			{
+				throw new SQLException("scratchpad error: " + e.getMessage());
+			}
 
 		return null;
 	}
 
 	@Override
-	public ResultSet executeQuery(DBSingleOperation op) throws JSQLParserException, ScratchpadException, SQLException
+	public ResultSet executeQuery(DBSingleOperation op) throws SQLException
 	{
 		op.parse(this.parser);
 		LOG.trace("query: {}", op.toString());
@@ -201,7 +179,13 @@ public class DBExecuteScratchPad implements IDBScratchPad
 						ExitCode.EXECUTOR_NOT_FOUND);
 			}
 
-			return executor.executeTemporaryQueryOnSingleTable((Select) op.getStatement(), this);
+			try
+			{
+				return executor.executeTemporaryQueryOnSingleTable((Select) op.getStatement(), this);
+			} catch(ScratchpadException e)
+			{
+				throw new SQLException("scratchpad error: " + e.getMessage());
+			}
 
 		} else
 		{
@@ -212,10 +196,16 @@ public class DBExecuteScratchPad implements IDBScratchPad
 				if(tableName[i][1] == null)
 					tableName[i][1] = executors[i].getAliasTable();
 				if(executors[i] == null)
-					throw new ScratchpadException("No config for table " + tableName[i][0]);
+					throw new SQLException("scratchpad error: executor not found");
 			}
-			return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors,
-					tableName);
+			try
+			{
+				return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors,
+						tableName);
+			} catch(ScratchpadException e)
+			{
+				throw new SQLException("scratchpad error: " + e.getMessage());
+			}
 		}
 	}
 
@@ -259,11 +249,9 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		return finalResult;
 	}
 
-	@Override
-	public void resetScratchpad() throws SQLException
+	private void resetScratchpad() throws SQLException
 	{
 		this.activeTransaction = null;
-		this.readOnly = true;
 		this.statBU.clearBatch();
 
 		for(IExecuter executer : this.executers.values())
@@ -271,14 +259,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 
 		this.executeBatch();
 		this.batchEmpty = true;
-	}
-
-
-	@Override
-	public boolean addToWriteSet(DBWriteSetEntry entry)
-	{
-		//TODO
-		return false;
 	}
 
 	@Override
