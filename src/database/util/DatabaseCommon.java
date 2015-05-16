@@ -5,13 +5,13 @@ import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.scratchpad.IDBScratchPad;
 import org.apache.commons.dbutils.DbUtils;
+import runtime.QueryCreator;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -83,26 +83,9 @@ public class DatabaseCommon
 												IDBScratchPad pad) throws SQLException
 	{
 		List<Row> childs = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
 
-		buffer.append("SELECT * FROM ");
-		buffer.append(table.getName());
-		buffer.append(" WHERE ");
+		String query = QueryCreator.findChildFromTableQuery(parentRow, table, relations);
 
-		Iterator<ParentChildRelation> relationsIt = relations.iterator();
-
-		while(relationsIt.hasNext())
-		{
-			ParentChildRelation relation = relationsIt.next();
-			buffer.append(relation.getChild().getFieldName());
-			buffer.append("=");
-			buffer.append(parentRow.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-
-			if(relationsIt.hasNext())
-				buffer.append(" AND ");
-		}
-
-		String query = buffer.toString();
 		ResultSet rs = pad.executeQuery(query);
 
 		while(rs.next())
@@ -117,32 +100,9 @@ public class DatabaseCommon
 
 	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, IDBScratchPad pad) throws SQLException
 	{
-		DatabaseTable remoteTable = constraint.getParentTable();
+		String query = QueryCreator.findParent(childRow, constraint);
 
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("SELECT *");
-		//buffer.append(remoteTable.getPrimaryKey().getQueryClause());
-		buffer.append(" FROM ");
-		buffer.append(remoteTable.getName());
-		buffer.append(" WHERE ");
-
-		Iterator<ParentChildRelation> relationsIt = constraint.getFieldsRelations().iterator();
-
-		while(relationsIt.hasNext())
-		{
-			ParentChildRelation relation = relationsIt.next();
-			DataField childField = relation.getChild();
-			DataField parentField = relation.getParent();
-
-			buffer.append(parentField.getFieldName());
-			buffer.append("=");
-			buffer.append(childRow.getFieldValue(childField.getFieldName()).getFormattedValue());
-
-			if(relationsIt.hasNext())
-				buffer.append(" AND ");
-		}
-
-		ResultSet rs = pad.executeQuery(buffer.toString());
+		ResultSet rs = pad.executeQuery(query);
 		if(!rs.isBeforeFirst())
 		{
 			DbUtils.closeQuietly(rs);
@@ -150,6 +110,7 @@ public class DatabaseCommon
 		}
 
 		rs.next();
+		DatabaseTable remoteTable = constraint.getParentTable();
 		PrimaryKeyValue parentPk = getPrimaryKeyValue(rs, remoteTable);
 		DbUtils.closeQuietly(rs);
 

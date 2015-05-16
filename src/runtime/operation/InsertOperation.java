@@ -3,6 +3,7 @@ package runtime.operation;
 
 import database.constraints.Constraint;
 import database.util.*;
+import runtime.OperationTransformer;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.defaults.DBDefaults;
@@ -25,26 +26,23 @@ public class InsertOperation extends AbstractOperation implements Operation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
-		this.row.mergeUpdates();
+		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
 
 		StringBuilder buffer = new StringBuilder();
 
-		String insertOrUpdateStatement = OperationTransformer.generateUpdateStatement(this.row);
+		String insertOrUpdateStatement = OperationTransformer.generateInsertStatement(this.row);
 		buffer.append(insertOrUpdateStatement);
-		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentFunctionClause(this.tablePolicy);
-		buffer.append(compareClockClause);
-
 		shadowStatements.add(buffer.toString());
 	}
 
 	@Override
 	public void createRequestsToCoordinate(CoordinatorRequest request)
 	{
-		for(Constraint c : this.row.getTable().getTableInvarists())
+		for(Constraint c : this.row.getContraintsToCheck())
 		{
 			switch(c.getType())
 			{

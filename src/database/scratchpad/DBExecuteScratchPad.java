@@ -330,7 +330,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 			for(Operation op : this.activeTransaction.getTxnOps())
 				op.createRequestsToCoordinate(req);
 
-
 			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
 			{
 				//if we must coordinate then do it here. this is a blocking call

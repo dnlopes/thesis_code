@@ -54,11 +54,6 @@ public class InsertChildOperation extends InsertOperation
 			{
 
 			}
-
-			//compareClocks(_dclock, TXN_CLOCK) >= 0;
-
-			//compareClock expression here
-			//TODO
 		}
 	}
 }

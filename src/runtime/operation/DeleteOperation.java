@@ -3,6 +3,7 @@ package runtime.operation;
 
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import runtime.OperationTransformer;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class DeleteOperation extends AbstractOperation implements Operation
 
 		buffer.append(deleteStatement);
 		buffer.append(" AND ");
-		String clockClause = OperationTransformer.generateVisibilityFunctionClause(this.tablePolicy);
+		String clockClause = OperationTransformer.generateVisibilityUpdateFunctionClause(this.tablePolicy);
 		buffer.append(clockClause);
 
 		if(this.tablePolicy == ExecutionPolicy.DELETEWINS)

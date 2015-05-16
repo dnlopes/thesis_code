@@ -4,7 +4,9 @@ package database.constraints;
 import database.util.DataField;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -14,6 +16,7 @@ public abstract class AbstractConstraint implements Constraint
 {
 
 	protected List<DataField> fields;
+	protected Map<String, DataField> fieldsMap;
 	protected ConstraintType constraintType;
 	private String constraintIdentifier;
 	private String tableName;
@@ -22,6 +25,7 @@ public abstract class AbstractConstraint implements Constraint
 	{
 		this.constraintType = type;
 		this.fields = new ArrayList<>();
+		this.fieldsMap = new HashMap<>();
 	}
 
 	@Override
@@ -40,6 +44,7 @@ public abstract class AbstractConstraint implements Constraint
 	public void addField(DataField field)
 	{
 		this.fields.add(field);
+		this.fieldsMap.put(field.getFieldName(), field);
 	}
 
 	@Override
@@ -75,5 +80,11 @@ public abstract class AbstractConstraint implements Constraint
 	public String getTableName()
 	{
 		return this.tableName;
+	}
+
+	@Override
+	public boolean constainsField(DataField field)
+	{
+		return this.fieldsMap.containsKey(field.getFieldName());
 	}
 }

@@ -1,5 +1,6 @@
 package database.util;
 
+
 import database.constraints.Constraint;
 
 import java.util.*;
@@ -30,14 +31,12 @@ public class Row
 
 	public void updateFieldValue(FieldValue newValue)
 	{
+		DataField field = newValue.getDataField();
 
-		this.newFieldValues.put(newValue.getDataField().getFieldName(), newValue);
+		this.newFieldValues.put(field.getFieldName(), newValue);
 
-		if(newValue.getDataField().hasChilds())
+		if(field.hasChilds())
 			this.hasSideEffects = true;
-
-		if(newValue.getDataField().isDeltaField())
-			newValue.transformValueForDeltaField(this.fieldValues.get(newValue.getDataField().getFieldName()));
 	}
 
 	public void addFieldValue(FieldValue value)
@@ -83,20 +82,16 @@ public class Row
 	public void mergeUpdates()
 	{
 		for(Map.Entry<String, FieldValue> entry : this.newFieldValues.entrySet())
-		{
-			if(entry.getValue().getDataField().isDeltaField())
-			{
-				FieldValue oldFieldValue = this.fieldValues.get(entry.getKey());
-
-				double oldValue = Double.parseDouble(oldFieldValue.getFormattedValue());
-				double newValue = Double.parseDouble(entry.getValue().getFormattedValue());
-
-				double delta = oldValue + newValue;
-				String updatedWithDelta = entry.getValue().getDataField().getFieldName() + "+" + String.valueOf(delta);
-				entry.getValue().setValue(updatedWithDelta);
-			}
-
 			this.fieldValues.put(entry.getKey(), entry.getValue());
-		}
+	}
+
+	public Set<Constraint> getContraintsToCheck()
+	{
+		return this.contraintsToCheck;
+	}
+
+	public void addConstraintToverify(Constraint c)
+	{
+		this.contraintsToCheck.add(c);
 	}
 }

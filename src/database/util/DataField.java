@@ -173,6 +173,11 @@ public abstract class DataField
 		return this.childFields.size() > 0;
 	}
 
+	public boolean hasParent()
+	{
+		return this.parentsFields.size() > 0;
+	}
+
 	public void addParentField(DataField parent)
 	{
 		this.parentsFields.add(parent);

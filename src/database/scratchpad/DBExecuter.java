@@ -2,6 +2,7 @@ package database.scratchpad;
 
 
 import database.constraints.Constraint;
+import database.constraints.ConstraintType;
 import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
@@ -647,7 +648,7 @@ public class DBExecuter implements IExecuter
 					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
 							.startsWith(
 
-									"max("))
+							"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -830,6 +831,12 @@ public class DBExecuter implements IExecuter
 
 				first = false;
 				buffer.append(col);
+
+				for(Constraint c : field.getInvariants())
+				{
+					if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE)
+						insertedRow.addConstraintToverify(c);
+				}
 			}
 			buffer.append(")");
 		}
@@ -968,17 +975,29 @@ public class DBExecuter implements IExecuter
 			String newValue = expIt.next().toString();
 			DataField field = this.fields.get(columnName);
 
-			//FIXME: currently, we do not allow primary keys, immutable fields and fields that have childs to be
-			// updated
-			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
+			//FIXME: currently, we do not allow primary keys, immutable fields and fields that are pointing to
+			// some parent be modified
+			if(field.isImmutableField() || field.isPrimaryKey() || field.hasParent())
 				RuntimeHelper.throwRunTimeException("trying to modify a primary key or immutable field",
 						ExitCode.UNEXPECTED_OP);
 
 			if(newValue == null)
 				newValue = "NULL";
 
-			FieldValue newFieldValue = new FieldValue(field, newValue);
+			FieldValue newFieldValue;
+
+			if(field.isDeltaField())
+				newFieldValue = new DeltaFieldValue(field, newValue, updatedRow.getFieldValue(field.getFieldName()).getValue());
+			else
+				newFieldValue = new FieldValue(field, newValue);
+
 			updatedRow.updateFieldValue(newFieldValue);
+
+			for(Constraint c : field.getInvariants())
+			{
+				if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE)
+					updatedRow.addConstraintToverify(c);
+			}
 
 			buffer.append(columnName);
 			buffer.append("=");
@@ -1096,8 +1115,7 @@ public class DBExecuter implements IExecuter
 						buffer.append("'");
 						buffer.append(oldContent);
 						buffer.append("'");
-					}
-					else
+					} else
 						buffer.append(oldContent);
 
 					if(fieldsIt.hasNext())

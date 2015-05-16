@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.util.*;
+import runtime.OperationTransformer;
 import runtime.RuntimeHelper;
 import util.ExitCode;
 import util.defaults.DBDefaults;
@@ -27,8 +28,8 @@ public class UpdateOperation extends AbstractOperation implements Operation
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
+		this.row.updateFieldValue(
+				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
 		this.row.mergeUpdates();
 
 		StringBuilder buffer = new StringBuilder();
@@ -36,7 +37,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 		String insertOrUpdateStatement = OperationTransformer.generateUpdateStatement(this.row);
 		buffer.append(insertOrUpdateStatement);
 		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentFunctionClause(this.tablePolicy);
+		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(this.tablePolicy);
 		buffer.append(compareClockClause);
 
 		shadowStatements.add(buffer.toString());
@@ -45,7 +46,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 	@Override
 	public void createRequestsToCoordinate(CoordinatorRequest request)
 	{
-		for(Constraint c : this.row.getTable().getTableInvarists())
+		for(Constraint c : this.row.getContraintsToCheck())
 		{
 			switch(c.getType())
 			{
@@ -81,7 +82,8 @@ public class UpdateOperation extends AbstractOperation implements Operation
 				FieldValue oldFieldValue = this.row.getFieldValue(currField.getFieldName());
 				FieldValue newFieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
 
-				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getFormattedValue(), oldFieldValue.getFormattedValue()))
+				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getFormattedValue(),
+						oldFieldValue.getFormattedValue()))
 				{
 					String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getFormattedValue(),
 							oldFieldValue.getFormattedValue());

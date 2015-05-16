@@ -26,4 +26,6 @@ public interface Constraint
 
 	public String getTableName();
 
+	public boolean constainsField(DataField field);
+
 }
