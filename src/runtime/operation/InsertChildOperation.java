@@ -1,11 +1,18 @@
 package runtime.operation;
 
 
+import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
+import database.util.FieldValue;
+import database.util.QueryFieldValue;
 import database.util.Row;
+import runtime.OperationTransformer;
+import runtime.QueryCreator;
 import util.defaults.DBDefaults;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -14,9 +21,9 @@ import java.util.List;
 public class InsertChildOperation extends InsertOperation
 {
 
-	private List<Row> parentRows;
+	private Map<ForeignKeyConstraint, Row> parentRows;
 
-	public InsertChildOperation(int id, ExecutionPolicy policy, List<Row> parents, Row newRow)
+	public InsertChildOperation(int id, ExecutionPolicy policy, Map<ForeignKeyConstraint, Row> parents, Row newRow)
 	{
 		super(id, policy, newRow);
 		this.parentRows = parents;
@@ -25,35 +32,40 @@ public class InsertChildOperation extends InsertOperation
 	@Override
 	public void generateOperationStatements(List<String> shadowStatements)
 	{
-		super.generateOperationStatements(shadowStatements);
+		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.DELETED_CLOCK_PLACEHOLDER));
 
-		for(Row parent : this.parentRows)
+		// add select query instead of real values for fields that are pointing to parent
+		for(ForeignKeyConstraint constraint : this.parentRows.keySet())
 		{
-			StringBuilder buffer = new StringBuilder();
-			buffer.append("UPDATE ");
-			buffer.append(parent.getTable().getName());
-			buffer.append(" SET ");
-			buffer.append(SET_NOT_DELETED_EXPRESSION);
-			buffer.append(",");
-			buffer.append(DBDefaults.DELETED_COLUMN);
-			buffer.append("=");
-			buffer.append(DBDefaults.DELETED_CLOCK_PLACEHOLDER);
-			buffer.append(" WHERE ");
-			buffer.append(parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
-			buffer.append(" AND compareClocks(");
-			buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-			buffer.append(",");
-			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-			buffer.append(") ");
-
-			if(this.tablePolicy == ExecutionPolicy.DELETEWINS)
+			for(ParentChildRelation relation : constraint.getFieldsRelations())
 			{
-
-
-			} else if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
-			{
-
+				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent());
+				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
 			}
 		}
+
+		this.row.mergeUpdates();
+
+		StringBuilder buffer = new StringBuilder();
+
+		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
+		{
+			for(Row parent : this.parentRows.values())
+			{
+				buffer.setLength(0);
+				String update = OperationTransformer.generateSilentSetRowVisible(parent);
+				buffer.append(update);
+				shadowStatements.add(update);
+			}
+		}
+
+		String insertOrUpdateStatement = OperationTransformer.generateInsertStatement(this.row);
+		buffer.setLength(0);
+		buffer.append(insertOrUpdateStatement);
+		shadowStatements.add(buffer.toString());
 	}
 }

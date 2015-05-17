@@ -12,7 +12,9 @@ import util.ExitCode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -40,23 +42,24 @@ public class DatabaseCommon
 		return pkValue;
 	}
 
-	public static List<Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints, IDBScratchPad pad)
+	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints, IDBScratchPad pad)
 			throws SQLException
 	{
-		List<Row> parents = new ArrayList<>(constraints.size());
+		Map<ForeignKeyConstraint, Row> parentByConstraint = new HashMap<>();
+
 
 		for(int i = 0; i < constraints.size(); i++)
 		{
 			ForeignKeyConstraint c = constraints.get(i);
 			Row parent = findParent(childRow, c, pad);
+			parentByConstraint.put(c, parent);
 
 			if(parent == null)
 				throw new SQLException("parent row not found. Foreing key violated");
 
-			parents.add(parent);
 		}
 
-		return parents;
+		return parentByConstraint;
 	}
 
 	public static Row getFullRow(ResultSet rs, DatabaseTable dbTable) throws SQLException

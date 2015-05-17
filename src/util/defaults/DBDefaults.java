@@ -12,7 +12,6 @@ public class DBDefaults
 	public static final String DELETED_CLOCK_COLUMN = "_dclock";
 	public static final String DELETED_CLOCK_PLACEHOLDER = "@_dclock@";
 	public static final String DELETED_COLUMN = "_del";
-	public static final String DELETED_VALUE = "1";
 	public static final String NOT_DELETED_VALUE = "0";
 	public static final String COMPARE_CLOCK_FUNCTION = "compareClocks";
 

@@ -17,30 +17,7 @@ public class DBSelectResult
 	transient List<String[]> result;
 	transient int nextLine;
 	
-	public static DBSelectResult createResult( List<String[]> result) throws ScratchpadException
-	{
-		try {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream( baos);
-		int nLines = result.size();
-		dos.writeShort( nLines);
-		if( nLines > 0) {
-			dos.writeShort( result.get(0).length);
-			for( int i = 0; i < nLines; i++) {
-				String[] row = result.get(i);
-				for( int j = 0; j < row.length; j++) {
-					if( row[j] == null)
-						dos.writeUTF( ScratchpadDefaults.SCRATCHPAD_NULL);
-					else
-						dos.writeUTF( row[j]);
-				}
-			}
-		}
-		return new DBSelectResult( result, baos.toByteArray());
-		} catch (IOException e) {
-			throw new ScratchpadException( "Cannot encode result", e);
-		}
-	}
+
 	public static DBSelectResult createResult( List<String[]> result, HashMap<String,Integer> columnNamesToNumbersMap) throws ScratchpadException {
 //		try {
 //		ByteArrayOutputStream baos = new ByteArrayOutputStream();

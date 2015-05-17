@@ -604,11 +604,6 @@ public abstract class DatabaseTable
 		return this.childTablesConstraints;
 	}
 
-	public Collection<DataField> getHiddenFields()
-	{
-		return this.hiddenFields.values();
-	}
-
 	public DataField getDeletedClockField()
 	{
 		return this.deletedClockField;

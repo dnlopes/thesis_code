@@ -646,7 +646,7 @@ public class DBExecuter implements IExecuter
 					if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith("MAX(") || str
 							.startsWith(
 
-							"max("))
+									"max("))
 						aggregateQuery = true;
 					int starPos = str.indexOf(".*");
 					if(starPos != -1)
@@ -843,9 +843,10 @@ public class DBExecuter implements IExecuter
 
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
-			List<Row> parents = DatabaseCommon.findParentRows(insertedRow, this.fkConstraints, db);
+			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(insertedRow, this
+					.fkConstraints, db);
 			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), parents, insertedRow);
+					this.databaseTable.getExecutionPolicy(), parentsByConstraint, insertedRow);
 		} else // its a "neutral" or "parent" row
 			op = new InsertOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), insertedRow);

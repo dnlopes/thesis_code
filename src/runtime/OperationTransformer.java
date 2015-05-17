@@ -5,7 +5,6 @@ import database.util.*;
 import util.defaults.DBDefaults;
 
 import java.util.Iterator;
-import java.util.List;
 
 
 /**
@@ -15,6 +14,8 @@ public class OperationTransformer
 {
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
+	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CONTENT_CLOCK_PLACEHOLDER;
 
@@ -156,21 +157,36 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	private static String getPkValuesList(List<PrimaryKeyValue> pkValues)
+	/**
+	 * Generates a SQL statement that sets the deleted flag to FALSE. It does so silenty, which means that this
+	 * statement will leave no footprint. In other words, no one will know that this statement was executed.
+	 * @param row
+	 * @return
+	 */
+	public static String generateSilentSetRowVisible(Row row)
 	{
 		StringBuilder buffer = new StringBuilder();
-
-		Iterator<PrimaryKeyValue> pkIt = pkValues.iterator();
-		while(pkIt.hasNext())
-		{
-			buffer.append("(");
-			buffer.append(pkIt.next().getValue());
-			buffer.append(")");
-			if(pkIt.hasNext())
-				buffer.append(",");
-		}
+		buffer.append("UPDATE ");
+		buffer.append(row.getTable().getName());
+		buffer.append(" SET ");
+		buffer.append(SET_NOT_DELETED_EXPRESSION);
+		buffer.append(" WHERE ");
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		return buffer.toString();
 	}
+	public static String generateSetRowVisibleStatement(Row row)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("UPDATE ");
+		buffer.append(row.getTable().getName());
+		buffer.append(" SET ");
+		buffer.append(SET_NOT_DELETED_EXPRESSION);
+		buffer.append(",");
+		buffer.append(SET_DELETED_CLOCK_EXPRESION);
+		buffer.append(" WHERE ");
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
+		return buffer.toString();
+	}
 }
