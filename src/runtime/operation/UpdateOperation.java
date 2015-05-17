@@ -29,7 +29,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 	{
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.updateFieldValue(
-				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CONTENT_CLOCK_PLACEHOLDER));
+				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 		this.row.mergeUpdates();
 
 		StringBuilder buffer = new StringBuilder();

@@ -45,21 +45,21 @@ public class MicroTest
 		stat.executeUpdate("insert into t2 (a,b,c,d,e) values (1000,1,1,10,'aaa')");
 		//res = stat.executeUpdate("update t1 set d= where a=0;");
 		//res = stat.executeUpdate("update t1 set e='teste' where b<2");
-		conn.commit();
 
 		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(55,6,1,'OLA')");
 		stat.executeUpdate("insert into t2 (a,b,c,d,e) values (2000,1,1,10,'aaa')");
 
 		//rs = stat.executeQuery("SELECT * from t2 where a=5");
 		conn.commit();
-		System.exit(1);
-		//res = stat.executeUpdate("insert into t1 (a,b,d,e) values(54,6,1,'OLA')");
+		res = stat.executeUpdate("insert into t1 (a,b,d,e) values(7000,6,1,'OLA')");
+		res = stat.executeUpdate("insert into t3 (a,b,d,e) values(1092,0,1,'OLA')");
+
 		res = stat.executeUpdate("update t2 set d=21 where a=2");
 		//res = stat.executeUpdate("update t1 set b=20 where a=3");
 
 		try
 		{
-			res = stat.executeUpdate("update t4 set d=20 where a=1");
+			res = stat.executeUpdate("update t2 set d=20 where a=1");
 			rs = stat.executeQuery("SELECT * from t3 where a=5");
 
 			//res = stat.executeUpdate("insert into t2 (a,b,d,e) values(54,6,1,'OLA')");

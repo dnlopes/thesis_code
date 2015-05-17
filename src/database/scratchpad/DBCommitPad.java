@@ -115,8 +115,8 @@ public class DBCommitPad implements IDBCommitPad
 	private String replacePlaceholders(ShadowOperation op, String statement)
 	{
 		String clockString = op.getClock().getClockValue();
-		statement = statement.replaceFirst(DBDefaults.CONTENT_CLOCK_PLACEHOLDER, clockString);
-		statement = statement.replaceFirst(DBDefaults.DELETED_CLOCK_PLACEHOLDER, clockString);
+		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
+		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
 		return statement;
 	}
 }

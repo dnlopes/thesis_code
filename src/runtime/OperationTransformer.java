@@ -17,7 +17,7 @@ public class OperationTransformer
 	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
-			.CONTENT_CLOCK_PLACEHOLDER;
+			.CLOCK_VALUE_PLACEHOLDER;
 
 	public static String generateInsertStatement(Row row)
 	{
