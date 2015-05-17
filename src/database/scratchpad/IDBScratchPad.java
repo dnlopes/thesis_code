@@ -1,9 +1,6 @@
 package database.scratchpad;
 
 
-import database.jdbc.Result;
-import database.jdbc.util.DBWriteSetEntry;
-import net.sf.jsqlparser.JSQLParserException;
 import network.proxy.IProxyNetwork;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.Transaction;
@@ -27,7 +24,7 @@ public interface IDBScratchPad
 
 	public Transaction getActiveTransaction();
 
-	public Result executeUpdate(DBSingleOperation op) throws SQLException;
+	public int executeUpdate(DBSingleOperation op) throws SQLException;
 
 	public ResultSet executeQuery(DBSingleOperation op) throws SQLException;
 

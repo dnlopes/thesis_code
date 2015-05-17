@@ -2,7 +2,7 @@ package database.scratchpad;
 
 
 import database.jdbc.ConnectionFactory;
-import database.jdbc.Result;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.select.Select;
 import network.proxy.IProxyNetwork;
@@ -128,10 +128,15 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	}
 
 	@Override
-	public Result executeUpdate(DBSingleOperation op) throws SQLException
+	public int executeUpdate(DBSingleOperation op) throws SQLException
 	{
-		op.parse(this.parser);
-		LOG.trace("query: {}", op.toString());
+		try
+		{
+			op.parse(this.parser);
+		} catch(JSQLParserException e)
+		{
+			throw new SQLException("parser error: " + e.getMessage());
+		}
 
 		if(op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
@@ -156,14 +161,19 @@ public class DBExecuteScratchPad implements IDBScratchPad
 				throw new SQLException("scratchpad error: " + e.getMessage());
 			}
 
-		return null;
+		return 0;
 	}
 
 	@Override
 	public ResultSet executeQuery(DBSingleOperation op) throws SQLException
 	{
-		op.parse(this.parser);
-		LOG.trace("query: {}", op.toString());
+		try
+		{
+			op.parse(this.parser);
+		} catch(JSQLParserException e)
+		{
+			throw new SQLException("parser error: " + e.getMessage());
+		}
 
 		if(!op.isQuery())
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);

@@ -1,7 +1,6 @@
 package database.scratchpad;
 
 
-import database.jdbc.Result;
 import net.sf.jsqlparser.statement.select.Select;
 import runtime.operation.DBSingleOperation;
 
@@ -75,7 +74,8 @@ public interface IExecuter
 	 *
 	 * @throws ScratchpadException
 	 */
-	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db) throws SQLException, ScratchpadException;
+	public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db) throws SQLException,
+			ScratchpadException;
 
 	/**
 	 * Cleans the state of the temporary table of this executer

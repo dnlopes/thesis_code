@@ -1,7 +1,6 @@
 package network.proxy;
 
 
-import database.jdbc.Result;
 import database.scratchpad.DBExecuteScratchPad;
 import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
@@ -11,7 +10,6 @@ import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
 import util.IDFactories.IdentifierFactory;
 
-import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -70,7 +68,7 @@ public class Proxy extends AbstractNode
 		return pad.executeQuery(op);
 	}
 
-	public Result executeUpdate(DBSingleOperation op, TransactionIdentifier txnId) throws SQLException
+	public int executeUpdate(DBSingleOperation op, TransactionIdentifier txnId) throws SQLException
 	{
 		IDBScratchPad pad = this.activeScratchpads.get(txnId);
 		return pad.executeUpdate(op);

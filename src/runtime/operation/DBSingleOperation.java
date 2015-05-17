@@ -17,14 +17,9 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.update.Update;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class DBSingleOperation
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(DBSingleOperation.class);
 
 	private Statement opStatement;
 	private boolean isQuery;
@@ -106,16 +101,9 @@ public class DBSingleOperation
 		return this.isQuery;
 	}
 
-	public void parse(CCJSqlParserManager parser)
+	public void parse(CCJSqlParserManager parser) throws JSQLParserException
 	{
-		try
-		{
-			this.opStatement = parser.parse(new StringReader(this.sql));
-			this.isQuery = this.opStatement instanceof Select;
-		} catch(JSQLParserException e)
-		{
-			LOG.warn("failed to parse sql string {}", sql);
-			e.printStackTrace();
-		}
+		this.opStatement = parser.parse(new StringReader(this.sql));
+		this.isQuery = this.opStatement instanceof Select;
 	}
 }

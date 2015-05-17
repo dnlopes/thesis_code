@@ -6,8 +6,6 @@ import database.constraints.ConstraintType;
 import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
-import database.jdbc.Result;
-import database.jdbc.util.DBUpdateResult;
 import database.util.*;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
@@ -721,8 +719,8 @@ public class DBExecuter implements IExecuter
 				{
 					if(i > 0)
 						buffer.append(",");
-					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.getActiveTransaction().isReadOnly(), tables[i],
-							whereConditionStr);
+					policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.getActiveTransaction().isReadOnly(),
+							tables[i], whereConditionStr);
 					//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
 				}
 			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
@@ -750,7 +748,7 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public Result executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
+	public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
 			throws SQLException, ScratchpadException
 	{
 		modified = true;
@@ -765,7 +763,7 @@ public class DBExecuter implements IExecuter
 			modified = false;
 			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 		}
-		return null;
+		return 0;
 	}
 
 	@Override
@@ -792,7 +790,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	protected DBUpdateResult executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
+	private int executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("insert into ");
@@ -861,7 +859,7 @@ public class DBExecuter implements IExecuter
 		this.recordedPkValues.put(pkValue.getValue(), pkValue);
 
 		LOG.trace("new insert: {}", buffer.toString());
-		return DBUpdateResult.createResult(result);
+		return result;
 	}
 
 	/**
@@ -877,7 +875,7 @@ public class DBExecuter implements IExecuter
 	 *
 	 * @throws SQLException
 	 */
-	private DBUpdateResult executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
+	private int executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
 	{
 		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
@@ -945,7 +943,7 @@ public class DBExecuter implements IExecuter
 
 			db.getActiveTransaction().addOperation(op);
 
-			return DBUpdateResult.createResult(rowsDeleted);
+			return rowsDeleted;
 		} catch(SQLException e)
 		{
 			throw e;
@@ -955,7 +953,7 @@ public class DBExecuter implements IExecuter
 		}
 	}
 
-	private DBUpdateResult executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
+	private int executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
 	{
 		// before writting in the scratchpad, add the missing rows to the scratchpad
 		this.addMissingRowsToScratchpad(updateOp, db);
@@ -987,7 +985,8 @@ public class DBExecuter implements IExecuter
 			FieldValue newFieldValue;
 
 			if(field.isDeltaField())
-				newFieldValue = new DeltaFieldValue(field, newValue, updatedRow.getFieldValue(field.getFieldName()).getValue());
+				newFieldValue = new DeltaFieldValue(field, newValue,
+						updatedRow.getFieldValue(field.getFieldName()).getValue());
 			else
 				newFieldValue = new FieldValue(field, newValue);
 
@@ -1031,7 +1030,7 @@ public class DBExecuter implements IExecuter
 		db.executeBatch();
 		this.modified = true;
 
-		return DBUpdateResult.createResult(affectedRows);
+		return affectedRows;
 	}
 
 	/**

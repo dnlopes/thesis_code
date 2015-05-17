@@ -7,7 +7,6 @@ import database.util.DataField;
 import database.util.DatabaseTable;
 import database.util.Row;
 
-import java.sql.ResultSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -72,5 +71,6 @@ public class QueryCreator
 
 		return buffer.toString();
 	}
+
 
 }

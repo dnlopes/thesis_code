@@ -2,7 +2,6 @@ package database.jdbc;
 
 
 import database.jdbc.util.DBUpdateResult;
-import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
 import network.proxy.Proxy;
 import org.slf4j.Logger;
@@ -41,16 +40,8 @@ public class CRDTStatement implements Statement
 			this.proxy.beginTransaction(txnId);
 
 		ResultSet rs;
-		try
-		{
-			DBSingleOperation dbOp = new DBSingleOperation(arg0);
-			rs = proxy.executeQuery(dbOp, this.txnId);
-
-		} catch(JSQLParserException | ScratchpadException e)
-		{
-			LOG.error("failed to execute: {}", arg0, e);
-			throw new SQLException(e);
-		}
+		DBSingleOperation dbOp = new DBSingleOperation(arg0);
+		rs = proxy.executeQuery(dbOp, this.txnId);
 
 		LOG.trace("query statement executed properly");
 		return rs;
@@ -78,20 +69,12 @@ public class CRDTStatement implements Statement
 
 		for(String updateStr : deterStatements)
 		{
-			DBUpdateResult res;
 			DBSingleOperation dbOp;
-			try
-			{
-				dbOp = new DBSingleOperation(updateStr);
-				Result tempRes = this.proxy.executeUpdate(dbOp, this.txnId);
-				res = DBUpdateResult.createResult(tempRes.getResult());
-				result += res.getUpdateResult();
+			int counter;
 
-			} catch(JSQLParserException | ScratchpadException e)
-			{
-				LOG.error("failed to execute: {}", arg0, e);
-				throw new SQLException(e);
-			}
+			dbOp = new DBSingleOperation(updateStr);
+			counter = this.proxy.executeUpdate(dbOp, this.txnId);
+			result += counter;
 		}
 
 		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
