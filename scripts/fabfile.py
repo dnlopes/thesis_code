@@ -382,11 +382,11 @@ def parseConfigFile():
     coordinators_nodes = list(coordinatorsSet)
     distinct_nodes = list(distinctNodesSet)
 
-    logger.debug('Databases: %s', database_nodes)
-    logger.debug('Proxies: %s', proxies_nodes)
-    logger.debug('Replicators: %s', replicators_nodes)
-    logger.debug('Coordinators: %s', coordinators_nodes)
-    logger.debug('Distinct nodes: %s', distinct_nodes)
+    logger.info('Databases: %s', database_nodes)
+    logger.info('Proxies: %s', proxies_nodes)
+    logger.info('Replicators: %s', replicators_nodes)
+    logger.info('Coordinators: %s', coordinators_nodes)
+    logger.info('Distinct nodes: %s', distinct_nodes)
 
 @parallel
 def prepareTPCCDatabase():
