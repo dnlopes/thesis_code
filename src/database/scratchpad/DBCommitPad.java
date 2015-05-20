@@ -75,29 +75,30 @@ public class DBCommitPad implements IDBCommitPad
 			for(String statement : op.getOperationList())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				LOG.info("executing on maindb: {}", rebuiltStatement);
+				LOG.trace("executing on maindb: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
 			}
+			LOG.trace("executing txn batch", op.getTxnId());
 			stat.executeBatch();
+			LOG.trace("txn is about to be committed", op.getTxnId());
 			this.connection.commit();
 			success = true;
-
 			LOG.info("txn {} committed", op.getTxnId());
 
-			DbUtils.closeQuietly(stat);
 		} catch(SQLException e)
 		{
-			DbUtils.closeQuietly(stat);
 			try
 			{
 				DbUtils.rollback(this.connection);
+				LOG.error("txn {} rollback ({})", op.getTxnId(), e.getMessage());
 			} catch(SQLException e1)
 			{
-				// this should not happen
 				LOG.error("failed to rollback txn {} (should not happen)", op.getTxnId(), e1);
 			}
-			LOG.error("txn {} rollback ({})", op.getTxnId(), e.getMessage());
+		} finally
+		{
+			DbUtils.closeQuietly(stat);
 		}
 		return success;
 	}
@@ -114,9 +115,8 @@ public class DBCommitPad implements IDBCommitPad
 
 	private String replacePlaceholders(ShadowOperation op, String statement)
 	{
-		String clockString = op.getClock().getClockValue();
-		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
-		statement = statement.replaceFirst(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
+		String clockString = op.getClock().toString();
+		statement = statement.replaceAll(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
 		return statement;
 	}
 }

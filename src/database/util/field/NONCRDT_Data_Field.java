@@ -23,11 +23,9 @@ public class NONCRDT_Data_Field extends DataField {
 	 * @param iAIC the i aic
 	 * @param position the position
 	 */
-	public NONCRDT_Data_Field(String dFN, String tN, String dT, boolean iPK,
-			boolean iFK, boolean iAIC, int position) {
-		super(CrdtDataFieldType.NONCRDTFIELD, dFN, tN, dT, iPK, iFK, iAIC,
-				position, false);
-		// TODO Auto-generated constructor stub
+	public NONCRDT_Data_Field(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position) {
+		super(CrdtDataFieldType.NONCRDTFIELD, dFN, tN, dT, iPK, iAIC,
+				position);
 	}
 
 	/* (non-Javadoc)

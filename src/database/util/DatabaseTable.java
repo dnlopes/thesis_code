@@ -37,6 +37,7 @@ public abstract class DatabaseTable
 	private PrimaryKey primaryKey;
 	private String insertColsString;
 	private Set<ForeignKeyConstraint> childTablesConstraints;
+	private String selectNormalFieldsForQueryString;
 	protected DataField timestampField;
 
 	protected DataField contentClockField;
@@ -85,7 +86,7 @@ public abstract class DatabaseTable
 			if(entry.isPrimaryKey())
 			{
 				this.primaryKey.addField(entry);
-				// soon deprecated?
+				//FIXME: soon deprecated?
 				this.addPrimaryKey(entry);
 			}
 
@@ -114,6 +115,7 @@ public abstract class DatabaseTable
 		}
 
 		this.insertColsString = buffer.toString();
+		this.generateSelectFieldsForQuery();
 	}
 
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
@@ -533,14 +535,11 @@ public abstract class DatabaseTable
 
 	private void addHiddenFields(String tableName, CrdtTableType tableType)
 	{
-		if(tableType == CrdtTableType.ARSETTABLE)
-		{
-			DataField deletedField = new DeletedField(tableName, fieldsMap.size());
-			this.fieldsMap.put(deletedField.getFieldName(), deletedField);
-			this.deletedField = deletedField;
-			this.deletedField.setDefaultValue("1");
-			this.hiddenFields.put(deletedField.getFieldName(), deletedField);
-		}
+		DataField deletedField = new DeletedField(tableName, fieldsMap.size());
+		this.fieldsMap.put(deletedField.getFieldName(), deletedField);
+		this.deletedField = deletedField;
+		this.deletedField.setDefaultValue("1");
+		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 
 		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size(), DBDefaults.CONTENT_CLOCK_COLUMN);
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
@@ -552,6 +551,7 @@ public abstract class DatabaseTable
 
 		this.contentClockField = contentClock;
 		this.deletedClockField = deletedClock;
+
 	}
 
 	public Set<Constraint> getTableInvarists()
@@ -607,5 +607,26 @@ public abstract class DatabaseTable
 	public DataField getDeletedClockField()
 	{
 		return this.deletedClockField;
+	}
+
+	private void generateSelectFieldsForQuery()
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		Iterator<DataField> fieldsIt = this.normalFields.values().iterator();
+
+		while(fieldsIt.hasNext())
+		{
+			buffer.append(fieldsIt.next().getFieldName());
+			if(fieldsIt.hasNext())
+				buffer.append(",");
+		}
+
+		this.selectNormalFieldsForQueryString = buffer.toString();
+	}
+
+	public String getNormalFieldsSelection()
+	{
+		return this.selectNormalFieldsForQueryString;
 	}
 }

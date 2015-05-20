@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
 
-// TODO: Auto-generated Javadoc
+
 
 
 /**
@@ -33,10 +33,10 @@ public class NUMDELTA_DATETIME extends DataField
 	 * @param position
 	 * 		the position
 	 */
-	public NUMDELTA_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
+	public NUMDELTA_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iFK, iAIC, position, false);
-		// TODO Auto-generated constructor stub
+		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position);
+
 	}
 
 	/* (non-Javadoc)
@@ -54,7 +54,7 @@ public class NUMDELTA_DATETIME extends DataField
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
 	{
-		// TODO Auto-generated method stub
+
 		return "";
 	}
 
@@ -80,7 +80,7 @@ public class NUMDELTA_DATETIME extends DataField
 	@Override
 	public String get_Crdt_Form(String Value)
 	{
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
@@ -105,6 +105,12 @@ public class NUMDELTA_DATETIME extends DataField
 				"\"") == 0 && Value.lastIndexOf("\"") == Value.length() - 1))
 			return Value;
 		return "'" + Value + "'";
+	}
+
+	@Override
+	public boolean isDateField()
+	{
+		return true;
 	}
 
 }

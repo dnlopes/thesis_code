@@ -32,8 +32,7 @@ public abstract class DataField
 	private DatabaseTable dbTable;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
-						boolean isPrimaryKey, boolean isForeignKey, boolean isAutoIncremental, int pos,
-						boolean isHiddenField)
+						boolean isPrimaryKey, boolean isAutoIncremental, int pos)
 	{
 
 		this.invariants = new LinkedList<>();
@@ -48,7 +47,6 @@ public abstract class DataField
 		this.tableName = tableName;
 		this.dataType = fieldType;
 		this.isPrimaryKey = isPrimaryKey;
-		this.isForeignKey = isForeignKey;
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
 	}
@@ -200,6 +198,11 @@ public abstract class DataField
 		status += " Position: " + this.position + "\n";
 		status += " CrdtType: " + this.crdtDataType + "\n";
 		return status;
+	}
+
+	public boolean isDateField()
+	{
+		return false;
 	}
 
 }

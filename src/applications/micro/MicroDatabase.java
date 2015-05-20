@@ -68,7 +68,7 @@ public class MicroDatabase
 			stat.execute("CREATE DATABASE micro");
 		} catch(SQLException e)
 		{
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 
@@ -77,7 +77,7 @@ public class MicroDatabase
 			stat.execute("use micro;");
 		} catch(SQLException e)
 		{
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		try
@@ -85,7 +85,7 @@ public class MicroDatabase
 			conn.commit();
 		} catch(SQLException e)
 		{
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 
@@ -104,9 +104,9 @@ public class MicroDatabase
 			if(i == 0)
 				statement = "CREATE TABLE t" + i + " (" +
 						"a int(10) NOT NULL, " +
-						"b int(10) NOT NULL, " +
-						"c int(10) NOT NULL, " +
-						"d int(10) NOT NULL, " +
+						"b int(10), " +
+						"c int(10), " +
+						"d int(10), " +
 						"e varchar(50) NOT NULL, " +
 						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +
@@ -116,9 +116,9 @@ public class MicroDatabase
 			else if(useForeignKeys)
 				statement = "CREATE TABLE t" + i + " (" +
 						"a int(10) NOT NULL, " +
-						"b int(10) NOT NULL, " +
-						"c int(10) NOT NULL, " +
-						"d int(10) NOT NULL, " +
+						"b int(10), " +
+						"c int(10), " +
+						"d int(10), " +
 						"e varchar(50) NOT NULL, " +
 						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +
@@ -129,9 +129,9 @@ public class MicroDatabase
 			else
 				statement = "CREATE TABLE t" + i + " (" +
 						"a int(10) NOT NULL, " +
-						"b int(10) NOT NULL, " +
-						"c int(10) NOT NULL, " +
-						"d int(10) NOT NULL, " +
+						"b int(10), " +
+						"c int(10), " +
+						"d int(10), " +
 						"e varchar(50) NOT NULL, " +
 						"_del BOOLEAN NOT NULL DEFAULT 0, " +
 						"_cclock varchar(20) DEFAULT '0', " +

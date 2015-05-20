@@ -38,7 +38,6 @@ import crdtlib.datatypes.primitivetypes.NumberDeltaInteger;
 import crdtlib.datatypes.primitivetypes.PrimitiveType;
 import database.util.DatabaseFunction;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CrdtEncodeDecode.
  */

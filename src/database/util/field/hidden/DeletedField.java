@@ -3,7 +3,7 @@ package database.util.field.hidden;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
-import util.defaults.ScratchpadDefaults;
+import util.defaults.DBDefaults;
 
 import java.sql.ResultSet;
 
@@ -14,14 +14,14 @@ import java.sql.ResultSet;
 public class DeletedField extends DataField
 {
 
-	private static final String FIELD_NAME = ScratchpadDefaults.SCRATCHPAD_COL_DELETED;
+	private static final String FIELD_NAME = DBDefaults.DELETED_COLUMN;
 	private static final String FIELD_TYPE = "boolean";
 
 
 	public DeletedField(String tableName, int position)
 	{
-		super(CrdtDataFieldType.LWWDELETEDFLAG, FIELD_NAME, tableName, FIELD_TYPE, false, false, false,
-				position, true);
+		super(CrdtDataFieldType.LWWDELETEDFLAG, FIELD_NAME, tableName, FIELD_TYPE, false, false,
+				position);
 	}
 
 	/**
@@ -84,6 +84,12 @@ public class DeletedField extends DataField
 
 	@Override
 	public boolean isDeletedFlagField()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isHiddenField()
 	{
 		return true;
 	}

@@ -38,18 +38,20 @@ public class InsertChildOperation extends InsertOperation
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
-		// add select query instead of real values for fields that are pointing to parent
 		for(ForeignKeyConstraint constraint : this.parentRows.keySet())
 		{
-			for(ParentChildRelation relation : constraint.getFieldsRelations())
-			{
-				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent());
-				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
-			}
+			// add select query instead of real values for fields that are pointing to parent
+			// we do this only in the case of DELETE WINS,
+			if(constraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.DELETEWINS)
+				for(ParentChildRelation relation : constraint.getFieldsRelations())
+				{
+					String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
+							relation.getParent());
+					this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
+				}
 		}
 
 		this.row.mergeUpdates();
-
 		StringBuilder buffer = new StringBuilder();
 
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
@@ -57,7 +59,7 @@ public class InsertChildOperation extends InsertOperation
 			for(Row parent : this.parentRows.values())
 			{
 				buffer.setLength(0);
-				String update = OperationTransformer.generateSilentSetRowVisible(parent);
+				String update = OperationTransformer.generateInsertBackParentRow(parent);
 				buffer.append(update);
 				shadowStatements.add(update);
 			}

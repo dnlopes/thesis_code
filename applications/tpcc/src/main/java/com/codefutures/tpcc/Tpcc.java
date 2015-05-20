@@ -210,6 +210,8 @@ public class Tpcc implements TpccConstants
 		DatabaseProperties dbProperties = new DatabaseProperties(nodeConfig);
 
 		numConn = Integer.parseInt(System.getProperty("usersNum"));
+		measureTime = Integer.parseInt(System.getProperty("testDuration"));
+
 		dbUser = dbProperties.getDbUser();
 		dbPassword = dbProperties.getDbPwd();
 		jdbcUrl = dbProperties.getUrl();
@@ -479,20 +481,22 @@ public class Tpcc implements TpccConstants
 	public static void main(String[] argv)
 	{
 
-		if(argv.length != 4)
+		if(argv.length != 5)
 		{
-			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users> <useCustomJDBC>");
+			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users> <useCustomJDBC> <testDuration>");
 			System.exit(1);
 		}
 		String configFile = argv[0];
 		int proxyId = Integer.parseInt(argv[1]);
 		int usersNum = Integer.parseInt(argv[2]);
 		boolean useCustomJDBC = Boolean.parseBoolean(argv[3]);
+		int testDuration = Integer.parseInt(argv[4]);
 
 		System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		System.setProperty("usersNum", String.valueOf(usersNum));
 		System.setProperty("customJDBC", String.valueOf(useCustomJDBC));
+		System.setProperty("testDuration", String.valueOf(testDuration));
 
 		System.out.println("TPCC version " + VERSION + " Number of Arguments: " + argv.length);
 
@@ -512,7 +516,7 @@ public class Tpcc implements TpccConstants
 
 		int ret = 0;
 
-		if(argv.length == 4)
+		if(argv.length == 5)
 		{
 			tpcc.init();
 			ret = tpcc.runBenchmark(false, argv);

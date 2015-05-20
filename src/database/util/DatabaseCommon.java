@@ -7,6 +7,7 @@ import database.scratchpad.IDBScratchPad;
 import org.apache.commons.dbutils.DbUtils;
 import runtime.QueryCreator;
 import runtime.RuntimeHelper;
+import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 
 import java.sql.ResultSet;
@@ -105,7 +106,7 @@ public class DatabaseCommon
 	{
 		String query = QueryCreator.findParent(childRow, constraint);
 
-		ResultSet rs = pad.executeQuery(query);
+		ResultSet rs = pad.executeQuery(new DBSingleOperation(query));
 		if(!rs.isBeforeFirst())
 		{
 			DbUtils.closeQuietly(rs);

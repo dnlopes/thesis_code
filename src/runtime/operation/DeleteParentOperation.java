@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,4 +44,6 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 	{
 		return this.numberRows;
 	}
+
+
 }

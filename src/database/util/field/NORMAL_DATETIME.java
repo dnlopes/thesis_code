@@ -22,10 +22,9 @@ public class NORMAL_DATETIME extends DataField {
 	 * @param iAIC the i aic
 	 * @param position the position
 	 */
-	public NORMAL_DATETIME(String dFN, String tN, String dT, boolean iPK,
-			boolean iFK, boolean iAIC, int position) {
-		super(CrdtDataFieldType.NORMALDATETIME, dFN, tN, dT, iPK, iFK, iAIC,
-				position, false);
+	public NORMAL_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position) {
+		super(CrdtDataFieldType.NORMALDATETIME, dFN, tN, dT, iPK, iAIC,
+				position);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -83,5 +82,11 @@ public class NORMAL_DATETIME extends DataField {
 				&& Value.lastIndexOf("\"") == Value.length() - 1) 	)
 			return Value;
 		return "'" + Value + "'";
+	}
+
+	@Override
+	public boolean isDateField()
+	{
+		return true;
 	}
 }

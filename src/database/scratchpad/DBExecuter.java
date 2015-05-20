@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.*;
+import util.defaults.DBDefaults;
 import util.exception.CheckConstraintViolatedException;
 import util.defaults.Configuration;
 import runtime.RuntimeHelper;
@@ -35,7 +36,7 @@ public class DBExecuter implements IExecuter
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
-	private static final String SP_DELETED_EXPRESSION = ScratchpadDefaults.SCRATCHPAD_COL_DELETED + "=0";
+	private static final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN+ "=0";
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
@@ -247,8 +248,8 @@ public class DBExecuter implements IExecuter
 		if(e == null)
 			return;
 		buffer.append(" WHERE (");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-		buffer.append(" = FALSE)");
+		buffer.append(SP_DELETED_EXPRESSION);
+		buffer.append(")");
 		if(e != null)
 		{
 			buffer.append(" AND ( ");
@@ -331,8 +332,7 @@ public class DBExecuter implements IExecuter
 				buffer.append(" and ");
 			buffer.append(tables[i][1]);
 			buffer.append(".");
-			buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);
-			buffer.append(" = FALSE");
+			buffer.append(SP_DELETED_EXPRESSION);
 		}
 		if(e != null)
 		{
@@ -414,7 +414,7 @@ public class DBExecuter implements IExecuter
 				buffer.append(" ");
 				if(tmpStr.length > 1)
 					buffer.append(tmpStr[1]);
-				if(colSet.getString(4).equalsIgnoreCase(ScratchpadDefaults.SCRATCHPAD_COL_DELETED))
+				if(colSet.getString(4).equalsIgnoreCase(DBDefaults.DELETED_CLOCK_COLUMN))
 				{
 					buffer.append(" DEFAULT FALSE ");
 				}
@@ -538,18 +538,11 @@ public class DBExecuter implements IExecuter
 		StringBuffer whereClauseTemp = new StringBuffer();
 
 		if(plainSelect.getWhere() != null)
-		{
-			whereClauseTemp.append("(");
 			whereClauseTemp.append(plainSelect.getWhere());
-			whereClauseTemp.append(") AND (");
-		}
-
-		whereClauseTemp.append(SP_DELETED_EXPRESSION);
-
-		if(plainSelect.getWhere() != null)
-			whereClauseTemp.append(")");
 
 		StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
+		whereClauseOrig.append(" AND ");
+		whereClauseOrig.append(SP_DELETED_EXPRESSION);
 
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
@@ -748,8 +741,8 @@ public class DBExecuter implements IExecuter
 	}
 
 	@Override
-	public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
-			throws SQLException, ScratchpadException
+	public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db) throws SQLException,
+			ScratchpadException
 	{
 		modified = true;
 		if(dbOp.getStatement() instanceof Insert)
@@ -836,15 +829,21 @@ public class DBExecuter implements IExecuter
 						insertedRow.addConstraintToverify(c);
 				}
 			}
+
 			buffer.append(")");
 		}
+
+		buffer.append(" values ");
+		buffer.append(insertOp.getItemsList());
+
+		int result = db.executeUpdate(buffer.toString());
 
 		Operation op;
 
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
-			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(insertedRow, this
-					.fkConstraints, db);
+			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(insertedRow,
+					this.fkConstraints, db);
 			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), parentsByConstraint, insertedRow);
 		} else // its a "neutral" or "parent" row
@@ -853,11 +852,7 @@ public class DBExecuter implements IExecuter
 
 		db.getActiveTransaction().addOperation(op);
 
-		buffer.append(" values ");
-		buffer.append(insertOp.getItemsList());
-
-		int result = db.executeUpdate(buffer.toString());
-		this.recordedPkValues.put(pkValue.getValue(), pkValue);
+		this.recordedPkValues.put(insertedRow.getPrimaryKeyValue().getUniqueValue(), pkValue);
 
 		LOG.trace("new insert: {}", buffer.toString());
 		return result;
@@ -880,8 +875,8 @@ public class DBExecuter implements IExecuter
 	{
 		LOG.trace("fetching rows to delete");
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(SELECT *");
-		//buffer.append(this.pk.getQueryClause());
+		buffer.append("(SELECT ");
+		buffer.append(this.pk.getQueryClause());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
 		addWhere(buffer, deleteOp.getWhere());
@@ -890,8 +885,8 @@ public class DBExecuter implements IExecuter
 			buffer.append("AND ");
 			this.generateNotInDeletedAndUpdatedClause(buffer);
 		}
-		buffer.append(") UNION (SELECT *");
-		//buffer.append(this.pk.getQueryClause());
+		buffer.append(") UNION (SELECT ");
+		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, deleteOp.getWhere());
@@ -914,10 +909,11 @@ public class DBExecuter implements IExecuter
 							ExitCode.FETCH_RESULTS_ERROR);
 
 				rowsDeleted++;
-				rowToDelete = DatabaseCommon.getFullRow(res, this.databaseTable);
+				PrimaryKeyValue rowPkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable);
+				rowToDelete = new Row(this.databaseTable, rowPkValue);
 
-				this.recordedPkValues.put(rowToDelete.getPrimaryKeyValue().getValue(),
-						rowToDelete.getPrimaryKeyValue());
+				this.recordedPkValues.remove(rowToDelete.getPrimaryKeyValue().getValue());
+				this.duplicatedRows.remove(rowToDelete.getPrimaryKeyValue());
 			}
 
 			buffer = new StringBuffer();
@@ -925,7 +921,6 @@ public class DBExecuter implements IExecuter
 			buffer.append(this.tempTableName);
 			buffer.append(" where ");
 			buffer.append(deleteOp.getWhere().toString());
-			buffer.append(";");
 			String delete = buffer.toString();
 
 			db.executeUpdate(delete);
@@ -945,9 +940,6 @@ public class DBExecuter implements IExecuter
 			db.getActiveTransaction().addOperation(op);
 
 			return rowsDeleted;
-		} catch(SQLException e)
-		{
-			throw e;
 		} finally
 		{
 			DbUtils.closeQuietly(res);
@@ -974,10 +966,10 @@ public class DBExecuter implements IExecuter
 			String newValue = expIt.next().toString();
 			DataField field = this.fields.get(columnName);
 
-			//FIXME: currently, we do not allow primary keys, immutable fields and fields that are pointing to
-			// some parent be modified
-			if(field.isImmutableField() || field.isPrimaryKey() || field.hasParent())
-				RuntimeHelper.throwRunTimeException("trying to modify a primary key or immutable field",
+			//FIXME: currently, we do not allow primary keys, immutable fields and fields that are
+			//FIXME: parent for some other field
+			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
+				RuntimeHelper.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
 						ExitCode.UNEXPECTED_OP);
 
 			if(newValue == null)
@@ -1012,6 +1004,8 @@ public class DBExecuter implements IExecuter
 		// if is parent table, check if this op has side effects
 		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 		{
+			RuntimeHelper.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
+					ExitCode.UNEXPECTED_OP);
 			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), updatedRow);
 			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
@@ -1050,11 +1044,15 @@ public class DBExecuter implements IExecuter
 		buffer.append(updateOp.getTables().get(0).toString());
 		addWhere(buffer, updateOp.getWhere());
 		//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
-		buffer.append(" AND _del=0) UNION (select *, '" + this.tempTableName + "' as tname FROM ");
+		buffer.append(" AND ");
+		buffer.append(DBDefaults.DELETED_COLUMN);
+		buffer.append("=0) UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 		buffer.append(this.tempTableName);
 		addWhere(buffer, updateOp.getWhere());
 		//buffer.append(");");
-		buffer.append(" AND _del=0);");
+		buffer.append(" AND ");
+		buffer.append(DBDefaults.DELETED_COLUMN);
+		buffer.append("=0)");
 
 		ResultSet res = null;
 		try
@@ -1092,25 +1090,29 @@ public class DBExecuter implements IExecuter
 				buffer.append(this.tempTableName);
 				buffer.append(" values (");
 
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(this.getTableName());
+
 				Iterator<DataField> fieldsIt = this.fields.values().iterator();
 
 				while(fieldsIt.hasNext())
 				{
 					DataField field = fieldsIt.next();
-					Object oldContent;
+
+
+					String oldContent;
 
 					if(!field.isDeletedFlagField())
-						oldContent = res.getObject(field.getFieldName());
+						oldContent = res.getString(field.getFieldName());
 					else
 					{
 						oldContent = Integer.toString(res.getInt(field.getFieldName()));
-						oldContent = Boolean.parseBoolean(oldContent.toString());
+						oldContent = String.valueOf(oldContent);
 					}
 
 					if(oldContent == null)
 						oldContent = "NULL";
 
-					if(field.isStringField())
+					if(field.isStringField() || field.isDateField())
 					{
 						buffer.append("'");
 						buffer.append(oldContent);
@@ -1120,8 +1122,15 @@ public class DBExecuter implements IExecuter
 
 					if(fieldsIt.hasNext())
 						buffer.append(",");
+
+					if(field.isPrimaryKey())
+					{
+						FieldValue fValue = new FieldValue(field, oldContent);
+						pkValue.addFieldValue(fValue);
+					}
 				}
 
+				duplicatedRows.add(pkValue);
 				buffer.append(")");
 				pad.executeUpdate(buffer.toString());
 			}
@@ -1185,10 +1194,11 @@ public class DBExecuter implements IExecuter
 					ExitCode.INVALIDUSAGE);
 
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("SELECT *");
-		buffer.append(" from ");
+		buffer.append("SELECT ");
+		buffer.append(this.databaseTable.getNormalFieldsSelection());
+		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		buffer.append(" where ");
+		buffer.append(" WHERE ");
 		buffer.append(whereClause);
 
 		ResultSet rs = null;

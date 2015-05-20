@@ -7,7 +7,7 @@
 	@NORMALSTRING w_state char(2), 
 	@NORMALSTRING w_zip char(9), 
 	@LWWINTEGER w_tax decimal(4,2), 
-	@LWWINTEGER w_ytd decimal(12,2),
+	@NUMDELTAINTEGER w_ytd decimal(12,2),
 	PRIMARY KEY (w_id) 
 )Engine=InnoDB;
 
@@ -21,7 +21,7 @@
 	@NORMALSTRING d_state char(2), 
 	@NORMALSTRING d_zip char(9), 
 	@LWWINTEGER d_tax decimal(4,2), 
-	@LWWINTEGER d_ytd decimal(12,2), 
+	@NUMDELTAINTEGER d_ytd decimal(12,2), 
 	@LWWINTEGER d_next_o_id int,
 	PRIMARY KEY (d_w_id, d_id),
 	FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id)
@@ -44,10 +44,10 @@
 	@LWWSTRING c_credit char(2), 
 	@LWWINTEGER c_credit_lim bigint, 
 	@LWWINTEGER c_discount decimal(4,2), 
-	@LWWINTEGER c_balance decimal(12,2), 
+	@NUMDELTAINTEGER c_balance decimal(12,2), 
 	@LWWINTEGER c_ytd_payment decimal(12,2), 
 	@LWWINTEGER c_payment_cnt smallint, 
-	@LWWINTEGER c_delivery_cnt smallint, 
+	@NUMDELTAINTEGER c_delivery_cnt smallint, 
 	@LWWSTRING c_data varchar(500),
 	PRIMARY KEY(c_w_id, c_d_id, c_id),
 	FOREIGN KEY(c_w_id,c_d_id) REFERENCES district(d_w_id,d_id)
@@ -65,14 +65,6 @@
 	FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 
-@ARSETTABLE create table new_orders (
-	@LWWINTEGER no_o_id int not null,
-	@LWWINTEGER no_d_id tinyint not null,
-	@LWWINTEGER no_w_id smallint not null,
-	PRIMARY KEY(no_w_id, no_d_id, no_o_id),
-	FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)	
-)Engine=InnoDB;
-
 @ARSETTABLE create table orders (
 	@LWWINTEGER o_id int not null, 
 	@LWWINTEGER o_d_id tinyint not null, 
@@ -84,6 +76,14 @@
 	@LWWINTEGER o_all_local tinyint,
 	PRIMARY KEY(o_w_id, o_d_id, o_id),
 	FOREIGN KEY(o_w_id,o_d_id,o_c_id) REFERENCES customer(c_w_id,c_d_id,c_id)
+)Engine=InnoDB;
+
+@ARSETTABLE create table new_orders (
+	@LWWINTEGER no_o_id int not null,
+	@LWWINTEGER no_d_id tinyint not null,
+	@LWWINTEGER no_w_id smallint not null,
+	PRIMARY KEY(no_w_id, no_d_id, no_o_id),
+	FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)	
 )Engine=InnoDB;
 
 @ARSETTABLE create table order_line ( 

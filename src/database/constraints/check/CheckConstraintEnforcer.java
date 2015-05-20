@@ -65,7 +65,7 @@ public class CheckConstraintEnforcer
 			{
 				PrimaryKeyValue pkValue = DatabaseCommon.getPrimaryKeyValue(rs, this.dbTable);
 				String currentValue = rs.getString(field.getFieldName());
-				currentValues.put(pkValue.getValue(), Double.parseDouble(currentValue));
+				currentValues.put(pkValue.getUniqueValue(), Double.parseDouble(currentValue));
 			}
 
 			DbUtils.closeQuietly(tempConnection, stmt, rs);

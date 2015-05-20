@@ -6,6 +6,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import runtime.RuntimeHelper;
+import util.ExitCode;
 import util.commonfunc.StringOperations;
 
 // TODO: Auto-generated Javadoc
@@ -13,7 +15,10 @@ import util.commonfunc.StringOperations;
  * The Class DatabaseFunction.
  */
 public class DatabaseFunction {
-	
+
+	private static DateFormat FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
+
+
 	public static DateFormat getNewDateFormatInstance() {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		return dateFormat;
@@ -103,5 +108,20 @@ public class DatabaseFunction {
 			e.printStackTrace();
 		}
 		return date.getTime();
+	}
+
+	public static String stringToDate(String stringDate)
+	{
+		Date myDate = null;
+		try
+		{
+			myDate = FORMATTER.parse(stringDate);
+		} catch(ParseException e)
+		{
+			e.printStackTrace();
+			RuntimeHelper.throwRunTimeException("error converting string to sql.date", ExitCode.NORESULT);
+		}
+
+		return "'" + myDate.getTime() + "'";
 	}
 }

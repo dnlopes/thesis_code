@@ -23,9 +23,9 @@ public class LWW_BOOLEAN extends DataField
 	 * @param iAIC     the i aic
 	 * @param position the position
 	 */
-	public LWW_BOOLEAN(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
+	public LWW_BOOLEAN(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWBOOLEAN, dFN, tN, dT, iPK, iFK, iAIC, position, false);
+		super(CrdtDataFieldType.LWWBOOLEAN, dFN, tN, dT, iPK, iAIC, position);
 	}
 
 	/**

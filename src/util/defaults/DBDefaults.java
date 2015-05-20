@@ -5,7 +5,6 @@ package util.defaults;
  */
 public class DBDefaults
 {
-
 	public static final String CLOCK_VALUE_PLACEHOLDER = "'@clock@'";
 	public static final String CONTENT_CLOCK_COLUMN = "_cclock";
 	public static final String DELETED_CLOCK_COLUMN = "_dclock";

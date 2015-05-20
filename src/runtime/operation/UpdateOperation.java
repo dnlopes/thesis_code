@@ -34,8 +34,10 @@ public class UpdateOperation extends AbstractOperation implements Operation
 
 		StringBuilder buffer = new StringBuilder();
 
-		String insertOrUpdateStatement = OperationTransformer.generateUpdateStatement(this.row);
-		buffer.append(insertOrUpdateStatement);
+		String updateStatement = OperationTransformer.generateUpdateStatement(this.row);
+		buffer.append(updateStatement);
+		buffer.append(" WHERE ");
+		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(" AND ");
 		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(this.tablePolicy);
 		buffer.append(compareClockClause);
@@ -90,7 +92,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 					ApplyDelta applyDeltaRequest = new ApplyDelta();
 					applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
 					applyDeltaRequest.setDeltaValue(deltaValue);
-					applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getValue());
+					applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
 					request.addToDeltaValues(applyDeltaRequest);
 					LOG.trace("new delta check entry added");
 				}

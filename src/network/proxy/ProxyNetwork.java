@@ -55,7 +55,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public CoordinatorResponse checkInvariants(CoordinatorRequest req, AbstractNodeConfig node) throws
+	public synchronized CoordinatorResponse checkInvariants(CoordinatorRequest req, AbstractNodeConfig node) throws
 			TException
 	{
 		if(!this.coordinatorsClients.containsKey(node.getName()))

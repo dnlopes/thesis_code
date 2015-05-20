@@ -17,7 +17,7 @@ public class LWWField extends DataField
 
 	public LWWField(String tableName, int position)
 	{
-		super(CrdtDataFieldType.LWWINTEGER, FIELD_NAME, tableName, FIELD_TYPE, false, false, false, position, true);
+		super(CrdtDataFieldType.LWWINTEGER, FIELD_NAME, tableName, FIELD_TYPE, false, false, position);
 	}
 
 	@Override

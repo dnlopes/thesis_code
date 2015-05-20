@@ -7,7 +7,7 @@ import database.util.CrdtDataFieldType;
 import database.util.DataField;
 import util.ExitCode;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class NUMDELTA_INTEGER.
  */
@@ -24,11 +24,10 @@ public class NUMDELTA_INTEGER extends DataField {
 	 * @param iAIC the i aic
 	 * @param position the position
 	 */
-	public NUMDELTA_INTEGER(String dFN, String tN, String dT, boolean iPK,
-			boolean iFK, boolean iAIC, int position) {
-		super(CrdtDataFieldType.NUMDELTAINTEGER, dFN, tN, dT, iPK, iFK,
-				iAIC, position, false);
-		// TODO Auto-generated constructor stub
+	public NUMDELTA_INTEGER(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position) {
+		super(CrdtDataFieldType.NUMDELTAINTEGER, dFN, tN, dT, iPK,
+				iAIC, position);
+
 	}
 
 	/**
@@ -65,7 +64,7 @@ public class NUMDELTA_INTEGER extends DataField {
 	 */
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value) {
-		// TODO Auto-generated method stub
+
 
 		if (rs == null) {
 			try {
@@ -83,7 +82,7 @@ public class NUMDELTA_INTEGER extends DataField {
 			rs.beforeFirst();
 			return apply_Delta(delta);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 			System.exit(ExitCode.SQLRESULTSETNOTFOUND);
 		}
@@ -102,7 +101,7 @@ public class NUMDELTA_INTEGER extends DataField {
 	 */
 	@Override
 	public String get_Crdt_Form(String Value) {
-		// TODO Auto-generated method stub
+
 		Value = Value.trim();
 		return apply_Delta(Integer.parseInt(Value));
 	}
@@ -120,7 +119,7 @@ public class NUMDELTA_INTEGER extends DataField {
 	 */
 	@Override
 	public String get_Value_In_Correct_Format(String Value) {
-		// TODO Auto-generated method stub
+
 		return Value;
 	}
 

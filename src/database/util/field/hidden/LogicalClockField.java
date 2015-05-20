@@ -14,8 +14,8 @@ public class LogicalClockField extends DataField
 
 	public LogicalClockField(String tableName, int position, String fieldName)
 	{
-		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, fieldName, tableName, FIELD_TYPE, false, false, false,
-				position, true);
+		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, fieldName, tableName, FIELD_TYPE, false, false,
+				position);
 	}
 
 	@Override
@@ -47,4 +47,9 @@ public class LogicalClockField extends DataField
 		return true;
 	}
 
+	@Override
+	public boolean isHiddenField()
+	{
+		return true;
+	}
 }

@@ -35,9 +35,9 @@ public class NUMDELTA_DOUBLE extends DataField
 	 * @param position
 	 * 		the position
 	 */
-	public NUMDELTA_DOUBLE(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
+	public NUMDELTA_DOUBLE(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iFK, iAIC, position, false);
+		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position);
 		// TODO Auto-generated constructor stub
 	}
 

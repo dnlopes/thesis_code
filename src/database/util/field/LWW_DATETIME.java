@@ -23,9 +23,9 @@ public class LWW_DATETIME extends DataField
 	 * @param iAIC     the i aic
 	 * @param position the position
 	 */
-	public LWW_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iFK, boolean iAIC, int position)
+	public LWW_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWDATETIME, dFN, tN, dT, iPK, iFK, iAIC, position, false);
+		super(CrdtDataFieldType.LWWDATETIME, dFN, tN, dT, iPK, iAIC, position);
 	}
 
 	/**
@@ -74,5 +74,11 @@ public class LWW_DATETIME extends DataField
 				"\"") == 0 && Value.lastIndexOf("\"") == Value.length() - 1))
 			return Value;
 		return "'" + Value + "'";
+	}
+
+	@Override
+	public boolean isDateField()
+	{
+		return true;
 	}
 }

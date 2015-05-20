@@ -25,7 +25,10 @@ public class FieldValue
 	{
 		CrdtDataFieldType fieldType = this.dataField.getCrdtType();
 
-		if(fieldType == CrdtDataFieldType.LWWSTRING || fieldType == CrdtDataFieldType.NORMALSTRING || fieldType == CrdtDataFieldType.LWWLOGICALTIMESTAMP)
+		if(fieldType == CrdtDataFieldType.LWWDATETIME || fieldType == CrdtDataFieldType.NORMALDATETIME || fieldType ==
+				CrdtDataFieldType.NUMDELTADATETIME || fieldType == CrdtDataFieldType.LWWSTRING || fieldType ==
+				CrdtDataFieldType.NORMALSTRING ||
+				fieldType == CrdtDataFieldType.LWWLOGICALTIMESTAMP)
 			return "'" + this.value + "'";
 		else
 			return this.value;

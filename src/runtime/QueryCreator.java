@@ -31,7 +31,10 @@ public class QueryCreator
 	{
 		StringBuilder buffer = new StringBuilder();
 
-		buffer.append("SELECT * FROM ");
+
+		buffer.append("SELECT ");
+		buffer.append(table.getNormalFieldsSelection());
+		buffer.append(" FROM ");
 		buffer.append(table.getName());
 		buffer.append(" WHERE ");
 
@@ -65,7 +68,9 @@ public class QueryCreator
 		DatabaseTable remoteTable = constraint.getParentTable();
 
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("SELECT * FROM ");
+		buffer.append("SELECT ");
+		buffer.append(remoteTable.getNormalFieldsSelection());
+		buffer.append(" FROM ");
 		buffer.append(remoteTable.getName());
 		buffer.append(" WHERE ");
 

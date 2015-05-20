@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class LWW_STRING.
  */
@@ -22,11 +21,10 @@ public class LWW_STRING extends DataField {
 	 * @param iAIC the i aic
 	 * @param position the position
 	 */
-	public LWW_STRING(String dFN, String tN, String dT, boolean iPK,
-			boolean iFK, boolean iAIC, int position) {
-		super(CrdtDataFieldType.LWWSTRING, dFN, tN, dT, iPK, iFK, iAIC,
-				position, false);
-		// TODO Auto-generated constructor stub
+	public LWW_STRING(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position) {
+		super(CrdtDataFieldType.LWWSTRING, dFN, tN, dT, iPK, iAIC,
+				position);
+
 	}
 
 	/* (non-Javadoc)
