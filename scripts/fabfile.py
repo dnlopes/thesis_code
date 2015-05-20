@@ -287,7 +287,7 @@ def prepareCode():
         execute(distributeCode, hosts=distinct_nodes)
 
 def distributeCode():
-    run('mkdir -p ' + BASE_DIR)
+    run('mkdir -p ' + DEPLOY_DIR)
     with cd(BASE_DIR), hide('output','running'):
         run('rm ' + DEPLOY_DIR + '/*.jar')
         run('rm ' + DEPLOY_DIR + '/*.sql')
