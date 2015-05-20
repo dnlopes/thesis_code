@@ -1,5 +1,5 @@
 # the configuration file
-config_file=/home/dp.lopes/code/resources/configs/tpcc_cluster_2node.xml
+config_file=/local/dp.lopes/deploy/configs/tpcc_cluster_2node.xml
 # the benchmark to run
 bench=tpcc
 # the driver to use (either the original jdbc or the custom crdt_jdbc)

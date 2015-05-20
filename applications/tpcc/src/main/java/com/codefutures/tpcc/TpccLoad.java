@@ -137,6 +137,7 @@ public class TpccLoad implements TpccConstants {
             throw new RuntimeException("Mode is null.");
         }
         boolean jdbcMode = mode.equalsIgnoreCase("JDBC");
+
         if (jdbcMode) {
             if (dbUser == null) {
                 throw new RuntimeException("User is null.");

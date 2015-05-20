@@ -151,11 +151,15 @@ public class TpccThread extends Thread {
             prop.put("password", db_password);
 
 			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
+			String proxyId = System.getProperty("proxyid");
+
+			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(Integer.parseInt
+					(proxyId));
 
 			if(isCustomJDBC)
 				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
 			else
-				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
+				conn = ConnectionFactory.getDefaultConnection(nodeConfig, "tpcc");
 
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);

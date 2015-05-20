@@ -1,0 +1,39 @@
+Experimental Setup:
+
+1- General Test: Latency/Troughtput
+
+3 plots: 1 replica, 3 replicas e 5 replicas
+
+Em cada plot:
+
+7 execuções (pontos)
+
+Cada ponto com diferentes numero de users:
+1,3,5,15,30,45,60
+
+
+
+
+TEST 1 - Measure custom JDBC overhead:
+
+How? 
+1- run TPCC with default driver in 1 replica with multiple users
+2- run TPCC with custom driver in 1 replica with multiple users
+
+Measure latency and troughput
+
+PLOT with 1,5 and 10 users
+
+
+in each "entry" show avg latency and troughput
+
+TEST 2 - Measure system scalability
+
+How? 
+1- run TPCC with custom driver in 1 replica with fixed users
+1- run TPCC with custom driver in 2 replica with fixed users
+1- run TPCC with custom driver in 5 replica with fixed users
+
+Measure latency and troughput
+
+

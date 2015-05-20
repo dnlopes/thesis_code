@@ -24,8 +24,12 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+LOGS_BASE_DIR='/home/dp.lopes/logs'
+
 CONFIG_FILE=''
 LOG_FILE_DIR=''
+
+TPCC_TEST_TIME=30
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
@@ -110,7 +114,7 @@ def startCoordinators():
 
     logFile = 'coordinator_' + str(currentId) + ".log"
     logger.info('starting coordinator at %s with id %s', env.host_string, currentId)
-    command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
+    command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
     time.sleep(5)
@@ -127,7 +131,7 @@ def startReplicators():
     port = replicatorsHostToPortMap.get(env.host_string)
     logFile = 'replicator_' + str(currentId) + ".log"
     logger.info('starting replicator at %s with id %s', env.host_string, currentId)
-    command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
+    command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
     time.sleep(5)
@@ -145,13 +149,13 @@ def startTPCCClients():
 
     logFile = 'proxy_' + str(currentId) + ".log"
     logger.info('starting proxy at %s with id %s', env.host_string, currentId)
-    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' true > logs/' + LOG_FILE_DIR + '/' + logFile + ' &'
+    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' ' + TPCC_TEST_TIME + ' true > ' + logFile + ' &'
     with cd(DEPLOY_DIR):
         run(command)
-    time.sleep(5)
-    if not isPortOpen(port):
-        return '0'
-    return '1'
+    #time.sleep(5)
+    #if not isPortOpen(port):
+    #    return '0'
+    #return '1'
 
 @task
 def setupExperiment(configFile):
@@ -165,8 +169,9 @@ def runTPCCExperiment(configFile):
     parseConfigFile()
     splittedConfifFile = CONFIG_FILE.split("/")
     removedExtension = splittedConfifFile[-1].split(".")
+    global LOG_FILE_DIR
     LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + removedExtension[-1]
-    logger.info('this experiment will be logged to logs/' + LOG_FILE_DIR)
+    logger.info('this experiment will be logged to ' + LOG_FILE_DIR)
 
     dbResults = execute(startDatabases, hosts=database_nodes)
     for key, value in dbResults.iteritems():
@@ -183,6 +188,7 @@ def runTPCCExperiment(configFile):
             sys.exit()
 
     logger.info('all coordinators are online')
+    
     replicatorResults = execute(startReplicators, hosts=replicators_nodes)
     for key, value in replicatorResults.iteritems():
         if value == '0':
@@ -197,8 +203,31 @@ def runTPCCExperiment(configFile):
     #        logger.error('proxy at %s failed to start', key)
     #        sys.exit()
 
-    logger.info('all proxies are online')
     logger.info('the experiment is running')    
+    time.sleep(TPCC_TEST_TIME)
+    time.sleep(10)
+    logger.info('the experiment has finished')
+    execute(endExperiment, hosts=distinct_nodes)
+    execute(pullLogs, hosts=distinct_nodes)
+
+@task
+def endExperiment():
+    logger.info('cleaning running processes')
+    execute(stopJava, distinct_nodes)
+    execute(stopMySQL, database_nodes)
+    logger.info('done!')
+    time.sleep(3)
+
+@task 
+def pullLogs():
+    logger.info('pulling log files')
+    filesToDownload = DEPLOY_DIR + "*.out"
+    with lcd(LOGS_BASE_DIR):
+        local('mkdir -p ' + LOG_FILE_DIR)
+    with cd(DEPLOY_DIR):
+        get(filesToDownload, LOG_FILE_DIR)
+    
+    logger.info('done!')
 
 @task
 def killProcesses(configFile):
@@ -221,9 +250,13 @@ def prepareCode():
 @parallel
 def distributeCode():
     with cd(BASE_DIR):
-        run('rm -rf ' + DEPLOY_DIR + ' ; mkdir -p ' + DEPLOY_DIR + '/logs')
+        run('rm ' + DEPLOY_DIR + '/*.jar')
+        run('rm ' + DEPLOY_DIR + '/*.sql')
+        run('rm ' + DEPLOY_DIR + '/*.properties')
+        run('rm -rf ' + DEPLOY_DIR + '/configs')                
         put(JARS_DIR + '/*.jar', DEPLOY_DIR)
         put(PROJECT_DIR + '/resources/configs', DEPLOY_DIR)
+        put(PROJECT_DIR + '/experiments', DEPLOY_DIR)
         put(PROJECT_DIR + '/resources/*.sql', DEPLOY_DIR)
         put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
 
@@ -326,4 +359,19 @@ def loadInputFile(configFile):
     global configsMap, CONFIG_FILE
     configsMap = parseConfigInput(configFile)        
     CONFIG_FILE = configsMap['config_file']    
+
+@task
+def prepareTPCCDatabase():
+    # assume mysql is running
+    with cd(PROJECT_DIR + '/weakdb'):
+        run('ant tpcc-gendb')
+    stopMySQL()
+    
+
+
+
+
+
+
+
 

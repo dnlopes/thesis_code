@@ -80,7 +80,7 @@ public class ProxyStatistics implements Statistics
 			String result = stats.getResults();
 			try
 			{
-				PrintWriter out = new PrintWriter(stats.nodeName + ".out");
+				PrintWriter out = new PrintWriter(this.stats.nodeName + ".out");
 				out.write(result);
 				out.close();
 			} catch(FileNotFoundException e)
