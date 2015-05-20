@@ -100,7 +100,7 @@ def benchmarkTPCC(configsFilesBaseDir):
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
         #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        CONFIG_FILE = 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         endExperiment()            
@@ -249,7 +249,6 @@ def startTPCCclients(clientsNum, useCustomJDBC):
     with cd(DEPLOY_DIR):
         run(command)
   
-@task
 def endExperiment():
     logger.info('cleaning java and database processes')
     with hide('output','running','warnings'):
@@ -258,7 +257,6 @@ def endExperiment():
     logger.info('done!')
     time.sleep(3)
 
-@task 
 def pullLogs():
     logger.info('pulling log files')
     filesToDownload = DEPLOY_DIR + '/*.out'
@@ -271,7 +269,6 @@ def pullLogs():
     
     logger.info('done!')
 
-@task
 def killProcesses(configFile):
     loadInputFile(configFile)    
     parseConfigFile()
@@ -391,7 +388,6 @@ def parseConfigFile():
     logger.debug('Coordinators: %s', coordinators_nodes)
     logger.debug('Distinct nodes: %s', distinct_nodes)
 
-@task
 @parallel
 def prepareTPCCDatabase():
     # assume mysql is not running
@@ -401,7 +397,6 @@ def prepareTPCCDatabase():
         run('cp ' + BACKUPS_DIR + '/mysql-5.6_ready.tar.gz ' + BASE_DIR)
         run('tar zxvf mysql-5.6_ready.tar.gz')
 
-@task
 @parallel
 def checkClientsIsRunning():
     proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
