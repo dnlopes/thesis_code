@@ -362,9 +362,8 @@ def parseConfigFile():
     for coordinator in e.iter('coordinator'):
         coordinatorId = coordinator.get('id')
         port = coordinator.get('port')
-        host = coordinator.get('host')
-        dbHost = coordinator.get('dbHost')
-        dbsSet.add(dbHost)
+        host = coordinator.get('host')        
+        #dbsSet.add(dbHost)
         coordinatorsSet.add(host)      
         distinctNodesSet.add(host) 
         coordinators_map[host] = coordinatorId   
