@@ -12,7 +12,6 @@ import runtime.LogicalClock;
 import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
-import util.stats.ReplicatorStatistics;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +32,6 @@ public class Replicator extends AbstractNode
 	private IReplicatorNetwork networkInterface;
 	private ReplicatorServerThread serverThread;
 	private ObjectPool<IDBCommitPad> commitPadPool;
-	private ReplicatorStatistics statistics;
 
 	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
@@ -53,7 +51,6 @@ public class Replicator extends AbstractNode
 
 		this.committedTxns = new HashSet<>();
 		this.commitPadPool = new ObjectPool<>();
-		this.statistics = new ReplicatorStatistics(config.getName());
 
 		this.setup();
 
@@ -98,13 +95,8 @@ public class Replicator extends AbstractNode
 		if(commitDecision)
 		{
 			this.committedTxns.add(shadowOperation.getTxnId());
-			this.statistics.incrementCommitCounter();
-			this.statistics.addLatency(pad.getCommitLatency());
 		} else
-		{
-			this.statistics.incrementAbortsCounter();
 			LOG.error("something went very wrong. State will not converge because op didnt commit");
-		}
 
 		this.commitPadPool.returnObject(pad);
 

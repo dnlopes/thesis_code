@@ -1,11 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <config>
-	<topology replicatorNum="2" executorsNum="2">
+	<topology replicatorNum="3" executorsNum="3">
 		<replicators>
 			<replicator id="1" host="node1" port="50000" dbHost="node1" dbPort="3306" dbUser="sa"
 						dbPwd="101010" />
 			<replicator id="2" host="node2" port="50001" dbHost="node2" dbPort="3306" dbUser="sa"
-						dbPwd="101010" />		
+						dbPwd="101010" />
+			<replicator id="3" host="node3" port="50002" dbHost="node3" dbPort="3306" dbUser="sa"
+						dbPwd="101010" />										
 		</replicators>
 		<coordinators>
 			<coordinator id="1" host="node6" port="50020" dbHost="node6" dbPort="3306" dbUser="sa"
@@ -16,6 +18,8 @@
 				   dbPwd="101010" refReplicator="1" refCoordinator="1" />			
 			<proxy id="2" host="node2" port="50011" dbHost="node2" dbPort="3306" dbUser="sa"
 				   dbPwd="101010" refReplicator="2" refCoordinator="1" />
+			<proxy id="3" host="node3" port="50012" dbHost="node3" dbPort="3306" dbUser="sa"
+				   dbPwd="101010" refReplicator="3" refCoordinator="1" />
 		</proxies>
 	</topology>
 	<variables padPoolSize="20" dbName="tpcc"

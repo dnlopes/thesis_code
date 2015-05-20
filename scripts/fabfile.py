@@ -1,4 +1,4 @@
-from fabric.api import env, local, lcd, roles, parallel, cd, put, execute, settings, abort, hide, task, sudo, run
+from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, settings, abort, hide, task, sudo, run
 import time
 import sys
 import xml.etree.ElementTree as ET
@@ -16,6 +16,14 @@ from parseConfigFile import parseConfigInput
 # Last update: April, 2015
 #------------------------------------------------------------------------------
 
+
+NUMBER_USERS=[1]
+NUMBER_REPLICAS=[1]
+JDCBs=['mysql_crdt']
+#NUMBER_USERS=[1,3,5,15,30,45,60]
+#NUMBER_REPLICAS=[1,3,5]
+#JDCBs=['mysql_jdbc', 'mysql_crdt']
+
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -24,28 +32,30 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-LOGS_BASE_DIR='/home/dp.lopes/logs'
+env.shell = "/bin/bash -l -i -c" 
+#env.user = 'dnl'
+env.user = 'dp.lopes'
 
 CONFIG_FILE=''
 LOG_FILE_DIR=''
 
-TPCC_TEST_TIME=30
+TPCC_TEST_TIME=10
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
-
 TOMCAT_START='bin/startup.sh'
 TOMCAT_SHUTDOWN_COMMAND='bin/shutdown.sh'
 
-env.user = 'dp.lopes'
-env.shell = "/bin/bash -l -i -c" 
 
-BASE_DIR = '/local/' + env.user 
-PROJECT_DIR = '/home/' + env.user + '/code'
-JARS_DIR = PROJECT_DIR + '/dist/jars'
+BASE_DIR = '/local/' + env.user
 DEPLOY_DIR = BASE_DIR + '/deploy'
-
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
+
+HOME_DIR = '/home/' + env.user
+LOGS_DIR = HOME_DIR + '/logs'
+BACKUPS_DIR = HOME_DIR + '/backups'
+PROJECT_DIR = HOME_DIR + '/code'
+JARS_DIR = PROJECT_DIR + '/dist/jars'
 
 distinct_nodes = []
 database_nodes = []
@@ -73,6 +83,98 @@ env.roledefs = {
 
 env.hosts = ['localhost']
 
+@task
+def benchmarkTPCC(configsFilesBaseDir):
+    global LOG_FILE_DIR
+    LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_'
+    customJDBC=''
+    for replicasNum in NUMBER_REPLICAS:
+        global CONFIG_FILE
+        CONFIG_FILE = configsFilesBaseDir + '/'
+        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE = 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        logger.info('starting tests with %d replicas', replicasNum)
+        parseConfigFile()
+        endExperiment()            
+        prepareCode()
+        for jdbc in JDCBs:
+            if jdbc == 'mysql_crdt':
+                customJDBC='true'
+            else:
+                customJDBC='false'                    
+            for usersNum in NUMBER_USERS:                
+                usersPerReplica = usersNum / replicasNum
+                LOG_FILE_DIR+='test_'                
+                if jdbc == 'mysql_crdt':
+                    LOG_FILE_DIR += 'crdt_'
+                else:
+                    LOG_FILE_DIR += 'orig_'
+                LOG_FILE_DIR += str(replicasNum) + 'replicas_'
+                LOG_FILE_DIR += str(usersNum) + 'users/'                
+                logger.info('this experiment will be logged to ' + LOG_FILE_DIR) 
+                
+                # preparar database
+                logger.info('preparing tpcc database')
+                with hide('running','output'):
+                    execute(prepareTPCCDatabase, hosts=database_nodes)  
+
+                #start databases
+                with hide('running','output'):
+                    dbResults = execute(startDatabases, hosts=database_nodes)
+                    for key, value in dbResults.iteritems():
+                        if value == '0':
+                            logger.error('database at %s failed to start', key)
+                            sys.exit()
+                logger.info('all databases instances are online') 
+
+                #start coordinators
+                with hide('running','output'):
+                    coordResults = execute(startCoordinators, hosts=coordinators_nodes)
+                    for key, value in coordResults.iteritems():
+                        if value == '0':
+                            logger.error('coordinator at %s failed to start', key)
+                            sys.exit()
+                logger.info('all coordinators are online')                           
+
+                #start replicators
+                with hide('running','output'):
+                    replicatorResults = execute(startReplicators, hosts=replicators_nodes)
+                    for key, value in replicatorResults.iteritems():
+                        if value == '0':
+                            logger.error('replicator at %s failed to start', key)
+                            sys.exit()
+                logger.info('all replicators are online') 
+
+                #start clients
+                with hide('running','output'):
+                    execute(startTPCCclients, usersPerReplica, customJDBC, hosts=proxies_nodes)
+                
+                logger.info('the experiment is running') 
+                time.sleep(5)
+                time.sleep(3)   
+                #isRunning = True
+                #while isRunning:
+                #    time.sleep(2)    
+                #    logger.info('check experiment status')   
+                #    with hide('output','running'):
+                #        stillRunning = execute(checkClientsIsRunning, hosts=proxies_nodes)
+                #    for key, value in stillRunning.iteritems():
+                #        if value == '1':
+                #            isRunning = True
+                #            logger.info('experiment still running')                
+                #            break
+                #        else:
+                #            isRunning = False
+                #    if isRunning:
+                #        time.sleep(5)
+                #    else:
+                #        logger.info('experiment has finished!')   
+                #        break                        
+                logger.info('experiment has finished!')
+                execute(endExperiment, hosts=distinct_nodes)
+                execute(pullLogs, hosts=distinct_nodes)
+                logger.info('this experiment has ended. moving to the next iteration')
+                
 def prepareTPCW():
     if not is_mysql_running():
         mysql_start()
@@ -85,54 +187,41 @@ def prepareTPCW():
     export_file = HOME_DIR + '/backups/tpcw_export.sql'
     exportDatabase('tpcw', export_file)
 
-def prepareTPCC():
-    if not is_mysql_running():
-        mysql_start()
-
-    time.sleep(1)
-    if not is_mysql_running():
-        logger.error('mysql is not running. Exiting')
-        sys.exit()
-
-    export_file = HOME_DIR + '/backups/tpcc_export.sql'
-    exportDatabase('tpcc', export_file)
-
+@parallel
 def startDatabases():
-    mysql_start()
-    time.sleep(2)
+    command = 'nohup ' + MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'  
+    logger.info('starting database: %s',command)
+    with cd(MYSQL_DIR), hide('running','output'):    
+        run(command)    
+    time.sleep(4)
     if not isPortOpen('3306'):
         return '0'
     return '1'
 
 @parallel
 def startCoordinators():
-    with cd(DEPLOY_DIR):
-        run('mkdir -p logs/' + LOG_FILE_DIR)
-
     currentId = coordinators_map.get(env.host_string)    
     port = coordinatorsHostToPortMap.get(env.host_string)
-
     logFile = 'coordinator_' + str(currentId) + ".log"
-    logger.info('starting coordinator at %s with id %s', env.host_string, currentId)
     command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
-    with cd(DEPLOY_DIR):
+    logger.info('starting coordinator at %s', env.host_string)
+    logger.info('%s',command)
+    with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(5)
+    time.sleep(8)
     if not isPortOpen(port):
         return '0'
     return '1'
 
 @parallel
 def startReplicators():
-    with cd(DEPLOY_DIR):
-        run('mkdir -p logs/' + LOG_FILE_DIR)
-
     currentId = replicators_map.get(env.host_string)    
     port = replicatorsHostToPortMap.get(env.host_string)
     logFile = 'replicator_' + str(currentId) + ".log"
-    logger.info('starting replicator at %s with id %s', env.host_string, currentId)
     command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
-    with cd(DEPLOY_DIR):
+    logger.info('starting replicator at %s', env.host_string)
+    logger.info('%s',command)
+    with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
     time.sleep(5)
     if not isPortOpen(port):
@@ -140,92 +229,35 @@ def startReplicators():
     return '1'
 
 @parallel
-def startTPCCClients():
-    with cd(DEPLOY_DIR):
-        run('mkdir -p logs/' + LOG_FILE_DIR)
-
+def startTPCCclients(clientsNum, useCustomJDBC):
     currentId = proxies_map.get(env.host_string)    
     port = proxiesHostToPortMap.get(env.host_string)
-
     logFile = 'proxy_' + str(currentId) + ".log"
-    logger.info('starting proxy at %s with id %s', env.host_string, currentId)
-    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + configsMap['users'] + ' ' + TPCC_TEST_TIME + ' true > ' + logFile + ' &'
+    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+    logger.info('starting client at %s', env.host_string)
+    logger.info('%s',command)
     with cd(DEPLOY_DIR):
         run(command)
-    #time.sleep(5)
-    #if not isPortOpen(port):
-    #    return '0'
-    #return '1'
-
-@task
-def setupExperiment(configFile):
-    loadInputFile(configFile)
-    parseConfigFile()
-    prepareCode()
-
-@task
-def runTPCCExperiment(configFile):
-    loadInputFile(configFile)    
-    parseConfigFile()
-    splittedConfifFile = CONFIG_FILE.split("/")
-    removedExtension = splittedConfifFile[-1].split(".")
-    global LOG_FILE_DIR
-    LOG_FILE_DIR = time.strftime("%H_%M_%S") + "_" + removedExtension[-1]
-    logger.info('this experiment will be logged to ' + LOG_FILE_DIR)
-
-    dbResults = execute(startDatabases, hosts=database_nodes)
-    for key, value in dbResults.iteritems():
-        if value == '0':
-            logger.error('database at %s failed to start', key)
-            sys.exit()
-
-    logger.info('all databases instances are online')
-
-    coordResults = execute(startCoordinators, hosts=coordinators_nodes)
-    for key, value in coordResults.iteritems():
-        if value == '0':
-            logger.error('coordinator at %s failed to start', key)
-            sys.exit()
-
-    logger.info('all coordinators are online')
-    
-    replicatorResults = execute(startReplicators, hosts=replicators_nodes)
-    for key, value in replicatorResults.iteritems():
-        if value == '0':
-            logger.error('replicator at %s failed to start', key)
-            sys.exit()
-
-    logger.info('all replicators are online')
-
-    proxiesResults = execute(startTPCCClients, hosts=proxies_nodes)
-    #for key, value in proxiesResults.iteritems():
-    #    if value == '0':
-    #        logger.error('proxy at %s failed to start', key)
-    #        sys.exit()
-
-    logger.info('the experiment is running')    
-    time.sleep(TPCC_TEST_TIME)
-    time.sleep(10)
-    logger.info('the experiment has finished')
-    execute(endExperiment, hosts=distinct_nodes)
-    execute(pullLogs, hosts=distinct_nodes)
-
+  
 @task
 def endExperiment():
-    logger.info('cleaning running processes')
-    execute(stopJava, distinct_nodes)
-    execute(stopMySQL, database_nodes)
+    logger.info('cleaning java and database processes')
+    with hide('output','running','warnings'):
+        execute(stopJava, hosts=distinct_nodes)
+        execute(stopMySQL, hosts=distinct_nodes)
     logger.info('done!')
     time.sleep(3)
 
 @task 
 def pullLogs():
     logger.info('pulling log files')
-    filesToDownload = DEPLOY_DIR + "*.out"
-    with lcd(LOGS_BASE_DIR):
+    filesToDownload = DEPLOY_DIR + '/*.out'
+    filesToDownload2 = DEPLOY_DIR + '/*.log'
+
+    with lcd(LOGS_DIR):
         local('mkdir -p ' + LOG_FILE_DIR)
-    with cd(DEPLOY_DIR):
         get(filesToDownload, LOG_FILE_DIR)
+        get(filesToDownload2, LOG_FILE_DIR)   
     
     logger.info('done!')
 
@@ -240,16 +272,16 @@ def killProcesses(configFile):
 
 def prepareCode():
     logger.info('compiling source code')
-    with lcd(PROJECT_DIR):
+    with lcd(PROJECT_DIR), hide('output','running'):
         local('ant purge tpcc-dist')
     logger.info('uploading distribution to nodes: %s', distinct_nodes)
     logger.info('deploying jars, resources and config files')
-    with hide('output'):
+    with hide('output','running'):
         execute(distributeCode, hosts=distinct_nodes)
 
-@parallel
 def distributeCode():
-    with cd(BASE_DIR):
+    run('mkdir -p ' + BASE_DIR)
+    with cd(BASE_DIR), hide('output','running'):
         run('rm ' + DEPLOY_DIR + '/*.jar')
         run('rm ' + DEPLOY_DIR + '/*.sql')
         run('rm ' + DEPLOY_DIR + '/*.properties')
@@ -270,17 +302,12 @@ def stopJava():
     for line in out.splitlines():                    
         if 'java' in line:        
             pid = int(line.split(None, 1)[0])
-            print 'killing ' + str(pid)
             os.kill(pid, signal.SIGKILL)            
     
 def exportDatabase(databaseName, outputFile):
     with cd(MYSQL_DIR):
         run('bin/mysqldump -u sa --password=101010 ' + databaseName + ' --socket=/tmp/mysql.sock > ' + outputFile)
          
-def mysql_start():
-    with cd(MYSQL_DIR):    
-        run('nohup ' + MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &')    
-     
 def stopMySQL():
     with settings(warn_only=True),hide('output'), cd(MYSQL_DIR):
         run(MYSQL_SHUTDOWN_COMMAND)
@@ -297,7 +324,6 @@ def isPortOpen(port):
 
 def parseConfigFile():
     logger.info('parsing config file: %s', CONFIG_FILE)
-    #print ">> parsing config file: " + CONFIG_FILE
     e = ET.parse(CONFIG_FILE).getroot()
     distinctNodesSet = Set()
     dbsSet = Set()
@@ -355,23 +381,29 @@ def parseConfigFile():
     logger.debug('Coordinators: %s', coordinators_nodes)
     logger.debug('Distinct nodes: %s', distinct_nodes)
 
-def loadInputFile(configFile):
-    global configsMap, CONFIG_FILE
-    configsMap = parseConfigInput(configFile)        
-    CONFIG_FILE = configsMap['config_file']    
+@task
+@parallel
+def prepareTPCCDatabase():
+    # assume mysql is not running
+    logger.info('unpacking database at: %s', env.host_string)
+    with cd(BASE_DIR), hide('output','running'):
+        run('rm -rf mysql*')
+        run('cp ' + BACKUPS_DIR + '/mysql-5.6_ready.tar.gz ' + BASE_DIR)
+        run('tar zxvf mysql-5.6_ready.tar.gz')
 
 @task
-def prepareTPCCDatabase():
-    # assume mysql is running
-    with cd(PROJECT_DIR + '/weakdb'):
-        run('ant tpcc-gendb')
-    stopMySQL()
-    
-
-
-
-
-
-
-
+@parallel
+def checkClientsIsRunning():
+    proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
+    proc2 = subprocess.Popen(shlex.split('grep ' + env.user),stdin=proc1.stdout,
+                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    proc1.stdout.close()
+    out,err=proc2.communicate()            
+    for line in out.splitlines():                    
+        print line
+        if 'java' in line:
+            if "tpcc-client" in line: 
+                return '1'
+            else:
+                return '0'
 
