@@ -17,11 +17,12 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 
 
-NUMBER_USERS=[1]
-NUMBER_REPLICAS=[1]
+#NUMBER_USERS=[1]
+#NUMBER_REPLICAS=[1]
+#JDCBs=['mysql_crdt']
+NUMBER_USERS=[1,3,5,15,30,45,60]
+NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
-#NUMBER_USERS=[1,3,5,15,30,45,60]
-#NUMBER_REPLICAS=[1,3,5]
 #JDCBs=['mysql_jdbc', 'mysql_crdt']
 
 logger = logging.getLogger('simple_example')
@@ -83,11 +84,18 @@ env.roledefs = {
 
 env.hosts = ['localhost']
 
+def runOriginExperiment():
+    pass
+
+def runWeakDBExperiment():
+    pass    
+
 @task
 def benchmarkTPCC(configsFilesBaseDir):
     global LOG_FILE_DIR
     LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_'
     customJDBC=''
+    weakDBExperiment = False
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
@@ -96,16 +104,18 @@ def benchmarkTPCC(configsFilesBaseDir):
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         endExperiment()            
-        prepareCode()
+        prepareCode()        
         for jdbc in JDCBs:
             if jdbc == 'mysql_crdt':
+                weakDBExperiment = True
                 customJDBC='true'
             else:
-                customJDBC='false'                    
+                customJDBC='false'     
+                weakDBExperiment = False               
             for usersNum in NUMBER_USERS:                
                 usersPerReplica = usersNum / replicasNum
                 LOG_FILE_DIR+='test_'                
-                if jdbc == 'mysql_crdt':
+                if weakDBExperiment:
                     LOG_FILE_DIR += 'crdt_'
                 else:
                     LOG_FILE_DIR += 'orig_'
@@ -150,8 +160,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                     execute(startTPCCclients, usersPerReplica, customJDBC, hosts=proxies_nodes)
                 
                 logger.info('the experiment is running') 
-                time.sleep(5)
-                time.sleep(3)   
+                time.sleep(15)
+                time.sleep(TPCC_TEST_TIME)   
                 #isRunning = True
                 #while isRunning:
                 #    time.sleep(2)    

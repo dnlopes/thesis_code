@@ -18,6 +18,6 @@
 				   dbPwd="101010" refReplicator="2" refCoordinator="1" />
 		</proxies>
 	</topology>
-	<variables padPoolSize="20" dbName="tpcc"
+	<variables padPoolSize="20" dbName="tpcc_crdt"
 			   schemaFile="tpcc-database.sql" />
 </config>
