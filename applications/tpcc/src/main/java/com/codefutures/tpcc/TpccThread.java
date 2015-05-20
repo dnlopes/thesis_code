@@ -159,7 +159,7 @@ public class TpccThread extends Thread {
 			if(isCustomJDBC)
 				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
 			else
-				conn = ConnectionFactory.getDefaultConnection(nodeConfig, "tpcc");
+				conn = ConnectionFactory.getDefaultConnection(dbProps, "tpcc");
 
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             conn.setAutoCommit(false);
