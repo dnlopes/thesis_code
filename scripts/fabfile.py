@@ -186,6 +186,7 @@ def benchmarkTPCC(configsFilesBaseDir):
                     run('mkdir -p ' + LOG_FILE_DIR)        
 
                 execute(pushLogs, hosts=distinct_nodes)
+                execute(pushStatistics, hosts=proxies_nodes)
                 logger.info('this experiment has ended. moving to the next iteration')
                 
 def prepareTPCW():
@@ -255,9 +256,14 @@ def startTPCCclients(clientsNum, useCustomJDBC):
 def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
     
-    with cd(DEPLOY_DIR), hide('warnings'), settings(warn_only=True):
-        put(DEPLOY_DIR + '/*.log', LOGS_DIR + '/' + LOG_FILE_DIR)
-        put(DEPLOY_DIR + '/*.out', LOGS_DIR + '/' + LOG_FILE_DIR)
+    with cd(LOGS_DIR), hide('warnings'):
+        put(DEPLOY_DIR + '/*.log', LOG_FILE_DIR)
+
+def pushStatistics():
+    logger.info('%s is pushing stats files to proper directory', env.host_string)
+    
+    with cd(LOGS_DIR), hide('warnings'):        
+        put(DEPLOY_DIR + '/*.out', LOG_FILE_DIR)
 
 def killProcesses():
     logger.info('cleaning running processes')
