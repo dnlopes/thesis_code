@@ -262,7 +262,7 @@ def pullLogs():
     filesToDownload = DEPLOY_DIR + '/*.out'
     filesToDownload2 = DEPLOY_DIR + '/*.log'
 
-    with lcd(LOGS_DIR):
+    with lcd(LOGS_DIR), settings(warn_only=True):
         local('mkdir -p ' + LOG_FILE_DIR)
         get(filesToDownload, LOG_FILE_DIR)
         get(filesToDownload2, LOG_FILE_DIR)   
