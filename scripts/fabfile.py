@@ -186,7 +186,6 @@ def benchmarkTPCC(configsFilesBaseDir):
                     run('mkdir -p ' + LOG_FILE_DIR)        
 
                 execute(pushLogs, hosts=distinct_nodes)
-                execute(pushStatistics, hosts=proxies_nodes)
                 logger.info('this experiment has ended. moving to the next iteration')
                 
 def prepareTPCW():
