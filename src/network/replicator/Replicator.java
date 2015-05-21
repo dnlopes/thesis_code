@@ -128,7 +128,7 @@ public class Replicator extends AbstractNode
 	{
 		synchronized(this)
 		{
-			LogicalClock newClock = new LogicalClock(this.clock.getGeneration(), this.clock.getDcEntries());
+			LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
 			newClock.increment(REPLICATOR_ID);
 			return newClock;
 		}

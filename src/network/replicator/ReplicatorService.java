@@ -37,15 +37,17 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		ShadowOperation decodedOp = Utils.decodeThriftOperation(thriftOp);
 		boolean localCommit;
 
+		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
+
 		decodedOp.setLogicalClock(newClock);
-		LOG.debug("new clock assigned: {}", newClock.toString());
+		LOG.debug("new clock assigned: {}", newClock.getClockValue());
 
 		// just deliver the operation to own replicator and wait for commit decision.
 		// if it suceeds then async deliver the operation to other replicators
 
 		localCommit = this.replicator.commitOperation(decodedOp);
-		thriftOp.setClock(decodedOp.getClock().toString());
+		thriftOp.setClock(decodedOp.getClock().getClockValue());
 
 		if(localCommit)
 			network.sendOperationAsync(thriftOp);

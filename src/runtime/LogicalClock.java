@@ -7,13 +7,11 @@ import util.ExitCode;
 public class LogicalClock implements java.io.Serializable
 {
 
-	private long generation;
 	private long[] entries;
 
 	public LogicalClock(int entriesNumber)
 	{
 		this.entries = new long[entriesNumber];
-		this.generation = 1;
 		for(int i = 0; i < entriesNumber; i++)
 		{
 			this.entries[i] = 0;
@@ -23,7 +21,6 @@ public class LogicalClock implements java.io.Serializable
 	public LogicalClock(String s)
 	{
 		String tmp[] = s.split(":");
-		this.generation = Long.parseLong(tmp[0]);
 		String[] tmpEntries = tmp[1].split("-");
 		this.entries = new long[tmpEntries.length];
 
@@ -33,16 +30,14 @@ public class LogicalClock implements java.io.Serializable
 		}
 	}
 
-	public LogicalClock(long generation, long[] entries)
+	public LogicalClock(long[] entries)
 	{
-		this.generation = generation;
-		this.entries = entries;
+		this.entries = new long[entries.length];
+
+		for(int i = 0; i < entries.length; i++)
+			this.entries[i] = entries[i];
 	}
 
-	public long getGeneration()
-	{
-		return this.generation;
-	}
 
 	public long[] getDcEntries()
 	{
@@ -71,12 +66,6 @@ public class LogicalClock implements java.io.Serializable
 					"incomparable logicalclocks: " + entries.length + " " + lc.entries.length, ExitCode.INVALIDUSAGE);
 
 		long[] tmpEntries = new long[entries.length];
-		long tmpGeneration;
-
-		if(lc.getGeneration() > this.generation)
-			tmpGeneration = lc.getGeneration();
-		else
-			tmpGeneration = this.generation;
 
 		for(int i = 0; i < tmpEntries.length; i++)
 		{
@@ -86,7 +75,7 @@ public class LogicalClock implements java.io.Serializable
 				tmpEntries[i] = lc.entries[i];
 		}
 
-		return new LogicalClock(tmpGeneration, tmpEntries);
+		return new LogicalClock(tmpEntries);
 	}
 
 	public void increment(int index)
@@ -113,7 +102,7 @@ public class LogicalClock implements java.io.Serializable
 
 	public boolean equals(LogicalClock lc)
 	{
-		boolean res = this.generation == lc.getGeneration();
+		boolean res = true;
 
 		for(int i = 0; res && i < entries.length; i++)
 		{
@@ -185,7 +174,7 @@ public class LogicalClock implements java.io.Serializable
 		{
 			sum += (int) entries[i];
 		}
-		return (int) (sum * 1000 + generation);
+		return (int) (sum * 1000);
 
 	}
 
