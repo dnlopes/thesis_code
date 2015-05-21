@@ -102,7 +102,7 @@ def benchmarkTPCC(configsFilesBaseDir):
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         with hide('running','output'):
-            execute(endExperiment, hosts=distinct_nodes)
+            killProcesses()            
         
         prepareCode()        
         for jdbc in JDCBs:
@@ -182,9 +182,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                 #        logger.info('experiment has finished!')   
                 #        break                        
                 logger.info('experiment has finished!')
-                with hide('running','output'):
-                    execute(endExperiment, hosts=distinct_nodes)
-                    execute(pullLogs, hosts=distinct_nodes)
+                killProcesses()                
+                execute(pushLogs, hosts=distinct_nodes)
                 logger.info('this experiment has ended. moving to the next iteration')
                 
 def prepareTPCW():
@@ -249,37 +248,29 @@ def startTPCCclients(clientsNum, useCustomJDBC):
     logger.info('starting client at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR):
-        run(command)
-  
-@parallel
-def endExperiment():
-    logger.info('cleaning running processes after experiment has finished')
-    with hide('output','running','warnings'):
-        stopJava()
-        stopMySQL()
-    
-    logger.info('done!')
-    time.sleep(5)
+        run(command)  
 
-def pullLogs():
-    logger.info('downloading log files from nodes')
+def pushLogs():
+    logger.info('%s is pushing log files to proper directory', env.host_string)
     filesToDownload = DEPLOY_DIR + '/*.out'
     filesToDownload2 = DEPLOY_DIR + '/*.log'
 
-    with lcd(LOGS_DIR), hide('warnings'), settings(warn_only=True):
-        local('mkdir -p ' + LOG_FILE_DIR)
-        get(filesToDownload, LOG_FILE_DIR)
-        get(filesToDownload2, LOG_FILE_DIR)   
+    with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):
+        run('mkdir -p ' + LOG_FILE_DIR)
+        put(filesToDownload, LOG_FILE_DIR)
+        put(filesToDownload2, LOG_FILE_DIR)   
     
-    logger.info('done!')
-
-def killProcesses(configFile):
-    loadInputFile(configFile)    
-    parseConfigFile()
-    execute(stopMySQL, hosts=database_nodes)
-    execute(stopJava, hosts=coordinators_nodes)
-    execute(stopJava, hosts=replicators_nodes)
-    execute(stopJava, hosts=proxies_nodes)
+def killProcesses():    
+    logger.info('cleaning running processes at node %s', env.host_string)
+    with hide('output','running','warnings'):
+        execute(stopJava, hosts=proxies_nodes)
+        time.sleep(1)
+        execute(stopJava, hosts=replicators_nodes)
+        time.sleep(1)
+        execute(stopJava, hosts=coordinators_nodes)
+        time.sleep(1)     
+        execute(stopMySQL, hosts=database_nodes)
+        time.sleep(1)
 
 def prepareCode():
     logger.info('compiling source code')
