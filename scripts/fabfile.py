@@ -21,7 +21,7 @@ from parseConfigFile import parseConfigInput
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
 NUMBER_USERS=[1,3,5,15,30,45,60]
-NUMBER_REPLICAS=[1,3,5]
+NUMBER_REPLICAS=[3,5]
 JDCBs=['mysql_crdt']
 #JDCBs=['mysql_jdbc', 'mysql_crdt']
 
@@ -92,8 +92,6 @@ def runWeakDBExperiment():
 
 @task
 def benchmarkTPCC(configsFilesBaseDir):
-    global LOG_FILE_DIR
-    LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_'
     customJDBC=''
     weakDBExperiment = False
     for replicasNum in NUMBER_REPLICAS:
@@ -114,7 +112,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                 weakDBExperiment = False               
             for usersNum in NUMBER_USERS:                
                 usersPerReplica = usersNum / replicasNum
-                LOG_FILE_DIR+='test_'                
+                global LOG_FILE_DIR
+                LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_test_'                
                 if weakDBExperiment:
                     LOG_FILE_DIR += 'crdt_'
                 else:
@@ -181,8 +180,9 @@ def benchmarkTPCC(configsFilesBaseDir):
                 #        logger.info('experiment has finished!')   
                 #        break                        
                 logger.info('experiment has finished!')
-                execute(endExperiment, hosts=distinct_nodes)
-                execute(pullLogs, hosts=distinct_nodes)
+                with hide('running','output'):
+                    execute(endExperiment, hosts=distinct_nodes)
+                    execute(pullLogs, hosts=distinct_nodes)
                 logger.info('this experiment has ended. moving to the next iteration')
                 
 def prepareTPCW():
@@ -203,7 +203,7 @@ def startDatabases():
     logger.info('starting database: %s',command)
     with cd(MYSQL_DIR), hide('running','output'):    
         run(command)    
-    time.sleep(4)
+    time.sleep(10)
     if not isPortOpen('3306'):
         return '0'
     return '1'
@@ -249,20 +249,22 @@ def startTPCCclients(clientsNum, useCustomJDBC):
     with cd(DEPLOY_DIR):
         run(command)
   
+@parallel
 def endExperiment():
-    logger.info('cleaning java and database processes')
+    logger.info('cleaning running processes after experiment has finished')
     with hide('output','running','warnings'):
         execute(stopJava, hosts=distinct_nodes)
         execute(stopMySQL, hosts=distinct_nodes)
+    
     logger.info('done!')
     time.sleep(3)
 
 def pullLogs():
-    logger.info('pulling log files')
+    logger.info('downloading log files from nodes')
     filesToDownload = DEPLOY_DIR + '/*.out'
     filesToDownload2 = DEPLOY_DIR + '/*.log'
 
-    with lcd(LOGS_DIR), settings(warn_only=True):
+    with lcd(LOGS_DIR), hide('warnings'), settings(warn_only=True):
         local('mkdir -p ' + LOG_FILE_DIR)
         get(filesToDownload, LOG_FILE_DIR)
         get(filesToDownload2, LOG_FILE_DIR)   
