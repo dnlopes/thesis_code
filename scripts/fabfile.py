@@ -39,7 +39,7 @@ env.user = 'dnl'
 CONFIG_FILE=''
 LOG_FILE_DIR=''
 
-TPCC_TEST_TIME=30
+TPCC_TEST_TIME=20
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
@@ -164,33 +164,33 @@ def benchmarkTPCC(configsFilesBaseDir):
                     logger.info('running a experiment with our middleware') 
                 else:
                     logger.info('running original experiment') 
-                time.sleep(10)
+                
                 time.sleep(TPCC_TEST_TIME)   
-                #isRunning = True
-                #while isRunning:
-                #    time.sleep(2)    
-                #    logger.info('check experiment status')   
-                #    with hide('output','running'):
-                #        stillRunning = execute(checkClientsIsRunning, hosts=proxies_nodes)
-                #    for key, value in stillRunning.iteritems():
-                #        if value == '1':
-                #            isRunning = True
-                #            logger.info('experiment still running')                
-                #            break
-                #        else:
-                #            isRunning = False
-                #    if isRunning:
-                #        time.sleep(5)
-                #    else:
-                #        logger.info('experiment has finished!')   
-                #        break                        
-                logger.info('experiment has finished!')
+                isRunning = True
+                while isRunning:
+                    logger.info('checking experiment status')   
+                    with hide('output','running'):
+                        stillRunning = execute(checkClientsIsRunning, hosts=proxies_nodes)
+                    for key, value in stillRunning.iteritems():
+                        if value == '1':
+                            isRunning = True
+                            logger.info('experiment is still running')                
+                            break
+                        else:
+                            isRunning = False
+                    if isRunning:
+                        time.sleep(10)
+                    else:
+                        break                        
+                logger.info('the experiment has finished!')
                 killProcesses() 
                 with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):       
                     run('mkdir -p ' + LOG_FILE_DIR)        
 
                 execute(pushLogs, hosts=distinct_nodes)
-                logger.info('this experiment has ended. moving to the next iteration')
+                logger.info('this experiment has ended!')
+                logger.info('logs can be found at %s', LOG_FILE_DIR)
+                logger.info('moving to the next iteration!')
                 
 def prepareTPCW():
     if not is_mysql_running():
@@ -249,7 +249,7 @@ def startReplicators():
 def startTPCCclients(clientsNum, useCustomJDBC):
     currentId = proxies_map.get(env.host_string)    
     port = proxiesHostToPortMap.get(env.host_string)
-    logFile = 'proxy_' + str(currentId) + ".log"
+    logFile = 'client' + str(currentId) + ".log"
     command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
     logger.info('starting client at %s', env.host_string)
     logger.info('%s',command)
@@ -390,16 +390,11 @@ def prepareTPCCDatabase():
 
 @parallel
 def checkClientsIsRunning():
-    proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
-    proc2 = subprocess.Popen(shlex.split('grep ' + env.user),stdin=proc1.stdout,
-                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    proc1.stdout.close()
-    out,err=proc2.communicate()            
-    for line in out.splitlines():                    
-        print line
-        if 'java' in line:
-            if "tpcc-client" in line: 
-                return '1'
-            else:
-                return '0'
-
+    currentId = proxies_map.get(env.host_string)
+    logFile = 'client' + str(currentId) + ".log"
+    with cd(DEPLOY_DIR):
+        output = run('tail ' + logFile)
+        if 'CLIENT TERMINATED' in output:
+            return '0'
+        else:
+            return '1'

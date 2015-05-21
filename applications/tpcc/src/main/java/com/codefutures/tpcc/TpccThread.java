@@ -51,7 +51,7 @@ public class TpccThread extends Thread {
     private int[][] late2;
     private int[][] retry2;
     private int[][] failure2;
-	private int[] latencies;
+	private double[] latencies;
 
     private boolean joins;
 
@@ -60,7 +60,7 @@ public class TpccThread extends Thread {
     public TpccThread(int number, int port, int is_local, String db_user, String db_password,
                       int num_ware, int num_conn, String driverClassName, String dURL, int fetchSize,
                       int[] success, int[] late, int[] retry, int[] failure,
-                      int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, int[] latencies,  boolean
+                      int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, double[] latencies,  boolean
 							  joins,
 					  DatabaseProperties dbProps) {
 

@@ -64,7 +64,7 @@ public class Tpcc implements TpccConstants
 	private int[][] late2;
 	private int[][] retry2;
 	private int[][] failure2;
-	private int[] latencies;
+	private double[] latencies;
 	public static volatile boolean counting_on = false;
 
 	private int[] success2_sum = new int[TRANSACTION_COUNT];
@@ -273,7 +273,7 @@ public class Tpcc implements TpccConstants
 		late2 = new int[TRANSACTION_COUNT][numConn];
 		retry2 = new int[TRANSACTION_COUNT][numConn];
 		failure2 = new int[TRANSACTION_COUNT][numConn];
-		latencies = new int[numConn];
+		latencies = new double[numConn];
 
 		//long delay1 = measure_time*1000;
 
@@ -557,6 +557,7 @@ public class Tpcc implements TpccConstants
 		}
 		tpcc.printResults();
 		System.out.println("Terminating process now");
+		System.out.println("CLIENT TERMINATED");
 		System.exit(ret);
 	}
 
