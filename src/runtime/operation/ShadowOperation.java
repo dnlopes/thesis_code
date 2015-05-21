@@ -32,6 +32,7 @@ public class ShadowOperation
 	private List<String> operationList;
 	private int txnId;
 	private LogicalClock clock;
+	private int replicatorId;
 
 	public ShadowOperation(int txnId, List<String> operations)
 	{
@@ -59,4 +60,13 @@ public class ShadowOperation
 		return this.clock;
 	}
 
+	public int getReplicatorId()
+	{
+		return this.replicatorId;
+	}
+
+	public void setReplicatorId(int replicatorId)
+	{
+		this.replicatorId = replicatorId;
+	}
 }

@@ -40,6 +40,7 @@ struct ThriftOperation {
  1: required i32 txnId;
  2: required list<string> operations;
  3: string clock
+ 4: required i32 replicatorId;
 }
 
 service ReplicatorRPC {
@@ -50,6 +51,5 @@ service ReplicatorRPC {
 
 service CoordinatorRPC
 {
-
     CoordinatorResponse checkInvariants(1:CoordinatorRequest req);
 }

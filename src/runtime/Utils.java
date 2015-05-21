@@ -26,7 +26,6 @@ public class Utils
 	public static ShadowOperation decodeThriftOperation(ThriftOperation thriftOperation)
 	{
 		List<String> ops = thriftOperation.getOperations();
-
 		return new ShadowOperation(thriftOperation.getTxnId(), ops);
 	}
 

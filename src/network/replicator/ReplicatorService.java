@@ -33,21 +33,21 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public boolean commitOperation(ThriftOperation thriftOp)
 	{
-		LOG.trace("new ShadowOperation received");
-		ShadowOperation decodedOp = Utils.decodeThriftOperation(thriftOp);
-		boolean localCommit;
-
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
 		LOG.info("new clock assigned: {}", newClock.getClockValue());
 
-		decodedOp.setLogicalClock(newClock);
+		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
+		shadowOp.setReplicatorId(this.replicator.getConfig().getId());
+		shadowOp.setLogicalClock(newClock);
+
+		thriftOp.setClock(shadowOp.getClock().getClockValue());
+		thriftOp.setReplicatorId(shadowOp.getReplicatorId());
 
 		// just deliver the operation to own replicator and wait for commit decision.
 		// if it suceeds then async deliver the operation to other replicators
-
-		localCommit = this.replicator.commitOperation(decodedOp);
-		thriftOp.setClock(decodedOp.getClock().getClockValue());
+		boolean localCommit;
+		localCommit = this.replicator.commitOperation(shadowOp);
 
 		if(localCommit)
 			network.sendOperationAsync(thriftOp);
@@ -70,10 +70,10 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		ShadowOperation decodedOp = Utils.decodeThriftOperation(shadowOp);
 		LogicalClock remoteClock = new LogicalClock(shadowOp.getClock());
 		decodedOp.setLogicalClock(remoteClock);
+		decodedOp.setReplicatorId(shadowOp.getReplicatorId());
 
 		//synchronized
 		this.replicator.mergeWithRemoteClock(remoteClock);
-
 		this.replicator.commitOperation(decodedOp);
 	}
 }

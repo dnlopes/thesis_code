@@ -49,6 +49,7 @@ public class DBCommitPad implements IDBCommitPad
 	public boolean commitShadowOperation(ShadowOperation op)
 	{
 		this.resetCommitPad();
+		LOG.info("commiting op from replicator {}", op.getReplicatorId());
 
 		this.watcher.start();
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)

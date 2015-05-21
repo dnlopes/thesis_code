@@ -76,12 +76,7 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-		/*if(this.alreadyCommitted(shadowOperation.getTxnId()))
-		{
-			LOG.warn("duplicated transaction {}. Silently ignored.", shadowOperation.getTxnId());
-			return true;
-		}
-		                      */
+		LOG.info("committing op from replicator {}", shadowOperation.getReplicatorId());
 		IDBCommitPad pad = this.commitPadPool.borrowObject();
 
 		if(pad == null)
@@ -100,11 +95,6 @@ public class Replicator extends AbstractNode
 		this.commitPadPool.returnObject(pad);
 
 		return commitDecision;
-	}
-
-	private boolean alreadyCommitted(int txnId)
-	{
-		return this.committedTxns.contains(txnId);
 	}
 
 	public IReplicatorNetwork getNetworkInterface()
@@ -131,7 +121,6 @@ public class Replicator extends AbstractNode
 			LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
 			this.clock = newClock;
 			newClock.increment(REPLICATOR_ID);
-			//LOG.info("new clock generated {}", newClock.getClockValue());
 			return newClock;
 		}
 	}
