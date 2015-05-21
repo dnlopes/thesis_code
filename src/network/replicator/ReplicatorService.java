@@ -39,9 +39,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
+		LOG.info("new clock assigned: {}", newClock.getClockValue());
 
 		decodedOp.setLogicalClock(newClock);
-		LOG.debug("new clock assigned: {}", newClock.getClockValue());
 
 		// just deliver the operation to own replicator and wait for commit decision.
 		// if it suceeds then async deliver the operation to other replicators
