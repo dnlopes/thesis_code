@@ -181,7 +181,10 @@ def benchmarkTPCC(configsFilesBaseDir):
                 #        logger.info('experiment has finished!')   
                 #        break                        
                 logger.info('experiment has finished!')
-                killProcesses()                
+                killProcesses() 
+                with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):       
+                    run('mkdir -p ' + LOG_FILE_DIR)        
+
                 execute(pushLogs, hosts=distinct_nodes)
                 logger.info('this experiment has ended. moving to the next iteration')
                 
@@ -255,7 +258,6 @@ def pushLogs():
     filesToDownload2 = DEPLOY_DIR + '/*.log'
 
     with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):
-        run('mkdir -p ' + LOG_FILE_DIR)
         put(filesToDownload, LOG_FILE_DIR)
         put(filesToDownload2, LOG_FILE_DIR)   
     
@@ -283,10 +285,7 @@ def prepareCode():
 def distributeCode():
     run('mkdir -p ' + DEPLOY_DIR)
     with cd(BASE_DIR), hide('output','running'), settings(warn_only=True):
-        run('rm ' + DEPLOY_DIR + '/*.jar')
-        run('rm ' + DEPLOY_DIR + '/*.sql')
-        run('rm ' + DEPLOY_DIR + '/*.properties')
-        run('rm -rf ' + DEPLOY_DIR + '/configs')                
+        run('rm -rf ' + DEPLOY_DIR + '/*')                
         put(JARS_DIR + '/*.jar', DEPLOY_DIR)
         put(PROJECT_DIR + '/resources/configs', DEPLOY_DIR)
         put(PROJECT_DIR + '/experiments', DEPLOY_DIR)
