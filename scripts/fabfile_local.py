@@ -16,8 +16,8 @@ from parseConfigFile import parseConfigInput
 # Last update: April, 2015
 #------------------------------------------------------------------------------
 
-NUMBER_USERS=[3]
-NUMBER_REPLICAS=[3]
+NUMBER_USERS=[1]
+NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
 #NUMBER_USERS=[1,3,5,15,30,45,60]
 #NUMBER_REPLICAS=[3,5]
@@ -33,13 +33,13 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 env.shell = "/bin/bash -l -i -c" 
-#env.user = 'dnl'
-env.user = 'dp.lopes'
+env.user = 'dnl'
+#env.user = 'dp.lopes'
 
 CONFIG_FILE=''
 LOG_FILE_DIR=''
 
-TPCC_TEST_TIME=30
+TPCC_TEST_TIME=20
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
@@ -96,8 +96,8 @@ def benchmarkTPCC(configsFilesBaseDir):
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         with hide('running','output'):
