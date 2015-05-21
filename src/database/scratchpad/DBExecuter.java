@@ -509,7 +509,7 @@ public class DBExecuter implements IExecuter
 
 		} catch(SQLException e)
 		{
-			LOG.error("failed to create temporary tables for scratchpad {}", scratchpad.getScratchpadId());
+			LOG.error("failed to create temporary tables for scratchpad", e);
 			RuntimeHelper.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 		}
 		LOG.trace("executor for table {} created", this.databaseTable.getName());
