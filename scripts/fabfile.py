@@ -233,7 +233,7 @@ def startReplicators():
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(5)
+    time.sleep(8)
     if not isPortOpen(port):
         return '0'
     return '1'
@@ -257,7 +257,7 @@ def endExperiment():
         stopMySQL()
     
     logger.info('done!')
-    time.sleep(3)
+    time.sleep(5)
 
 def pullLogs():
     logger.info('downloading log files from nodes')
