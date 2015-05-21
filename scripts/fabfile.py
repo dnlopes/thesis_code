@@ -254,12 +254,10 @@ def startTPCCclients(clientsNum, useCustomJDBC):
 
 def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
-    filesToDownload = DEPLOY_DIR + '/*.out'
-    filesToDownload2 = DEPLOY_DIR + '/*.log'
-
-    with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):
-        put(filesToDownload, LOG_FILE_DIR)
-        put(filesToDownload2, LOG_FILE_DIR)   
+    
+    with cd(DEPLOY_DIR), hide('warnings'), settings(warn_only=True):
+        put('*.out', LOGS_DIR + '/' + LOG_FILE_DIR)
+        put('*.log', LOGS_DIR + '/' + LOG_FILE_DIR)
     
 def killProcesses():
     logger.info('cleaning running processes')
