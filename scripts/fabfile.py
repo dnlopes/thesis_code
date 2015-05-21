@@ -101,7 +101,9 @@ def benchmarkTPCC(configsFilesBaseDir):
         CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
-        endExperiment()            
+        with hide('running','output'):
+            execute(endExperiment, hosts=distinct_nodes)
+        
         prepareCode()        
         for jdbc in JDCBs:
             if jdbc == 'mysql_crdt':
@@ -393,6 +395,7 @@ def prepareTPCCDatabase():
         run('rm -rf mysql*')
         run('cp ' + BACKUPS_DIR + '/mysql-5.6_ready.tar.gz ' + BASE_DIR)
         run('tar zxvf mysql-5.6_ready.tar.gz')
+    time.sleep(3)
 
 @parallel
 def checkClientsIsRunning():
