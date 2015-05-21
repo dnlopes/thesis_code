@@ -64,6 +64,7 @@ public class Tpcc implements TpccConstants
 	private int[][] late2;
 	private int[][] retry2;
 	private int[][] failure2;
+	private int[] latencies;
 	public static volatile boolean counting_on = false;
 
 	private int[] success2_sum = new int[TRANSACTION_COUNT];
@@ -272,6 +273,7 @@ public class Tpcc implements TpccConstants
 		late2 = new int[TRANSACTION_COUNT][numConn];
 		retry2 = new int[TRANSACTION_COUNT][numConn];
 		failure2 = new int[TRANSACTION_COUNT][numConn];
+		latencies = new int[numConn];
 
 		//long delay1 = measure_time*1000;
 
@@ -302,7 +304,8 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < numConn; i++)
 		{
 			Runnable worker = new TpccThread(i, port, 1, dbUser, dbPassword, numWare, numConn, javaDriver, jdbcUrl,
-					fetchSize, success, late, retry, failure, success2, late2, retry2, failure2, joins, dbProperties);
+					fetchSize, success, late, retry, failure, success2, late2, retry2, failure2, latencies, joins,
+					dbProperties);
 			executor.execute(worker);
 		}
 
@@ -552,9 +555,30 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
-
+		tpcc.printResults();
 		System.out.println("Terminating process now");
 		System.exit(ret);
+	}
+
+	public void printResults()
+	{
+		int totalOps = 0;
+		int totalLatency = 0;
+
+		for(int i = 0; i < this.success2_sum.length; i++)
+			totalOps += success2_sum[i];
+
+		for(int i = 0; i < this.late2_sum.length; i++)
+			totalOps += late2_sum[i];
+
+		for(int i = 0; i < this.latencies.length; i++)
+			totalLatency += this.latencies[i];
+
+
+		long avgLatency = totalLatency / totalOps;
+
+		logger.info("Total ops: {}", totalOps);
+		logger.info("Avg Latency: {}", avgLatency);
 	}
 
 }

@@ -1,8 +1,6 @@
 package util.stats;
 
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,7 +21,7 @@ public class ProxyStatistics implements Statistics
 		this.commitsCounter = new AtomicInteger();
 		this.abortsCounter= new AtomicInteger();
 		this.latencySum = new AtomicLong();
-		Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
+		//Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
 
 	}
 
@@ -65,6 +63,7 @@ public class ProxyStatistics implements Statistics
 		return buffer.toString();
 	}
 
+	/*
 	private class ShutdownHook extends Thread
 	{
 		private ProxyStatistics stats;
@@ -89,5 +88,5 @@ public class ProxyStatistics implements Statistics
 			}
 
 		}
-	}
+	}             */
 }

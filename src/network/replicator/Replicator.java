@@ -93,9 +93,8 @@ public class Replicator extends AbstractNode
 		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
 
 		if(commitDecision)
-		{
 			this.committedTxns.add(shadowOperation.getTxnId());
-		} else
+		 else
 			LOG.error("something went very wrong. State will not converge because op didnt commit");
 
 		this.commitPadPool.returnObject(pad);
@@ -139,9 +138,9 @@ public class Replicator extends AbstractNode
 	{
 		synchronized(this)
 		{
-			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
+			LOG.info("merging clocks {} with {}", this.clock.toString(), clock.toString());
 			this.clock = this.clock.maxClock(clock);
-			LOG.debug("merged clock is {}", this.clock.toString());
+			LOG.info("merged clock is {}", this.clock.toString());
 		}
 	}
 }

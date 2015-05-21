@@ -5,19 +5,15 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-import network.AbstractNodeConfig;
 import org.perf4j.StopWatch;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import util.defaults.Configuration;
-import util.stats.ProxyStatistics;
 
 
 public class Driver implements TpccConstants {
 
     private static final Logger logger = LoggerFactory.getLogger(Driver.class);
     private static final boolean DEBUG = logger.isDebugEnabled();
-	public static ProxyStatistics statistics;
 
     /**
      * For debug use only.
@@ -49,6 +45,7 @@ public class Driver implements TpccConstants {
     private int[][] late2;
     private int[][] retry2;
     private int[][] failure2;
+	private int[] latencies;
 
     public double[] max_rt = new double[TRANSACTION_COUNT];
 
@@ -77,12 +74,8 @@ public class Driver implements TpccConstants {
      */
     public Driver(Connection conn, int fetchSize,
                   int[] success, int[] late, int[] retry, int[] failure,
-                  int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, boolean joins) {
+                  int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, int[] latencies, boolean joins) {
         try {
-			int proxyId = Integer.parseInt(System.getProperty("proxyid"));
-			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
-			statistics = new ProxyStatistics(nodeConfig.getName());
-
 			this.conn = conn;
 
             pStmts = new TpccStatements(conn, fetchSize);
@@ -103,6 +96,7 @@ public class Driver implements TpccConstants {
             this.late2 = late2;
             this.retry2 = retry2;
             this.failure2 = failure2;
+			this.latencies = latencies;
 
             for (int i = 0; i < TRANSACTION_COUNT; i++) {
                 max_rt[i] = 0.0;
@@ -290,14 +284,10 @@ public class Driver implements TpccConstants {
                         if (DEBUG) logger.debug("Rt < RTIME_NEWORD");
                         success[0]++;
                         success2[0][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
                     } else {
                         if (DEBUG) logger.debug("Rt > RTIME_NEWORD");
                         late[0]++;
                         late2[0][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
                     }
                 }
 
@@ -316,7 +306,6 @@ public class Driver implements TpccConstants {
             retry2[0][t_num]--;
             failure[0]++;
             failure2[0][t_num]++;
-			statistics.incrementAbortsCounter();
 		}
 
         return (0);
@@ -408,13 +397,11 @@ public class Driver implements TpccConstants {
                     if (rt < RTIME_PAYMENT) {
                         success[1]++;
                         success2[1][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     } else {
                         late[1]++;
                         late2[1][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     }
                 }
 
@@ -433,7 +420,6 @@ public class Driver implements TpccConstants {
             retry2[1][t_num]--;
             failure[1]++;
             failure2[1][t_num]++;
-			statistics.incrementAbortsCounter();
 		}
 
         return (0);
@@ -493,13 +479,11 @@ public class Driver implements TpccConstants {
                     if (rt < RTIME_ORDSTAT) {
                         success[2]++;
                         success2[2][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     } else {
                         late[2]++;
                         late2[2][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     }
                 }
 
@@ -518,7 +502,6 @@ public class Driver implements TpccConstants {
             retry2[2][t_num]--;
             failure[2]++;
             failure2[2][t_num]++;
-			statistics.incrementAbortsCounter();
 		}
 
         return (0);
@@ -562,13 +545,11 @@ public class Driver implements TpccConstants {
                     if (rt < RTIME_DELIVERY) {
                         success[3]++;
                         success2[3][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     } else {
                         late[3]++;
                         late2[3][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     }
                 }
 
@@ -587,7 +568,6 @@ public class Driver implements TpccConstants {
             retry2[3][t_num]--;
             failure[3]++;
             failure2[3][t_num]++;
-			statistics.incrementAbortsCounter();
 		}
 
         return (0);
@@ -636,13 +616,11 @@ public class Driver implements TpccConstants {
                     if (rt < RTIME_SLEV) {
                         success[4]++;
                         success2[4][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     } else {
                         late[4]++;
                         late2[4][t_num]++;
-						statistics.incrementCommitCounter();
-						statistics.addLatency((long) rt);
+						latencies[t_num] +=rt;
                     }
                 }
 
@@ -661,7 +639,6 @@ public class Driver implements TpccConstants {
             retry2[4][t_num]--;
             failure[4]++;
             failure2[4][t_num]++;
-			statistics.incrementAbortsCounter();
 		}
 
         return (0);

@@ -17,7 +17,6 @@ import runtime.txn.TransactionIdentifier;
 import runtime.operation.DBSingleOperation;
 import util.ObjectPool;
 import util.defaults.Configuration;
-import util.stats.ProxyStatistics;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,7 +37,6 @@ public class Proxy extends AbstractNode
 	private IProxyNetwork networkInterface;
 	private AtomicInteger transactionsCounter;
 	private AtomicInteger scratchpadsCount;
-	private ProxyStatistics statistics;
 	// a small hack to avoid casting the same object over and over at runtime
 	private ProxyConfig privateConfig;
 
@@ -47,7 +45,6 @@ public class Proxy extends AbstractNode
 		super(config);
 
 		this.privateConfig = (ProxyConfig) config;
-		this.statistics = new ProxyStatistics(this.config.getName());
 
 		this.scratchpadsPool = new ObjectPool<>();
 		this.activeScratchpads = new ConcurrentHashMap<>();
@@ -84,12 +81,6 @@ public class Proxy extends AbstractNode
 			return true;
 
 		boolean commitResult = pad.commitTransaction(this.networkInterface);
-		if(commitResult)
-		{
-			statistics.incrementCommitCounter();
-			statistics.addLatency(pad.getActiveTransaction().getLatency());
-		} else
-			statistics.incrementAbortsCounter();
 
 		this.activeScratchpads.remove(txnId);
 		this.scratchpadsPool.returnObject(pad);

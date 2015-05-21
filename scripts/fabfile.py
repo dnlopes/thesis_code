@@ -16,13 +16,13 @@ from parseConfigFile import parseConfigInput
 # Last update: April, 2015
 #------------------------------------------------------------------------------
 
-#NUMBER_USERS=[1]
-#NUMBER_REPLICAS=[1]
+NUMBER_USERS=[1]
+NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
-NUMBER_USERS=[1,3,5,15,30,45,60]
-NUMBER_REPLICAS=[3,5]
-JDCBs=['mysql_crdt']
-#JDCBs=['mysql_jdbc', 'mysql_crdt']
+#NUMBER_USERS=[1,3,5,15,30,45,60]
+#NUMBER_REPLICAS=[3,5]
+#JDCBs=['mysql_crdt']
+JDCBs=['mysql_jdbc', 'mysql_crdt']
 
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.DEBUG)
@@ -33,13 +33,13 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 env.shell = "/bin/bash -l -i -c" 
-#env.user = 'dnl'
-env.user = 'dp.lopes'
+env.user = 'dnl'
+#env.user = 'dp.lopes'
 
 CONFIG_FILE=''
 LOG_FILE_DIR=''
 
-TPCC_TEST_TIME=10
+TPCC_TEST_TIME=30
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
@@ -96,8 +96,8 @@ def benchmarkTPCC(configsFilesBaseDir):
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         with hide('running','output'):
@@ -137,30 +137,34 @@ def benchmarkTPCC(configsFilesBaseDir):
                             sys.exit()
                 logger.info('all databases instances are online') 
 
-                #start coordinators
-                with hide('running','output'):
-                    coordResults = execute(startCoordinators, hosts=coordinators_nodes)
-                    for key, value in coordResults.iteritems():
-                        if value == '0':
-                            logger.error('coordinator at %s failed to start', key)
-                            sys.exit()
-                logger.info('all coordinators are online')                           
+                if weakDBExperiment:
+                    #start coordinators
+                    with hide('running','output'):
+                        coordResults = execute(startCoordinators, hosts=coordinators_nodes)
+                        for key, value in coordResults.iteritems():
+                            if value == '0':
+                                logger.error('coordinator at %s failed to start', key)
+                                sys.exit()
+                    logger.info('all coordinators are online')                           
 
-                #start replicators
-                with hide('running','output'):
-                    replicatorResults = execute(startReplicators, hosts=replicators_nodes)
-                    for key, value in replicatorResults.iteritems():
-                        if value == '0':
-                            logger.error('replicator at %s failed to start', key)
-                            sys.exit()
-                logger.info('all replicators are online') 
+                    #start replicators
+                    with hide('running','output'):
+                        replicatorResults = execute(startReplicators, hosts=replicators_nodes)
+                        for key, value in replicatorResults.iteritems():
+                            if value == '0':
+                                logger.error('replicator at %s failed to start', key)
+                                sys.exit()
+                    logger.info('all replicators are online') 
 
                 #start clients
                 with hide('running','output'):
                     execute(startTPCCclients, usersPerReplica, customJDBC, hosts=proxies_nodes)
                 
-                logger.info('the experiment is running') 
-                time.sleep(15)
+                if weakDBExperiment:
+                    logger.info('running a experiment with our middleware') 
+                else:
+                    logger.info('running original experiment') 
+                time.sleep(10)
                 time.sleep(TPCC_TEST_TIME)   
                 #isRunning = True
                 #while isRunning:
@@ -221,7 +225,7 @@ def startCoordinators():
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(8)
+    time.sleep(10)
     if not isPortOpen(port):
         return '0'
     return '1'

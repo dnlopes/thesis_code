@@ -69,6 +69,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		LogicalClock remoteClock = new LogicalClock(shadowOp.getClock());
 		decodedOp.setLogicalClock(remoteClock);
 
+		//synchronized
 		this.replicator.mergeWithRemoteClock(remoteClock);
 
 		this.replicator.commitOperation(decodedOp);
