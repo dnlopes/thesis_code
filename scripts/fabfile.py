@@ -288,7 +288,7 @@ def prepareCode():
 
 def distributeCode():
     run('mkdir -p ' + DEPLOY_DIR)
-    with cd(BASE_DIR), hide('output','running'):
+    with cd(BASE_DIR), hide('output','running'), settings(warn_only=True):
         run('rm ' + DEPLOY_DIR + '/*.jar')
         run('rm ' + DEPLOY_DIR + '/*.sql')
         run('rm ' + DEPLOY_DIR + '/*.properties')
