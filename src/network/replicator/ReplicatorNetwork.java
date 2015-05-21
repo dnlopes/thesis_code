@@ -4,12 +4,18 @@ package network.replicator;
 import network.AbstractNetwork;
 import network.AbstractNodeConfig;
 import org.apache.thrift.TException;
-import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -19,40 +25,38 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
-	private boolean alreadyInitialized;
+	private Map<Integer, ReplicatorConfig> replicatorsConfigs;
 
 	public ReplicatorNetwork(AbstractNodeConfig node)
 	{
 		super(node);
-		this.alreadyInitialized = false;
+		this.replicatorsConfigs = new HashMap<>();
+
+		for(ReplicatorConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
+			if(replicatorConfig.getId() != this.me.getId())
+				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 	}
 
 	@Override
-	public void sendOperationAsync(ThriftOperation thriftOperation)
+	public void sendOperationToRemote(ThriftOperation thriftOperation)
 	{
-		if(!alreadyInitialized)
-			this.bindWithRemoteReplicators();
+		for(ReplicatorConfig config : this.replicatorsConfigs.values())
+		{
+			TTransport newTransport = new TSocket(config.getHostName(), config.getPort());
 
-		for(ReplicatorRPC.Client client : this.replicatorsClients.values())
 			try
 			{
+				newTransport.open();
+				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
 				client.commitOperationAsync(thriftOperation);
-			} catch(TException ex)
+			} catch(TException e)
 			{
-				LOG.warn("failed to send async op to replicator");
+				LOG.error("failed to send shadow operation to replicator {}", config.getId(), e);
+			} finally
+			{
+				newTransport.close();
 			}
-	}
-
-	private void bindWithRemoteReplicators()
-	{
-		for(AbstractNodeConfig config : Configuration.getInstance().getAllReplicatorsConfig().values())
-			try
-			{
-				this.addNode(config);
-			} catch(TTransportException e)
-			{
-				LOG.error("failed to bind with {}", config.getName());
-			}
-		this.alreadyInitialized = true;
+		}
 	}
 }

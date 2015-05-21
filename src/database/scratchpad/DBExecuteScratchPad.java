@@ -323,7 +323,8 @@ public class DBExecuteScratchPad implements IDBScratchPad
 			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
 			{
 				//if we must coordinate then do it here. this is a blocking call
-				CoordinatorResponse response = network.checkInvariants(req, proxyConfig.getCoordinatorConfig());
+				CoordinatorResponse response = network.sendRequestToCoordinator(req, proxyConfig
+						.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
 					LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());

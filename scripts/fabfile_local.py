@@ -21,8 +21,8 @@ NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
 #NUMBER_USERS=[1,3,5,15,30,45,60]
 #NUMBER_REPLICAS=[3,5]
-#JDCBs=['mysql_crdt']
-JDCBs=['mysql_jdbc', 'mysql_crdt']
+JDCBs=['mysql_crdt']
+#JDCBs=['mysql_jdbc', 'mysql_crdt']
 
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.DEBUG)

@@ -5,10 +5,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import runtime.RuntimeHelper;
 import runtime.Utils;
 import runtime.operation.ShadowOperation;
-import util.ExitCode;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
 
@@ -50,16 +48,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		localCommit = this.replicator.commitOperation(shadowOp);
 
 		if(localCommit)
-			network.sendOperationAsync(thriftOp);
+			network.sendOperationToRemote(thriftOp);
 
 		return localCommit;
-	}
-
-	@Override
-	public boolean commitOperationSync(ThriftOperation shadowOp) throws TException
-	{
-		RuntimeHelper.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
-		return false;
 	}
 
 	@Override

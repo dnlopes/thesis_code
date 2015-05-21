@@ -267,16 +267,15 @@ def pushLogs():
         run('cp *.log ' + LOGS_DIR + '/' + LOG_FILE_DIR)
 
 def killProcesses():
-    logger.info('cleaning running processes')
-    with hide('output','running','warnings'):
-        execute(stopJava, hosts=proxies_nodes)
-        time.sleep(1)
-        execute(stopJava, hosts=replicators_nodes)
-        time.sleep(1)
-        execute(stopJava, hosts=coordinators_nodes)
-        time.sleep(1)     
-        execute(stopMySQL, hosts=database_nodes)
-        time.sleep(1)
+    logger.info('cleaning running processes')    
+    execute(stopJava, hosts=proxies_nodes)
+    time.sleep(1)
+    execute(stopJava, hosts=replicators_nodes)
+    time.sleep(1)
+    execute(stopJava, hosts=coordinators_nodes)
+    time.sleep(1)     
+    execute(stopMySQL, hosts=database_nodes)
+    time.sleep(1)
 
 def prepareCode():
     logger.info('compiling source code')

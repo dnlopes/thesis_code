@@ -4,13 +4,17 @@ package network.proxy;
 import network.AbstractNetwork;
 import network.AbstractNodeConfig;
 import org.apache.thrift.TException;
-import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import runtime.Utils;
 import runtime.operation.ShadowOperation;
 import util.thrift.*;
+
 
 /**
  * Created by dnlopes on 15/03/15.
@@ -19,58 +23,62 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
-	private int requestId;
 
 	public ProxyNetwork(AbstractNodeConfig node)
 	{
 		super(node);
-		this.requestId = 0;
 	}
 
 	@Override
-	public synchronized boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node)
+	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node)
 	{
-		if(!this.replicatorsClients.containsKey(node.getName()))
-			try
-			{
-				this.addNode(node);
-			} catch(TTransportException e)
-			{
-				LOG.error("failed to bind with {}", node.getName());
-				return false;
-			}
-
-		ReplicatorRPC.Client client = this.replicatorsClients.get(node.getName());
 		ThriftOperation thriftOp = Utils.encodeThriftOperation(shadowOp);
+		TTransport newTransport = new TSocket(node.getHostName(), node.getPort());
 
 		try
 		{
+			newTransport.open();
+			TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+			ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
 			// this call blocks until the operation is committed in the main database
 			return client.commitOperation(thriftOp);
 		} catch(TException e)
 		{
-			LOG.error("thrift connection problem. Txn will abort");
+			LOG.error("failed to contact replicator {}", node.getId(), e);
 			return false;
+		} finally
+		{
+			newTransport.close();
 		}
 	}
 
 	@Override
-	public synchronized CoordinatorResponse checkInvariants(CoordinatorRequest req, AbstractNodeConfig node) throws
-			TException
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, AbstractNodeConfig node)
+			throws TException
 	{
-		if(!this.coordinatorsClients.containsKey(node.getName()))
-			try
-			{
-				this.addNode(node);
-			} catch(TTransportException e)
-			{
-				LOG.error("failed to bind with {}", node.getName());
-				throw e;
-			}
-
 		req.setRequestId(0);
-		CoordinatorRPC.Client client = this.coordinatorsClients.get(node.getName());
-		return client.checkInvariants(req);
+		CoordinatorResponse response = new CoordinatorResponse();
+		response.setSuccess(false);
+
+		TTransport newTransport = null;
+		try
+		{
+			newTransport = new TSocket(node.getHostName(), node.getPort());
+			newTransport.open();
+			TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+			CoordinatorRPC.Client client = new CoordinatorRPC.Client(protocol);
+
+			// this call blocks until the operation is committed in the main database
+			return client.checkInvariants(req);
+		} catch(TException e)
+		{
+			LOG.error("failed to contact coordinator {}", node.getId(), e);
+			return response;
+		} finally
+		{
+			newTransport.close();
+		}
+
 	}
 
 }

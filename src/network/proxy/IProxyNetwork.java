@@ -15,5 +15,5 @@ public interface IProxyNetwork
 {
 	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node);
 
-	public CoordinatorResponse checkInvariants(CoordinatorRequest req, AbstractNodeConfig node) throws TException;
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, AbstractNodeConfig node) throws TException;
 }

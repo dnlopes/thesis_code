@@ -45,7 +45,6 @@ struct ThriftOperation {
 
 service ReplicatorRPC {
  bool commitOperation(1:ThriftOperation op);
- bool commitOperationSync(1:ThriftOperation op);
  oneway void commitOperationAsync(1:ThriftOperation op);
 }
 

@@ -8,5 +8,5 @@ import util.thrift.ThriftOperation;
  */
 public interface IReplicatorNetwork
 {
-	public void sendOperationAsync(ThriftOperation thriftOperation);
+	public void sendOperationToRemote(ThriftOperation thriftOperation);
 }

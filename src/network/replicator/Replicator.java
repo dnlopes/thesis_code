@@ -33,7 +33,6 @@ public class Replicator extends AbstractNode
 	private ReplicatorServerThread serverThread;
 	private ObjectPool<IDBCommitPad> commitPadPool;
 
-	private Map<String, ReplicatorConfig> otherReplicators;
 	//saves all txn already committed
 	private Set<Integer> committedTxns;
 	
@@ -42,13 +41,7 @@ public class Replicator extends AbstractNode
 		super(config);
 		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		REPLICATOR_ID = this.config.getId();
-
-		this.otherReplicators = new HashMap<>();
 		this.networkInterface = new ReplicatorNetwork(this.getConfig());
-
-		for(ReplicatorConfig allReplicators : Configuration.getInstance().getAllReplicatorsConfig().values())
-			this.otherReplicators.put(allReplicators.getName(), allReplicators);
-
 		this.committedTxns = new HashSet<>();
 		this.commitPadPool = new ObjectPool<>();
 
@@ -60,8 +53,7 @@ public class Replicator extends AbstractNode
 			new Thread(this.serverThread).start();
 		} catch(TTransportException e)
 		{
-			LOG.error("failed to create background thread on replicator {}", this.getConfig().getName());
-			e.printStackTrace();
+			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
 		}
 
 		LOG.info("replicator {} online", this.config.getId());
@@ -88,7 +80,7 @@ public class Replicator extends AbstractNode
 
 		if(commitDecision)
 			this.committedTxns.add(shadowOperation.getTxnId());
-		 else
+		else
 			LOG.error("something went very wrong. State will not converge because op didnt commit");
 
 		this.commitPadPool.returnObject(pad);
@@ -133,4 +125,5 @@ public class Replicator extends AbstractNode
 			LOG.info("merged clock is {}", this.clock.toString());
 		}
 	}
+
 }

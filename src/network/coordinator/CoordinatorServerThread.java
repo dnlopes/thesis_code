@@ -3,6 +3,7 @@ package network.coordinator;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -30,7 +31,7 @@ public class CoordinatorServerThread implements Runnable
 		this.handler = new CoordinatorService(this.me);
 		this.processor = new CoordinatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
-		this.server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
+		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 	}
 
 	@Override

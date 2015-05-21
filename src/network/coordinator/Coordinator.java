@@ -22,6 +22,7 @@ import util.defaults.Configuration;
 import util.thrift.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -33,22 +34,21 @@ public class Coordinator extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Coordinator.class);
 
 	private DatabaseMetadata databaseMetadata;
+	private CoordinatorServerThread serverThread;
 
 	// key is tableName-fieldName
 	private Map<String, UniqueConstraintEnforcer> uniquesEnforcers;
 	private Map<String, AutoIncrementEnforcer> autoIncrementsEnforcers;
 	private Map<String, CheckConstraintEnforcer> checkEnforcers;
 
-	private CoordinatorServerThread serverThread;
-
 	public Coordinator(AbstractNodeConfig config)
 	{
 		super(config);
 
 		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
-		this.uniquesEnforcers = new HashMap<>();
-		this.autoIncrementsEnforcers = new HashMap<>();
-		this.checkEnforcers = new HashMap<>();
+		this.uniquesEnforcers = new ConcurrentHashMap<>();
+		this.autoIncrementsEnforcers = new ConcurrentHashMap<>();
+		this.checkEnforcers = new ConcurrentHashMap<>();
 
 		this.setup();
 
