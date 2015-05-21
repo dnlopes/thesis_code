@@ -253,8 +253,8 @@ def startTPCCclients(clientsNum, useCustomJDBC):
 def endExperiment():
     logger.info('cleaning running processes after experiment has finished')
     with hide('output','running','warnings'):
-        execute(stopJava, hosts=distinct_nodes)
-        execute(stopMySQL, hosts=distinct_nodes)
+        stopJava()
+        stopMySQL()
     
     logger.info('done!')
     time.sleep(3)
@@ -313,10 +313,6 @@ def stopJava():
             pid = int(line.split(None, 1)[0])
             os.kill(pid, signal.SIGKILL)            
     
-def exportDatabase(databaseName, outputFile):
-    with cd(MYSQL_DIR):
-        run('bin/mysqldump -u sa --password=101010 ' + databaseName + ' --socket=/tmp/mysql.sock > ' + outputFile)
-         
 def stopMySQL():
     with settings(warn_only=True),hide('output'), cd(MYSQL_DIR):
         run(MYSQL_SHUTDOWN_COMMAND)
