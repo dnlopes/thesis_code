@@ -18,10 +18,9 @@ public class LogicalClock implements java.io.Serializable
 		}
 	}
 
-	public LogicalClock(String s)
+	public LogicalClock(String clockString)
 	{
-		String tmp[] = s.split(":");
-		String[] tmpEntries = tmp[1].split("-");
+		String[] tmpEntries = clockString.split("-");
 		this.entries = new long[tmpEntries.length];
 
 		for(int i = 0; i < tmpEntries.length; i++)

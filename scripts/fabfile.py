@@ -191,6 +191,9 @@ def benchmarkTPCC(configsFilesBaseDir):
                 logger.info('this experiment has ended!')
                 logger.info('logs can be found at %s', LOG_FILE_DIR)
                 logger.info('moving to the next iteration!')
+         
+@task
+def killEverything:
                 
 def prepareTPCW():
     if not is_mysql_running():
