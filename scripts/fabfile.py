@@ -1,4 +1,4 @@
-from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, settings, abort, hide, task, sudo, run
+from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, settings, abort, hide, task, sudo, run, warn_only
 import time
 import sys
 import xml.etree.ElementTree as ET
@@ -8,7 +8,6 @@ import shlex
 import subprocess, signal
 import os
 from parseConfigFile import parseConfigInput
-import glob
 
 #------------------------------------------------------------------------------
 # Deployment Scripts
@@ -257,9 +256,9 @@ def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
     
     with cd(DEPLOY_DIR), hide('warnings'), settings(warn_only=True):
+        put(DEPLOY_DIR + '/*.log', LOGS_DIR + '/' + LOG_FILE_DIR)
         put(DEPLOY_DIR + '/*.out', LOGS_DIR + '/' + LOG_FILE_DIR)
-        put(DEPLOY_DIR + '/*.out', LOGS_DIR + '/' + LOG_FILE_DIR)
-    
+
 def killProcesses():
     logger.info('cleaning running processes')
     with hide('output','running','warnings'):
