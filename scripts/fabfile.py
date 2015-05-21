@@ -256,7 +256,7 @@ def startTPCCclients(clientsNum, useCustomJDBC):
 def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
     
-    with cd(DEPLOY_DIR), hide('warnings'):
+    with cd(DEPLOY_DIR), hide('warnings'), settings(warn_only=True):
         run('cp *.out ' + LOGS_DIR + '/' + LOG_FILE_DIR)
         run('cp *.log ' + LOGS_DIR + '/' + LOG_FILE_DIR)
 
