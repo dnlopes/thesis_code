@@ -17,6 +17,11 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 
 
+env.roledefs = {
+    'distinct': distinct_nodes,
+    'web': ['web1', 'web2', 'web3'],
+}
+
 #NUMBER_USERS=[1]
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
@@ -260,8 +265,8 @@ def pushLogs():
         put(filesToDownload, LOG_FILE_DIR)
         put(filesToDownload2, LOG_FILE_DIR)   
     
-def killProcesses():    
-    logger.info('cleaning running processes at node %s', env.host_string)
+def killProcesses():
+    logger.info('cleaning running processes')
     with hide('output','running','warnings'):
         execute(stopJava, hosts=proxies_nodes)
         time.sleep(1)
