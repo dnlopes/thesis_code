@@ -76,7 +76,6 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ShadowOperation shadowOperation)
 	{
-		LOG.info("committing op from replicator {}", shadowOperation.getReplicatorId());
 		IDBCommitPad pad = this.commitPadPool.borrowObject();
 
 		if(pad == null)

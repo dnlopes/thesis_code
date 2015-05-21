@@ -3,6 +3,7 @@ dist/
 applications/tpcw/webapp
 applications/tpcw/src
 applications/tpcc/pom.xml
+resources/gen-java/
 # MacOS X
 **/*.DS_Store
 

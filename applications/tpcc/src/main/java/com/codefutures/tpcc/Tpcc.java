@@ -555,13 +555,13 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
-		tpcc.printResults();
+		tpcc.createOutputFile();
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
 		System.exit(ret);
 	}
 
-	public void printResults()
+	public void createOutputFile()
 	{
 		int totalOps = 0;
 		int totalLatency = 0;
