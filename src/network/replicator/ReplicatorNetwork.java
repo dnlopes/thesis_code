@@ -52,7 +52,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				client.commitOperationAsync(thriftOperation);
 			} catch(TException e)
 			{
-				LOG.error("failed to send shadow operation to replicator {}", config.getId(), e);
+				LOG.warn("failed to send shadow operation to replicator {}", config.getId(), e);
 			} finally
 			{
 				newTransport.close();
