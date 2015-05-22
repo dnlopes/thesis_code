@@ -46,7 +46,7 @@ NUMBER_USERS=0
 
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
-MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
+MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf'
 TOMCAT_START='bin/startup.sh'
 TOMCAT_SHUTDOWN_COMMAND='bin/shutdown.sh'
 
