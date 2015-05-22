@@ -100,7 +100,7 @@ public class TpccStatements {
         try {
             conn.commit();
         } catch (SQLException e) {
-            logger.error("COMMIT FAILED", e);
+            logger.error("txn commit failed");
         }
     }
 

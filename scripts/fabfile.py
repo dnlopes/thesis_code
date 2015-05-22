@@ -396,7 +396,8 @@ def prepareTPCCDatabase():
 @parallel
 def checkClientsIsRunning():
     currentId = proxies_map.get(env.host_string)
-    logFile = 'client_' + str(currentId) + ".log"
+    logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
+    #logFile = 'client_' + str(currentId) + ".log"
     with cd(DEPLOY_DIR):
         output = run('tail ' + logFile)
         if 'CLIENT TERMINATED' in output:
