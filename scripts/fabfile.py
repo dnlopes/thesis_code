@@ -41,7 +41,7 @@ env.user = 'dp.lopes'
 # GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
-TPCC_TEST_TIME=10
+TPCC_TEST_TIME=45
 NUMBER_USERS=0
 
 
@@ -107,8 +107,8 @@ def benchmarkTPCC(configsFilesBaseDir):
         CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
-        with hide('running','output'):
-            killProcesses()            
+        
+        killProcesses()            
         
         prepareCode()        
         for jdbc in JDCBs:
@@ -170,16 +170,16 @@ def benchmarkTPCC(configsFilesBaseDir):
                 else:
                     logger.info('running original experiment') 
                 
-                time.sleep(TPCC_TEST_TIME)   
+                time.sleep(TPCC_TEST_TIME+30)   
                 isRunning = True
                 while isRunning:
-                    logger.info('checking experiment status')   
+                    logger.info('checking experiment status...')   
                     with hide('output','running'):
                         stillRunning = execute(checkClientsIsRunning, hosts=proxies_nodes)
                     for key, value in stillRunning.iteritems():
                         if value == '1':
                             isRunning = True
-                            logger.info('experiment is still running')                
+                            logger.info('experiment is still running!')                
                             break
                         else:
                             isRunning = False
@@ -247,7 +247,7 @@ def startReplicators():
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(8)
+    time.sleep(10)
     if not isPortOpen(port):
         return '0'
     return '1'
@@ -272,16 +272,15 @@ def pushLogs():
 
 def killProcesses():
     logger.info('cleaning running processes')    
-    execute(stopJava, hosts=distinct_nodes)
-    time.sleep(1)
-    execute(stopJava, hosts=proxies_nodes)
-    time.sleep(1)
-    execute(stopJava, hosts=replicators_nodes)
-    time.sleep(1)
-    execute(stopJava, hosts=coordinators_nodes)
-    time.sleep(1)     
-    execute(stopMySQL, hosts=database_nodes)
-    time.sleep(1)
+    with hide('running','output','warnings'):
+        execute(stopJava, hosts=distinct_nodes)
+        time.sleep(1)
+        execute(stopMySQL, hosts=database_nodes)
+        time.sleep(1)
+        execute(stopJava, hosts=distinct_nodes)
+        time.sleep(1)
+        execute(stopMySQL, hosts=database_nodes)
+        time.sleep(1)
     
 def prepareCode():
     logger.info('compiling source code')
@@ -306,7 +305,6 @@ def stopJava():
     command = 'ps ax | grep java'
     with settings(warn_only=True):
         output = run(command)
-
     for line in output.splitlines():                    
         if 'java' in line:        
             pid = int(line.split(None, 1)[0])            
