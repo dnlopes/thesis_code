@@ -1,8 +1,10 @@
 package com.codefutures.tpcc;
 
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +36,7 @@ public class Tpcc implements TpccConstants
 	private static final String DURATION = "DURATION";
 	private static final String JDBCURL = "JDBCURL";
 	private static final String JOINS = "JOINS";
+	private int proxyId;
 
 	private static final String PROPERTIESFILE = "client.database.properties";
 
@@ -206,6 +209,8 @@ public class Tpcc implements TpccConstants
 		}
 
 		int proxyId = Integer.parseInt(System.getProperty("proxyid"));
+		this.proxyId = proxyId;
+
 		AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 		boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 		DatabaseProperties dbProperties = new DatabaseProperties(nodeConfig);
@@ -348,7 +353,7 @@ public class Tpcc implements TpccConstants
 
 		// show results
 		System.out.println("---------------------------------------------------");
-        /*
+		/*
          *  Raw Results 
          */
 
@@ -504,8 +509,8 @@ public class Tpcc implements TpccConstants
 		System.out.println("TPCC version " + VERSION + " Number of Arguments: " + argv.length);
 
 		// dump information about the environment we are running in
-		String sysProp[] = {"os.name", "os.arch", "os.version", "java.runtime.name", "java.vm.version", "java.library" +
-				".path"};
+		String sysProp[] = {"os.name", "os.arch", "os.version", "java.runtime.name", "java.vm.version", "java.library"
+				+ ".path"};
 
 		for(String s : sysProp)
 		{
@@ -564,7 +569,7 @@ public class Tpcc implements TpccConstants
 	public void createOutputFile()
 	{
 		int totalOps = 0;
-		int totalLatency = 0;
+		long totalLatency = 0;
 
 		for(int i = 0; i < this.success2_sum.length; i++)
 			totalOps += success2_sum[i];
@@ -575,11 +580,26 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < this.latencies.length; i++)
 			totalLatency += this.latencies[i];
 
-
 		long avgLatency = totalLatency / totalOps;
 
 		logger.info("Total ops: {}", totalOps);
 		logger.info("Avg Latency: {}", avgLatency);
+
+		// OPS LATENCY CLIENTS
+		String fileName = "client_" + this.proxyId + ".result.temp";
+		PrintWriter out = null;
+		try
+		{
+			String result = totalOps + "," + avgLatency;
+			out = new PrintWriter(fileName);
+			out.write(result);
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+
+
 	}
 
 }

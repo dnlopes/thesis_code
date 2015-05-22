@@ -12,15 +12,16 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 # Deployment Scripts
 # Author: David Lopes
-# Nova university of lisbon
-# Last update: April, 2015
+# Nova University of Lisbon
+# Last update: May, 2015
 #------------------------------------------------------------------------------
 
-NUMBER_USERS=[3]
+#NUMBER_USERS_LIST=[1,3]
 NUMBER_REPLICAS=[3]
 #JDCBs=['mysql_crdt']
-#NUMBER_USERS=[1,3,5,15,30,45,60]
-#NUMBER_REPLICAS=[3,5]
+#NUMBER_USERS_LIST=[1,3,5,15,30,45,60]
+NUMBER_USERS_LIST=[1,3,6,15,30,45,60]
+#NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
 #JDCBs=['mysql_jdbc', 'mysql_crdt']
 
@@ -36,16 +37,18 @@ env.shell = "/bin/bash -l -i -c"
 #env.user = 'dnl'
 env.user = 'dp.lopes'
 
+
+# GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
+TPCC_TEST_TIME=10
+NUMBER_USERS=0
 
-TPCC_TEST_TIME=30
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --no-defaults'
 TOMCAT_START='bin/startup.sh'
 TOMCAT_SHUTDOWN_COMMAND='bin/shutdown.sh'
-
 
 BASE_DIR = '/local/' + env.user
 DEPLOY_DIR = BASE_DIR + '/deploy'
@@ -72,7 +75,7 @@ proxies_map = dict()
 replicatorsHostToPortMap = dict()
 coordinatorsHostToPortMap = dict()
 proxiesHostToPortMap = dict()
-
+weakDBExperiment = False
 env_vars = dict()
 env.roledefs = {
     'configuratorNode': ["localhost"],
@@ -92,12 +95,16 @@ def runWeakDBExperiment():
 @task
 def benchmarkTPCC(configsFilesBaseDir):
     customJDBC=''
+    global weakDBExperiment
     weakDBExperiment = False
+    global LOG_FILE_DIR
+    LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_test_'                
+
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         with hide('running','output'):
@@ -110,17 +117,15 @@ def benchmarkTPCC(configsFilesBaseDir):
                 customJDBC='true'
             else:
                 customJDBC='false'     
-                weakDBExperiment = False               
-            for usersNum in NUMBER_USERS:                
+                weakDBExperiment = False   
+                    
+            LOG_FILE_DIR += str(replicasNum) + 'replicas'
+            for usersNum in NUMBER_USERS_LIST:                
                 usersPerReplica = usersNum / replicasNum
-                global LOG_FILE_DIR
-                LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_test_'                
-                if weakDBExperiment:
-                    LOG_FILE_DIR += 'crdt_'
-                else:
-                    LOG_FILE_DIR += 'orig_'
-                LOG_FILE_DIR += str(replicasNum) + 'replicas_'
-                LOG_FILE_DIR += str(usersNum) + 'users/'                
+                global NUMBER_USERS
+                NUMBER_USERS = usersNum                
+                #LOG_FILE_DIR += str(replicasNum) + 'replicas_'
+                #LOG_FILE_DIR += str(usersNum) + 'users/'                
                 logger.info('this experiment will be logged to ' + LOG_FILE_DIR) 
                 
                 # preparar database
@@ -194,7 +199,6 @@ def benchmarkTPCC(configsFilesBaseDir):
                 logger.info('logs can be found at %s', LOG_FILE_DIR)
                 logger.info('moving to the next iteration!')
 
-
 def prepareTPCW():
     if not is_mysql_running():
         mysql_start()
@@ -237,7 +241,7 @@ def startCoordinators():
 def startReplicators():
     currentId = replicators_map.get(env.host_string)    
     port = replicatorsHostToPortMap.get(env.host_string)
-    logFile = 'replicator_' + str(currentId) + ".log"
+    logFile = 'replicator_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
     command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
     logger.info('%s',command)
@@ -252,7 +256,7 @@ def startReplicators():
 def startTPCCclients(clientsNum, useCustomJDBC):
     currentId = proxies_map.get(env.host_string)    
     port = proxiesHostToPortMap.get(env.host_string)
-    logFile = 'client' + str(currentId) + ".log"
+    logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
     command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
     logger.info('starting client at %s', env.host_string)
     logger.info('%s',command)
@@ -263,7 +267,7 @@ def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
     
     with cd(DEPLOY_DIR), hide('warnings', 'output', 'running'), settings(warn_only=True):
-        run('cp *.out ' + LOGS_DIR + '/' + LOG_FILE_DIR)
+        run('cp *.temp ' + LOGS_DIR + '/' + LOG_FILE_DIR)
         run('cp *.log ' + LOGS_DIR + '/' + LOG_FILE_DIR)
 
 def killProcesses():
@@ -276,7 +280,7 @@ def killProcesses():
     time.sleep(1)     
     execute(stopMySQL, hosts=database_nodes)
     time.sleep(1)
-
+    
 def prepareCode():
     logger.info('compiling source code')
     with lcd(PROJECT_DIR), hide('output','running'):
@@ -402,7 +406,40 @@ def checkClientsIsRunning():
             return '1'
 
 
-#def processLogFiles():
-#    with lcd(LOGS):
+def processLogFiles():
+    numberClients = len(proxies_map)
+    totalOps = 0
+    totalLatency = 0    
+    prefix = LOGS_DIR + '/' + LOG_FILE_DIR 
+
+    for x in xrange(1, numberClients+1):
+        fileName = 'client_' + str(x) + '.result.temp'
+        filePath = prefix + '/' + fileName
+        lines = [line.strip() for line in open(filePath)]        
+        splitted = lines[0].split(',')        
+        parcialOps = int(splitted[0])
+        totalOps += parcialOps
+        parcialLatency = int(splitted[1])
+        totalLatency += parcialLatency
+
+    avgLatency = totalLatency / numberClients
+    
+    fileName = prefix + '/' + str(NUMBER_USERS) + '_clients.result'
+               
+    #OPS LATENCY CLIENTS
+    with lcd(prefix):
+        stringToWrite = str(totalOps) + ',' + str(avgLatency)
+        f = open(fileName,'w')
+        f.write(stringToWrite)
+        f.close() # you can omit in most cases as the destructor will call if
+
+        local('mkdir -p temp')
+        local('mv *.temp temp/')
+
+
+
+
+
+
 
 
