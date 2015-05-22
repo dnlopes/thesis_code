@@ -303,16 +303,15 @@ def distributeCode():
         put(PROJECT_DIR + '/resources/*.properties', DEPLOY_DIR)
 
 def stopJava():
-    proc1 = subprocess.Popen(['ps', 'ax'], stdout=subprocess.PIPE)
-    proc2 = subprocess.Popen(shlex.split('grep ' + env.user),stdin=proc1.stdout,
-                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    # Allow proc1 to receive a SIGPIPE if proc2 exits.
-    proc1.stdout.close()
-    out,err=proc2.communicate()            
-    for line in out.splitlines():                    
+    command = 'ps ax | grep java'
+    with settings(warn_only=True):
+        output = run(command)
+
+    for line in output.splitlines():                    
         if 'java' in line:        
-            pid = int(line.split(None, 1)[0])
-            os.kill(pid, signal.SIGKILL)            
+            pid = int(line.split(None, 1)[0])            
+            with settings(warn_only=True):
+                run('kill -9 ' + str(pid))                
     
 def stopMySQL():
     with settings(warn_only=True),hide('output'), cd(MYSQL_DIR):
