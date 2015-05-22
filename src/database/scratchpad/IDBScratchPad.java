@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 /**
  * Created by dnlopes on 10/03/15.
+ * * Interface to execute transactions in a sandboxed environment (occ implementation)
  */
 public interface IDBScratchPad
 {

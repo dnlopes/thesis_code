@@ -96,7 +96,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 			deterStatements = shdOpCreator.makeToDeterministic(arg0);
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements: {}", arg0, e);
+			LOG.warn("failed to generate deterministic statements: {}", arg0, e);
 			throw new SQLException(e);
 		}
 

@@ -61,7 +61,7 @@ public class CRDTStatement implements Statement
 
 		} catch(JSQLParserException e)
 		{
-			LOG.error("failed to generate deterministic statements: {}", arg0, e);
+			LOG.warn("failed to generate deterministic statements: {}", arg0, e);
 			throw new SQLException(e);
 		}
 

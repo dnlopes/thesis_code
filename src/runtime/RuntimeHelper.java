@@ -1,10 +1,17 @@
 package runtime;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 /**
  * Created by dnlopes on 13/03/15.
  */
 public class RuntimeHelper
 {
+
+	private static final Logger LOG = LoggerFactory.getLogger(RuntimeHelper.class);
 
 	public static void throwRunTimeException(String message, int exitCode)
 	{

@@ -6,7 +6,7 @@ import network.AbstractNodeConfig;
 import network.coordinator.CoordinatorConfig;
 import network.proxy.ProxyConfig;
 import network.replicator.ReplicatorConfig;
-import org.perf4j.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -50,11 +50,10 @@ public final class Configuration
 	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
-		LOG.trace("loading configuration file");
 		CONFIG_FILE = System.getProperty("configPath");
-		LOG.info("config file: {}", CONFIG_FILE);
+		LOG.info("loading configuration file: {}", CONFIG_FILE);
 
-		this.watch = new StopWatch("config");
+		this.watch = new StopWatch();
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
@@ -65,21 +64,17 @@ public final class Configuration
 			loadConfigurationFile();
 		} catch(ConfigurationLoadException e)
 		{
-			LOG.error("failed to load config file");
-			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
+			RuntimeHelper.throwRunTimeException("failed to load config file: " + e.getMessage(), ExitCode.XML_ERROR);
 		}
 
 		if(!this.checkConfig())
-		{
-			LOG.error("failed to load config file");
-			RuntimeHelper.throwRunTimeException("failed to load config file", ExitCode.XML_ERROR);
-		}
+			RuntimeHelper.throwRunTimeException("configuration variables not properly initialized", ExitCode.XML_ERROR);
 
 		DDLParser parser = new DDLParser(this.schemaFile);
 		this.databaseMetadata = parser.parseAnnotations();
 		this.watch.stop();
 
-		LOG.info("config file successfully loaded in {} ms", watch.getElapsedTime());
+		LOG.trace("config file successfully loaded in {} ms", watch.getTime());
 	}
 
 	public static Configuration getInstance()
@@ -130,11 +125,9 @@ public final class Configuration
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = BASE_DIR + "/" + map.getNamedItem("schemaFile").getNodeValue();
 
-		LOG.info("#############################");
 		LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
 		LOG.info("Database name: {}", this.databaseName);
 		LOG.info("DDL file: {}", this.schemaFile);
-		LOG.info("#############################");
 	}
 
 	private void parseTopology(Node node)

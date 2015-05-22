@@ -6,6 +6,7 @@ import database.util.DataField;
 
 /**
  * Created by dnlopes on 12/05/15.
+ * Links a child column with a parent column on a remote table
  */
 public class ParentChildRelation
 {

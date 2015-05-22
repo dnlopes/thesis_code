@@ -72,10 +72,10 @@ public class AutoIncrementEnforcer
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
 		}
 
-		LOG.info("current id for field {} is {}", this.field.getFieldName(), this.currentId);
+		LOG.trace("current id for field {} is {}", this.field.getFieldName(), this.currentId);
 	}
 
-	public int getNextId()
+	public synchronized int getNextId()
 	{
 		return ++currentId;
 	}

@@ -3,7 +3,7 @@ package tests;
 
 import applications.micro.MicroDatabase;
 import database.jdbc.ConnectionFactory;
-import org.perf4j.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.props.DatabaseProperties;
@@ -48,7 +48,7 @@ public class TestProcedure
 		watch.start();
 		stat.execute("delete from t0 where a=0");
 		watch.stop();
-		LOG.info("delete on cascade time elapsed: {} ms", watch.getElapsedTime());
+		LOG.info("delete on cascade time elapsed: {} ms", watch.getTime());
 		conn.rollback();
 	}
 
@@ -61,7 +61,7 @@ public class TestProcedure
 		stat.execute("update t1 set _del=1 where a=0 AND testClock('0-0', '0-0') = 4");
 		//stat.execute("update t1 set _del=1 where a=0 AND testClock('0-0', '0-0') = 4");
 		watch.stop();
-		LOG.info("update _SP_del \"on cascade\" time elapsed: {} ms", watch.getElapsedTime());
+		LOG.info("update _SP_del \"on cascade\" time elapsed: {} ms", watch.getTime());
 		conn.rollback();
 	}
 
@@ -74,6 +74,6 @@ public class TestProcedure
 			stat.execute("select testClock('3-2-1-1-1-1', '2-3-1-1-1-1')");
 
 		watch.stop();
-		LOG.info("testClock runtime: {} ms", watch.getElapsedTime());
+		LOG.info("testClock runtime: {} ms", watch.getTime());
 	}
 }

@@ -12,8 +12,6 @@ import java.util.List;
 public class Utils
 {
 
-
-
 	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
 	{
 		ThriftOperation thriftOperation = new ThriftOperation();

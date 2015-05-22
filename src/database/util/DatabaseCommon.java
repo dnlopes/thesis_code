@@ -59,7 +59,6 @@ public class DatabaseCommon
 				throw new SQLException("parent row not found. Foreing key violated");
 
 		}
-
 		return parentByConstraint;
 	}
 

@@ -6,7 +6,6 @@ import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
 import network.AbstractNodeConfig;
-import org.perf4j.StopWatch;
 import runtime.RuntimeHelper;
 import util.IDFactories.IdentifierFactory;
 
@@ -31,13 +30,15 @@ public class Proxy extends AbstractNode
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
+	private static int TXN_COUNT = 0;
+	private static final int FREQUENCY = 150;
 
 	private ObjectPool<IDBScratchPad> scratchpadsPool;
 	private ConcurrentHashMap<TransactionIdentifier, IDBScratchPad> activeScratchpads;
 	private IProxyNetwork networkInterface;
 	private AtomicInteger transactionsCounter;
 	private AtomicInteger scratchpadsCount;
-	// a small hack to avoid casting the same object over and over at runtime
+	// a small hack to avoid casting the same object over and over
 	private ProxyConfig privateConfig;
 
 	public Proxy(AbstractNodeConfig config)
@@ -74,6 +75,10 @@ public class Proxy extends AbstractNode
 	public boolean commit(TransactionIdentifier txnId)
 	{
 		IDBScratchPad pad = this.activeScratchpads.get(txnId);
+		TXN_COUNT++;
+
+		if(TXN_COUNT % FREQUENCY == 0)
+			LOG.info("committing txn {}", pad.getActiveTransaction().getTxnId());
 
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
@@ -136,7 +141,7 @@ public class Proxy extends AbstractNode
 				pad = new DBExecuteScratchPad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
 			} catch(SQLException | ScratchpadException e)
 			{
-				LOG.error("failed to init scratchpad", e);
+				LOG.error("failed to initialize scratchpad: {}", e.getMessage());
 				RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
 		}
@@ -147,9 +152,6 @@ public class Proxy extends AbstractNode
 
 	private void setup()
 	{
-		StopWatch watch = new StopWatch();
-		watch.start();
-
 		for(int i = 1; i <= Configuration.getInstance().getScratchpadPoolSize(); i++)
 		{
 			try
@@ -164,9 +166,6 @@ public class Proxy extends AbstractNode
 			}
 
 		}
-		watch.stop();
-		LOG.info("{} scratchpads created in {} ms", Configuration.getInstance().getScratchpadPoolSize(),
-				watch.getElapsedTime());
 	}
 
 }

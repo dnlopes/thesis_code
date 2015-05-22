@@ -2,7 +2,9 @@ package runtime.txn;
 
 
 import database.util.FieldValue;
-import org.perf4j.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import runtime.operation.Operation;
 import runtime.operation.ShadowOperation;
 import util.thrift.RequestValue;
@@ -19,12 +21,17 @@ import java.util.Map;
 public class Transaction
 {
 
+	//private static final Logger LOG = LoggerFactory.getLogger(Transaction.class.getName());
+	//private static final Logger LOG = LoggerFactory.getLogger("log4j.logger.runtime.txn.Transaction");
+	private static final Logger LOG = LoggerFactory.getILoggerFactory().getLogger(Transaction.class.getName());
+
 	private TransactionIdentifier txnId;
 	private long latency;
-	private StopWatch timer;
+	private StopWatch watch;
 	private ShadowOperation shadowOp;
 	private boolean readyToCommit;
 	private List<Operation> txnOps;
+	private Map<String, String> times;
 	private Map<Integer, Operation> txnOpsMap;
 	private int opsCounter;
 
@@ -34,10 +41,11 @@ public class Transaction
 		this.latency = 0;
 		this.opsCounter = 0;
 		this.shadowOp = null;
-		this.timer = new StopWatch();
+		this.watch = new StopWatch();
 		this.readyToCommit = false;
 		this.txnOps = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
+		this.times = new HashMap<>();
 	}
 
 	public void addOperation(Operation op)
@@ -61,15 +69,22 @@ public class Transaction
 		return this.latency;
 	}
 
-	public void start()
+	public void startWatch()
 	{
-		this.timer.start();
+		this.watch.start();
 	}
 
 	public void finish()
 	{
-		this.timer.stop();
-		this.latency = this.timer.getElapsedTime();
+		this.watch.stop();
+		this.latency = this.watch.getTime();
+	}
+
+	public void recordTime(String timeTag)
+	{
+		this.watch.stop();
+		this.times.put(timeTag, String.valueOf(this.watch.getTime()));
+		this.watch.reset();
 	}
 
 	public boolean isReadyToCommit()

@@ -22,7 +22,6 @@ import util.defaults.Configuration;
 import util.thrift.*;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -46,9 +45,9 @@ public class Coordinator extends AbstractNode
 		super(config);
 
 		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
-		this.uniquesEnforcers = new ConcurrentHashMap<>();
-		this.autoIncrementsEnforcers = new ConcurrentHashMap<>();
-		this.checkEnforcers = new ConcurrentHashMap<>();
+		this.uniquesEnforcers = new HashMap<>();
+		this.autoIncrementsEnforcers = new HashMap<>();
+		this.checkEnforcers = new HashMap<>();
 
 		this.setup();
 
@@ -59,7 +58,7 @@ public class Coordinator extends AbstractNode
 		} catch(TTransportException e)
 		{
 			LOG.error("failed to create background thread on coordinator {}", this.getConfig().getName());
-			e.printStackTrace();
+			RuntimeHelper.throwRunTimeException("coordinator server thread initialization failed", ExitCode.NOINITIALIZATION);
 		}
 
 		LOG.info("coordinator {} online", this.config.getId());
@@ -174,7 +173,6 @@ public class Coordinator extends AbstractNode
 					this.autoIncrementsEnforcers.put(constraintId, autoIncrementEnforcer);
 					break;
 				case FOREIGN_KEY:
-					LOG.warn("fk not yet implemented");
 					break;
 				case CHECK:
 					if(fields.size() > 1)

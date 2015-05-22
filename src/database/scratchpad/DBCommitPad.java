@@ -24,6 +24,9 @@ public class DBCommitPad implements IDBCommitPad
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitPad.class);
 	private static final int NUMBER_OF_RETRIES = 10;
+	private static int TXN_COUNT = 0;
+	private static final int FREQUENCY = 150;
+
 	private StopWatch watcher;
 	private Replicator replicator;
 	private AbstractNodeConfig config;
@@ -35,6 +38,7 @@ public class DBCommitPad implements IDBCommitPad
 		this.replicator = replicator;
 		this.config = this.replicator.getConfig();
 		this.watcher = new StopWatch();
+		watcher.split();
 
 		try
 		{
@@ -49,7 +53,13 @@ public class DBCommitPad implements IDBCommitPad
 	public boolean commitShadowOperation(ShadowOperation op)
 	{
 		this.resetCommitPad();
-		LOG.info("commiting op from replicator {}", op.getReplicatorId());
+		TXN_COUNT++;
+
+		if(TXN_COUNT % FREQUENCY == 0)
+			LOG.info("txn from {} committing on main storage ", op.getReplicatorId());
+
+
+		LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
 		this.watcher.start();
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
@@ -92,7 +102,7 @@ public class DBCommitPad implements IDBCommitPad
 			try
 			{
 				DbUtils.rollback(this.connection);
-				LOG.error("txn {} rollback ({})", op.getTxnId(), e.getMessage());
+				LOG.warn("txn {} rollback ({})", op.getTxnId(), e.getMessage());
 			} catch(SQLException e1)
 			{
 				LOG.error("failed to rollback txn {} (should not happen)", op.getTxnId(), e1);
@@ -107,11 +117,6 @@ public class DBCommitPad implements IDBCommitPad
 	private void resetCommitPad()
 	{
 		this.watcher.reset();
-	}
-
-	public long getCommitLatency()
-	{
-		return this.watcher.getTime();
 	}
 
 	private String replacePlaceholders(ShadowOperation op, String statement)

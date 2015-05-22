@@ -8,7 +8,6 @@ import net.sf.jsqlparser.statement.select.Select;
 import network.proxy.IProxyNetwork;
 import network.proxy.ProxyConfig;
 import org.apache.thrift.TException;
-import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeHelper;
@@ -35,7 +34,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 
 	private ProxyConfig proxyConfig;
 	private Transaction activeTransaction;
-	private StopWatch runtimeWatch;
 	private int id;
 	private Map<String, IExecuter> executers;
 	private CCJSqlParserManager parser;
@@ -56,7 +54,6 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
-		this.runtimeWatch = new StopWatch("txn runtime");
 
 		this.createDBExecuters();
 	}
@@ -69,12 +66,11 @@ public class DBExecuteScratchPad implements IDBScratchPad
 			this.resetScratchpad();
 		} catch(SQLException e)
 		{
-			LOG.error("failed to clean scratchpad before starting transaction", e);
+			LOG.error("failed to clean scratchpad before starting transaction: {}", e.getMessage());
 			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
 		}
 		this.activeTransaction = new Transaction(txnId);
-		this.runtimeWatch.start();
-		this.activeTransaction.start();
+		this.activeTransaction.startWatch();
 
 		LOG.trace("Beggining txn {}", activeTransaction.getTxnId().getValue());
 	}
@@ -82,40 +78,39 @@ public class DBExecuteScratchPad implements IDBScratchPad
 	@Override
 	public boolean commitTransaction(IProxyNetwork network)
 	{
-		this.runtimeWatch.stop();
-		LOG.debug("txn runtime: {} ms", runtimeWatch.getElapsedTime());
-
+		this.activeTransaction.recordTime("runtime");
 		if(this.activeTransaction.isReadOnly())
 		{
 			this.activeTransaction.finish();
-			LOG.info("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
+			LOG.trace("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
 					this.activeTransaction.getLatency());
 			return true;
 		} else
 		{
-			StopWatch commitTimeWatcher = new StopWatch("commit time watcher");
-			commitTimeWatcher.start();
+			// contact coordinator here
+			this.activeTransaction.startWatch();
 			this.prepareToCommit(network);
+			this.activeTransaction.recordTime("coordination time");
 
 			// something went wrong
 			// commit fails
 			if(!this.activeTransaction.isReadyToCommit())
 				return false;
 
+			this.activeTransaction.startWatch();
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
+			this.activeTransaction.recordTime("commit time");
 			this.activeTransaction.finish();
-			commitTimeWatcher.stop();
 
 			if(commitDecision)
 			{
-				LOG.debug("txn commit time {}", commitTimeWatcher.getElapsedTime());
-				LOG.info("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+				LOG.trace("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
 						this.activeTransaction.getLatency());
 
 			} else
-				LOG.warn("txn {} failed to commit on main storage", this.activeTransaction.getTxnId().getValue());
+				LOG.warn("commit on main storage failed", this.activeTransaction.getTxnId().getValue());
 
 			return commitDecision;
 		}
@@ -277,7 +272,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 		return this.activeTransaction;
 	}
 
-	private void createDBExecuters() throws SQLException, ScratchpadException
+	private void createDBExecuters() throws SQLException
 	{
 		DatabaseMetaData metadata = this.defaultConnection.getMetaData();
 		String[] types = {"TABLE"};
@@ -327,7 +322,7 @@ public class DBExecuteScratchPad implements IDBScratchPad
 						.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
-					LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+					LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 					return;
 				}
 				List<RequestValue> requestValues = response.getRequestedValues();
