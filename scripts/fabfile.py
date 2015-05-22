@@ -103,8 +103,8 @@ def benchmarkTPCC(configsFilesBaseDir):
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         with hide('running','output'):
@@ -272,6 +272,8 @@ def pushLogs():
 
 def killProcesses():
     logger.info('cleaning running processes')    
+    execute(stopJava, hosts=distinct_nodes)
+    time.sleep(1)
     execute(stopJava, hosts=proxies_nodes)
     time.sleep(1)
     execute(stopJava, hosts=replicators_nodes)
@@ -397,7 +399,7 @@ def prepareTPCCDatabase():
 @parallel
 def checkClientsIsRunning():
     currentId = proxies_map.get(env.host_string)
-    logFile = 'client' + str(currentId) + ".log"
+    logFile = 'client_' + str(currentId) + ".log"
     with cd(DEPLOY_DIR):
         output = run('tail ' + logFile)
         if 'CLIENT TERMINATED' in output:
