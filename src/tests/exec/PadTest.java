@@ -2,7 +2,7 @@ package tests.exec;
 
 
 import database.jdbc.ConnectionFactory;
-import database.scratchpad.DBExecuteScratchPad;
+import database.scratchpad.DBScratchPad;
 import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
@@ -33,7 +33,7 @@ public class PadTest
 
 		setup();
 
-		IDBScratchPad pad = new DBExecuteScratchPad(1, (ProxyConfig) proxy);
+		IDBScratchPad pad = new DBScratchPad(1, (ProxyConfig) proxy);
 
 		int column = 1;
 		pStmts[0].setInt(column++, 1);

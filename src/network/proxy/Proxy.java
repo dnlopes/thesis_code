@@ -1,7 +1,7 @@
 package network.proxy;
 
 
-import database.scratchpad.DBExecuteScratchPad;
+import database.scratchpad.DBScratchPad;
 import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import network.AbstractNode;
@@ -138,7 +138,7 @@ public class Proxy extends AbstractNode
 			LOG.warn("scratchpad pool was empty");
 			try
 			{
-				pad = new DBExecuteScratchPad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
+				pad = new DBScratchPad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
 			} catch(SQLException | ScratchpadException e)
 			{
 				LOG.error("failed to initialize scratchpad: {}", e.getMessage());
@@ -156,7 +156,7 @@ public class Proxy extends AbstractNode
 		{
 			try
 			{
-				IDBScratchPad scratchpad = new DBExecuteScratchPad(i, (ProxyConfig) config);
+				IDBScratchPad scratchpad = new DBScratchPad(i, (ProxyConfig) config);
 				this.scratchpadsPool.addObject(scratchpad);
 				this.scratchpadsCount.incrementAndGet();
 			} catch(ScratchpadException | SQLException e)
