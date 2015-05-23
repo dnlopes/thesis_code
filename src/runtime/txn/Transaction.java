@@ -21,7 +21,6 @@ import java.util.Map;
 public class Transaction
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Transaction.class.getName());
 	private static final Logger LOG_FILE = LoggerFactory.getLogger("txnLogger");
 
 	private TransactionIdentifier txnId;
@@ -126,5 +125,18 @@ public class Transaction
 	public boolean isReadOnly()
 	{
 		return this.txnOps.size() == 0;
+	}
+
+	public void printResults()
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("# runtime, coordination_time, commit_time\n");
+		buffer.append(this.times.get("runtime"));
+		buffer.append(",");
+		buffer.append(this.times.get("coordination"));
+		buffer.append(",");
+		buffer.append(this.times.get("commit"));
+
+		LOG_FILE.info(buffer.toString());
 	}
 }

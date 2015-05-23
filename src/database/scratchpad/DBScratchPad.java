@@ -110,7 +110,7 @@ public class DBScratchPad implements IDBScratchPad
 			// contact coordinator here
 			this.activeTransaction.startWatch();
 			this.prepareToCommit(network);
-			this.activeTransaction.recordTime("coordination time");
+			this.activeTransaction.recordTime("coordination");
 
 			// something went wrong
 			// commit fails
@@ -121,13 +121,14 @@ public class DBScratchPad implements IDBScratchPad
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
-			this.activeTransaction.recordTime("commit time");
+			this.activeTransaction.recordTime("commit");
 			this.activeTransaction.finish();
 
 			if(commitDecision)
 			{
 				LOG.trace("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
 						this.activeTransaction.getLatency());
+				this.activeTransaction.printResults();
 
 			} else
 				LOG.warn("commit on main storage failed", this.activeTransaction.getTxnId().getValue());
@@ -335,6 +336,7 @@ public class DBScratchPad implements IDBScratchPad
 			for(Operation op : this.activeTransaction.getTxnOps())
 				op.createRequestsToCoordinate(req);
 
+			//FIXME: this is horrible
 			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
 			{
 				//if we must coordinate then do it here. this is a blocking call

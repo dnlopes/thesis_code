@@ -23,14 +23,12 @@ public class Replicator extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
 
 	private LogicalClock clock;
-	private static int REPLICATOR_ID;
 	private IReplicatorNetwork networkInterface;
 	private ObjectPool<IDBCommitPad> commitPadPool;
 
 	public Replicator(AbstractNodeConfig config)
 	{
 		super(config);
-		REPLICATOR_ID = this.config.getId();
 
 		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		this.networkInterface = new ReplicatorNetwork(this.config);
@@ -99,7 +97,7 @@ public class Replicator extends AbstractNode
 		{
 			LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
 			this.clock = newClock;
-			newClock.increment(REPLICATOR_ID-1);
+			newClock.increment(this.config.getId() - 1);
 			return newClock;
 		}
 	}
