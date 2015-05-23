@@ -60,7 +60,7 @@ public class CausalDeliver implements Runnable,
 	private void addToQueue(ShadowOperation op)
 	{
 		int replicatorId = op.getReplicatorId();
-
+		LOG.debug("adding to queue");
 		this.queues.get(replicatorId).add(op);
 	}
 

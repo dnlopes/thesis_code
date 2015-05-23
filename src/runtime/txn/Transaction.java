@@ -21,11 +21,11 @@ import java.util.Map;
 public class Transaction
 {
 
-	private static final Logger LOG_FILE = LoggerFactory.getLogger("txnLogger");
+	//private static final Logger LOG_FILE = LoggerFactory.getLogger("txnLogger");
 
 	private TransactionIdentifier txnId;
 	private long latency;
-	private StopWatch watch;
+	//private StopWatch watch;
 	private ShadowOperation shadowOp;
 	private boolean readyToCommit;
 	private List<Operation> txnOps;
@@ -39,7 +39,7 @@ public class Transaction
 		this.latency = 0;
 		this.opsCounter = 0;
 		this.shadowOp = null;
-		this.watch = new StopWatch();
+		//this.watch = new StopWatch();
 		this.readyToCommit = false;
 		this.txnOps = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
@@ -69,20 +69,14 @@ public class Transaction
 
 	public void startWatch()
 	{
-		this.watch.start();
-	}
-
-	public void finish()
-	{
-		this.watch.stop();
-		this.latency = this.watch.getTime();
+		//this.watch.start();
 	}
 
 	public void recordTime(String timeTag)
 	{
-		this.watch.stop();
+		/*this.watch.stop();
 		this.times.put(timeTag, String.valueOf(this.watch.getTime()));
-		this.watch.reset();
+		this.watch.reset(); */
 	}
 
 	public boolean isReadyToCommit()
@@ -129,6 +123,7 @@ public class Transaction
 
 	public void printResults()
 	{
+		/*
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("# runtime, coordination_time, commit_time\n");
 		buffer.append(this.times.get("runtime"));
@@ -137,6 +132,6 @@ public class Transaction
 		buffer.append(",");
 		buffer.append(this.times.get("commit"));
 
-		LOG_FILE.info(buffer.toString());
+		LOG_FILE.info(buffer.toString());  */
 	}
 }

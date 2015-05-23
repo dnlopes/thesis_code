@@ -59,6 +59,7 @@ LOGS_DIR = HOME_DIR + '/logs'
 BACKUPS_DIR = HOME_DIR + '/backups'
 PROJECT_DIR = HOME_DIR + '/code'
 JARS_DIR = PROJECT_DIR + '/dist/jars'
+EXPERIMENTS_DIR = PROJECT_DIR + '/weakdb/experiments'
 
 distinct_nodes = []
 database_nodes = []
@@ -198,6 +199,19 @@ def benchmarkTPCC(configsFilesBaseDir):
                 processLogFiles()
                 logger.info('logs can be found at %s', LOG_FILE_DIR)
                 logger.info('moving to the next iteration!')
+
+            logger.info('generating plot for ' + replicasNum ' replicas experiment')
+            generateLatencyThroughput()            
+
+def generateLatencyThroughput():
+    prefix = LOGS_DIR + '/' + LOG_FILE_DIR 
+    with lcd(prefix):        
+        for n in NUMBER_USERS_LIST:
+            fileName = prefix + '/' + str(n) + '_clients.result'
+            local('cat ' + fileName + ' >> plot_data')
+    
+        plotFilePath = EXPERIMENTS_DIR + '/latency-throughput.gp' 
+        local('gnuplot -e "data=plot_data; outputfile=plot.eps ' + plotFilePath)
 
 def prepareTPCW():
     if not is_mysql_running():

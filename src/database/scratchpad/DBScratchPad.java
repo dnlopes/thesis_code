@@ -101,7 +101,6 @@ public class DBScratchPad implements IDBScratchPad
 		this.activeTransaction.recordTime("runtime");
 		if(this.activeTransaction.isReadOnly())
 		{
-			this.activeTransaction.finish();
 			LOG.trace("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
 					this.activeTransaction.getLatency());
 			return true;
@@ -122,7 +121,6 @@ public class DBScratchPad implements IDBScratchPad
 					this.proxyConfig.getReplicatorConfig());
 
 			this.activeTransaction.recordTime("commit");
-			this.activeTransaction.finish();
 
 			if(commitDecision)
 			{

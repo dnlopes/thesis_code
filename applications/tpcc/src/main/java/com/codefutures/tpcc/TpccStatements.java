@@ -99,7 +99,9 @@ public class TpccStatements {
         logger.trace("COMMIT");
         try {
             conn.commit();
-        } catch (SQLException e) {
+			logger.debug("txn committed");
+		} catch(SQLException e)
+		{
             logger.warn("txn commit failed");
         }
     }
