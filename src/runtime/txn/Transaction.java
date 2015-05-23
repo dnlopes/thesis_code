@@ -21,9 +21,8 @@ import java.util.Map;
 public class Transaction
 {
 
-	//private static final Logger LOG = LoggerFactory.getLogger(Transaction.class.getName());
-	//private static final Logger LOG = LoggerFactory.getLogger("log4j.logger.runtime.txn.Transaction");
-	private static final Logger LOG = LoggerFactory.getILoggerFactory().getLogger(Transaction.class.getName());
+	private static final Logger LOG = LoggerFactory.getLogger(Transaction.class.getName());
+	private static final Logger LOG_FILE = LoggerFactory.getLogger("txnLogger");
 
 	private TransactionIdentifier txnId;
 	private long latency;
