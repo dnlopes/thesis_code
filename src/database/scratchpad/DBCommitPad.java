@@ -3,9 +3,7 @@ package database.scratchpad;
 
 import database.jdbc.ConnectionFactory;
 import network.AbstractNodeConfig;
-import network.replicator.Replicator;
 import org.apache.commons.dbutils.DbUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
@@ -27,19 +25,10 @@ public class DBCommitPad implements IDBCommitPad
 	private static int TXN_COUNT = 0;
 	private static final int FREQUENCY = 150;
 
-	private StopWatch watcher;
-	private Replicator replicator;
-	private AbstractNodeConfig config;
-
 	private Connection connection;
 
-	public DBCommitPad(Replicator replicator)
+	public DBCommitPad(AbstractNodeConfig config)
 	{
-		this.replicator = replicator;
-		this.config = this.replicator.getConfig();
-		this.watcher = new StopWatch();
-		watcher.split();
-
 		try
 		{
 			this.connection = ConnectionFactory.getDefaultConnection(config);
@@ -52,27 +41,23 @@ public class DBCommitPad implements IDBCommitPad
 	@Override
 	public boolean commitShadowOperation(ShadowOperation op)
 	{
-		this.resetCommitPad();
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			LOG.info("txn from {} committing on main storage ", op.getReplicatorId());
-
+			LOG.info("txn from replicator {} committing on main storage ", op.getReplicatorId());
 
 		LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
-		this.watcher.start();
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
 		{
 			boolean commitDecision = this.tryCommit(op);
 
 			if(commitDecision)
 			{
-				this.watcher.stop();
 				return true;
 			}
 		}
-		LOG.error("failed to commit after {} retries", NUMBER_OF_RETRIES);
+
 		return false;
 	}
 
@@ -112,11 +97,6 @@ public class DBCommitPad implements IDBCommitPad
 			DbUtils.closeQuietly(stat);
 		}
 		return success;
-	}
-
-	private void resetCommitPad()
-	{
-		this.watcher.reset();
 	}
 
 	private String replacePlaceholders(ShadowOperation op, String statement)

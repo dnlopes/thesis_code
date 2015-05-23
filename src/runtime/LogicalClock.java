@@ -79,7 +79,7 @@ public class LogicalClock implements java.io.Serializable
 
 	public void increment(int index)
 	{
-		this.entries[index - 1]++;
+		this.entries[index]++;
 	}
 
 	public boolean precedes(LogicalClock lc)

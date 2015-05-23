@@ -20,15 +20,13 @@ public class ReplicatorServerThread implements Runnable
 	static final Logger LOG = LoggerFactory.getLogger(ReplicatorServerThread.class);
 
 	private Replicator me;
-	private ReplicatorService handler;
-	private ReplicatorRPC.Processor processor;
 	private TServer server;
 
 	public ReplicatorServerThread(Replicator node) throws TTransportException
 	{
 		this.me = node;
-		this.handler = new ReplicatorService(this.me, node.getNetworkInterface());
-		this.processor = new ReplicatorRPC.Processor(handler);
+		ReplicatorService handler = new ReplicatorService(this.me, node.getNetworkInterface());
+		ReplicatorRPC.Processor processor = new ReplicatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
 		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 	}

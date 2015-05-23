@@ -11,5 +11,10 @@ import runtime.operation.ShadowOperation;
 public interface IDBCommitPad
 {
 
+	/**
+	 * Attemps to commit a shadow operation in main storage
+	 * @param op
+	 * @return true if commit succeeds
+	 */
 	public boolean commitShadowOperation(ShadowOperation op);
 }

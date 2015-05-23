@@ -1,6 +1,7 @@
 package network.replicator;
 
 
+import network.Deliver;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,10 @@ import runtime.operation.ShadowOperation;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * Created by dnlopes on 20/03/15.
@@ -18,14 +23,20 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorService.class);
+	private static final int CAUSAL_DELIVERY_UPDATE_INTERVAL = 3;
 
 	private Replicator replicator;
 	private IReplicatorNetwork network;
+	private Deliver deliver;
 
 	public ReplicatorService(Replicator replicator, IReplicatorNetwork network)
 	{
 		this.replicator = replicator;
 		this.network = network;
+		this.deliver = new CausalDeliver(this.replicator);
+
+		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+		service.scheduleAtFixedRate(this.deliver, 0, CAUSAL_DELIVERY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -33,7 +44,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
-		LOG.info("new clock assigned: {}", newClock.getClockValue());
+		LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
 		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
 		shadowOp.setReplicatorId(this.replicator.getConfig().getId());
@@ -54,17 +65,18 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public void commitOperationAsync(ThriftOperation shadowOp) throws TException
+	public void commitOperationAsync(ThriftOperation thriftOp) throws TException
 	{
-		LOG.debug("received op from other replicator");
+		LOG.trace("received op from other replicator");
 
-		ShadowOperation decodedOp = Utils.decodeThriftOperation(shadowOp);
-		LogicalClock remoteClock = new LogicalClock(shadowOp.getClock());
-		decodedOp.setLogicalClock(remoteClock);
-		decodedOp.setReplicatorId(shadowOp.getReplicatorId());
+		ShadowOperation shadowOp = Utils.decodeThriftOperation(thriftOp);
+		LogicalClock remoteClock = new LogicalClock(thriftOp.getClock());
+		shadowOp.setLogicalClock(remoteClock);
+		shadowOp.setReplicatorId(thriftOp.getReplicatorId());
 
-		//synchronized
-		this.replicator.mergeWithRemoteClock(remoteClock);
-		this.replicator.commitOperation(decodedOp);
+		this.deliver.dispatchOperation(shadowOp);
 	}
+
+
+
 }

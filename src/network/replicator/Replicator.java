@@ -13,9 +13,6 @@ import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
 
-import java.util.HashSet;
-import java.util.Set;
-
 
 /**
  * Created by dnlopes on 15/03/15.
@@ -24,31 +21,26 @@ public class Replicator extends AbstractNode
 {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
+
 	private LogicalClock clock;
 	private static int REPLICATOR_ID;
-
 	private IReplicatorNetwork networkInterface;
-	private ReplicatorServerThread serverThread;
 	private ObjectPool<IDBCommitPad> commitPadPool;
 
-	//saves all txn already committed
-	private Set<Integer> committedTxns;
-	
 	public Replicator(AbstractNodeConfig config)
 	{
 		super(config);
-		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		REPLICATOR_ID = this.config.getId();
-		this.networkInterface = new ReplicatorNetwork(this.getConfig());
-		this.committedTxns = new HashSet<>();
+
+		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
+		this.networkInterface = new ReplicatorNetwork(this.config);
 		this.commitPadPool = new ObjectPool<>();
 
-		this.setup();
+		this.setupPads();
 
 		try
 		{
-			this.serverThread = new ReplicatorServerThread(this);
-			new Thread(this.serverThread).start();
+			new Thread(new ReplicatorServerThread(this)).start();
 		} catch(TTransportException e)
 		{
 			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
@@ -71,15 +63,13 @@ public class Replicator extends AbstractNode
 		if(pad == null)
 		{
 			LOG.warn("commitpad pool was empty");
-			pad = new DBCommitPad(this);
+			pad = new DBCommitPad(this.config);
 		}
 
 		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
 
-		if(commitDecision)
-			this.committedTxns.add(shadowOperation.getTxnId());
-		else
-			LOG.error("something went very wrong. State will not converge because op didnt commit");
+		if(!commitDecision)
+			LOG.error("something went very wrong. State will not converge because operation failed to commit");
 
 		this.commitPadPool.returnObject(pad);
 
@@ -91,14 +81,14 @@ public class Replicator extends AbstractNode
 		return this.networkInterface;
 	}
 
-	private void setup()
+	private void setupPads()
 	{
 		Configuration conf = Configuration.getInstance();
 		int count = conf.getProxies().size() * 2;
 
 		for(int i = 0; i < count; i++)
 		{
-			IDBCommitPad commitPad = new DBCommitPad(this);
+			IDBCommitPad commitPad = new DBCommitPad(this.getConfig());
 			this.commitPadPool.addObject(commitPad);
 		}
 	}
@@ -109,7 +99,7 @@ public class Replicator extends AbstractNode
 		{
 			LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
 			this.clock = newClock;
-			newClock.increment(REPLICATOR_ID);
+			newClock.increment(REPLICATOR_ID-1);
 			return newClock;
 		}
 	}
@@ -122,6 +112,17 @@ public class Replicator extends AbstractNode
 			this.clock = this.clock.maxClock(clock);
 			LOG.info("merged clock is {}", this.clock.toString());
 		}
+	}
+
+	public void deliverShadowOperation(ShadowOperation shadowOp)
+	{
+		this.mergeWithRemoteClock(shadowOp.getClock());
+		this.commitOperation(shadowOp);
+	}
+
+	public LogicalClock getCurrentClock()
+	{
+		return this.clock;
 	}
 
 }
