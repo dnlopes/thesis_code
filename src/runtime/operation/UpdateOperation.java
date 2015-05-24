@@ -5,7 +5,7 @@ import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.util.*;
 import runtime.OperationTransformer;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.defaults.DBDefaults;
 import util.thrift.*;
@@ -100,7 +100,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 			case FOREIGN_KEY:
 				break;
 			default:
-				RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
+				RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
 			}
 		}
 	}

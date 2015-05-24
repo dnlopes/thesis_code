@@ -3,7 +3,7 @@ package database.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 import java.util.Collection;
@@ -36,7 +36,7 @@ public class DatabaseMetadata
 		if(tablesMap.containsKey(table.getName()))
 		{
 			LOG.error("table {} already exists", table.getName());
-			RuntimeHelper.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
+			RuntimeUtils.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
 		}
 
 		tablesMap.put(table.getName(), table);

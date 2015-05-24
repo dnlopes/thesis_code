@@ -3,7 +3,7 @@ package runtime;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.AbstractNodeConfig;
+import nodes.AbstractNodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,14 +64,14 @@ public class IDGenerator
 			} else
 			{
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());
-				RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
+				RuntimeUtils.throwRunTimeException("id generator failed to initialize properly",
 						ExitCode.ID_GENERATOR_ERROR);
 			}
 		} catch(SQLException e)
 		{
 			LOG.error("could not fetch the last id for field {}. Reason: {}", this.field.getFieldName(),
 					e.getMessage());
-			RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
+			RuntimeUtils.throwRunTimeException("id generator failed to initialize properly",
 					ExitCode.ID_GENERATOR_ERROR);
 		} finally
 		{

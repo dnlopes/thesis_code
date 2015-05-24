@@ -3,7 +3,7 @@ package runtime.txn;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 
@@ -38,7 +38,7 @@ public class TransactionIdentifier
 		if(this.id != DEFAULT_VALUE)
 		{
 			LOG.error("concurrency problem. Go check it out");
-			RuntimeHelper.throwRunTimeException("concurrent modification to id", ExitCode.INVALIDUSAGE);
+			RuntimeUtils.throwRunTimeException("concurrent modification to id", ExitCode.INVALIDUSAGE);
 		}
 
 		this.id = id;

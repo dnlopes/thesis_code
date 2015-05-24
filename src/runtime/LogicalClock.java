@@ -61,7 +61,7 @@ public class LogicalClock implements java.io.Serializable
 	public LogicalClock maxClock(LogicalClock lc)
 	{
 		if(!comparable(lc))
-			RuntimeHelper.throwRunTimeException(
+			RuntimeUtils.throwRunTimeException(
 					"incomparable logicalclocks: " + entries.length + " " + lc.entries.length, ExitCode.INVALIDUSAGE);
 
 		long[] tmpEntries = new long[entries.length];

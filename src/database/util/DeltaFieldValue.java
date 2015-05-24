@@ -1,7 +1,7 @@
 package database.util;
 
 
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 
@@ -34,7 +34,7 @@ public class DeltaFieldValue extends FieldValue
 					splitted[i] = splitted[i].trim();
 
 				if(splitted.length != 2)
-					RuntimeHelper.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
+					RuntimeUtils.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
 
 				if(this.dataField.getFieldName().compareTo(splitted[0]) == 0) //[0] is the fieldName
 					this.delta = Double.parseDouble(splitted[1]);
@@ -49,7 +49,7 @@ public class DeltaFieldValue extends FieldValue
 					splitted[i] = splitted[i].trim();
 
 				if(splitted.length != 2)
-					RuntimeHelper.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
+					RuntimeUtils.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
 
 				if(this.dataField.getFieldName().compareTo(splitted[0]) == 0) //[0] is the fieldName
 					this.delta = Double.parseDouble(splitted[1]);

@@ -21,7 +21,7 @@ import database.constraints.unique.UniqueConstraint;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -101,7 +101,7 @@ public class CreateStatementParser
 				} catch(RuntimeException e)
 				{
 					LOG.error("table type not recognized: {}", tableType);
-					RuntimeHelper.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
+					RuntimeUtils.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
 				}
 			}
 
@@ -393,7 +393,7 @@ public class CreateStatementParser
 			if(fieldsMap.containsKey(field.getFieldName()))
 			{
 				LOG.error("field {} is duplicated", field.getFieldName());
-				RuntimeHelper.throwRunTimeException("duplicated field", ExitCode.DUPLICATED_FIELD);
+				RuntimeUtils.throwRunTimeException("duplicated field", ExitCode.DUPLICATED_FIELD);
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
@@ -508,7 +508,7 @@ public class CreateStatementParser
 				String[] foreignAttributes = foreignKeyStr.split(",");
 
 				if(foreignAttributes.length != fKeys.length)
-					RuntimeHelper.throwRunTimeException("foreign attributes size do not match",
+					RuntimeUtils.throwRunTimeException("foreign attributes size do not match",
 							ExitCode.WRONGCREATTABLEFORMAT);
 
 				String foreignKeyTable = constraint.substring(startIndex_2 + 1, endIndex_2).trim();
@@ -516,7 +516,7 @@ public class CreateStatementParser
 				for(int t = 0; t < fKeys.length; t++)
 				{
 					if(!fieldsMap.containsKey(fKeys[t]))
-						RuntimeHelper.throwRunTimeException("foreign attributes size do not match",
+						RuntimeUtils.throwRunTimeException("foreign attributes size do not match",
 								ExitCode.WRONGCREATTABLEFORMAT);
 
 					DataField childField = fieldsMap.get(fKeys[t]);
@@ -647,7 +647,7 @@ public class CreateStatementParser
 
 			} else
 			{
-				RuntimeHelper.throwRunTimeException("unexpected constraint", ExitCode.UNKNOWN_INVARIANT);
+				RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNKNOWN_INVARIANT);
 			}
 		}
 	}

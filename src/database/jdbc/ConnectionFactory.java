@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import network.AbstractNodeConfig;
+import nodes.AbstractNodeConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.props.DatabaseProperties;

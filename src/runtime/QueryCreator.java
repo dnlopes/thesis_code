@@ -31,7 +31,6 @@ public class QueryCreator
 	{
 		StringBuilder buffer = new StringBuilder();
 
-
 		buffer.append("SELECT ");
 		buffer.append(table.getNormalFieldsSelection());
 		buffer.append(" FROM ");

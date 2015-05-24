@@ -1,7 +1,7 @@
 package database.scratchpad;
 
 
-import network.proxy.IProxyNetwork;
+import nodes.proxy.IProxyNetwork;
 import runtime.operation.DBSingleOperation;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;

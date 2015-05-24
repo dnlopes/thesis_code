@@ -3,11 +3,11 @@ package database.constraints.check;
 
 import database.jdbc.ConnectionFactory;
 import database.util.*;
-import network.coordinator.CoordinatorConfig;
+import nodes.coordinator.CoordinatorConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.defaults.Configuration;
 
@@ -72,7 +72,7 @@ public class CheckConstraintEnforcer
 		} catch(SQLException e)
 		{
 			LOG.error("error while fetching all current values for field {}", this.field.getFieldName(), e);
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
 		LOG.trace("{} values inserted", this.currentValues.size());

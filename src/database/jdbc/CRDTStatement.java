@@ -1,9 +1,8 @@
 package database.jdbc;
 
 
-import database.jdbc.util.DBUpdateResult;
 import net.sf.jsqlparser.JSQLParserException;
-import network.proxy.Proxy;
+import nodes.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.DBSingleOperation;
@@ -77,10 +76,8 @@ public class CRDTStatement implements Statement
 			result += counter;
 		}
 
-		DBUpdateResult finalRes = DBUpdateResult.createResult(result);
-
 		LOG.trace("update statement executed properly");
-		return finalRes.getUpdateResult();
+		return result;
 	}
 
 /*

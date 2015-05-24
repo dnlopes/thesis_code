@@ -383,7 +383,7 @@ public class CrdtFactory
 			}
 		default:
 			LOG.error("cannot create primitive type for field {}", df.getFieldName());
-			RuntimeHelper.throwRunTimeException("unkown primitive type", ExitCode.UNKNOWN_PRIMITIVE_TYPET);
+			RuntimeUtils.throwRunTimeException("unkown primitive type", ExitCode.UNKNOWN_PRIMITIVE_TYPET);
 			//dumb return, for compiler...
 			return null;
 		}

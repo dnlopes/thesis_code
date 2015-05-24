@@ -3,10 +3,10 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.coordinator.CoordinatorConfig;
+import nodes.coordinator.CoordinatorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 import java.sql.Connection;
@@ -63,13 +63,13 @@ public class AutoIncrementEnforcer
 				stmt.close();
 				tempConnection.close();
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());
-				RuntimeHelper.throwRunTimeException("id generator failed to initialize properly",
+				RuntimeUtils.throwRunTimeException("id generator failed to initialize properly",
 						ExitCode.ID_GENERATOR_ERROR);
 			}
 		} catch(SQLException e)
 		{
 			LOG.error("could not fetch the last id for constraint {}", this.constraint.getConstraintIdentifier(), e);
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
 		}
 
 		LOG.trace("current id for field {} is {}", this.field.getFieldName(), this.currentId);

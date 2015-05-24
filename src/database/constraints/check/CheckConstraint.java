@@ -5,7 +5,7 @@ import database.constraints.AbstractConstraint;
 import database.constraints.ConstraintType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 
@@ -65,8 +65,7 @@ public class CheckConstraint extends AbstractConstraint
 	public boolean mustCoordinate(String newValue, String oldValue)
 	{
 		if(this.fieldType == 1)
-			RuntimeHelper.throwRunTimeException("unexpected delta operation for a string field",
-					ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("unexpected delta operation for a string field", ExitCode.UNEXPECTED_OP);
 		if(this.fieldType == 2)
 			return this.mustCoordinate(Integer.parseInt(newValue), Integer.parseInt(oldValue));
 		if(this.fieldType == 3)
@@ -106,8 +105,7 @@ public class CheckConstraint extends AbstractConstraint
 		else
 		{
 			LOG.error("unexpected condition type");
-			RuntimeHelper.throwRunTimeException("tried to verify an unexpected check constraint",
-					ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
 			return false;
 		}
 	}
@@ -123,8 +121,7 @@ public class CheckConstraint extends AbstractConstraint
 		else
 		{
 			LOG.error("unexpected condition type");
-			RuntimeHelper.throwRunTimeException("tried to verify an unexpected check constraint",
-					ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
 			return false;
 		}
 	}
@@ -140,8 +137,7 @@ public class CheckConstraint extends AbstractConstraint
 		else
 		{
 			LOG.error("unexpected condition type");
-			RuntimeHelper.throwRunTimeException("tried to verify an unexpected check constraint",
-					ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
 			return false;
 		}
 

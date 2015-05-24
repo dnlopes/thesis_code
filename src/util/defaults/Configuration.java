@@ -2,16 +2,16 @@ package util.defaults;
 
 
 import database.util.DatabaseMetadata;
-import network.AbstractNodeConfig;
-import network.coordinator.CoordinatorConfig;
-import network.proxy.ProxyConfig;
-import network.replicator.ReplicatorConfig;
+import nodes.AbstractNodeConfig;
+import nodes.coordinator.CoordinatorConfig;
+import nodes.proxy.ProxyConfig;
+import nodes.replicator.ReplicatorConfig;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
@@ -64,13 +64,13 @@ public final class Configuration
 			loadConfigurationFile();
 		} catch(ConfigurationLoadException e)
 		{
-			RuntimeHelper.throwRunTimeException("failed to load config file: " + e.getMessage(), ExitCode.XML_ERROR);
+			RuntimeUtils.throwRunTimeException("failed to load config file: " + e.getMessage(), ExitCode.XML_ERROR);
 		}
 
 		if(!this.checkConfig())
 		{
 			LOG.error("configuration variables are not properly set");
-			RuntimeHelper.throwRunTimeException("configuration variables not properly initialized", ExitCode.XML_ERROR);
+			RuntimeUtils.throwRunTimeException("configuration variables not properly initialized", ExitCode.XML_ERROR);
 
 		}
 

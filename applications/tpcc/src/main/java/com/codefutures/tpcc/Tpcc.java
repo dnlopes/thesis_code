@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import network.AbstractNodeConfig;
+import nodes.AbstractNodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import util.defaults.Configuration;

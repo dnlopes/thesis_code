@@ -1,10 +1,10 @@
 package util.props;
 
 
-import network.AbstractNodeConfig;
+import nodes.AbstractNodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.defaults.DBDefaults;
 
@@ -49,10 +49,10 @@ public class DatabaseProperties
 			Properties properties = new Properties();
 			properties.load(inputStream);
 			if(!this.setup(properties))
-				RuntimeHelper.throwRunTimeException("failed to read properties from file", ExitCode.FILENOTFOUND);
+				RuntimeUtils.throwRunTimeException("failed to read properties from file", ExitCode.FILENOTFOUND);
 		} catch(IOException e)
 		{
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FILENOTFOUND);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FILENOTFOUND);
 		}
 	}
 

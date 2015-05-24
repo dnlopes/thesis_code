@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.commonfunc.StringOperations;
 
@@ -119,7 +119,7 @@ public class DatabaseFunction {
 		} catch(ParseException e)
 		{
 			e.printStackTrace();
-			RuntimeHelper.throwRunTimeException("error converting string to sql.date", ExitCode.NORESULT);
+			RuntimeUtils.throwRunTimeException("error converting string to sql.date", ExitCode.NORESULT);
 		}
 
 		return "'" + myDate.getTime() + "'";

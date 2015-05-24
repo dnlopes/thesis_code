@@ -1,7 +1,7 @@
 package main;
 
 
-import network.coordinator.Coordinator;
+import nodes.coordinator.Coordinator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;

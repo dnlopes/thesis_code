@@ -20,14 +20,14 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
-import network.proxy.IProxyNetwork;
-import network.proxy.ProxyConfig;
+import nodes.proxy.IProxyNetwork;
+import nodes.proxy.ProxyConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import runtime.operation.*;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
@@ -87,7 +87,7 @@ public class DBScratchPad implements IDBScratchPad
 		} catch(SQLException e)
 		{
 			LOG.error("failed to clean scratchpad before starting transaction: {}", e.getMessage());
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
 		}
 		this.activeTransaction = new Transaction(txnId);
 		this.activeTransaction.startWatch();
@@ -153,18 +153,18 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		if(op.isQuery())
-			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 
 		String[][] tableName = op.targetTable();
 
 		if(tableName.length > 1)
-			RuntimeHelper.throwRunTimeException("multi-table update not expected", ExitCode.MULTI_TABLE_UPDATE);
+			RuntimeUtils.throwRunTimeException("multi-table update not expected", ExitCode.MULTI_TABLE_UPDATE);
 
 		IExecuter executor = this.executers.get(tableName[0][2]);
 		if(executor == null)
 		{
 			LOG.error("executor for table {} not found", tableName[0][2]);
-			RuntimeHelper.throwRunTimeException("could not find a proper executor for this operation",
+			RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
 					ExitCode.EXECUTOR_NOT_FOUND);
 		} else
 			try
@@ -190,7 +190,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		if(!op.isQuery())
-			RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 
 		String[][] tableName = op.targetTable();
 		if(tableName.length == 1)
@@ -199,7 +199,7 @@ public class DBScratchPad implements IDBScratchPad
 			if(executor == null)
 			{
 				LOG.error("executor for table {} not found", tableName[0][2]);
-				RuntimeHelper.throwRunTimeException("could not find a proper executor for this operation",
+				RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
 						ExitCode.EXECUTOR_NOT_FOUND);
 			}
 
@@ -835,7 +835,7 @@ public class DBScratchPad implements IDBScratchPad
 			} catch(SQLException e)
 			{
 				LOG.error("failed to create temporary tables for scratchpad", e);
-				RuntimeHelper.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
+				RuntimeUtils.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
 			LOG.trace("executor for table {} created", this.databaseTable.getName());
 		}
@@ -1080,7 +1080,7 @@ public class DBScratchPad implements IDBScratchPad
 			else
 			{
 				modified = false;
-				RuntimeHelper.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+				RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 			}
 			return 0;
 		}
@@ -1231,7 +1231,7 @@ public class DBScratchPad implements IDBScratchPad
 				while(res.next())
 				{
 					if(!res.isLast())
-						RuntimeHelper.throwRunTimeException("ResultSet should contain exactly 1 row",
+						RuntimeUtils.throwRunTimeException("ResultSet should contain exactly 1 row",
 								ExitCode.FETCH_RESULTS_ERROR);
 
 					rowsDeleted++;
@@ -1295,7 +1295,7 @@ public class DBScratchPad implements IDBScratchPad
 				//FIXME: currently, we do not allow primary keys, immutable fields and fields that are
 				//FIXME: parent for some other field
 				if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
-					RuntimeHelper.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
+					RuntimeUtils.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
 							ExitCode.UNEXPECTED_OP);
 
 				if(newValue == null)
@@ -1330,7 +1330,7 @@ public class DBScratchPad implements IDBScratchPad
 			// if is parent table, check if this op has side effects
 			if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 			{
-				RuntimeHelper.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
+				RuntimeUtils.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
 						ExitCode.UNEXPECTED_OP);
 				op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), updatedRow);
@@ -1515,9 +1515,8 @@ public class DBScratchPad implements IDBScratchPad
 		{
 			Expression whereClause = updateOp.getWhere();
 			if(whereClause == null)
-				RuntimeHelper.throwRunTimeException("update operation should specify a primary key in the where " +
-								"clause",
-						ExitCode.INVALIDUSAGE);
+				RuntimeUtils.throwRunTimeException(
+						"update operation should specify a primary key in the where " + "clause", ExitCode.INVALIDUSAGE);
 
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("SELECT ");
@@ -1534,14 +1533,14 @@ public class DBScratchPad implements IDBScratchPad
 				rs.next();
 
 				if(!rs.isLast())
-					RuntimeHelper.throwRunTimeException("ResultSet should contain exactly 1 row",
+					RuntimeUtils.throwRunTimeException("ResultSet should contain exactly 1 row",
 							ExitCode.FETCH_RESULTS_ERROR);
 
 				Row row = DatabaseCommon.getFullRow(rs, this.databaseTable);
 				if(row != null)
 					return row;
 
-				RuntimeHelper.throwRunTimeException("error fetching updated row from database",
+				RuntimeUtils.throwRunTimeException("error fetching updated row from database",
 						ExitCode.FETCH_RESULTS_ERROR);
 
 				return null;

@@ -6,7 +6,7 @@ import database.constraints.fk.ParentChildRelation;
 import database.scratchpad.IDBScratchPad;
 import org.apache.commons.dbutils.DbUtils;
 import runtime.QueryCreator;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import runtime.operation.DBSingleOperation;
 import util.ExitCode;
 
@@ -34,7 +34,7 @@ public class DatabaseCommon
 			String fieldValue = rs.getObject(field.getFieldName()).toString();
 
 			if(fieldValue == null)
-				RuntimeHelper.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
+				RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
 
 			FieldValue fValue = new FieldValue(field, fieldValue);
 			pkValue.addFieldValue(fValue);
@@ -72,7 +72,7 @@ public class DatabaseCommon
 			String fieldValue = rs.getObject(field.getFieldName()).toString();
 
 			if(fieldValue == null)
-				RuntimeHelper.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
+				RuntimeUtils.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
 
 			FieldValue fValue = new FieldValue(field, fieldValue);
 			row.addFieldValue(fValue);

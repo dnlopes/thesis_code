@@ -6,8 +6,8 @@ import database.scratchpad.DBScratchPad;
 import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
-import network.AbstractNodeConfig;
-import network.proxy.ProxyConfig;
+import nodes.AbstractNodeConfig;
+import nodes.proxy.ProxyConfig;
 import util.defaults.Configuration;
 
 import java.sql.*;

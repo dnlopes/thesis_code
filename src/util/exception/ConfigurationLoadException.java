@@ -8,7 +8,7 @@ public class ConfigurationLoadException extends Exception
 {
 	public ConfigurationLoadException()
 	{
-		super("check constraint violated");
+		super("configuration load exception");
 	}
 
 	public ConfigurationLoadException(String arg0)

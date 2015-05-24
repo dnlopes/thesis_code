@@ -10,7 +10,6 @@ public final class ScratchpadDefaults
 	public static final int RDBMS_MYSQL = 2;
 	public static final int SQL_ENGINE = RDBMS_MYSQL;
 
-	public static final String SCRATCHPAD_NULL = "@$NULL";
 	public static final String SCRATCHPAD_TABLE_ALIAS_PREFIX = "_SPT_";
 	public static final String SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX = "_TSPT_";
 	public static final String SCRATCHPAD_COL_PREFIX = "_SP_";

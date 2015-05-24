@@ -2,7 +2,7 @@ package database.scratchpad;
 
 
 import database.jdbc.ConnectionFactory;
-import network.AbstractNodeConfig;
+import nodes.AbstractNodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

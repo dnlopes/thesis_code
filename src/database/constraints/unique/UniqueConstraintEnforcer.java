@@ -3,10 +3,10 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import network.coordinator.CoordinatorConfig;
+import nodes.coordinator.CoordinatorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeHelper;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 import java.sql.Connection;
@@ -75,7 +75,7 @@ public class UniqueConstraintEnforcer
 				{
 					LOG.error("duplicated values for constraint for constraint {}",
 							this.constraint.getConstraintIdentifier());
-					RuntimeHelper.throwRunTimeException("duplicated values for constraint for constraint",
+					RuntimeUtils.throwRunTimeException("duplicated values for constraint for constraint",
 							ExitCode.HASHMAPDUPLICATE);
 				}
 			}
@@ -87,7 +87,7 @@ public class UniqueConstraintEnforcer
 		{
 			LOG.error("error while fetching all used values for constraint {}",
 					this.constraint.getConstraintIdentifier(), e);
-			RuntimeHelper.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
 		LOG.trace("{} values already in use for constraint {}", this.currentValues.size(),

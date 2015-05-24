@@ -17,11 +17,10 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
-import network.proxy.Proxy;
+import nodes.proxy.Proxy;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.IDFactories.IdentifierFactory;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.Configuration;
@@ -864,7 +863,7 @@ public class MyShadowOpCreator
 		if(cols.size() != vals.size())
 		{
 			LOG.error("cols and vals size must match before appending scratchpad values");
-			RuntimeHelper.throwRunTimeException("cols and vals size dont match", ExitCode.ERRORTRANSFORM);
+			RuntimeUtils.throwRunTimeException("cols and vals size dont match", ExitCode.ERRORTRANSFORM);
 		}
 
 		//cols.add(ScratchpadDefaults.SCRATCHPAD_COL_DELETED);

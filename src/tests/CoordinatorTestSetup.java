@@ -1,11 +1,9 @@
 package tests;
 
 
-import network.coordinator.Coordinator;
 import org.xml.sax.SAXException;
 import runtime.txn.Transaction;
 import runtime.txn.TransactionIdentifier;
-import util.defaults.Configuration;
 
 import java.io.IOException;
 import java.sql.SQLException;
