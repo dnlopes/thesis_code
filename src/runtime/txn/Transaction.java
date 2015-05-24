@@ -2,9 +2,6 @@ package runtime.txn;
 
 
 import database.util.FieldValue;
-import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import runtime.operation.Operation;
 import runtime.operation.ShadowOperation;
 import util.thrift.RequestValue;
@@ -29,7 +26,6 @@ public class Transaction
 	private ShadowOperation shadowOp;
 	private boolean readyToCommit;
 	private List<Operation> txnOps;
-	private Map<String, String> times;
 	private Map<Integer, Operation> txnOpsMap;
 	private int opsCounter;
 
@@ -43,7 +39,6 @@ public class Transaction
 		this.readyToCommit = false;
 		this.txnOps = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
-		this.times = new HashMap<>();
 	}
 
 	public void addOperation(Operation op)

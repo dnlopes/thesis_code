@@ -9,16 +9,21 @@ import runtime.operation.ShadowOperation;
 import util.defaults.Configuration;
 
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 /**
  * Created by dnlopes on 23/05/15.
  */
-public class CausalDeliver implements Runnable,
-									  Deliver
+public class CausalDeliver implements Deliver
 {
+
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
+	private static final int THREAD_WAKEUP_INTERVAL = 1;
+	private static final int DELIVERIES_THREADHOLD = 5;
 
 	private final Map<Integer, Queue<ShadowOperation>> queues;
 	private final Replicator replicator;
@@ -29,6 +34,11 @@ public class CausalDeliver implements Runnable,
 		this.queues = new HashMap<>();
 
 		this.setup();
+
+		DeliveryThread deliveryThread = new DeliveryThread();
+
+		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+		service.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.SECONDS);
 	}
 
 	private void setup()
@@ -70,31 +80,6 @@ public class CausalDeliver implements Runnable,
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	@Override
-	public void run()
-	{
-		LOG.info("waking up deliver thread");
-		for(Queue<ShadowOperation> opQueue : this.queues.values())
-		{
-			boolean hasDelivered = false;
-
-			do
-			{
-				ShadowOperation op = opQueue.peek();
-
-				if(op == null)
-					continue;
-
-				if(this.canDeliver(op))
-				{
-					opQueue.poll();
-					this.replicator.deliverShadowOperation(op);
-					hasDelivered = true;
-				}
-			} while(hasDelivered);
-		}
-	}
-
 	private class LogicalClockComparator implements Comparator<ShadowOperation>
 	{
 
@@ -119,6 +104,37 @@ public class CausalDeliver implements Runnable,
 				return 1;
 			else
 				return -1;
+		}
+	}
+
+
+	private class DeliveryThread implements Runnable
+	{
+
+		@Override
+		public void run()
+		{
+			LOG.info("waking up deliver thread");
+			for(Queue<ShadowOperation> opQueue : queues.values())
+			{
+				boolean hasDelivered = false;
+				int deliveriesNumber = 0;
+				do
+				{
+					ShadowOperation op = opQueue.peek();
+
+					if(op == null)
+						continue;
+
+					if(canDeliver(op))
+					{
+						opQueue.poll();
+						replicator.deliverShadowOperation(op);
+						hasDelivered = true;
+						deliveriesNumber++;
+					}
+				} while(hasDelivered && (deliveriesNumber < DELIVERIES_THREADHOLD));
+			}
 		}
 	}
 }

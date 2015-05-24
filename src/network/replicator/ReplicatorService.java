@@ -11,11 +11,6 @@ import runtime.operation.ShadowOperation;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-
 /**
  * Created by dnlopes on 20/03/15.
  */
@@ -23,7 +18,6 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorService.class);
-	private static final int CAUSAL_DELIVERY_UPDATE_INTERVAL = 3;
 
 	private Replicator replicator;
 	private IReplicatorNetwork network;
@@ -34,9 +28,6 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		this.replicator = replicator;
 		this.network = network;
 		this.deliver = new CausalDeliver(this.replicator);
-
-		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-		service.scheduleAtFixedRate(this.deliver, 0, CAUSAL_DELIVERY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
 	@Override
