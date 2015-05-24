@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 public class RuntimeHelper
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(RuntimeHelper.class);
-
 	public static void throwRunTimeException(String message, int exitCode)
 	{
 		try

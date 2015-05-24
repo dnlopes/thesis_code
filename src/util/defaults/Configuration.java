@@ -68,7 +68,11 @@ public final class Configuration
 		}
 
 		if(!this.checkConfig())
+		{
+			LOG.error("configuration variables are not properly set");
 			RuntimeHelper.throwRunTimeException("configuration variables not properly initialized", ExitCode.XML_ERROR);
+
+		}
 
 		DDLParser parser = new DDLParser(this.schemaFile);
 		this.databaseMetadata = parser.parseAnnotations();
@@ -281,11 +285,6 @@ public final class Configuration
 	public String getDatabaseName()
 	{
 		return databaseName;
-	}
-
-	public String getSchemaFile()
-	{
-		return schemaFile;
 	}
 
 	public DatabaseMetadata getDatabaseMetadata()
