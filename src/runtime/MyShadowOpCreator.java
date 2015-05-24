@@ -5,7 +5,6 @@
 package runtime;
 
 
-import crdtlib.CrdtFactory;
 import database.jdbc.ConnectionFactory;
 import database.util.*;
 import net.sf.jsqlparser.JSQLParserException;
@@ -187,7 +186,7 @@ public class MyShadowOpCreator
 					}
 					else if(dF.getDefaultValue() == null)
 					{
-						valueList.add(CrdtFactory.getDefaultValueForDataField(this.getDateFormat(), dF));
+						valueList.add(RuntimeUtils.getDefaultValueForDataField(this.getDateFormat(), dF));
 					} else
 					{
 						if(dF.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
