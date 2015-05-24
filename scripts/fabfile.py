@@ -17,10 +17,10 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 
 #NUMBER_USERS_LIST=[1,3]
-NUMBER_REPLICAS=[3]
+NUMBER_REPLICAS=[3,5]
 #JDCBs=['mysql_crdt']
-#NUMBER_USERS_LIST=[1,3,5,15,30,45,60]
-NUMBER_USERS_LIST=[3,6,15,30,45,60]
+NUMBER_USERS_LIST=[3,5,15,30,45,60]
+#NUMBER_USERS_LIST=[1,3]
 #NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
 #JDCBs=['mysql_jdbc', 'mysql_crdt']
@@ -41,7 +41,7 @@ env.user = 'dp.lopes'
 # GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
-TPCC_TEST_TIME=45
+TPCC_TEST_TIME=10
 NUMBER_USERS=0
 
 
@@ -59,7 +59,7 @@ LOGS_DIR = HOME_DIR + '/logs'
 BACKUPS_DIR = HOME_DIR + '/backups'
 PROJECT_DIR = HOME_DIR + '/code'
 JARS_DIR = PROJECT_DIR + '/dist/jars'
-EXPERIMENTS_DIR = PROJECT_DIR + '/weakdb/experiments'
+EXPERIMENTS_DIR = PROJECT_DIR + '/experiments'
 
 distinct_nodes = []
 database_nodes = []
@@ -104,8 +104,8 @@ def benchmarkTPCC(configsFilesBaseDir):
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         
@@ -200,7 +200,7 @@ def benchmarkTPCC(configsFilesBaseDir):
                 logger.info('logs can be found at %s', LOG_FILE_DIR)
                 logger.info('moving to the next iteration!')
 
-            logger.info('generating plot for ' + replicasNum ' replicas experiment')
+            logger.info('generating plot for ' + str(replicasNum) + ' replicas experiment')
             generateLatencyThroughput()            
 
 def generateLatencyThroughput():
@@ -209,9 +209,10 @@ def generateLatencyThroughput():
         for n in NUMBER_USERS_LIST:
             fileName = prefix + '/' + str(n) + '_clients.result'
             local('cat ' + fileName + ' >> plot_data')
+            local('echo \'\' ' ' >> plot_data')
     
         plotFilePath = EXPERIMENTS_DIR + '/latency-throughput.gp' 
-        local('gnuplot -e "data=plot_data; outputfile=plot.eps ' + plotFilePath)
+        local('gnuplot -e \"data=\'plot_data\'; outputfile=\'plot.eps\'\" ' + plotFilePath)
 
 def prepareTPCW():
     if not is_mysql_running():
@@ -231,7 +232,7 @@ def startDatabases():
     logger.info('starting database: %s',command)
     with cd(MYSQL_DIR), hide('running','output'):    
         run(command)    
-    time.sleep(10)
+    time.sleep(15)
     if not isPortOpen('3306'):
         return '0'
     return '1'
@@ -246,7 +247,7 @@ def startCoordinators():
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(10)
+    time.sleep(15)
     if not isPortOpen(port):
         return '0'
     return '1'
@@ -261,7 +262,7 @@ def startReplicators():
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
         run(command)
-    time.sleep(10)
+    time.sleep(15)
     if not isPortOpen(port):
         return '0'
     return '1'
