@@ -19,7 +19,7 @@ from parseConfigFile import parseConfigInput
 #NUMBER_USERS_LIST=[1,3]
 NUMBER_REPLICAS=[3,5]
 #JDCBs=['mysql_crdt']
-NUMBER_USERS_LIST=[3,5,15,30,45,60]
+NUMBER_USERS_LIST=[3,6,15,30,45,60]
 #NUMBER_USERS_LIST=[1,3]
 #NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
@@ -104,8 +104,8 @@ def benchmarkTPCC(configsFilesBaseDir):
     for replicasNum in NUMBER_REPLICAS:
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
-        CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
-        #CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
+        #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
+        CONFIG_FILE += 'tpcc_cluster_' + str(replicasNum) + 'node.xml'
         logger.info('starting tests with %d replicas', replicasNum)
         parseConfigFile()
         
@@ -242,7 +242,7 @@ def startCoordinators():
     currentId = coordinators_map.get(env.host_string)    
     port = coordinatorsHostToPortMap.get(env.host_string)
     logFile = 'coordinator_' + str(currentId) + ".log"
-    command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
+    command = 'java -Xms512m -Xmx2g -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting coordinator at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
@@ -257,7 +257,7 @@ def startReplicators():
     currentId = replicators_map.get(env.host_string)    
     port = replicatorsHostToPortMap.get(env.host_string)
     logFile = 'replicator_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
-    command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
+    command = 'java -Xms512m -Xmx2g -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
@@ -272,7 +272,7 @@ def startTPCCclients(clientsNum, useCustomJDBC):
     currentId = proxies_map.get(env.host_string)    
     port = proxiesHostToPortMap.get(env.host_string)
     logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
-    command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+    command = 'java -Xms512m -Xmx2g -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
     logger.info('starting client at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR):
