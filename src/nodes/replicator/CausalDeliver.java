@@ -23,7 +23,6 @@ public class CausalDeliver implements Deliver
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 1;
-	private static final int DELIVERIES_THREADHOLD = 5;
 
 	private final Map<Integer, Queue<ShadowOperation>> queues;
 	private final Replicator replicator;
@@ -114,12 +113,11 @@ public class CausalDeliver implements Deliver
 		@Override
 		public void run()
 		{
-			LOG.info("waking up deliver thread");
-			for(Queue<ShadowOperation> opQueue : queues.values())
+			boolean hasDelivered = false;
+
+			while(hasDelivered)
 			{
-				boolean hasDelivered = false;
-				int deliveriesNumber = 0;
-				do
+				for(Queue<ShadowOperation> opQueue : queues.values())
 				{
 					ShadowOperation op = opQueue.peek();
 
@@ -131,9 +129,8 @@ public class CausalDeliver implements Deliver
 						opQueue.poll();
 						replicator.deliverShadowOperation(op);
 						hasDelivered = true;
-						deliveriesNumber++;
 					}
-				} while(hasDelivered && (deliveriesNumber < DELIVERIES_THREADHOLD));
+				}
 			}
 		}
 	}
