@@ -2,9 +2,7 @@ package database.scratchpad;
 
 
 import nodes.proxy.IProxyNetwork;
-import runtime.operation.DBSingleOperation;
-import runtime.txn.Transaction;
-import runtime.txn.TransactionIdentifier;
+import runtime.Transaction;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,7 +15,7 @@ import java.sql.SQLException;
 public interface IDBScratchPad
 {
 
-	public void startTransaction(TransactionIdentifier txnId);
+	public void startTransaction(int txnId);
 
 	public boolean commitTransaction(IProxyNetwork proxy);
 
@@ -25,15 +23,16 @@ public interface IDBScratchPad
 
 	public Transaction getActiveTransaction();
 
-	public int executeUpdate(DBSingleOperation op) throws SQLException;
+	public ResultSet executeQuery(String op) throws SQLException;
 
-	public ResultSet executeQuery(DBSingleOperation op) throws SQLException;
+	public int executeUpdate(String op) throws SQLException;
 
 	public void addToBatchUpdate(String op) throws SQLException;
 
 	public int executeBatch() throws SQLException;
 
-	public ResultSet executeQuery(String op) throws SQLException;
+	public ResultSet executeQueryMainStorage(String op) throws SQLException;
 
-	public int executeUpdate(String op) throws SQLException;
+	public int executeUpdateMainStorage(String op) throws SQLException;
+
 }

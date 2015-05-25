@@ -2,7 +2,7 @@ package database.scratchpad;
 
 
 import database.jdbc.ConnectionFactory;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class DBCommitPad implements IDBCommitPad
 
 	private Connection connection;
 
-	public DBCommitPad(AbstractNodeConfig config)
+	public DBCommitPad(NodeConfig config)
 	{
 		try
 		{

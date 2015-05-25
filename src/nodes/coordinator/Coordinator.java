@@ -12,7 +12,7 @@ import database.util.DataField;
 import database.util.DatabaseMetadata;
 import database.util.DatabaseTable;
 import nodes.AbstractNode;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class Coordinator extends AbstractNode
 	private Map<String, AutoIncrementEnforcer> autoIncrementsEnforcers;
 	private Map<String, CheckConstraintEnforcer> checkEnforcers;
 
-	public Coordinator(AbstractNodeConfig config)
+	public Coordinator(NodeConfig config)
 	{
 		super(config);
 
@@ -157,7 +157,7 @@ public class Coordinator extends AbstractNode
 				switch(constraint.getType())
 				{
 				case UNIQUE:
-					UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(fields, this.getConfig(),
+					UniqueConstraintEnforcer uniqueEnforcer = new UniqueConstraintEnforcer(fields, this.config,
 							(UniqueConstraint) constraint);
 					this.uniquesEnforcers.put(constraintId, uniqueEnforcer);
 					break;
@@ -169,7 +169,7 @@ public class Coordinator extends AbstractNode
 								ExitCode.INVALIDUSAGE);
 					}
 					AutoIncrementEnforcer autoIncrementEnforcer = new AutoIncrementEnforcer(fields.get(0),
-							this.getConfig(), (AutoIncrementConstraint) constraint);
+							this.config, (AutoIncrementConstraint) constraint);
 					this.autoIncrementsEnforcers.put(constraintId, autoIncrementEnforcer);
 					break;
 				case FOREIGN_KEY:
@@ -182,7 +182,7 @@ public class Coordinator extends AbstractNode
 								ExitCode.INVALIDUSAGE);
 					}
 					CheckConstraintEnforcer checkEnforcer = new CheckConstraintEnforcer(fields.get(0),
-							(CheckConstraint) constraint, this.getConfig());
+							(CheckConstraint) constraint, this.config);
 					this.checkEnforcers.put(constraintId, checkEnforcer);
 					break;
 				default:
@@ -191,10 +191,4 @@ public class Coordinator extends AbstractNode
 			}
 		}
 	}
-
-	public CoordinatorConfig getConfig()
-	{
-		return (CoordinatorConfig) this.config;
-	}
-
 }

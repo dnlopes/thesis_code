@@ -3,7 +3,7 @@ package database.constraints.check;
 
 import database.jdbc.ConnectionFactory;
 import database.util.*;
-import nodes.coordinator.CoordinatorConfig;
+import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class CheckConstraintEnforcer
 	// stores rowId, value
 	private Map<String, Double> currentValues;
 
-	public CheckConstraintEnforcer(DataField field, CheckConstraint constraint, CoordinatorConfig config)
+	public CheckConstraintEnforcer(DataField field, CheckConstraint constraint, NodeConfig config)
 	{
 		this.checkConstraint = constraint;
 		this.currentValues = new HashMap<>();
@@ -43,7 +43,7 @@ public class CheckConstraintEnforcer
 		this.setup(config);
 	}
 
-	private void setup(CoordinatorConfig config)
+	private void setup(NodeConfig config)
 	{
 		LOG.trace("scanning all used values");
 
@@ -57,7 +57,8 @@ public class CheckConstraintEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getReplicatorConfig());
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getDbProps(), Configuration
+					.getInstance().getDatabaseName());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

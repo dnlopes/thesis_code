@@ -1,34 +1,35 @@
 package nodes.proxy;
 
 
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import nodes.Role;
+import util.props.DatabaseProperties;
 
 
 /**
  * Created by dnlopes on 25/03/15.
  */
-public class ProxyConfig extends AbstractNodeConfig
+public class ProxyConfig extends NodeConfig
 {
 
-	private final AbstractNodeConfig replicatorConfig;
-	private final AbstractNodeConfig coordinatorConfig;
+	private final NodeConfig replicatorConfig;
+	private final NodeConfig coordinatorConfig;
 
-	public ProxyConfig(int id, String host, int port, String dbHost, int dbPort, String dbUser, String dbPwd,
-					   AbstractNodeConfig replicatorConfig, AbstractNodeConfig coordinatorConfig)
+	public ProxyConfig(int id, String host, int port, DatabaseProperties dbProps,
+					   NodeConfig replicatorConfig, NodeConfig coordinatorConfig)
 	{
-		super(Role.PROXY, id, host, port, dbHost, dbPort, dbUser, dbPwd);
+		super(Role.PROXY, id, host, port, dbProps);
 
 		this.replicatorConfig = replicatorConfig;
 		this.coordinatorConfig = coordinatorConfig;
 	}
 
-	public AbstractNodeConfig getReplicatorConfig()
+	public NodeConfig getReplicatorConfig()
 	{
 		return this.replicatorConfig;
 	}
 
-	public AbstractNodeConfig getCoordinatorConfig()
+	public NodeConfig getCoordinatorConfig()
 	{
 		return this.coordinatorConfig;
 	}

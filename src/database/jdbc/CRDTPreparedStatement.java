@@ -1,13 +1,7 @@
 package database.jdbc;
 
 
-import net.sf.jsqlparser.JSQLParserException;
 import nodes.proxy.Proxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import runtime.MyShadowOpCreator;
-import runtime.operation.DBSingleOperation;
-import runtime.txn.TransactionIdentifier;
 import util.exception.MissingImplementationException;
 
 import java.io.InputStream;
@@ -25,22 +19,17 @@ import java.util.concurrent.Executor;
 public class CRDTPreparedStatement implements PreparedStatement
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CRDTPreparedStatement.class);
-
 	String sql;
 	int[] argPos;
 	String[] vals;
-	private MyShadowOpCreator shdOpCreator;
-	private TransactionIdentifier txnId;
+	private int id;
+	private final Proxy proxy;
 
-	private Proxy proxy;
-
-	protected CRDTPreparedStatement(String sql, Proxy proxy, MyShadowOpCreator creator, TransactionIdentifier txnId)
+	protected CRDTPreparedStatement(String sql, int connectionId, Proxy proxy)
 	{
-		this.proxy = proxy;
 		this.sql = sql;
-		this.shdOpCreator = creator;
-		this.txnId = txnId;
+		this.id = connectionId;
+		this.proxy = proxy;
 		init(0, 0);
 	}
 
@@ -73,45 +62,14 @@ public class CRDTPreparedStatement implements PreparedStatement
 	public ResultSet executeQuery() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-
-		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
-			this.proxy.beginTransaction(txnId);
-
-		DBSingleOperation dbOp = new DBSingleOperation(arg0);
-		return proxy.executeQuery(dbOp, this.txnId);
+		return proxy.executeQuery(arg0, this.id);
 	}
 
 	@Override
 	public int executeUpdate() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-
-		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
-			this.proxy.beginTransaction(txnId);
-
-		String[] deterStatements;
-		try
-		{
-			deterStatements = shdOpCreator.makeToDeterministic(arg0);
-		} catch(JSQLParserException e)
-		{
-			LOG.warn("failed to generate deterministic statements: {}", arg0, e);
-			throw new SQLException(e);
-		}
-
-		int result = 0;
-
-		for(String updateStr : deterStatements)
-		{
-			DBSingleOperation dbOp;
-			int counter;
-			dbOp = new DBSingleOperation(updateStr);
-			counter = this.proxy.executeUpdate(dbOp, this.txnId);
-			result += counter;
-		}
-
-		LOG.trace("update statement executed properly");
-		return result;
+		return proxy.executeUpdate(arg0, this.id);
 	}
 
 	@Override
@@ -197,7 +155,6 @@ public class CRDTPreparedStatement implements PreparedStatement
 	@Override
 	public void close() throws SQLException
 	{
-		this.proxy.closeTransaction(txnId);
 	}
 
 	@Override

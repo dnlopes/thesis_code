@@ -1,9 +1,7 @@
 package tests;
 
 
-import org.xml.sax.SAXException;
-import runtime.txn.Transaction;
-import runtime.txn.TransactionIdentifier;
+import runtime.Transaction;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -16,11 +14,11 @@ public class CoordinatorTestSetup
 {
 
 	public static void main(String args[])
-			throws SQLException, IOException, SAXException, ClassNotFoundException, InterruptedException
+			throws SQLException, IOException, ClassNotFoundException, InterruptedException
 	{
 
 		//Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(1));
-		Transaction txn = new Transaction(new TransactionIdentifier(1));
+		Transaction txn = new Transaction(1);
 
 		txn.startWatch();
 		Thread.sleep(1000);

@@ -48,6 +48,7 @@ service ReplicatorRPC {
  oneway void commitOperationAsync(1:ThriftOperation op);
 }
 
+
 service CoordinatorRPC
 {
     CoordinatorResponse checkInvariants(1:CoordinatorRequest req);

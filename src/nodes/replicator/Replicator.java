@@ -4,7 +4,7 @@ package nodes.replicator;
 import database.scratchpad.DBCommitPad;
 import database.scratchpad.IDBCommitPad;
 import nodes.AbstractNode;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class Replicator extends AbstractNode
 	private IReplicatorNetwork networkInterface;
 	private ObjectPool<IDBCommitPad> commitPadPool;
 
-	public Replicator(AbstractNodeConfig config)
+	public Replicator(NodeConfig config)
 	{
 		super(config);
 

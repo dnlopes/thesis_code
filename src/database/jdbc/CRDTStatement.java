@@ -1,13 +1,7 @@
 package database.jdbc;
 
 
-import net.sf.jsqlparser.JSQLParserException;
 import nodes.proxy.Proxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import runtime.operation.DBSingleOperation;
-import runtime.MyShadowOpCreator;
-import runtime.txn.TransactionIdentifier;
 import util.exception.MissingImplementationException;
 
 import java.sql.*;
@@ -19,65 +13,25 @@ import java.sql.*;
 public class CRDTStatement implements Statement
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(CRDTStatement.class);
+	private final int id;
+	private final Proxy proxy;
 
-	private MyShadowOpCreator shdOpCreator;
-	private TransactionIdentifier txnId;
-	private Proxy proxy;
-
-	public CRDTStatement(Proxy proxy, MyShadowOpCreator creator, TransactionIdentifier txiId)
+	public CRDTStatement(int connectionId, Proxy proxy)
 	{
+		this.id = connectionId;
 		this.proxy = proxy;
-		this.shdOpCreator = creator;
-		this.txnId = txiId;
 	}
 
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
-			this.proxy.beginTransaction(txnId);
-
-		ResultSet rs;
-		DBSingleOperation dbOp = new DBSingleOperation(arg0);
-		rs = proxy.executeQuery(dbOp, this.txnId);
-
-		LOG.trace("query statement executed properly");
-		return rs;
+		return proxy.executeQuery(arg0, this.id);
 	}
 
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-
-		if(this.txnId.getValue() == TransactionIdentifier.DEFAULT_VALUE)
-			this.proxy.beginTransaction(txnId);
-
-		String[] deterStatements;
-		try
-		{
-			deterStatements = shdOpCreator.makeToDeterministic(arg0);
-
-		} catch(JSQLParserException e)
-		{
-			LOG.warn("failed to generate deterministic statements: {}", arg0, e);
-			throw new SQLException(e);
-		}
-
-		int result = 0;
-
-		for(String updateStr : deterStatements)
-		{
-			DBSingleOperation dbOp;
-			int counter;
-
-			dbOp = new DBSingleOperation(updateStr);
-			counter = this.proxy.executeUpdate(dbOp, this.txnId);
-			result += counter;
-		}
-
-		LOG.trace("update statement executed properly");
-		return result;
+		return proxy.executeUpdate(arg0, this.id);
 	}
 
 /*
@@ -123,7 +77,7 @@ public class CRDTStatement implements Statement
 	@Override
 	public void close() throws SQLException
 	{
-		this.proxy.closeTransaction(txnId);
+		this.proxy.closeTransaction(this.id);
 	}
 
 	@Override

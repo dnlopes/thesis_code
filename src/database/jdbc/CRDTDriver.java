@@ -1,5 +1,9 @@
 package database.jdbc;
 
+
+import nodes.NodeConfig;
+import nodes.proxy.Proxy;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.*;
@@ -14,15 +18,21 @@ import java.util.logging.Logger;
  */
 public class CRDTDriver implements Driver
 {
+
+	private static final int PROXY_ID = Integer.parseInt(System.getProperty("proxyid"));
+	private static final Proxy proxy;
+
 	static
 	{
 		try
 		{
 			DriverManager.registerDriver(new CRDTDriver());
+			NodeConfig config = Configuration.getInstance().getProxyConfigWithIndex(PROXY_ID);
+			proxy = new Proxy(config);
 
-		} catch(SQLException E)
+		} catch(SQLException e)
 		{
-			throw new RuntimeException("Error: failed to register CRDT:Driver");
+			throw new RuntimeException("Error: failed to register crdt:Driver");
 		}
 	}
 
@@ -33,10 +43,8 @@ public class CRDTDriver implements Driver
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException
 	{
-		// verify URL again, because some apps call Driver.getConnection
-		// which tries directly to connect and do not check url before
 		if(this.acceptsURL(url))
-			return new CRDTConnection();
+			return new CRDTConnection(proxy);
 
 		return null;
 	}

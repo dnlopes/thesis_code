@@ -3,7 +3,7 @@ package runtime;
 
 import database.util.DataField;
 import database.util.DatabaseTable;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -23,7 +23,7 @@ public class IdentifierFactory
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 
-	public static void createGenerators(AbstractNodeConfig config)
+	public static void createGenerators(NodeConfig config)
 	{
 		LOG.info("bootstraping id generators for auto increment fields");
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
@@ -38,7 +38,7 @@ public class IdentifierFactory
 		}
 	}
 
-	public static void createIdGenerator(DataField field, AbstractNodeConfig config)
+	public static void createIdGenerator(DataField field, NodeConfig config)
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 

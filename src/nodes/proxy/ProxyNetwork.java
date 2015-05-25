@@ -2,7 +2,7 @@ package nodes.proxy;
 
 
 import nodes.AbstractNetwork;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -24,16 +24,16 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 
-	public ProxyNetwork(AbstractNodeConfig node)
+	public ProxyNetwork(NodeConfig node)
 	{
 		super(node);
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node)
+	public boolean commitOperation(ShadowOperation shadowOp, NodeConfig node)
 	{
 		ThriftOperation thriftOp = RuntimeUtils.encodeThriftOperation(shadowOp);
-		TTransport newTransport = new TSocket(node.getHostName(), node.getPort());
+		TTransport newTransport = new TSocket(node.getHost(), node.getPort());
 
 		try
 		{
@@ -53,7 +53,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, AbstractNodeConfig node)
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, NodeConfig node)
 			throws TException
 	{
 		req.setRequestId(0);
@@ -63,7 +63,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 		TTransport newTransport = null;
 		try
 		{
-			newTransport = new TSocket(node.getHostName(), node.getPort());
+			newTransport = new TSocket(node.getHost(), node.getPort());
 			newTransport.open();
 			TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 			CoordinatorRPC.Client client = new CoordinatorRPC.Client(protocol);

@@ -1,7 +1,7 @@
 package nodes.proxy;
 
 
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.thrift.TException;
 import runtime.operation.ShadowOperation;
 import util.thrift.CoordinatorRequest;
@@ -13,7 +13,7 @@ import util.thrift.CoordinatorResponse;
  */
 public interface IProxyNetwork
 {
-	public boolean commitOperation(ShadowOperation shadowOp, AbstractNodeConfig node);
+	public boolean commitOperation(ShadowOperation shadowOp, NodeConfig node);
 
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, AbstractNodeConfig node) throws TException;
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, NodeConfig node) throws TException;
 }

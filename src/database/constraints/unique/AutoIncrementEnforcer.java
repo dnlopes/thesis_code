@@ -3,11 +3,12 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import nodes.coordinator.CoordinatorConfig;
+import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
+import util.defaults.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -28,14 +29,14 @@ public class AutoIncrementEnforcer
 	private AutoIncrementConstraint constraint;
 
 
-	public AutoIncrementEnforcer(DataField field, CoordinatorConfig config, AutoIncrementConstraint constraint)
+	public AutoIncrementEnforcer(DataField field, NodeConfig config, AutoIncrementConstraint constraint)
 	{
 		this.field = field;
 		this.constraint = constraint;
 		this.setup(config);
 	}
 
-	private void setup(CoordinatorConfig config)
+	private void setup(NodeConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");
@@ -47,7 +48,8 @@ public class AutoIncrementEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getReplicatorConfig());
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getDbProps(), Configuration
+					.getInstance().getDatabaseName());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

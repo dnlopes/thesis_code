@@ -1,4 +1,4 @@
-package runtime.txn;
+package runtime;
 
 
 import database.util.FieldValue;
@@ -20,7 +20,7 @@ public class Transaction
 
 	//private static final Logger LOG_FILE = LoggerFactory.getLogger("txnLogger");
 
-	private TransactionIdentifier txnId;
+	private int txnId;
 	private long latency;
 	//private StopWatch watch;
 	private ShadowOperation shadowOp;
@@ -29,7 +29,7 @@ public class Transaction
 	private Map<Integer, Operation> txnOpsMap;
 	private int opsCounter;
 
-	public Transaction(TransactionIdentifier txnId)
+	public Transaction(int txnId)
 	{
 		this.txnId = txnId;
 		this.latency = 0;
@@ -47,7 +47,7 @@ public class Transaction
 		this.txnOpsMap.put(op.getOperationId(), op);
 	}
 
-	public TransactionIdentifier getTxnId()
+	public int getTxnId()
 	{
 		return this.txnId;
 	}
@@ -107,7 +107,7 @@ public class Transaction
 		for(Operation op : this.txnOps)
 			op.generateOperationStatements(shadowStatements);
 
-		this.shadowOp = new ShadowOperation(this.txnId.getValue(), shadowStatements);
+		this.shadowOp = new ShadowOperation(this.txnId, shadowStatements);
 		this.readyToCommit = true;
 	}
 

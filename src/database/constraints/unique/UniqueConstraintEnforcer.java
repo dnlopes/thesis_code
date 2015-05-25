@@ -3,11 +3,12 @@ package database.constraints.unique;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import nodes.coordinator.CoordinatorConfig;
+import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
+import util.defaults.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -31,7 +32,7 @@ public class UniqueConstraintEnforcer
 	private List<DataField> fields;
 	private UniqueConstraint constraint;
 
-	public UniqueConstraintEnforcer(List<DataField> field, CoordinatorConfig config, UniqueConstraint constraint)
+	public UniqueConstraintEnforcer(List<DataField> field, NodeConfig config, UniqueConstraint constraint)
 	{
 		this.fields = field;
 		this.currentValues = new HashSet<>();
@@ -39,7 +40,7 @@ public class UniqueConstraintEnforcer
 		this.setup(config);
 	}
 
-	private void setup(CoordinatorConfig config)
+	private void setup(NodeConfig config)
 	{
 		LOG.trace("scanning all used values");
 
@@ -51,7 +52,8 @@ public class UniqueConstraintEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getReplicatorConfig());
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getDbProps(), Configuration
+					.getInstance().getDatabaseName());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

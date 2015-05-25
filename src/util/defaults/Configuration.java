@@ -2,10 +2,9 @@ package util.defaults;
 
 
 import database.util.DatabaseMetadata;
-import nodes.AbstractNodeConfig;
-import nodes.coordinator.CoordinatorConfig;
+import nodes.NodeConfig;
+import nodes.Role;
 import nodes.proxy.ProxyConfig;
-import nodes.replicator.ReplicatorConfig;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
+import util.props.DatabaseProperties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,9 +38,10 @@ public final class Configuration
 	private static String CONFIG_FILE;
 	private static final String BASE_DIR = "/local/dp.lopes/deploy";
 
-	private Map<Integer, ReplicatorConfig> replicators;
+	private Map<Integer, NodeConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
-	private Map<Integer, CoordinatorConfig> coordinators;
+	private Map<Integer, NodeConfig> coordinators;
+	private Map<Integer, DatabaseProperties> databases;
 	private DatabaseMetadata databaseMetadata;
 	private String databaseName;
 	private String schemaFile;
@@ -57,6 +58,7 @@ public final class Configuration
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
+		this.databases = new HashMap<>();
 
 		try
 		{
@@ -150,7 +152,37 @@ public final class Configuration
 				parseCoordinators(n);
 			if(n.getNodeName().compareTo("proxies") == 0)
 				parseProxies(n);
+			if(n.getNodeName().compareTo("databases") == 0)
+				parseDatabases(n);
 		}
+	}
+
+	private void parseDatabases(Node node)
+	{
+		NodeList nodeList = node.getChildNodes();
+
+		for(int i = 0; i < nodeList.getLength(); i++)
+		{
+			Node n = nodeList.item(i);
+			if(n.getNodeType() != Node.ELEMENT_NODE)
+				continue;
+
+			if(n.getNodeName().compareTo("database") == 0)
+				createDatabase(n);
+		}
+	}
+
+	private void createDatabase(Node n)
+	{
+		NamedNodeMap map = n.getAttributes();
+		String id = map.getNamedItem("id").getNodeValue();
+		String dbHost = map.getNamedItem("dbHost").getNodeValue();
+		String dbPort = map.getNamedItem("dbPort").getNodeValue();
+		String dbUser = map.getNamedItem("dbUser").getNodeValue();
+		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
+
+		DatabaseProperties prop = new DatabaseProperties(dbUser, dbPwd, dbHost, Integer.parseInt(dbPort));
+		databases.put(Integer.parseInt(id), prop);
 	}
 
 	private void parseReplicators(Node node)
@@ -202,18 +234,14 @@ public final class Configuration
 	{
 		NamedNodeMap map = n.getAttributes();
 		String id = map.getNamedItem("id").getNodeValue();
-		String hostName = map.getNamedItem("host").getNodeValue();
+		String host = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
-		String dbHost = map.getNamedItem("dbHost").getNodeValue();
-		String dbPort = map.getNamedItem("dbPort").getNodeValue();
-		String dbUser = map.getNamedItem("dbUser").getNodeValue();
-		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
-		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
-		ReplicatorConfig replicatorConfig = this.getAllReplicatorsConfig().get(Integer.parseInt(refReplicator));
+		String refDatabase = map.getNamedItem("refDatabase").getNodeValue();
 
-		CoordinatorConfig newCoordinator = new CoordinatorConfig(Integer.parseInt(id), hostName, Integer.parseInt
-				(port),
-				dbHost, Integer.parseInt(dbPort), dbUser, dbPwd, replicatorConfig);
+		DatabaseProperties props = this.databases.get(Integer.parseInt(refDatabase));
+
+		NodeConfig newCoordinator = new NodeConfig(Role.REPLICATOR, Integer.parseInt(id), host, Integer.parseInt(port),
+				props);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -222,15 +250,14 @@ public final class Configuration
 	{
 		NamedNodeMap map = n.getAttributes();
 		String id = map.getNamedItem("id").getNodeValue();
-		String hostName = map.getNamedItem("host").getNodeValue();
+		String host = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
-		String dbHost = map.getNamedItem("dbHost").getNodeValue();
-		String dbPort = map.getNamedItem("dbPort").getNodeValue();
-		String dbUser = map.getNamedItem("dbUser").getNodeValue();
-		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
+		String refDatabase = map.getNamedItem("refDatabase").getNodeValue();
 
-		ReplicatorConfig newReplicator = new ReplicatorConfig(Integer.parseInt(id), hostName, Integer.parseInt(port),
-				dbHost, Integer.parseInt(dbPort), dbUser, dbPwd);
+		DatabaseProperties props = this.databases.get(Integer.parseInt(refDatabase));
+
+		NodeConfig newReplicator = new NodeConfig(Role.REPLICATOR, Integer.parseInt(id), host, Integer.parseInt(port),
+				props);
 
 		replicators.put(Integer.parseInt(id), newReplicator);
 	}
@@ -239,40 +266,43 @@ public final class Configuration
 	{
 		NamedNodeMap map = n.getAttributes();
 		String id = map.getNamedItem("id").getNodeValue();
-		String hostName = map.getNamedItem("host").getNodeValue();
+		String host = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
-		String dbHost = map.getNamedItem("dbHost").getNodeValue();
-		String dbPort = map.getNamedItem("dbPort").getNodeValue();
-		String dbUser = map.getNamedItem("dbUser").getNodeValue();
-		String dbPwd = map.getNamedItem("dbPwd").getNodeValue();
+		String refDatabase = map.getNamedItem("refDatabase").getNodeValue();
 		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
 		String refCoordinator = map.getNamedItem("refCoordinator").getNodeValue();
 
-		AbstractNodeConfig replicatorConfig = this.getReplicatorConfigWithIndex(Integer.parseInt(refReplicator));
-		AbstractNodeConfig coordinatorConfig = this.getCoordinatorConfigWithIndex(Integer.parseInt(refCoordinator));
+		NodeConfig replicatorConfig = this.getReplicatorConfigWithIndex(Integer.parseInt(refReplicator));
+		DatabaseProperties props = this.databases.get(Integer.parseInt(refDatabase));
+		NodeConfig coordinatorConfig = this.getCoordinatorConfigWithIndex(Integer.parseInt(refCoordinator));
 
-		ProxyConfig newProxy = new ProxyConfig(Integer.parseInt(id), hostName, Integer.parseInt(port), dbHost,
-				Integer.parseInt(dbPort), dbUser, dbPwd, replicatorConfig, coordinatorConfig);
+		ProxyConfig newProxy = new ProxyConfig(Integer.parseInt(id), host, Integer.parseInt(port), props,
+				replicatorConfig, coordinatorConfig);
 
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public AbstractNodeConfig getReplicatorConfigWithIndex(int index)
+	public DatabaseProperties getDatabaseProperties(int index)
+	{
+		return this.databases.get(index);
+	}
+
+	public NodeConfig getReplicatorConfigWithIndex(int index)
 	{
 		return this.replicators.get(index);
 	}
 
-	public AbstractNodeConfig getCoordinatorConfigWithIndex(int index)
+	public NodeConfig getCoordinatorConfigWithIndex(int index)
 	{
 		return this.coordinators.get(index);
 	}
 
-	public AbstractNodeConfig getProxyConfigWithIndex(int index)
+	public NodeConfig getProxyConfigWithIndex(int index)
 	{
 		return this.proxies.get(index);
 	}
 
-	public Map<Integer, ReplicatorConfig> getAllReplicatorsConfig()
+	public Map<Integer, NodeConfig> getAllReplicatorsConfig()
 	{
 		return replicators;
 	}

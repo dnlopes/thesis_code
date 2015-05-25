@@ -2,7 +2,7 @@ package nodes.replicator;
 
 
 import nodes.AbstractNetwork;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -25,14 +25,14 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
-	private Map<Integer, ReplicatorConfig> replicatorsConfigs;
+	private Map<Integer, NodeConfig> replicatorsConfigs;
 
-	public ReplicatorNetwork(AbstractNodeConfig node)
+	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
 
-		for(ReplicatorConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
+		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 	}
@@ -40,9 +40,9 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	@Override
 	public void sendOperationToRemote(ThriftOperation thriftOperation)
 	{
-		for(ReplicatorConfig config : this.replicatorsConfigs.values())
+		for(NodeConfig config : this.replicatorsConfigs.values())
 		{
-			TTransport newTransport = new TSocket(config.getHostName(), config.getPort());
+			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
 
 			try
 			{

@@ -1,7 +1,7 @@
 package database.jdbc;
 
 
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.props.DatabaseProperties;
@@ -35,7 +35,7 @@ public class ConnectionFactory
 	}
 
 	public static Connection getDefaultConnection(DatabaseProperties props, String databaseName)
-			throws SQLException, ClassNotFoundException
+			throws SQLException
 	{
 		StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
 		buffer.append(props.getDbHost());
@@ -50,7 +50,7 @@ public class ConnectionFactory
 		return c;
 	}
 
-	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException, ClassNotFoundException
+	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException
 	{
 		return getDefaultConnection(props, "");
 	}
@@ -71,31 +71,33 @@ public class ConnectionFactory
 		return c;
 	}
 
-	public static Connection getDefaultConnection(AbstractNodeConfig nodeInfo) throws SQLException
+	public static Connection getDefaultConnection(NodeConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
-		url.append(nodeInfo.getDbHost());
+		url.append(nodeInfo.getDbProps().getDbHost());
 		url.append(":");
-		url.append(nodeInfo.getDbPort());
+		url.append(nodeInfo.getDbProps().getDbPort());
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbProps().getDbUser(),
+				nodeInfo.getDbProps().getDbPwd());
 		c.setAutoCommit(false);
 
 		return c;
 	}
 
-	public static Connection getCRDTConnection(AbstractNodeConfig nodeInfo) throws SQLException
+	public static Connection getCRDTConnection(NodeConfig nodeInfo) throws SQLException
 	{
 		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
-		url.append(nodeInfo.getDbHost());
+		url.append(nodeInfo.getDbProps().getDbHost());
 		url.append(":");
-		url.append(nodeInfo.getDbPort());
+		url.append(nodeInfo.getDbProps().getDbPort());
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbUser(), nodeInfo.getDbPwd());
+		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbProps().getDbUser(),
+				nodeInfo.getDbProps().getDbPwd());
 		c.setAutoCommit(false);
 
 		return c;

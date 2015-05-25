@@ -11,11 +11,11 @@ public abstract class AbstractNode
 {
 
 	private InetSocketAddress socketAddress;
-	protected AbstractNodeConfig config;
+	protected NodeConfig config;
 
-	public AbstractNode(AbstractNodeConfig config)
+	public AbstractNode(NodeConfig config)
 	{
-		this.socketAddress = new InetSocketAddress(config.getHostName(), config.getPort());
+		this.socketAddress = new InetSocketAddress(config.getHost(), config.getPort());
 		this.config = config;
 	}
 
@@ -24,7 +24,7 @@ public abstract class AbstractNode
 		return this.socketAddress;
 	}
 
-	public AbstractNodeConfig getConfig()
+	public NodeConfig getConfig()
 	{
 		return this.config;
 	}

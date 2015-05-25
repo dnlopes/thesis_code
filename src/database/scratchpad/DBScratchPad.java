@@ -27,10 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.OperationTransformer;
 import runtime.RuntimeUtils;
 import runtime.operation.*;
-import runtime.txn.Transaction;
-import runtime.txn.TransactionIdentifier;
+import runtime.Transaction;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.Configuration;
@@ -79,7 +79,7 @@ public class DBScratchPad implements IDBScratchPad
 	}
 
 	@Override
-	public void startTransaction(TransactionIdentifier txnId)
+	public void startTransaction(int txnId)
 	{
 		try
 		{
@@ -92,7 +92,7 @@ public class DBScratchPad implements IDBScratchPad
 		this.activeTransaction = new Transaction(txnId);
 		this.activeTransaction.startWatch();
 
-		LOG.trace("Beggining txn {}", activeTransaction.getTxnId().getValue());
+		LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class DBScratchPad implements IDBScratchPad
 		this.activeTransaction.recordTime("runtime");
 		if(this.activeTransaction.isReadOnly())
 		{
-			LOG.trace("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId().getValue(),
+			LOG.trace("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId(),
 					this.activeTransaction.getLatency());
 			return true;
 		} else
@@ -124,12 +124,12 @@ public class DBScratchPad implements IDBScratchPad
 
 			if(commitDecision)
 			{
-				LOG.trace("txn {} committed in {} ms", this.activeTransaction.getTxnId().getValue(),
+				LOG.trace("txn {} committed in {} ms", this.activeTransaction.getTxnId(),
 						this.activeTransaction.getLatency());
 				this.activeTransaction.printResults();
 
 			} else
-				LOG.warn("commit on main storage failed", this.activeTransaction.getTxnId().getValue());
+				LOG.warn("commit on main storage failed", this.activeTransaction.getTxnId());
 
 			return commitDecision;
 		}
@@ -142,57 +142,24 @@ public class DBScratchPad implements IDBScratchPad
 	}
 
 	@Override
-	public int executeUpdate(DBSingleOperation op) throws SQLException
+	public ResultSet executeQuery(String op) throws SQLException
 	{
+		DBSingleOperation dbOp;
+
+		dbOp = new DBSingleOperation(op);
+
 		try
 		{
-			op.parse(this.parser);
+			dbOp.parse(this.parser);
 		} catch(JSQLParserException e)
 		{
 			throw new SQLException("parser error: " + e.getMessage());
 		}
 
-		if(op.isQuery())
+		if(!dbOp.isQuery())
 			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
 
-		String[][] tableName = op.targetTable();
-
-		if(tableName.length > 1)
-			RuntimeUtils.throwRunTimeException("multi-table update not expected", ExitCode.MULTI_TABLE_UPDATE);
-
-		IExecuter executor = this.executers.get(tableName[0][2]);
-		if(executor == null)
-		{
-			LOG.error("executor for table {} not found", tableName[0][2]);
-			RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
-					ExitCode.EXECUTOR_NOT_FOUND);
-		} else
-			try
-			{
-				return executor.executeTemporaryUpdate(op, this);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
-
-		return 0;
-	}
-
-	@Override
-	public ResultSet executeQuery(DBSingleOperation op) throws SQLException
-	{
-		try
-		{
-			op.parse(this.parser);
-		} catch(JSQLParserException e)
-		{
-			throw new SQLException("parser error: " + e.getMessage());
-		}
-
-		if(!op.isQuery())
-			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
-
-		String[][] tableName = op.targetTable();
+		String[][] tableName = dbOp.targetTable();
 		if(tableName.length == 1)
 		{
 			IExecuter executor = this.executers.get(tableName[0][2]);
@@ -205,7 +172,7 @@ public class DBScratchPad implements IDBScratchPad
 
 			try
 			{
-				return executor.executeTemporaryQueryOnSingleTable((Select) op.getStatement(), this);
+				return executor.executeTemporaryQueryOnSingleTable((Select) dbOp.getStatement(), this);
 			} catch(ScratchpadException e)
 			{
 				throw new SQLException("scratchpad error: " + e.getMessage());
@@ -224,7 +191,7 @@ public class DBScratchPad implements IDBScratchPad
 			}
 			try
 			{
-				return executors[0].executeTemporaryQueryOnMultTable((Select) op.getStatement(), this, executors,
+				return executors[0].executeTemporaryQueryOnMultTable((Select) dbOp.getStatement(), this, executors,
 						tableName);
 			} catch(ScratchpadException e)
 			{
@@ -234,13 +201,28 @@ public class DBScratchPad implements IDBScratchPad
 	}
 
 	@Override
-	public ResultSet executeQuery(String op) throws SQLException
+	public ResultSet executeQueryMainStorage(String op) throws SQLException
 	{
 		return this.statQ.executeQuery(op);
 	}
 
+	public int executeUpdate(String originalOperation) throws SQLException
+	{
+		String[] deterministicOps;
+		try
+		{
+			deterministicOps = OperationTransformer.makeToDeterministic(this.defaultConnection, this.parser,
+					originalOperation);
+		} catch(JSQLParserException e)
+		{
+			throw new SQLException("parser exception");
+		}
+
+		return this.executeUpdate(deterministicOps);
+	}
+
 	@Override
-	public int executeUpdate(String op) throws SQLException
+	public int executeUpdateMainStorage(String op) throws SQLException
 	{
 		return this.statU.executeUpdate(op);
 	}
@@ -271,18 +253,6 @@ public class DBScratchPad implements IDBScratchPad
 		statBU.clearBatch();
 		batchEmpty = true;
 		return finalResult;
-	}
-
-	private void resetScratchpad() throws SQLException
-	{
-		this.activeTransaction = null;
-		this.statBU.clearBatch();
-
-		for(IExecuter executer : this.executers.values())
-			executer.resetExecuter(this);
-
-		this.executeBatch();
-		this.batchEmpty = true;
 	}
 
 	@Override
@@ -321,7 +291,7 @@ public class DBScratchPad implements IDBScratchPad
 
 	private void prepareToCommit(IProxyNetwork network)
 	{
-		LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId().getValue());
+		LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
 
 		try
 		{
@@ -354,8 +324,73 @@ public class DBScratchPad implements IDBScratchPad
 			this.activeTransaction.generateShadowOperation();
 		} catch(TException e)
 		{
-			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId().getValue(), e);
+			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId(), e);
 		}
+	}
+
+	private int executeUpdate(String[] updatesOps) throws SQLException
+	{
+		int result = 0;
+
+		for(String updateStr : updatesOps)
+		{
+			DBSingleOperation dbOp;
+			int counter;
+			dbOp = new DBSingleOperation(updateStr);
+			counter = this.executeUpdate(dbOp);
+			result += counter;
+		}
+
+		LOG.trace("update statement executed properly");
+		return result;
+	}
+
+	private int executeUpdate(DBSingleOperation op) throws SQLException
+	{
+		try
+		{
+			op.parse(this.parser);
+		} catch(JSQLParserException e)
+		{
+			throw new SQLException("parser error: " + e.getMessage());
+		}
+
+		if(op.isQuery())
+			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+
+		String[][] tableName = op.targetTable();
+
+		if(tableName.length > 1)
+			RuntimeUtils.throwRunTimeException("multi-table update not expected", ExitCode.MULTI_TABLE_UPDATE);
+
+		IExecuter executor = this.executers.get(tableName[0][2]);
+		if(executor == null)
+		{
+			LOG.error("executor for table {} not found", tableName[0][2]);
+			RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
+					ExitCode.EXECUTOR_NOT_FOUND);
+		} else
+			try
+			{
+				return executor.executeTemporaryUpdate(op, this);
+			} catch(ScratchpadException e)
+			{
+				throw new SQLException("scratchpad error: " + e.getMessage());
+			}
+
+		return 0;
+	}
+
+	private void resetScratchpad() throws SQLException
+	{
+		this.activeTransaction = null;
+		this.statBU.clearBatch();
+
+		for(IExecuter executer : this.executers.values())
+			executer.resetExecuter(this);
+
+		this.executeBatch();
+		this.batchEmpty = true;
 	}
 
 	private class DBExecuter implements IExecuter
@@ -749,9 +784,9 @@ public class DBScratchPad implements IDBScratchPad
 					tempAlias.add(tableNameAlias + "." + colSet.getString(4));
 					tempTempAlias.add(this.tempTableNameAlias + "." + colSet.getString(4));
 					tempIsStr.add(colSet.getInt(5) == Types.VARCHAR || colSet.getInt(
-									5) == Types.LONGNVARCHAR || colSet.getInt(5) == Types.LONGVARCHAR || colSet.getInt(
-									5) == Types.CHAR || colSet.getInt(5) == Types.DATE || colSet.getInt(
-									5) == Types.TIMESTAMP || colSet.getInt(5) == Types.TIME);
+							5) == Types.LONGNVARCHAR || colSet.getInt(5) == Types.LONGVARCHAR || colSet.getInt(
+							5) == Types.CHAR || colSet.getInt(5) == Types.DATE || colSet.getInt(
+							5) == Types.TIMESTAMP || colSet.getInt(5) == Types.TIME);
 				}
 				colSet.close();
 				String[] cols = new String[temp.size()];
@@ -829,8 +864,8 @@ public class DBScratchPad implements IDBScratchPad
 
 				LOG.trace("buffer1: {}", buffer.toString());
 				LOG.trace("buffer2: {}", buffer2.toString());
-				scratchpad.executeUpdate(buffer2.toString());
-				scratchpad.executeUpdate(buffer.toString());
+				scratchpad.executeUpdateMainStorage(buffer2.toString());
+				scratchpad.executeUpdateMainStorage(buffer.toString());
 
 			} catch(SQLException e)
 			{
@@ -909,12 +944,12 @@ public class DBScratchPad implements IDBScratchPad
 			String finalQuery = buffer.toString();
 			LOG.trace("query generated: {}", finalQuery);
 
-			return db.executeQuery(finalQuery);
+			return db.executeQueryMainStorage(finalQuery);
 		}
 
 		private ResultSet cenas(IDBScratchPad pad, String cenas) throws SQLException
 		{
-			return pad.executeQuery(cenas);
+			return pad.executeQueryMainStorage(cenas);
 		}
 
 		@Override
@@ -1062,7 +1097,7 @@ public class DBScratchPad implements IDBScratchPad
 				//			}
 				//		}
 				addWhere(buffer, select.getWhere(), policies, tables, false);
-				return db.executeQuery(buffer.toString());
+				return db.executeQueryMainStorage(buffer.toString());
 			}
 		}
 
@@ -1162,7 +1197,7 @@ public class DBScratchPad implements IDBScratchPad
 			buffer.append(" values ");
 			buffer.append(insertOp.getItemsList());
 
-			int result = db.executeUpdate(buffer.toString());
+			int result = db.executeUpdateMainStorage(buffer.toString());
 
 			Operation op;
 
@@ -1226,7 +1261,7 @@ public class DBScratchPad implements IDBScratchPad
 
 			try
 			{
-				res = db.executeQuery(query);
+				res = db.executeQueryMainStorage(query);
 				Row rowToDelete = null;
 				while(res.next())
 				{
@@ -1249,7 +1284,7 @@ public class DBScratchPad implements IDBScratchPad
 				buffer.append(deleteOp.getWhere().toString());
 				String delete = buffer.toString();
 
-				db.executeUpdate(delete);
+				db.executeUpdateMainStorage(delete);
 
 				Operation op;
 				if(this.databaseTable.isParentTable())
@@ -1383,7 +1418,7 @@ public class DBScratchPad implements IDBScratchPad
 			ResultSet res = null;
 			try
 			{
-				res = pad.executeQuery(buffer.toString());
+				res = pad.executeQueryMainStorage(buffer.toString());
 				while(res.next())
 				{
 					if(!res.getString("tname").equals(this.tempTableName))
@@ -1457,7 +1492,7 @@ public class DBScratchPad implements IDBScratchPad
 
 					duplicatedRows.add(pkValue);
 					buffer.append(")");
-					pad.executeUpdate(buffer.toString());
+					pad.executeUpdateMainStorage(buffer.toString());
 				}
 			} catch(SQLException e)
 			{
@@ -1516,7 +1551,8 @@ public class DBScratchPad implements IDBScratchPad
 			Expression whereClause = updateOp.getWhere();
 			if(whereClause == null)
 				RuntimeUtils.throwRunTimeException(
-						"update operation should specify a primary key in the where " + "clause", ExitCode.INVALIDUSAGE);
+						"update operation should specify a primary key in the where " + "clause",
+						ExitCode.INVALIDUSAGE);
 
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("SELECT ");
@@ -1529,7 +1565,7 @@ public class DBScratchPad implements IDBScratchPad
 			ResultSet rs = null;
 			try
 			{
-				rs = pad.executeQuery(buffer.toString());
+				rs = pad.executeQueryMainStorage(buffer.toString());
 				rs.next();
 
 				if(!rs.isLast())

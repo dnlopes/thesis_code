@@ -13,9 +13,9 @@ public abstract class AbstractNetwork
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractNetwork.class);
 
-	protected AbstractNodeConfig me;
+	protected NodeConfig me;
 
-	public AbstractNetwork(AbstractNodeConfig node)
+	public AbstractNetwork(NodeConfig node)
 	{
 		this.me = node;
 	}

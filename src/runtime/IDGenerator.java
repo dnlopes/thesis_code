@@ -3,7 +3,7 @@ package runtime;
 
 import database.jdbc.ConnectionFactory;
 import database.util.DataField;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class IDGenerator
 	private DataField field;
 	private int delta;
 
-	public IDGenerator(DataField field, AbstractNodeConfig config)
+	public IDGenerator(DataField field, NodeConfig config)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
@@ -38,7 +38,7 @@ public class IDGenerator
 		this.setupGenerator(config);
 	}
 
-	private void setupGenerator(AbstractNodeConfig config)
+	private void setupGenerator(NodeConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT MAX(");

@@ -6,7 +6,7 @@ import database.scratchpad.DBScratchPad;
 import database.scratchpad.IDBScratchPad;
 import database.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.JSQLParserException;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import nodes.proxy.ProxyConfig;
 import util.defaults.Configuration;
 
@@ -27,7 +27,7 @@ public class PadTest
 		pStmts = new PreparedStatement[37];
 
 		Configuration config = Configuration.getInstance();
-		AbstractNodeConfig proxy = config.getProxyConfigWithIndex(1);
+		NodeConfig proxy = config.getProxyConfigWithIndex(1);
 
 		conn = ConnectionFactory.getCRDTConnection(proxy);
 
