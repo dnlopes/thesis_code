@@ -106,9 +106,9 @@ public class Replicator extends AbstractNode
 	{
 		synchronized(this.clock)
 		{
-			LOG.info("merging clocks {} with {}", this.clock.toString(), clock.toString());
+			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
 			this.clock = this.clock.maxClock(clock);
-			LOG.info("merged clock is {}", this.clock.toString());
+			LOG.debug("merged clock is {}", this.clock.toString());
 		}
 	}
 
