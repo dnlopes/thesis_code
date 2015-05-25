@@ -17,9 +17,11 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 
 #NUMBER_USERS_LIST=[1,3]
-NUMBER_REPLICAS=[3,5]
+#NUMBER_REPLICAS=[3,5]
+NUMBER_REPLICAS=[5]
 #JDCBs=['mysql_crdt']
-NUMBER_USERS_LIST=[3,6,15,30,45,60]
+#NUMBER_USERS_LIST=[3,6,15,30,45,60]
+NUMBER_USERS_LIST=[5,10,15,30,45,60]
 #NUMBER_USERS_LIST=[1,3]
 #NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
