@@ -124,7 +124,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                     
             LOG_FILE_DIR += str(replicasNum) + 'replicas'
             for usersNum in NUMBER_USERS_LIST:                
-                usersPerReplica = usersNum / replicasNum
+                usersPerReplica = usersNum
+                #usersPerReplica = usersNum / replicasNum
                 global NUMBER_USERS
                 NUMBER_USERS = usersNum                
                 #LOG_FILE_DIR += str(replicasNum) + 'replicas_'
@@ -347,10 +348,12 @@ def parseConfigFile():
     e = ET.parse(CONFIG_FILE).getroot()
     distinctNodesSet = Set()
     dbsSet = Set()
-    proxiesSet = Set()
-    coordinatorsSet = Set()
-    replicatorsSet = Set()
     global coordinators_map, replicatorsHostToPortMap, proxiesHostToPortMap, coordinatorsHostToPortMap
+    global database_nodes
+    global replicators_nodes
+    global proxies_nodes
+    global distinct_nodes
+    global coordinators_nodes
 
     for replicator in e.iter('replicator'):
         replicatorId = replicator.get('id')
@@ -358,7 +361,7 @@ def parseConfigFile():
         dbHost = replicator.get('dbHost')
         port = replicator.get('port')
         dbsSet.add(dbHost)
-        replicatorsSet.add(host)
+        replicators_nodes.append(host)
         distinctNodesSet.add(host)
         replicatorsHostToPortMap[host] = port
         replicators_map[host] = replicatorId                 
@@ -368,7 +371,8 @@ def parseConfigFile():
         dbHost = proxy.get('dbHost')
         port = proxy.get('port')
         dbsSet.add(dbHost)
-        proxiesSet.add(host) 
+        #proxiesSet.add(host) 
+        proxies_nodes.append(host)
         distinctNodesSet.add(host)
         proxies_map[host] = proxyId     
         proxiesHostToPortMap[host] = port    
@@ -377,21 +381,12 @@ def parseConfigFile():
         port = coordinator.get('port')
         host = coordinator.get('host')        
         #dbsSet.add(dbHost)
-        coordinatorsSet.add(host)      
+        coordinators_nodes.append(host)    
         distinctNodesSet.add(host) 
         coordinators_map[host] = coordinatorId   
         coordinatorsHostToPortMap[host] = port      
 
-    global database_nodes
-    global replicators_nodes
-    global proxies_nodes
-    global distinct_nodes
-    global coordinators_nodes
-
     database_nodes = list(dbsSet)
-    proxies_nodes = list(proxiesSet)
-    replicators_nodes = list(replicatorsSet)
-    coordinators_nodes = list(coordinatorsSet)
     distinct_nodes = list(distinctNodesSet)
 
     logger.info('Databases: %s', database_nodes)
