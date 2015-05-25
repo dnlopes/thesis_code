@@ -69,7 +69,7 @@ public class CausalDeliver implements Deliver
 	private void addToQueue(ShadowOperation op)
 	{
 		int replicatorId = op.getReplicatorId();
-		LOG.debug("adding to queue");
+		LOG.debug("adding op with clock {} to queue", op.getClock().getClockValue());
 		this.queues.get(replicatorId).add(op);
 	}
 
