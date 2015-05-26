@@ -185,12 +185,12 @@ def benchmarkTPCC(configsFilesBaseDir):
                 else:
                     logger.info('running original experiment') 
                 
-                time.sleep(TPCC_TEST_TIME+30)   
+                time.sleep(TPCC_TEST_TIME+45)   
                 isRunning = True
                 while isRunning:
                     logger.info('checking experiment status...')   
                     with hide('running'):
-                        stillRunning = execute(checkClientsIsRunning, proxiesNumber, hosts=clients_nodes)
+                        stillRunning = execute(areClientsRunning, proxiesNumber, hosts=clients_nodes)
                         if stillRunning:
                             isRunning = True
                             logger.info('experiment is still running!')                
@@ -408,17 +408,17 @@ def prepareTPCCDatabase():
         run('tar zxvf mysql-5.6_ready.tar.gz')
     time.sleep(3)
 
-def checkClientsIsRunning(proxiesNumber):
-    hasFinished = True
+def areClientsRunning(proxiesNumber):
+    stillRunning = False
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
         logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
         with cd(DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:
-                return False
+                return True
 
-    return hasFinished
+    return stillRunning
 
 def processLogFiles():
     numberClients = len(proxies_map)
