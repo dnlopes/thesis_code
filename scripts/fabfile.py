@@ -69,7 +69,7 @@ database_nodes = []
 replicators_nodes = []
 coordinators_nodes = []
 proxies_nodes = []
-clients_nodes = ['node10']
+clients_nodes = ['node10', 'node10']
 
 configsMap = dict()
 database_map = dict()
@@ -246,7 +246,7 @@ def startDatabases():
 @parallel
 def startCoordinators():
     currentId = coordinators_map.get(env.host_string)    
-    port = coordinatorsHostToPortMap.get(env.host_string)
+    port = coordinatorsIdToPortMap.get(currentId)
     logFile = 'coordinator_' + str(currentId) + ".log"
     command = 'java -Xms2000m -Xmx4000m -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting coordinator at %s', env.host_string)
@@ -261,7 +261,7 @@ def startCoordinators():
 @parallel
 def startReplicators():
     currentId = replicators_map.get(env.host_string)    
-    port = replicatorsHostToPortMap.get(env.host_string)
+    port = replicatorsIdToPortMap.get(currentId)
     logFile = 'replicator_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
     command = 'java -Xms2000m -Xmx4000m -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
@@ -351,7 +351,8 @@ def parseConfigFile():
     logger.info('parsing config file: %s', CONFIG_FILE)
     e = ET.parse(CONFIG_FILE).getroot()
     distinctNodesSet = Set()
-    global coordinators_map, replicatorsIdToPortMap, proxiesIdToPortMap, coordinatorsToPortMap
+    distinctNodesSet.add(clients_nodes[0])
+    global coordinators_map, replicatorsIdToPortMap, proxiesIdToPortMap, coordinatorsIdToPortMap
     global database_nodes
     global replicators_nodes
     global proxies_nodes
