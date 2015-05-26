@@ -177,8 +177,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                     logger.info('all replicators are online') 
 
                 #start clients
-                with hide('running','output'):
-                    execute(startTPCCclients, proxiesNumber, usersPerProxy, customJDBC, hosts=clients_nodes)
+                #with hide('running','output'):
+                execute(startTPCCclients, proxiesNumber, usersPerProxy, customJDBC, hosts=clients_nodes)
                 
                 if weakDBExperiment:
                     logger.info('running a experiment with our middleware') 
@@ -273,7 +273,6 @@ def startReplicators():
         return '0'
     return '1'
 
-@parallel
 def startTPCCclients(proxiesNumber, usersPerProxy, useCustomJDBC):
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
