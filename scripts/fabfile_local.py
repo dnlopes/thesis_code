@@ -7,7 +7,7 @@ import logging
 import shlex
 import subprocess, signal
 import os
-from parseConfigFile import parseConfigInput
+from parser import parseConfigInput
 
 #------------------------------------------------------------------------------
 # Deployment Scripts

@@ -7,25 +7,26 @@ import logging
 import shlex
 import subprocess, signal
 import os
-from parseConfigFile import parseConfigInput
+from parser import *
+from plots import generateLatencyThroughput
 
 #------------------------------------------------------------------------------
 # Deployment Scripts
 # Author: David Lopes
 # Nova University of Lisbon
-# Last update: May, 2015
+# Last updated: May, 2015
 #------------------------------------------------------------------------------
 
-#NUMBER_USERS_LIST=[1,3]
-#NUMBER_REPLICAS=[3,5]
-NUMBER_REPLICAS=[5]
-#JDCBs=['mysql_crdt']
-#NUMBER_USERS_LIST=[3,6,15,30,45,60]
-NUMBER_USERS_LIST=[5,10,15,30,45,60]
-#NUMBER_USERS_LIST=[1,3]
-#NUMBER_REPLICAS=[1,3,5]
+numbersToReplicasMap = dict()
+NUMBER_REPLICAS=[1,3,5]
+NUMBER_USERS_LIST_1=[1,5,10,20,40]
+NUMBER_USERS_LIST_3=[3,6,15,30,45,60,90]
+NUMBER_USERS_LIST_5=[5,10,15,30,45,60,100]
+numbersToReplicasMap[1] = NUMBER_USERS_LIST_1
+numbersToReplicasMap[3] = NUMBER_USERS_LIST_3
+numbersToReplicasMap[5] = NUMBER_USERS_LIST_5
+
 JDCBs=['mysql_crdt']
-#JDCBs=['mysql_jdbc', 'mysql_crdt']
 
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.DEBUG)
@@ -43,8 +44,8 @@ env.user = 'dp.lopes'
 # GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
-TPCC_TEST_TIME=45
-NUMBER_USERS=0
+TPCC_TEST_TIME=10
+TOTAL_USERS=0
 
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
@@ -68,6 +69,7 @@ database_nodes = []
 replicators_nodes = []
 coordinators_nodes = []
 proxies_nodes = []
+clients_nodes = ['node10']
 
 configsMap = dict()
 database_map = dict()
@@ -105,6 +107,7 @@ def benchmarkTPCC(configsFilesBaseDir):
     LOG_FILE_DIR = time.strftime("%H_%M_%S") + '_test_'                
 
     for replicasNum in NUMBER_REPLICAS:
+        usersList = numbersToReplicasMap.get(replicasNum)
         global CONFIG_FILE
         CONFIG_FILE = configsFilesBaseDir + '/'
         #CONFIG_FILE += 'tpcc_localhost_' + str(replicasNum) + 'node.xml'
@@ -123,16 +126,23 @@ def benchmarkTPCC(configsFilesBaseDir):
                 customJDBC='false'     
                 weakDBExperiment = False   
                     
-            LOG_FILE_DIR += str(replicasNum) + 'replicas'
-            for usersNum in NUMBER_USERS_LIST:                
-                usersPerReplica = usersNum
-                #usersPerReplica = usersNum / replicasNum
-                global NUMBER_USERS
-                NUMBER_USERS = usersNum                
-                #LOG_FILE_DIR += str(replicasNum) + 'replicas_'
-                #LOG_FILE_DIR += str(usersNum) + 'users/'                
-                logger.info('this experiment will be logged to ' + LOG_FILE_DIR) 
-                
+            LOG_FILE_DIR += str(replicasNum) + 'replicas'            
+            for usersNum in usersList:                
+                global TOTAL_USERS
+                TOTAL_USERS = usersNum                                
+                usersPerReplica = usersNum / replicasNum
+                usersPerProxy = usersNum / replicasNum  
+                proxiesNumber = len(replicators_nodes)                             
+                logger.info('>>>>>> Experimental setup for this experiment:')
+                logger.info('>> config file: %s', CONFIG_FILE)  
+                logger.info('>> databases: %s', database_nodes) 
+                logger.info('>> replicators: %s', replicators_nodes)
+                logger.info('>> number of proxies: %s', proxiesNumber)                
+                logger.info('>> clients per proxy: %s', usersPerProxy)
+                logger.info('>> total users: %s', TOTAL_USERS) 
+                logger.info('>> custom JDBC: %s', customJDBC) 
+                logger.info('>> logs dir: %s', LOG_FILE_DIR)                           
+
                 # preparar database
                 logger.info('preparing tpcc database')
                 with hide('running','output'):
@@ -168,7 +178,7 @@ def benchmarkTPCC(configsFilesBaseDir):
 
                 #start clients
                 with hide('running','output'):
-                    execute(startTPCCclients, usersPerReplica, customJDBC, hosts=proxies_nodes)
+                    execute(startTPCCclients, proxiesNumber, usersPerProxy, customJDBC, hosts=clients_nodes)
                 
                 if weakDBExperiment:
                     logger.info('running a experiment with our middleware') 
@@ -205,18 +215,9 @@ def benchmarkTPCC(configsFilesBaseDir):
                 logger.info('moving to the next iteration!')
 
             logger.info('generating plot for ' + str(replicasNum) + ' replicas experiment')
-            generateLatencyThroughput()            
 
-def generateLatencyThroughput():
-    prefix = LOGS_DIR + '/' + LOG_FILE_DIR 
-    with lcd(prefix):        
-        for n in NUMBER_USERS_LIST:
-            fileName = prefix + '/' + str(n) + '_clients.result'
-            local('cat ' + fileName + ' >> plot_data')
-            local('echo \'\' ' ' >> plot_data')
-    
-        plotFilePath = EXPERIMENTS_DIR + '/latency-throughput.gp' 
-        local('gnuplot -e \"data=\'plot_data\'; outputfile=\'plot.eps\'\" ' + plotFilePath)
+            dirPath = LOGS_DIR + '/' + LOG_FILE_DIR         
+            generateLatencyThroughput(dirPath)            
 
 def prepareTPCW():
     if not is_mysql_running():
@@ -233,7 +234,8 @@ def prepareTPCW():
 @parallel
 def startDatabases():
     command = 'nohup ' + MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'  
-    logger.info('starting database: %s',command)
+    logger.info('starting database at %s', env.host_string)
+    logger.info(command)
     with cd(MYSQL_DIR), hide('running','output'):    
         run(command)    
     time.sleep(15)
@@ -260,7 +262,7 @@ def startCoordinators():
 def startReplicators():
     currentId = replicators_map.get(env.host_string)    
     port = replicatorsHostToPortMap.get(env.host_string)
-    logFile = 'replicator_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
+    logFile = 'replicator_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
     command = 'java -Xms2000m -Xmx4000m -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
     logger.info('%s',command)
@@ -272,14 +274,16 @@ def startReplicators():
     return '1'
 
 @parallel
-def startTPCCclients(clientsNum, useCustomJDBC):
-    currentId = proxies_map.get(env.host_string)    
-    logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
-    command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
-    logger.info('starting client at %s', env.host_string)
-    logger.info('%s',command)
-    with cd(DEPLOY_DIR):
-        run(command)  
+def startTPCCclients(proxiesNumber, usersPerProxy, useCustomJDBC):
+
+    for y in xrange(1, proxiesNumber+1):
+        currentId = y
+        logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
+        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+        logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
+        logger.info('%s',command)
+        with cd(DEPLOY_DIR):
+            run(command)  
 
 def pushLogs():
     logger.info('%s is pushing log files to proper directory', env.host_string)
@@ -408,7 +412,7 @@ def prepareTPCCDatabase():
 @parallel
 def checkClientsIsRunning():
     currentId = proxies_map.get(env.host_string)
-    logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
+    logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
     #logFile = 'client_' + str(currentId) + ".log"
     with cd(DEPLOY_DIR):
         output = run('tail ' + logFile)
@@ -436,7 +440,7 @@ def processLogFiles():
 
     avgLatency = totalLatency / numberClients
     
-    fileName = prefix + '/' + str(NUMBER_USERS) + '_clients.result'
+    fileName = prefix + '/' + str(TOTAL_USERS) + '_clients.result'
                
     #OPS LATENCY CLIENTS
     with lcd(prefix):
