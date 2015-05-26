@@ -30,6 +30,7 @@ public class Proxy extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 	private static int TXN_COUNT = 0;
 	private static final int FREQUENCY = 150;
+	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = 30;
 
 	private final ObjectPool<IDBScratchPad> scratchpadsPool;
 	// associates a connection id with the corresponding scratchpad
@@ -171,7 +172,7 @@ public class Proxy extends AbstractNode
 	{
 		Configuration conf = Configuration.getInstance();
 
-		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
+		for(int i = 0; i < TEMPORARY_SCRATCHPAD_POOL_SIZE; i++)
 		{
 			try
 			{
@@ -180,7 +181,7 @@ public class Proxy extends AbstractNode
 				this.scratchpadsCount.incrementAndGet();
 			} catch(ScratchpadException | SQLException e)
 			{
-				LOG.error("failed to create scratchpad pool", e);
+				LOG.error("failed to create scratchpad with id {}", i, e);
 				RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
 		}
