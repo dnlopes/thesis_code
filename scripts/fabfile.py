@@ -189,8 +189,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                 isRunning = True
                 while isRunning:
                     logger.info('checking experiment status...')   
-                    with hide('output','running'):
-                        stillRunning = execute(checkClientsIsRunning, hosts=clients_nodes)
+                    with hide('running'):
+                        stillRunning = execute(checkClientsIsRunning, proxiesNumber, hosts=clients_nodes)
                         if stillRunning:
                             isRunning = True
                             logger.info('experiment is still running!')                
@@ -408,7 +408,7 @@ def prepareTPCCDatabase():
         run('tar zxvf mysql-5.6_ready.tar.gz')
     time.sleep(3)
 
-def checkClientsIsRunning():
+def checkClientsIsRunning(proxiesNumber):
     hasFinished = True
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
