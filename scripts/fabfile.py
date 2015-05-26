@@ -191,8 +191,7 @@ def benchmarkTPCC(configsFilesBaseDir):
                     logger.info('checking experiment status...')   
                     with hide('output','running'):
                         stillRunning = execute(checkClientsIsRunning, hosts=clients_nodes)
-                    for key, value in stillRunning.iteritems():
-                        if value == '1':
+                        if stillRunning:
                             isRunning = True
                             logger.info('experiment is still running!')                
                             break
