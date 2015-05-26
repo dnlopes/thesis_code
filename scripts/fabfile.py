@@ -18,7 +18,7 @@ from plots import generateLatencyThroughput
 #------------------------------------------------------------------------------
 
 numbersToReplicasMap = dict()
-NUMBER_REPLICAS=[1,3,5]
+NUMBER_REPLICAS=[5]
 NUMBER_USERS_LIST_1=[1,5,10,20,40]
 NUMBER_USERS_LIST_3=[3,6,15,30,45,60,90]
 NUMBER_USERS_LIST_5=[5,10,15,30,45,60,100]
@@ -357,6 +357,7 @@ def parseConfigFile():
     global proxies_nodes
     global distinct_nodes
     global coordinators_nodes
+    global clients_nodes
 
     for database in e.iter('database'):
         dbId = database.get('id')
@@ -393,10 +394,10 @@ def parseConfigFile():
 
     distinct_nodes = list(distinctNodesSet)
 
-    logger.info('Databases: %s', database_nodes)
-    logger.info('Clients: %s', proxies_nodes)
-    logger.info('Replicators: %s', replicators_nodes)
+    logger.info('Databases: %s', database_nodes)    
     logger.info('Coordinators: %s', coordinators_nodes)
+    logger.info('Replicators: %s', replicators_nodes)
+    logger.info('Clients: %s', clients_nodes)
     logger.info('Distinct nodes: %s', distinct_nodes)
 
 @parallel
