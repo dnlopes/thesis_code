@@ -248,7 +248,7 @@ def startCoordinators():
     currentId = coordinators_map.get(env.host_string)    
     port = coordinatorsIdToPortMap.get(currentId)
     logFile = 'coordinator_' + str(currentId) + ".log"
-    command = 'java -Xms2000m -Xmx4000m -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
+    command = 'java -Xms2000m -Xmx4000m -jar coordinator.jar ' + CONFIG_FILE + ' ' + str(currentId) + ' > ' + logFile + ' &'
     logger.info('starting coordinator at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
@@ -263,7 +263,7 @@ def startReplicators():
     currentId = replicators_map.get(env.host_string)    
     port = replicatorsIdToPortMap.get(currentId)
     logFile = 'replicator_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
-    command = 'java -Xms2000m -Xmx4000m -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
+    command = 'java -Xms2000m -Xmx4000m -jar replicator.jar ' + CONFIG_FILE + ' ' + str(currentId) + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
     logger.info('%s',command)
     with cd(DEPLOY_DIR), hide('running','output'):
@@ -275,11 +275,10 @@ def startReplicators():
 
 @parallel
 def startTPCCclients(proxiesNumber, usersPerProxy, useCustomJDBC):
-
     for y in xrange(1, proxiesNumber+1):
-        currentId = y
+        currentId = str(y)
         logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
-        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + str(currentId) + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
         logger.info('%s',command)
         with cd(DEPLOY_DIR):
