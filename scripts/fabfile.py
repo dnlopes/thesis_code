@@ -44,7 +44,7 @@ env.user = 'dp.lopes'
 # GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
-TPCC_TEST_TIME=10
+TPCC_TEST_TIME=60
 TOTAL_USERS=0
 
 
@@ -189,14 +189,15 @@ def benchmarkTPCC(configsFilesBaseDir):
                 isRunning = True
                 while isRunning:
                     logger.info('checking experiment status...')   
-                    with hide('running'):
+                    with hide('running', 'output'):
                         stillRunning = execute(areClientsRunning, proxiesNumber, hosts=clients_nodes)
-                        if stillRunning:
+                        logger.info('status: %s', stillRunning)
+                        if stillRunning == True:
                             isRunning = True
                             logger.info('experiment is still running!')                
                         else:
                             isRunning = False
-                    if isRunning:
+                    if isRunning == True:
                         time.sleep(10)
                     else:
                         break                        
