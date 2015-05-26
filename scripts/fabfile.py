@@ -194,7 +194,6 @@ def benchmarkTPCC(configsFilesBaseDir):
                         if stillRunning:
                             isRunning = True
                             logger.info('experiment is still running!')                
-                            break
                         else:
                             isRunning = False
                     if isRunning:
@@ -202,7 +201,9 @@ def benchmarkTPCC(configsFilesBaseDir):
                     else:
                         break                        
                 logger.info('the experiment has finished!')
+                
                 killProcesses() 
+                
                 with cd(LOGS_DIR), hide('warnings'), settings(warn_only=True):       
                     run('mkdir -p ' + LOG_FILE_DIR)        
 
@@ -416,6 +417,7 @@ def areClientsRunning(proxiesNumber):
         with cd(DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:
+                LOG.debug('emulator %s not finished yet!', currentId)
                 return True
 
     return stillRunning
