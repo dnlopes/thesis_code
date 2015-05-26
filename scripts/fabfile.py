@@ -177,8 +177,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                     logger.info('all replicators are online') 
 
                 #start clients
-                #with hide('running','output'):
-                execute(startTPCCclients, proxiesNumber, usersPerProxy, customJDBC, hosts=clients_nodes)
+                with hide('running','output'):
+                    execute(startTPCCclients, proxiesNumber, usersPerProxy, customJDBC, hosts=clients_nodes)
                 
                 if weakDBExperiment:
                     logger.info('running a experiment with our middleware') 
@@ -190,7 +190,7 @@ def benchmarkTPCC(configsFilesBaseDir):
                 while isRunning:
                     logger.info('checking experiment status...')   
                     with hide('output','running'):
-                        stillRunning = execute(checkClientsIsRunning, hosts=proxies_nodes)
+                        stillRunning = execute(checkClientsIsRunning, hosts=clients_nodes)
                     for key, value in stillRunning.iteritems():
                         if value == '1':
                             isRunning = True
@@ -409,18 +409,17 @@ def prepareTPCCDatabase():
         run('tar zxvf mysql-5.6_ready.tar.gz')
     time.sleep(3)
 
-@parallel
 def checkClientsIsRunning():
-    currentId = proxies_map.get(env.host_string)
-    logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
-    #logFile = 'client_' + str(currentId) + ".log"
-    with cd(DEPLOY_DIR):
-        output = run('tail ' + logFile)
-        if 'CLIENT TERMINATED' in output:
-            return '0'
-        else:
-            return '1'
+    hasFinished = True
+    for y in xrange(1, proxiesNumber+1):
+        currentId = str(y)
+        logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
+        with cd(DEPLOY_DIR):
+            output = run('tail ' + logFile)
+            if 'CLIENT TERMINATED' not in output:
+                return False
 
+    return hasFinished
 
 def processLogFiles():
     numberClients = len(proxies_map)
