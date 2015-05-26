@@ -17,10 +17,12 @@ from parseConfigFile import parseConfigInput
 #------------------------------------------------------------------------------
 
 #NUMBER_USERS_LIST=[1,3]
+#NUMBER_REPLICAS=[3,5]
 NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt']
-#NUMBER_USERS_LIST=[1,3,5,15,30,45,60]
-NUMBER_USERS_LIST=[1,3]
+#NUMBER_USERS_LIST=[3,6,15,30,45,60]
+NUMBER_USERS_LIST=[2]
+#NUMBER_USERS_LIST=[1,3]
 #NUMBER_REPLICAS=[1,3,5]
 JDCBs=['mysql_crdt']
 #JDCBs=['mysql_jdbc', 'mysql_crdt']
@@ -41,7 +43,7 @@ env.user = 'dnl'
 # GLOBALS
 CONFIG_FILE=''
 LOG_FILE_DIR=''
-TPCC_TEST_TIME=10
+TPCC_TEST_TIME=45
 NUMBER_USERS=0
 
 
@@ -73,9 +75,10 @@ replicators_map = dict()
 coordinators_map = dict()
 proxies_map = dict()
 
-replicatorsHostToPortMap = dict()
-coordinatorsHostToPortMap = dict()
-proxiesHostToPortMap = dict()
+replicatorsIdToPortMap = dict()
+coordinatorsIdToPortMap = dict()
+proxiesIdToPortMap = dict()
+
 weakDBExperiment = False
 env_vars = dict()
 env.roledefs = {
@@ -122,7 +125,8 @@ def benchmarkTPCC(configsFilesBaseDir):
                     
             LOG_FILE_DIR += str(replicasNum) + 'replicas'
             for usersNum in NUMBER_USERS_LIST:                
-                usersPerReplica = usersNum / replicasNum
+                usersPerReplica = usersNum
+                #usersPerReplica = usersNum / replicasNum
                 global NUMBER_USERS
                 NUMBER_USERS = usersNum                
                 #LOG_FILE_DIR += str(replicasNum) + 'replicas_'
@@ -240,7 +244,7 @@ def startDatabases():
 @parallel
 def startCoordinators():
     currentId = coordinators_map.get(env.host_string)    
-    port = coordinatorsHostToPortMap.get(env.host_string)
+    port = coordinatorsIdToPortMap.get(currentId)
     logFile = 'coordinator_' + str(currentId) + ".log"
     command = 'java -jar coordinator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting coordinator at %s', env.host_string)
@@ -255,7 +259,7 @@ def startCoordinators():
 @parallel
 def startReplicators():
     currentId = replicators_map.get(env.host_string)    
-    port = replicatorsHostToPortMap.get(env.host_string)
+    port = replicatorsIdToPortMap.get(currentId)
     logFile = 'replicator_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
     command = 'java -jar replicator.jar ' + CONFIG_FILE + ' ' + currentId + ' > ' + logFile + ' &'
     logger.info('starting replicator at %s', env.host_string)
@@ -270,7 +274,6 @@ def startReplicators():
 @parallel
 def startTPCCclients(clientsNum, useCustomJDBC):
     currentId = proxies_map.get(env.host_string)    
-    port = proxiesHostToPortMap.get(env.host_string)
     logFile = 'client_' + str(currentId) + '_' + str(NUMBER_USERS) + 'users.log'
     command = 'java -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + currentId + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
     logger.info('starting client at %s', env.host_string)
@@ -344,56 +347,50 @@ def parseConfigFile():
     logger.info('parsing config file: %s', CONFIG_FILE)
     e = ET.parse(CONFIG_FILE).getroot()
     distinctNodesSet = Set()
-    dbsSet = Set()
-    proxiesSet = Set()
-    coordinatorsSet = Set()
-    replicatorsSet = Set()
-    global coordinators_map, replicatorsHostToPortMap, proxiesHostToPortMap, coordinatorsHostToPortMap
-
-    for replicator in e.iter('replicator'):
-        replicatorId = replicator.get('id')
-        host = replicator.get('host')
-        dbHost = replicator.get('dbHost')
-        port = replicator.get('port')
-        dbsSet.add(dbHost)
-        replicatorsSet.add(host)
-        distinctNodesSet.add(host)
-        replicatorsHostToPortMap[host] = port
-        replicators_map[host] = replicatorId                 
-    for proxy in e.iter('proxy'):
-        proxyId = proxy.get('id')
-        host = proxy.get('host')
-        dbHost = proxy.get('dbHost')
-        port = proxy.get('port')
-        dbsSet.add(dbHost)
-        proxiesSet.add(host) 
-        distinctNodesSet.add(host)
-        proxies_map[host] = proxyId     
-        proxiesHostToPortMap[host] = port    
-    for coordinator in e.iter('coordinator'):
-        coordinatorId = coordinator.get('id')
-        port = coordinator.get('port')
-        host = coordinator.get('host')        
-        #dbsSet.add(dbHost)
-        coordinatorsSet.add(host)      
-        distinctNodesSet.add(host) 
-        coordinators_map[host] = coordinatorId   
-        coordinatorsHostToPortMap[host] = port      
-
+    global coordinators_map, replicatorsIdToPortMap, proxiesIdToPortMap, coordinatorsToPortMap
     global database_nodes
     global replicators_nodes
     global proxies_nodes
     global distinct_nodes
     global coordinators_nodes
 
-    database_nodes = list(dbsSet)
-    proxies_nodes = list(proxiesSet)
-    replicators_nodes = list(replicatorsSet)
-    coordinators_nodes = list(coordinatorsSet)
+    for database in e.iter('database'):
+        dbId = database.get('id')
+        dbHost = database.get('dbHost')
+        database_nodes.append(dbHost)
+        distinctNodesSet.add(dbHost)
+
+    for replicator in e.iter('replicator'):
+        replicatorId = replicator.get('id')
+        host = replicator.get('host')
+        port = replicator.get('port')
+        replicators_nodes.append(host)
+        distinctNodesSet.add(host)
+        replicatorsIdToPortMap[replicatorId] = port
+        replicators_map[host] = replicatorId   
+
+    for proxy in e.iter('proxy'):
+        proxyId = proxy.get('id')
+        host = proxy.get('host')
+        port = proxy.get('port')
+        proxies_nodes.append(host)
+        distinctNodesSet.add(host)
+        proxiesIdToPortMap[proxyId] = port 
+        proxies_map[host] = proxyId        
+
+    for coordinator in e.iter('coordinator'):
+        coordinatorId = coordinator.get('id')
+        port = coordinator.get('port')
+        host = coordinator.get('host')        
+        coordinators_nodes.append(host)    
+        distinctNodesSet.add(host) 
+        coordinators_map[host] = coordinatorId   
+        coordinatorsIdToPortMap[coordinatorId] = port      
+
     distinct_nodes = list(distinctNodesSet)
 
     logger.info('Databases: %s', database_nodes)
-    logger.info('Proxies: %s', proxies_nodes)
+    logger.info('Clients: %s', proxies_nodes)
     logger.info('Replicators: %s', replicators_nodes)
     logger.info('Coordinators: %s', coordinators_nodes)
     logger.info('Distinct nodes: %s', distinct_nodes)

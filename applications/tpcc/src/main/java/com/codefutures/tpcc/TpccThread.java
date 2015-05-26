@@ -10,7 +10,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import database.jdbc.ConnectionFactory;
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import util.defaults.Configuration;
@@ -154,11 +154,11 @@ public class TpccThread extends Thread {
 			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 			String proxyId = System.getProperty("proxyid");
 
-			AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(Integer.parseInt
+			NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(Integer.parseInt
 					(proxyId));
 
 			if(isCustomJDBC)
-				conn = ConnectionFactory.getCRDTConnection(dbProps, "tpcc");
+				conn = ConnectionFactory.getCRDTConnection(dbProps, Configuration.getInstance().getDatabaseName());
 			else
 				conn = ConnectionFactory.getDefaultConnection(nodeConfig);
 

@@ -16,16 +16,21 @@ public class ObjectPool<T>
 	
 	public void addObject(T obj)
 	{
-		objectList.add(obj);
+		this.objectList.add(obj);
 	}
 	
 	public T borrowObject()
 	{
-		return objectList.poll();
+		return this.objectList.poll();
 	}
 	
 	public void returnObject(T obj)
 	{
-		objectList.add(obj);
+		this.objectList.add(obj);
+	}
+
+	public int getPoolSize()
+	{
+		return this.objectList.size();
 	}
 }

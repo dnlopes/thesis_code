@@ -29,9 +29,9 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 		CoordinatorResponse response = this.coordinator.processInvariants(request);
 
 		if(!response.isSuccess())
-			LOG.warn("txn is not allowed to commit. Please abort");
+			LOG.trace("txn is not allowed to commit. Please abort");
 		else
-			LOG.info("txn is allowed to commit.");
+			LOG.trace("txn is allowed to commit.");
 
 		return response;
 	}

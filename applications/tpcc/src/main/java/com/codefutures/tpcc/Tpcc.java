@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import nodes.AbstractNodeConfig;
+import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import util.defaults.Configuration;
@@ -211,9 +211,9 @@ public class Tpcc implements TpccConstants
 		int proxyId = Integer.parseInt(System.getProperty("proxyid"));
 		this.proxyId = proxyId;
 
-		AbstractNodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 		boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
-		DatabaseProperties dbProperties = new DatabaseProperties(nodeConfig);
+		DatabaseProperties dbProperties = nodeConfig.getDbProps();
 
 		numConn = Integer.parseInt(System.getProperty("usersNum"));
 		measureTime = Integer.parseInt(System.getProperty("testDuration"));

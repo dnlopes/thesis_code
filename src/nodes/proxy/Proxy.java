@@ -169,7 +169,9 @@ public class Proxy extends AbstractNode
 
 	private void setup()
 	{
-		for(int i = 1; i <= Configuration.getInstance().getScratchpadPoolSize(); i++)
+		Configuration conf = Configuration.getInstance();
+
+		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
 		{
 			try
 			{
@@ -181,8 +183,9 @@ public class Proxy extends AbstractNode
 				LOG.error("failed to create scratchpad pool", e);
 				RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
-
 		}
+
+		LOG.info("{} scratchpads available for temporary execution", this.scratchpadsPool.getPoolSize());
 	}
 
 	private boolean connectionIsActive(int connectionId)

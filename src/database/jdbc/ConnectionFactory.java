@@ -50,11 +50,6 @@ public class ConnectionFactory
 		return c;
 	}
 
-	public static Connection getDefaultConnection(DatabaseProperties props) throws SQLException
-	{
-		return getDefaultConnection(props, "");
-	}
-
 	public static Connection getCRDTConnection(DatabaseProperties props, String databaseName)
 			throws SQLException, ClassNotFoundException
 	{

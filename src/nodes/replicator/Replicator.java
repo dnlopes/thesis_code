@@ -82,13 +82,14 @@ public class Replicator extends AbstractNode
 	private void setupPads()
 	{
 		Configuration conf = Configuration.getInstance();
-		int count = conf.getProxies().size() * 2;
 
-		for(int i = 0; i < count; i++)
+		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
 		{
 			IDBCommitPad commitPad = new DBCommitPad(this.getConfig());
 			this.commitPadPool.addObject(commitPad);
 		}
+
+		LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
 	}
 
 	public LogicalClock getNextClock()

@@ -44,7 +44,7 @@ public class DBCommitPad implements IDBCommitPad
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			LOG.info("txn from replicator {} committing on main storage ", op.getReplicatorId());
+			LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
 
 		LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
@@ -80,7 +80,7 @@ public class DBCommitPad implements IDBCommitPad
 			LOG.trace("txn is about to be committed", op.getTxnId());
 			this.connection.commit();
 			success = true;
-			LOG.info("txn {} committed", op.getTxnId());
+			LOG.trace("txn {} committed", op.getTxnId());
 
 		} catch(SQLException e)
 		{
@@ -90,7 +90,7 @@ public class DBCommitPad implements IDBCommitPad
 				LOG.warn("txn {} rollback ({})", op.getTxnId(), e.getMessage());
 			} catch(SQLException e1)
 			{
-				LOG.error("failed to rollback txn {} (should not happen)", op.getTxnId(), e1);
+				LOG.error("failed to rollback txn {} (panic)", op.getTxnId(), e1);
 			}
 		} finally
 		{
