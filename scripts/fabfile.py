@@ -277,7 +277,7 @@ def startTPCCclients(proxiesNumber, usersPerProxy, useCustomJDBC):
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
         logFile = 'client_' + str(currentId) + '_' + str(TOTAL_USERS) + 'users.log'
-        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + str(currentId) + ' ' + str(clientsNum) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + CONFIG_FILE + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
         logger.info('%s',command)
         with cd(DEPLOY_DIR):
