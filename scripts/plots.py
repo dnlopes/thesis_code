@@ -33,8 +33,9 @@ def mergeIterationCSVFiles(outputDir):
 	logger.info("merging files: %s", tempCSVFiles)
 
 def mergeResultCSVFiles(outputDir):
-	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
-	logger.info("merging files: %s", tempCSVFiles)	
+	tempCSVFiles = glob.glob(outputDir + "/*.result.temp")
+	logger.info("merging files: %s", tempCSVFiles)
+	
 
 def processLogFiles():
     numberClients = len(proxies_map)
