@@ -1,11 +1,10 @@
-from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, settings, abort, hide, task, sudo, run, warn_only
-import time
 import sys
 import logging
 import glob
 import pandas as pd
 import configParser as config
-
+import os.path
+import fabfile as fab
 
 logger = logging.getLogger('plotsLogger')
 logger.setLevel(logging.DEBUG)
@@ -15,54 +14,148 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-def generateLatencyThroughput(outputDir, usersList):
-	for n in usersList:
-		fileName = outputDir + '/' + str(n) + '_clients.result'
-		local('cat ' + fileName + ' >> latency-throughput_data')
-		local('echo \'\' ' ' >> plot_data')
-	plotFilePath = config.EXPERIMENTS_DIR + '/latency-throughput.gp' 
-	local('gnuplot -e \"data=\'latency-throughput_data\'; outputfile=\'latency-throughput.eps\'\" ' + plotFilePath)
+################################################################################################
+#   VARIABLES
+################################################################################################
 
-def mergeTemporaryCSVfiles(outputDir):
+LATENCY_THROUGHPUT_1LINE ="latency-throughput_1line.gp"
+LATENCY_THROUGHPUT_2LINE ="latency-throughput_2line.gp"
+
+################################################################################################
+#   MAIN METHODS
+################################################################################################
+
+def generatePlotDataFile(outputDir, usersList, isCustomJDBC):
+	frame = pd.DataFrame()
+	list_ = []
+	foundFile = False
+	
+	for numberUsers in usersList:
+		dirName = outputDir + "/" + str(numberUsers) + "user"
+		fileName = dirName + "/" + str(numberUsers)
+		
+		if isCustomJDBC:
+			fileName += "users_latency-throughput_crdt.csv"
+		else:
+			fileName += "users_latency-throughput_orig.csv"
+
+		if not os.path.isfile(fileName):
+			logger.warn("file %s not available", fileName)
+			continue
+		df = pd.read_csv(fileName,index_col=False)
+		list_.append(df)
+		foundFile = True
+
+	if foundFile:
+		frame = pd.concat(list_)
+		
+		fileName=""
+		if isCustomJDBC:
+			fileName = outputDir + "/latency-throughput_datapoints_crdt.csv"
+		else:
+			fileName = outputDir + "/latency-throughput_datapoints_orig.csv"
+
+		frame.to_csv(fileName, sep=",", index=False)
+
+def generateLatencyThroughputPlot(outputDir):
+	plotDataFiles = glob.glob(outputDir + "/*.csv")
+	logger.info("generating latency-throughput plot with the following datapoints files: %s", plotDataFiles)
+
+	if len(plotDataFiles) == 1:
+		generateLatencyThroughputPlot1Line(plotDataFiles)
+	elif len(plotDataFiles) == 2:
+		generateLatencyThroughputPlot2Line(plotDataFiles)
+	else:
+		logger.error("unexpected number of csv files to plot graphic")
+		sys.exit()
+
+def mergeTemporaryCSVfiles(outputDir, totalUsers, isCustomJDBC):
 	logger.info("merging temporary CSV files")
-	mergeIterationCSVFiles(outputDir)
-	mergeResultCSVFiles(outputDir)
+	mergeIterationCSVFiles(outputDir, totalUsers, isCustomJDBC)
+	mergeResultCSVFiles(outputDir, totalUsers, isCustomJDBC)
 	
-def mergeIterationCSVFiles(outputDir):
-	tempCSVFiles = glob.glob(outputDir + "/*.iters.temp")
-	logger.info("merging files: %s", tempCSVFiles)
+################################################################################################
+#   "PRIVATE" METHODS
+################################################################################################
 
-def mergeResultCSVFiles(outputDir):
-	tempCSVFiles = glob.glob(outputDir + "/*.result.temp")
+def mergeIterationCSVFiles(outputDir, totalUsers, isCustomJDBC):
+	#tempCSVFiles = glob.glob(outputDir + "/*.iters.temp")
+	#logger.info("merging files: %s", tempCSVFiles)
+	pass
+
+def mergeResultCSVFiles(outputDir, totalUsers, isCustomJDBC):
+	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
 	logger.info("merging files: %s", tempCSVFiles)
 	
+	frame = pd.DataFrame()
+	list_ = []
+	for file_ in tempCSVFiles:
+		df = pd.read_csv(file_,index_col=None, header=0)
+		list_.append(df)
 
-def processLogFiles():
-    numberClients = len(proxies_map)
-    totalOps = 0
-    totalLatency = 0    
-    prefix = LOGS_DIR + '/' + LOG_FILE_DIR 
+	frame = pd.concat(list_)
+	#CSV format: numberOps,avgLatency
+	totalOps = frame['numberOps'].sum()
+	avgLatency = frame['avgLatency'].mean()
+	
+	fileContent = "numberOps,avgLatency\n"
+	fileContent += str(totalOps) + "," + str(avgLatency)
 
-    for x in xrange(1, numberClients+1):
-        fileName = 'client_' + str(x) + '.result.temp'
-        filePath = prefix + '/' + fileName
-        lines = [line.strip() for line in open(filePath)]        
-        splitted = lines[0].split(',')        
-        parcialOps = int(splitted[0])
-        totalOps += parcialOps
-        parcialLatency = int(splitted[1])
-        totalLatency += parcialLatency
+	if isCustomJDBC:
+		fileName = outputDir + "/" + str(totalUsers) + "users_latency-throughput_crdt.csv"
+	else:
+		fileName = outputDir + "/" + str(totalUsers) + "users_latency-throughput_orig.csv"
+	logger.info("creating csv file: %s", fileName)
+	f = open(fileName,'w')
+	f.write(fileContent)
+	f.close()
 
-    avgLatency = totalLatency / numberClients
+def generateLatencyThroughputPlot1Line(plotDataFiles):
+	logger.info("generating plot with 1 line")
+	plotCommand = 'gnuplot -e \"data1=\''
+	plotCommand +=plotDataFiles[0]
+	plotCommand += '\'; outputfile=\'latency-throughput.eps\'\" '
+	plotCommand += config.EXPERIMENTS_DIR + "/" + LATENCY_THROUGHPUT_1LINE
+	fab.executeTerminalCommand(plotCommand)
+	
+def generateLatencyThroughputPlot2Line(plotDataFiles):
+	logger.info("generating plot with 2 line")
+	plotCommand = 'gnuplot -e \"data1=\''
+	if 'crdt' in plotDataFiles[0]:
+		plotCommand += plotDataFiles[0]
+	elif 'crdt' in plotDataFiles[1]:
+		plotCommand += plotDataFiles[1]		
+	plotCommand += '\'; data2=\''
+	if 'orig' in plotDataFiles[0]:
+		plotCommand += plotDataFiles[0]
+	elif 'orig' in plotDataFiles[1]:
+		plotCommand += plotDataFiles[1]	
+	plotCommand +='\' ; outputfile=\'latency-throughput.eps\'\" '
+	plotCommand += config.EXPERIMENTS_DIR + "/" + LATENCY_THROUGHPUT_2LINE
+	fab.executeTerminalCommand(plotCommand)
+
+	
+
+if __name__ == '__main__':
     
-    fileName = prefix + '/' + str(TOTAL_USERS) + '_clients.result'
-               
-    #OPS LATENCY CLIENTS
-    with lcd(prefix):
-        stringToWrite = str(totalOps) + ',' + str(avgLatency)
-        f = open(fileName,'w')
-        f.write(stringToWrite)
-        f.close() # you can omit in most cases as the destructor will call if
+    #if len(sys.argv) != 1:
+        #print "python plots.py <outputDir>"
+        #sys.exit()
+        
+#    option = sys.argv[1:]
+    #outputDir = "/Users/dnlopes/devel/thesis/code/weakdb/experiments/logs/27-05_11h50m35s_latency-throughput/1replica"
+    outputDir = "/home/dnl/logs/27-05_11h50m35s_latency-throughput/1replica"
+    usersList = [1,2]
 
-        local('mkdir -p temp')
-        local('mv *.temp temp/')
+    generatePlotDataFile(outputDir, usersList, False)
+    generatePlotDataFile(outputDir, usersList, True)
+    generateLatencyThroughputPlot(outputDir)
+
+                
+    
+            
+    
+        
+    
+    
+    

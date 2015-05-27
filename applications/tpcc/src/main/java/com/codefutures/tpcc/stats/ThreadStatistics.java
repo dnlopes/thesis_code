@@ -7,12 +7,14 @@ package com.codefutures.tpcc.stats;
 public class ThreadStatistics
 {
 
+	public int threadId;
 	public int successCounter;
 	public int abortsCounter;
 	public long maxLatency, minLatency, avgLatency, latencySum;
 
-	public ThreadStatistics()
+	public ThreadStatistics(int id)
 	{
+		this.threadId = id;
 		this.successCounter = 0;
 		this.abortsCounter = 0;
 		this.maxLatency = 0;
@@ -23,6 +25,7 @@ public class ThreadStatistics
 
 	public ThreadStatistics(ThreadStatistics stats)
 	{
+		this.threadId = stats.threadId;
 		this.successCounter = stats.successCounter;
 		this.abortsCounter = stats.abortsCounter;
 		this.latencySum = stats.latencySum;

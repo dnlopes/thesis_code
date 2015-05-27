@@ -62,7 +62,7 @@ public class PerSecondStatistics
 	@Override
 	public String toString()
 	{
-		// CSV style: iteration,success,aborts,avgLatency,maxLatency,minLatency
+		// CSV style: emulatorid,iteration,success,aborts,avgLatency,maxLatency,minLatency
 	  	StringBuilder buffer = new StringBuilder();
 		buffer.append(this.iteration);
 		buffer.append(",");

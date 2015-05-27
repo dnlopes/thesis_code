@@ -612,9 +612,11 @@ public class Tpcc implements TpccConstants
 		try
 		{   StringBuilder buffer = new StringBuilder();
 			buffer.append("numberOps,avgLatency\n");
-			String result = totalOps + "," + avgLatency;
+			buffer.append(totalOps);
+			buffer.append(",");
+			buffer.append(avgLatency);
 			out = new PrintWriter(fileName);
-			out.write(result);
+			out.write(buffer.toString());
 			out.close();
 		} catch(FileNotFoundException e)
 		{
@@ -631,10 +633,12 @@ public class Tpcc implements TpccConstants
 		String fileName = "emulator" + this.proxyId + ".iters.temp";
 		StringBuffer buffer = new StringBuffer();
 
-		buffer.append("iteration,success,aborts,avgLatency,maxLatency,minLatency\n");
+		buffer.append("emulatorid,iteration,success,aborts,avgLatency,maxLatency,minLatency\n");
 
 		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
 		{
+			buffer.append(this.proxyId);
+			buffer.append(",");
 			buffer.append(perSecondStats.toString());
 			buffer.append("\n");
 		}

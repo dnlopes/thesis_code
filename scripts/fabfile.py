@@ -7,7 +7,6 @@ import logging
 import shlex
 import subprocess, signal
 import os
-from plots import generateLatencyThroughput
 import configParser as config
 
 logger = logging.getLogger('simple_example')
@@ -171,6 +170,9 @@ def areClientsRunning(emulatorsNumber):
                 return True
 
     return stillRunning
+
+def executeTerminalCommand(command):
+    local(command)    
 
 
 

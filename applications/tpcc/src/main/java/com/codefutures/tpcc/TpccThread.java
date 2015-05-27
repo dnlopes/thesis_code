@@ -94,7 +94,7 @@ public class TpccThread extends Thread {
         this.failure2 = failure2;
         this.joins = joins;
 		this.joins = true;
-		this.stats = new ThreadStatistics();
+		this.stats = new ThreadStatistics(number);
 
         connectToDatabase();
 
