@@ -21,6 +21,16 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+
+################################################################################################
+#   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
+################################################################################################
+
+#NUMBER_REPLICAS=[1,3,5]
+NUMBER_REPLICAS=[1]
+#JDCBs=['mysql_crdt', "default_jdbc"]
+JDCBs=['mysql_crdt']
+
 ################################################################################################
 #   ALL EXPERIMENTS CONFIGURATIONS
 ################################################################################################
@@ -32,15 +42,6 @@ NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180]
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
 userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
 userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
-
-################################################################################################
-#   CURRENT CONFIGURATION
-################################################################################################
-
-#NUMBER_REPLICAS=[1,3,5]
-NUMBER_REPLICAS=[1]
-#JDCBs=['mysql_crdt', "default_jdbc"]
-JDCBs=['mysql_crdt']
 
 @task
 def runFullLatencyThroughputExperiment(configsFilesBaseDir):
