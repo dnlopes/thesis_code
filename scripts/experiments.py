@@ -154,7 +154,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	logger.info('the experiment has finished!')
 	killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeCSVfiles(outputDir)	
+	plots.mergeTemporaryCSVfiles(outputDir)	
 	logger.info('logs can be found at %s', outputDir)    
 
 def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):

@@ -153,7 +153,6 @@ def stopMySQL():
         run(config.MYSQL_SHUTDOWN_COMMAND)
 
 def isPortOpen(port):
-    logger.debug("checking port %s", port)
     with settings(warn_only=True),hide('output'):
         output = run('netstat -tan | grep ' + port)
         return output.find('LISTEN') != -1
@@ -162,11 +161,11 @@ def areClientsRunning(emulatorsNumber):
     stillRunning = False
     for y in xrange(1, emulatorsNumber+1):
         currentId = str(y)
-        logFile = 'client_' + str(currentId) + '_' + str(config.TOTAL_USERS) + 'users.log'
+        logFile = 'client' + str(currentId) + '.log'
         with cd(config.DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:
-                LOG.debug('emulator %s not finished yet!', currentId)
+                logger.warn('emulator %s not finished yet!', currentId)
                 return True
 
     return stillRunning

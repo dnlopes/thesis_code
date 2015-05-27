@@ -22,8 +22,8 @@ def generateLatencyThroughput(outputDir, usersList):
 	plotFilePath = config.EXPERIMENTS_DIR + '/latency-throughput.gp' 
 	local('gnuplot -e \"data=\'latency-throughput_data\'; outputfile=\'latency-throughput.eps\'\" ' + plotFilePath)
 
-def mergeCSVfiles(outputDir):
-	logger.info("merging partial CSV files")
+def mergeTemporaryCSVfiles(outputDir):
+	logger.info("merging temporary CSV files")
 
 def processLogFiles():
     numberClients = len(proxies_map)
