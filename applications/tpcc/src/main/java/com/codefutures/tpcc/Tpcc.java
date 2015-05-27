@@ -604,13 +604,14 @@ public class Tpcc implements TpccConstants
 		logger.info("Total ops: {}", totalOps);
 		logger.info("Avg Latency: {}", avgLatency);
 
-		String fileName = "client_" + this.proxyId + ".result.temp";
+		String fileName = "emulator" + this.proxyId + ".result.temp";
 
 		// OPS LATENCY CLIENTS
 
 		PrintWriter out = null;
 		try
-		{
+		{   StringBuilder buffer = new StringBuilder();
+			buffer.append("numberOps,avgLatency\n");
 			String result = totalOps + "," + avgLatency;
 			out = new PrintWriter(fileName);
 			out.write(result);
@@ -619,8 +620,6 @@ public class Tpcc implements TpccConstants
 		{
 			e.printStackTrace();
 		}
-
-
 	}
 
 	public void createIterationsFile()
@@ -629,11 +628,10 @@ public class Tpcc implements TpccConstants
 
 		// iteration files
 		// CSV style: iteration,success,aborts,avgLatency,maxLatency,minLatency
-		String fileName = "client_" + this.proxyId + ".iter.temp";
+		String fileName = "emulator" + this.proxyId + ".iters.temp";
 		StringBuffer buffer = new StringBuffer();
 
-		buffer.append("#iteration,success,aborts,avgLatency,maxLatency,minLatency");
-		buffer.append("\n");
+		buffer.append("iteration,success,aborts,avgLatency,maxLatency,minLatency\n");
 
 		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
 		{

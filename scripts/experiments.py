@@ -49,19 +49,19 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
-	    USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	    
-	    #CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
-	    CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
-	    OUTPUT_DIR_ROOT = OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"
-	    auxOutputDir = OUTPUT_DIR
+	    USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	 
+	    CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
+	    if config.IS_LOCALHOST == True:
+	    	CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
+	    
+	    OUTPUT_DIR += "/" + str(numberOfReplicas) + "replica"
+	    OUTPUT_ROOT_DIR = OUTPUT_DIR
 	  
 	    config.parseConfigFile(CONFIG_FILE)
 	    killRunningProcesses()
 	    prepareCode()
 
-	    logger.info("##########################################")
 	    logger.info("starting tests with %d replicas", numberOfReplicas)
-	    logger.info("##########################################")
 	    # second cycle, use different jdbc to run experiment
 	    for jdbc in JDCBs:
 			USE_CUSTOM_JDBC = 'true'
@@ -71,27 +71,27 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				USE_CUSTOM_JDBC='false'
         
             # third cycle, use different number of users per run
-			for numberOfUsers in USERS_LIST:
+			for numberOfUsers in USERS_LIST:				
 				config.TOTAL_USERS = numberOfUsers
-				OUTPUT_DIR = OUTPUT_DIR_ROOT +"/" + str(numberOfUsers) + "user"
-        		with hide('output', 'warnings'),settings(warn_only=True):
-        			local("mkdir -p " + OUTPUT_DIR + "/logs")
+				OUTPUT_DIR = OUTPUT_ROOT_DIR + "/" + str(numberOfUsers) + "user"
+				with hide('output','running','warnings'),settings(warn_only=True):
+					local("mkdir -p " + OUTPUT_DIR + "/logs")
 
 				TOTAL_USERS = numberOfUsers
 				NUMBER_OF_EMULATORS = len(config.replicators_nodes)
 				USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
-
 				runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, USE_CUSTOM_JDBC, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 				logger.info('moving to the next iteration!')
 		
 			logger.info('generating plot for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-			plots.generateLatencyThroughput(auxOutputDir, USERS_LIST)
+			#plots.generateLatencyThroughput(OUTPUT_ROOT_DIR, USERS_LIST)
 
 	logger.info("all experiments have finished. Goodbye!")				
 
 def runLatencyThroughputExperiment(outputDir, configFile, customJDBC, numberEmulators, usersPerEmulator, totalUsers):
 	
-	logger.info("################### starting new experiment ###################")
+	print "\n"
+	logger.info("########################################## starting new experiment ##########################################")
 	logger.info('>> CONFIG FILE: %s', configFile)
 	logger.info('>> DATABASES: %s', config.database_nodes)
 	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
@@ -100,8 +100,8 @@ def runLatencyThroughputExperiment(outputDir, configFile, customJDBC, numberEmul
 	logger.info('>> TOTAL USERS: %s', totalUsers)
 	logger.info('>> CUSTOM JDBC: %s', customJDBC)
 	logger.info('>> OUTPUT DIR: %s', outputDir)
-	logger.info("###############################################################")
-	logger.info("\n")
+	logger.info("#############################################################################################################")
+	print "\n"
 
 	if customJDBC == 'true':
 		runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
@@ -116,21 +116,21 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		logger.info("all databases instances are online") 
 	else:		
 		logger.error("database layer failed to start. Exiting")
-		#sys.exit()
+		sys.exit()
 	
 	success = startCoordinatorsLayer(configFile)
 	if success == True:
 	    logger.info('all coordinators are online')       		
 	else:
 		logger.error("coordination layer failed to start. Exiting")
-		#sys.exit()   
+		sys.exit()   
 	
 	success = startReplicationLayer(configFile)
 	if success == True:
 	    logger.info('all replicators are online')       		
 	else:
 		logger.error("replication layer failed to start. Exiting")
-		#sys.exit()
+		sys.exit()
 	
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
@@ -148,13 +148,12 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	    if isRunning == True:
 	        time.sleep(10)
 	    else:
-	        break                        
-	
+	        break
+
+	logger.info('the experiment has finished!')
 	killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeCSVfiles(outputDir)
-	
-	logger.info('the experiment has finished!')
+	plots.mergeCSVfiles(outputDir)	
 	logger.info('logs can be found at %s', outputDir)    
 
 def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
@@ -177,11 +176,12 @@ def startDatabaseLayer():
 def startCoordinatorsLayer(configFile):
 	with hide('running','output'):
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
+		logger.debug("outputs: %s", output)
         for key, value in output.iteritems():
             if value == '0':
                 logger.error('coordinator at %s failed to start', key)
                 return False
-		return True    			
+	return True    			
 
 def startReplicationLayer(configFile):
     with hide('running','output'):
@@ -190,7 +190,7 @@ def startReplicationLayer(configFile):
             if value == '0':
                 logger.error('replicator at %s failed to start', key)
                 return False
-		return True    			    			
+	return True    			    			
 
 def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, customJDBC):
 	with hide('running','output'):

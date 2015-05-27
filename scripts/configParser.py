@@ -12,18 +12,23 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 
+IS_LOCALHOST = True
+
 #user="dp.lopes"
-user="dnl"
+if IS_LOCALHOST:
+    user="dnl"
+else:
+    user="dp.lopes"
 MYSQL_PORT='3306'
 TPCC_TEST_TIME=10
 TOTAL_USERS=0
+
 ################################################################################################
 #   PREFIXS
 ################################################################################################
 
 prefix_latency_throughput_experiment = "latency-throughput"
 prefix_scalability_experiment = "scalability"
-
 
 ################################################################################################
 #	COMMANDS AND BASE PATHS
