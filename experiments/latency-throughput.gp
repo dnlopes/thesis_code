@@ -7,7 +7,7 @@ set output outputfile
 # Axis
 set yrange [0:30]
 set ylabel "Latency (ms)"
-set xrange [0:70000]
+set xrange [0:100000]
 set xlabel "Throughput"
 set xtics nomirror rotate by -30 scale 0.5
 set xtics font "Helvetica,16" 
@@ -32,9 +32,9 @@ set style line 1 lc rgb '#0060ad' lt 1 lw 2 pt 1 ps 2
 set style line 2 lc rgb '#0060ad' lt 1 lw 2 pt 2 ps 2
 set style line 3 lc rgb '#dd181f' lt 1 lw 2 pt 3 ps 2
 set style line 4 lc rgb '#dd181f' lt 1 lw 2 pt 4 ps 2
-set style line 5 lc rgb '#82CA4A' lt 1 lw 2 pt 5 ps 2
+set style line 5 lc rgb '#0060ad' lt 1 lw 2 pt 5 ps 2
 set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
 set datafile separator ','
 
-plot data using 1:2 with linespoints ls 2 title 'WeakDB'
+plot data using 1:2 with linespoints ls 5 title 'TBD'

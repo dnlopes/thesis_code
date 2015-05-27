@@ -6,11 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.codefutures.tpcc.stats.PerSecondStatistics;
+import com.codefutures.tpcc.stats.Statistics;
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -37,6 +42,10 @@ public class Tpcc implements TpccConstants
 	private static final String JDBCURL = "JDBCURL";
 	private static final String JOINS = "JOINS";
 	private int proxyId;
+
+	private final List<TpccThread> clientThreads;
+	private final List<PerSecondStatistics> perSecondStatsList;
+	private final Statistics mainStats;
 
 	private static final String PROPERTIESFILE = "client.database.properties";
 
@@ -88,7 +97,11 @@ public class Tpcc implements TpccConstants
 
 	public Tpcc()
 	{
+		this.clientThreads = new ArrayList<>();
+		this.mainStats = new Statistics();
+		this.perSecondStatsList = new ArrayList<>();
 	}
+
 
 	private void init()
 	{
@@ -312,6 +325,7 @@ public class Tpcc implements TpccConstants
 					fetchSize, success, late, retry, failure, success2, late2, retry2, failure2, latencies, joins,
 					dbProperties);
 			executor.execute(worker);
+			this.clientThreads.add((TpccThread) worker);
 		}
 
 		if(rampupTime > 0)
@@ -338,12 +352,16 @@ public class Tpcc implements TpccConstants
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime = 0;
+		int z = 0;
 		while((runTime = System.currentTimeMillis() - startTime) < measureTime * 1000)
 		{
 			System.out.println("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try
 			{
 				Thread.sleep(1000);
+				logger.info("collecting statistics {}", z);
+				this.collectStatistics(z);
+				z++;
 			} catch(InterruptedException e)
 			{
 				logger.error("Sleep interrupted", e);
@@ -560,13 +578,14 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
-		tpcc.createOutputFile();
+		tpcc.createOutputFiles();
+		tpcc.createIterationsFile();
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
 		System.exit(ret);
 	}
 
-	public void createOutputFile()
+	public void createOutputFiles()
 	{
 		int totalOps = 0;
 		long totalLatency = 0;
@@ -585,8 +604,10 @@ public class Tpcc implements TpccConstants
 		logger.info("Total ops: {}", totalOps);
 		logger.info("Avg Latency: {}", avgLatency);
 
-		// OPS LATENCY CLIENTS
 		String fileName = "client_" + this.proxyId + ".result.temp";
+
+		// OPS LATENCY CLIENTS
+
 		PrintWriter out = null;
 		try
 		{
@@ -601,6 +622,62 @@ public class Tpcc implements TpccConstants
 
 
 	}
+
+	public void createIterationsFile()
+	{
+		this.finalizeStats();
+
+		// iteration files
+		// CSV style: iteration,success,aborts,avgLatency,maxLatency,minLatency
+		String fileName = "client_" + this.proxyId + ".iter.temp";
+		StringBuffer buffer = new StringBuffer();
+
+		buffer.append("#iteration,success,aborts,avgLatency,maxLatency,minLatency");
+		buffer.append("\n");
+
+		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
+		{
+			buffer.append(perSecondStats.toString());
+			buffer.append("\n");
+		}
+
+		PrintWriter out;
+		try
+		{
+			out = new PrintWriter(fileName);
+			out.write(buffer.toString());
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void collectStatistics(int iteration)
+	{
+		PerSecondStatistics perSecondStat = new PerSecondStatistics(iteration);
+
+		for(TpccThread thread : this.clientThreads)
+		{
+			ThreadStatistics t = new ThreadStatistics(thread.getStats());
+			perSecondStat.addThreadStatistic(t);
+		}
+
+		this.perSecondStatsList.add(perSecondStat);
+	}
+
+	public void finalizeStats()
+	{
+		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
+			perSecondStats.calculateStats();
+	}
+
+	public void printResults()
+	{
+		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
+			logger.info(perSecondStats.toString());
+	}
+
 
 }
 

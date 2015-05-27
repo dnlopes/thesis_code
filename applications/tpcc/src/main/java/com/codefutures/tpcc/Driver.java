@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -66,16 +67,18 @@ public class Driver implements TpccConstants {
     private Slev slev;
     private Delivery delivery;
 
+	private final ThreadStatistics stats;
     /**
      * Constructor.
      *
      * @param conn
      */
-    public Driver(Connection conn, int fetchSize,
+    public Driver(ThreadStatistics stats, Connection conn, int fetchSize,
                   int[] success, int[] late, int[] retry, int[] failure,
                   int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, double[] latencies, boolean
 						  joins) {
         try {
+			this.stats = stats;
 			this.conn = conn;
 
             pStmts = new TpccStatements(conn, fetchSize);
@@ -282,10 +285,12 @@ public class Driver implements TpccConstants {
                         if (DEBUG) logger.debug("Rt < RTIME_NEWORD");
                         success[0]++;
                         success2[0][t_num]++;
+						this.stats.incrementSuccess();
                     } else {
                         if (DEBUG) logger.debug("Rt > RTIME_NEWORD");
                         late[0]++;
                         late2[0][t_num]++;
+						this.stats.incrementSuccess();
                     }
                 }
 
@@ -304,6 +309,7 @@ public class Driver implements TpccConstants {
             retry2[0][t_num]--;
             failure[0]++;
             failure2[0][t_num]++;
+			this.stats.incrementAborts();
 		}
 
         return (0);
@@ -396,10 +402,14 @@ public class Driver implements TpccConstants {
                         success[1]++;
                         success2[1][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     } else {
                         late[1]++;
                         late2[1][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     }
                 }
 
@@ -418,6 +428,7 @@ public class Driver implements TpccConstants {
             retry2[1][t_num]--;
             failure[1]++;
             failure2[1][t_num]++;
+			this.stats.incrementAborts();
 		}
 
         return (0);
@@ -478,10 +489,14 @@ public class Driver implements TpccConstants {
                         success[2]++;
                         success2[2][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     } else {
                         late[2]++;
                         late2[2][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     }
                 }
 
@@ -500,6 +515,7 @@ public class Driver implements TpccConstants {
             retry2[2][t_num]--;
             failure[2]++;
             failure2[2][t_num]++;
+			this.stats.incrementAborts();
 		}
 
         return (0);
@@ -544,10 +560,14 @@ public class Driver implements TpccConstants {
                         success[3]++;
                         success2[3][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     } else {
                         late[3]++;
                         late2[3][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     }
                 }
 
@@ -566,6 +586,7 @@ public class Driver implements TpccConstants {
             retry2[3][t_num]--;
             failure[3]++;
             failure2[3][t_num]++;
+			this.stats.incrementAborts();
 		}
 
         return (0);
@@ -615,10 +636,14 @@ public class Driver implements TpccConstants {
                         success[4]++;
                         success2[4][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     } else {
                         late[4]++;
                         late2[4][t_num]++;
 						latencies[t_num] +=rt;
+						this.stats.incrementSuccess();
+						this.stats.addLatency(endTime - beginTime);
                     }
                 }
 
@@ -637,6 +662,7 @@ public class Driver implements TpccConstants {
             retry2[4][t_num]--;
             failure[4]++;
             failure2[4][t_num]++;
+			this.stats.incrementAborts();
 		}
 
         return (0);

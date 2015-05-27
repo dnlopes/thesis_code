@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import database.jdbc.ConnectionFactory;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,12 @@ public class TpccThread extends Thread {
     String jdbcUrl;
     int fetchSize;
 
+	public ThreadStatistics getStats()
+	{
+		return this.stats;
+	}
+
+	private final ThreadStatistics stats;
     private int[] success;
     private int[] late;
     private int[] retry;
@@ -87,11 +94,12 @@ public class TpccThread extends Thread {
         this.failure2 = failure2;
         this.joins = joins;
 		this.joins = true;
+		this.stats = new ThreadStatistics();
 
         connectToDatabase();
 
         // Create a driver instance.
-        driver = new Driver(conn, fetchSize,
+        driver = new Driver(stats, conn, fetchSize,
                 success, late, retry, failure,
                 success2, late2, retry2, failure2, latencies, joins);
 
