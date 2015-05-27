@@ -38,7 +38,7 @@ def startDatabases():
     logger.info(command)
     with cd(config.MYSQL_DIR), hide('running','output'):    
         run(command)    
-    time.sleep(15)
+    time.sleep(20)
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
     return '1'
@@ -60,8 +60,9 @@ def startCoordinators(configFile):
     if config.IS_LOCALHOST == True:
         time.sleep(20)
     else:
-        time.sleep(10)
+        time.sleep(20)
     
+    time.sleep(10)
     if not isPortOpen(port):
         logger.debug("coordinator is not running")
         return '0'
@@ -84,8 +85,9 @@ def startReplicators(configFile):
     if config.IS_LOCALHOST == True:
         time.sleep(20)
     else:
-        time.sleep(10)
+        time.sleep(20)
 
+    time.sleep(10)
     if not isPortOpen(port):
         return '0'
     return '1'
@@ -161,7 +163,7 @@ def areClientsRunning(emulatorsNumber):
     stillRunning = False
     for y in xrange(1, emulatorsNumber+1):
         currentId = str(y)
-        logFile = 'client' + str(currentId) + '.log'
+        logFile = 'emulator' + str(currentId) + '.log'
         with cd(config.DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:

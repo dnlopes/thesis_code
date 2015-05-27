@@ -200,7 +200,7 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 ################################################################################################
 #   HELPER METHODS
 ################################################################################################
-   
+
 def prepareCode():
     logger.info('compiling source code')
     with lcd(config.PROJECT_DIR), hide('output','running'):

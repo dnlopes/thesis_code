@@ -604,7 +604,7 @@ public class Tpcc implements TpccConstants
 		logger.info("Total ops: {}", totalOps);
 		logger.info("Avg Latency: {}", avgLatency);
 
-		String fileName = "emulator" + this.proxyId + ".result.temp";
+		String fileName = "emulator" + this.proxyId + ".results.temp";
 
 		// OPS LATENCY CLIENTS
 

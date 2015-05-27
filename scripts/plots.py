@@ -2,7 +2,8 @@ from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, 
 import time
 import sys
 import logging
-import os
+import glob
+import pandas as pd
 import configParser as config
 
 
@@ -24,6 +25,16 @@ def generateLatencyThroughput(outputDir, usersList):
 
 def mergeTemporaryCSVfiles(outputDir):
 	logger.info("merging temporary CSV files")
+	mergeIterationCSVFiles(outputDir)
+	mergeResultCSVFiles(outputDir)
+	
+def mergeIterationCSVFiles(outputDir):
+	tempCSVFiles = glob.glob(outputDir + "/*.iters.temp")
+	logger.info("merging files: %s", tempCSVFiles)
+
+def mergeResultCSVFiles(outputDir):
+	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
+	logger.info("merging files: %s", tempCSVFiles)	
 
 def processLogFiles():
     numberClients = len(proxies_map)
