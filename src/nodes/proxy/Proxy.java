@@ -50,7 +50,7 @@ public class Proxy extends AbstractNode
 
 		this.scratchpadsPool = new ObjectPool<>();
 		this.activeScratchpads = new ConcurrentHashMap<>();
-		this.networkInterface = new ProxyNetwork(this.config);
+		this.networkInterface = new ProxyNetwork(this.privateConfig);
 		this.transactionsCounter = new AtomicInteger();
 		this.scratchpadsCount = new AtomicInteger();
 		this.connectionsCounter = new AtomicInteger();
