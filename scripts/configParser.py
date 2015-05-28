@@ -82,8 +82,20 @@ def parseConfigFile(configFile):
     e = ET.parse(configFile).getroot()
     distinctNodesSet = Set()
     #distinctNodesSet.add(emulators_nodes[0])
-    global coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
+    global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
     global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes
+
+    distinct_nodes = []
+    database_nodes = []
+    replicators_nodes = []
+    coordinators_nodes = []
+    emulators_nodes = []
+    database_map = dict()
+    replicators_map = dict()
+    coordinators_map = dict()
+    emulators_map = dict()
+    replicatorsIdToPortMap = dict()
+    coordinatorsIdToPortMap = dict()
 
     for database in e.iter('database'):
         dbId = database.get('id')
