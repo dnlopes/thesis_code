@@ -29,14 +29,14 @@ logger.addHandler(ch)
 #NUMBER_REPLICAS=[1,3,5]
 NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
-JDCBs=['mysql_crdt']
+JDCBs=['crdt']
 
 ################################################################################################
 #   ALL EXPERIMENTS CONFIGURATIONS
 ################################################################################################
 
 userListToReplicasNumber = dict()
-NUMBER_USERS_LIST_1REPLICA=[1,2]
+NUMBER_USERS_LIST_1REPLICA=[1]
 NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120]
 NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180]
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
@@ -66,11 +66,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		logger.info("starting tests with %d replicas", numberOfReplicas)
 		# second cycle, use different jdbc to run experiment
 		for jdbc in JDCBs:
-			USE_CUSTOM_JDBC = 'true'
-			if jdbc == 'mysql_crdt':
-				USE_CUSTOM_JDBC='true'
-			else:
-				USE_CUSTOM_JDBC='false'		
+			config.JDBC=jdbc		
 			# third cycle, use different number of users per run
 			for numberOfUsers in USERS_LIST:
 				config.TOTAL_USERS = numberOfUsers
@@ -80,28 +76,29 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				TOTAL_USERS = numberOfUsers
 				NUMBER_OF_EMULATORS = len(config.replicators_nodes)
 				USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
-				runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, USE_CUSTOM_JDBC, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
+				runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 				logger.info('moving to the next iteration!')
 				
 			logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-			plots.generatePlotDataFile(OUTPUT_ROOT_DIR, USERS_LIST, USE_CUSTOM_JDBC)
+			plots.generatePlotDataFile(OUTPUT_ROOT_DIR, USERS_LIST)
 
 		logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
 		plots.generateLatencyThroughputPlot(OUTPUT_ROOT_DIR)
 	
 	logger.info("all experiments have finished!")
 
-	scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
-	scpCommand += DIR_TO_DOWNLOAD
-	scpCommand += "/Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
-	logger.info("###########################################################################################")
-	logger.info("use the following command to copy the logs directories:")
-	logger.info(scpCommand)
-	logger.info("###########################################################################################")
+	if not config.IS_LOCALHOST:
+		scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
+		scpCommand += DIR_TO_DOWNLOAD
+		scpCommand += " /Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
+		logger.info("###########################################################################################")
+		logger.info("use the following command to copy the logs directories:")
+		logger.info(scpCommand)
+		logger.info("###########################################################################################")
 	print "\n"
 	logger.info("Goodbye.")
 
-def runLatencyThroughputExperiment(outputDir, configFile, customJDBC, numberEmulators, usersPerEmulator, totalUsers):
+def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	
 	print "\n"
 	logger.info("########################################## starting new experiment ##########################################")
@@ -111,12 +108,12 @@ def runLatencyThroughputExperiment(outputDir, configFile, customJDBC, numberEmul
 	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
 	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
 	logger.info('>> TOTAL USERS: %s', totalUsers)
-	logger.info('>> CUSTOM JDBC: %s', customJDBC)
+	logger.info('>> JDBC: %s', config.JDBC)
 	logger.info('>> OUTPUT DIR: %s', outputDir)
 	logger.info("#############################################################################################################")
 	print "\n"
 
-	if customJDBC == 'true':
+	if config.JDBC == 'crdt':
 		runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 	else:
 		runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
@@ -166,7 +163,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	logger.info('the experiment has finished!')
 	killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeTemporaryCSVfiles(outputDir, totalUsers, False)	
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers)	
 	logger.info('logs can be found at %s', outputDir)    
 
 def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):

@@ -17,6 +17,8 @@ logger.addHandler(ch)
 ################################################################################################
 
 IS_LOCALHOST = True
+#IS_LOCALHOST = False
+TPCC_TEST_TIME=10
 
 ################################################################################################
 #   PREFIXS AND VARIABLES
@@ -27,8 +29,8 @@ if IS_LOCALHOST:
     user="dnl"
     
 MYSQL_PORT='3306'
-TPCC_TEST_TIME=10
 TOTAL_USERS=0
+JDCB=""
 
 prefix_latency_throughput_experiment = "latency-throughput"
 prefix_scalability_experiment = "scalability"

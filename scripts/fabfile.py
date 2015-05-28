@@ -174,7 +174,9 @@ def areClientsRunning(emulatorsNumber):
 def executeTerminalCommand(command):
     local(command)    
 
-
+def executeTerminalCommandAtDir(command, atDir):
+    with lcd(atDir):
+        executeTerminalCommand(command)
 
 
 
