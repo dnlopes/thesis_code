@@ -37,8 +37,8 @@ JDCBs=['crdt']
 
 userListToReplicasNumber = dict()
 NUMBER_USERS_LIST_1REPLICA=[1]
-NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120]
-NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180]
+NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
+NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
 userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
 userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
@@ -46,8 +46,7 @@ userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
 @task
 def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	now = datetime.datetime.now()
-	OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
-	DIR_TO_DOWNLOAD = OUTPUT_DIR
+	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
@@ -56,11 +55,10 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		if config.IS_LOCALHOST == True:
 			CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
 		
-		OUTPUT_DIR += "/" + str(numberOfReplicas) + "replica"
-		OUTPUT_ROOT_DIR = OUTPUT_DIR
+		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"		
 	  
 		config.parseConfigFile(CONFIG_FILE)
-		killRunningProcesses()
+		fab.killRunningProcesses()
 		prepareCode()
 
 		logger.info("starting tests with %d replicas", numberOfReplicas)
@@ -70,7 +68,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 			# third cycle, use different number of users per run
 			for numberOfUsers in USERS_LIST:
 				config.TOTAL_USERS = numberOfUsers
-				OUTPUT_DIR = OUTPUT_ROOT_DIR + "/" + str(numberOfUsers) + "user"
+				OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
 				with hide('output','running','warnings'),settings(warn_only=True):
 					local("mkdir -p " + OUTPUT_DIR + "/logs")
 				TOTAL_USERS = numberOfUsers
@@ -80,95 +78,27 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				logger.info('moving to the next iteration!')
 				
 			logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-			plots.generatePlotDataFile(OUTPUT_ROOT_DIR, USERS_LIST)
+			plots.generatePlotDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
 
 		logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
-		plots.generateLatencyThroughputPlot(OUTPUT_ROOT_DIR)
+		plots.generateLatencyThroughputPlot(REPLICA_OUTPUT_DIR)
 	
-	logger.info("all experiments have finished!")
-
 	if not config.IS_LOCALHOST:
 		scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
-		scpCommand += DIR_TO_DOWNLOAD
+		scpCommand += ROOT_OUTPUT_DIR
 		scpCommand += " /Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
+		print "\n"		
 		logger.info("###########################################################################################")
+		logger.info("all experiments have finished!")		
 		logger.info("use the following command to copy the logs directories:")
 		logger.info(scpCommand)
 		logger.info("###########################################################################################")
 	print "\n"
 	logger.info("Goodbye.")
 
-def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+@task
+def runScalabilityExperiment(configsFilesBaseDir):
 	
-	print "\n"
-	logger.info("########################################## starting new experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', configFile)
-	logger.info('>> DATABASES: %s', config.database_nodes)
-	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
-	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
-	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
-	logger.info('>> TOTAL USERS: %s', totalUsers)
-	logger.info('>> JDBC: %s', config.JDBC)
-	logger.info('>> OUTPUT DIR: %s', outputDir)
-	logger.info("#############################################################################################################")
-	print "\n"
-
-	if config.JDBC == 'crdt':
-		runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-	else:
-		runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-
-def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
-	logger.info("starting database layer")
-	
-	success = startDatabaseLayer()
-	if success == True:		
-		logger.info("all databases instances are online") 
-	else:		
-		logger.error("database layer failed to start. Exiting")
-		sys.exit()
-	
-	success = startCoordinatorsLayer(configFile)
-	if success == True:
-		logger.info('all coordinators are online')       		
-	else:
-		logger.error("coordination layer failed to start. Exiting")
-		sys.exit()   
-	
-	success = startReplicationLayer(configFile)
-	if success == True:
-		logger.info('all replicators are online')       		
-	else:
-		logger.error("replication layer failed to start. Exiting")
-		sys.exit()
-	
-	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
-
-	time.sleep(config.TPCC_TEST_TIME+30)
-	isRunning = True
-	while isRunning:
-		logger.info('checking experiment status...')   
-		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
-		if isRunning == True:
-			time.sleep(10)
-		else:
-			break
-
-	logger.info('the experiment has finished!')
-	killRunningProcesses()
-	downloadLogs(outputDir)
-	plots.mergeTemporaryCSVfiles(outputDir, totalUsers)	
-	logger.info('logs can be found at %s', outputDir)    
-
-def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
-	pass        
-
 ################################################################################################
 #   START LAYERS METHODS
 ################################################################################################
@@ -207,7 +137,7 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 		execute(fab.startTPCCclients, configFile, emulatorsNumber, clientsPerEmulator, customJDBC, hosts=config.emulators_nodes)
 
 ################################################################################################
-#   HELPER METHODS
+#   HELPER AND "PRIVATE" METHODS
 ################################################################################################
 
 def prepareCode():
@@ -219,18 +149,94 @@ def prepareCode():
 	with hide('output','running'):
 		execute(fab.distributeCode, hosts=config.distinct_nodes)
 
-def killRunningProcesses():
-	logger.info('cleaning running processes')    
-	with hide('running','output','warnings'):
-		execute(fab.stopJava, hosts=config.distinct_nodes)
-		time.sleep(1)
-		execute(fab.stopMySQL, hosts=config.database_nodes)
-		time.sleep(1)
-		execute(fab.stopJava, hosts=config.distinct_nodes)
-		time.sleep(1)
-
 def downloadLogs(outputDir):
 	logger.info('downloading log files')
 	execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
+
+def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	
+	print "\n"
+	logger.info("########################################## starting new experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', configFile)
+	logger.info('>> DATABASES: %s', config.database_nodes)
+	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
+	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
+	logger.info('>> TOTAL USERS: %s', totalUsers)
+	logger.info('>> JDBC: %s', config.JDBC)
+	logger.info('>> OUTPUT DIR: %s', outputDir)
+	logger.info("#############################################################################################################")
+	print "\n"
+
+	success = False
+	for attempt in range(10):
+		if config.JDBC == 'crdt':
+			success = runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
+		else:
+			success = runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
+		
+		if success:
+			break
+		else:
+			logger.error("experiment failed. Retrying...")
+			fab.killRunningProcesses()
+			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
+
+	if not success:
+		logger.error("failed to execute experiment after 10 retries. Exiting...")					
+		sys.exit()
+
+def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start. Exiting")
+		return False
+	
+	success = startCoordinatorsLayer(configFile)
+	if success == True:
+		logger.info('all coordinators are online')       		
+	else:
+		logger.error("coordination layer failed to start. Exiting")
+		return False   
+	
+	success = startReplicationLayer(configFile)
+	if success == True:
+		logger.info('all replicators are online')       		
+	else:
+		logger.error("replication layer failed to start. Exiting")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	pass        
 
 

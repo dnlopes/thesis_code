@@ -1,0 +1,1012 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"exe",
+				"executeTerminalCommand"
+			],
+			[
+				"pl",
+				"plotCommand"
+			],
+			[
+				"plt",
+				"plotCommand"
+			],
+			[
+				"plot",
+				"plotDataFiles"
+			],
+			[
+				"plo",
+				"plotDataFiles"
+			],
+			[
+				"is",
+				"isCustomJDBC"
+			],
+			[
+				"ot",
+				"outputDir"
+			],
+			[
+				"gene",
+				"generatePlotDataFile"
+			],
+			[
+				"num",
+				"numberOfReplicas"
+			],
+			[
+				"u",
+				"usersList"
+			],
+			[
+				"tot",
+				"totalUsers"
+			],
+			[
+				"total",
+				"totalOps"
+			],
+			[
+				"tem",
+				"tempCSVFiles"
+			],
+			[
+				"OUT",
+				"OUTPUT_DIR"
+			],
+			[
+				"USERS",
+				"USERS_LIST"
+			],
+			[
+				"nu",
+				"numberOfUsers"
+			],
+			[
+				"TOTAL",
+				"TOTAL_USERS"
+			],
+			[
+				"emul",
+				"emulators_nodes"
+			],
+			[
+				"em",
+				"emulatorsNumber"
+			],
+			[
+				"out",
+				"outputDir"
+			],
+			[
+				"start",
+				"startReplicationLayer"
+			],
+			[
+				"TOTA",
+				"TOTAL_USERS"
+			],
+			[
+				"NUM",
+				"NUMBER_OF_EMULATORS"
+			],
+			[
+				"USE",
+				"USE_CUSTOM_JDBC"
+			],
+			[
+				"run",
+				"runLatencyThroughputExperiment"
+			],
+			[
+				"con",
+				"configParser"
+			],
+			[
+				"still",
+				"stillRunning"
+			],
+			[
+				"has",
+				"hasNotFinished"
+			],
+			[
+				"cl",
+				"clients_nodes"
+			],
+			[
+				"dis",
+				"distinctNodesSet"
+			],
+			[
+				"cu",
+				"currentId"
+			],
+			[
+				"prox",
+				"proxiesNumber"
+			],
+			[
+				"replicators",
+				"replicators_nodes"
+			],
+			[
+				"cus",
+				"customJDBC"
+			],
+			[
+				"LOG",
+				"LOG_FILE_DIR"
+			],
+			[
+				"NU",
+				"NUMBER_USERS_LIST_3"
+			],
+			[
+				"parsi",
+				"parcialOps"
+			],
+			[
+				"LOG_D",
+				"LOGS_DIR"
+			],
+			[
+				"proc",
+				"processLogFiles"
+			],
+			[
+				"LO",
+				"LOG_FILE_DIR"
+			],
+			[
+				"disti",
+				"distinct_nodes"
+			],
+			[
+				"kill",
+				"killProcesses"
+			],
+			[
+				"fi",
+				"filesToDownload"
+			],
+			[
+				"TIME",
+				"TPCC_TEST_TIME"
+			],
+			[
+				"LOF",
+				"LOG_FILE_PREFIX"
+			],
+			[
+				"user",
+				"usersNum"
+			],
+			[
+				"stop",
+				"stopMySQL"
+			],
+			[
+				"databas",
+				"database_nodes"
+			],
+			[
+				"DE",
+				"DEPLOY_DIR"
+			],
+			[
+				"spl",
+				"splittedConfifFile"
+			],
+			[
+				"sp",
+				"splittedConfifFile"
+			],
+			[
+				"coo",
+				"coordinators_nodes"
+			],
+			[
+				"hos",
+				"hosts"
+			],
+			[
+				"coor",
+				"coordinators_map"
+			],
+			[
+				"pro",
+				"proxiesHostToPortMap"
+			],
+			[
+				"repl",
+				"replicatorsHostToPortMap"
+			],
+			[
+				"star",
+				"startReplicators"
+			],
+			[
+				"dist",
+				"distinct_nodes"
+			],
+			[
+				"proxi",
+				"proxies_nodes"
+			],
+			[
+				"confi",
+				"configFile"
+			],
+			[
+				"conf",
+				"configFile"
+			],
+			[
+				"prepa",
+				"prepareCode"
+			],
+			[
+				"di",
+				"distinct_nodes"
+			],
+			[
+				"CON",
+				"CONFIG_FILE"
+			],
+			[
+				"host",
+				"host_string"
+			],
+			[
+				"repli",
+				"replicators_map"
+			],
+			[
+				"co",
+				"coordinators_map"
+			],
+			[
+				"da",
+				"databases"
+			],
+			[
+				"databa",
+				"database_nodes"
+			],
+			[
+				"re",
+				"replicators_nodes"
+			],
+			[
+				"datab",
+				"database_nodes"
+			],
+			[
+				"db",
+				"dbsSet"
+			],
+			[
+				"data",
+				"database_nodes"
+			],
+			[
+				"parse",
+				"parseConfigFile"
+			],
+			[
+				"MY",
+				"MYSQL_DIR"
+			],
+			[
+				"MYSQL",
+				"MYSQL_START_COMMAND"
+			],
+			[
+				"exp",
+				"export_file"
+			],
+			[
+				"ou",
+				"outputFile"
+			],
+			[
+				"MYSQ",
+				"MYSQL_START_COMMAND"
+			],
+			[
+				"ti",
+				"timestamp"
+			],
+			[
+				"def",
+				"defaults"
+			],
+			[
+				"cle",
+				"cleanTPCW"
+			],
+			[
+				"a",
+				"a_mname"
+			],
+			[
+				"addr_st",
+				"addr_street2"
+			],
+			[
+				"todo",
+				"todo[options]{text}	todonotes"
+			],
+			[
+				"texttt",
+				"textit{text}	latex-document"
+			],
+			[
+				"subsub",
+				"subsubsection*{title}	latex-document"
+			],
+			[
+				"subse",
+				"subsubsection{title}	latex-document"
+			],
+			[
+				"subsec",
+				"subsection{title}	latex-document"
+			],
+			[
+				"sec",
+				"section{title}	latex-document"
+			],
+			[
+				"subsecti",
+				"subsection{title}	latex-document"
+			],
+			[
+				"td",
+				"todo{text}	todonotes"
+			],
+			[
+				"subsubse",
+				"subsubsection{title}	latex-document"
+			],
+			[
+				"input",
+				"input{file}	latex-document"
+			],
+			[
+				"ref",
+				"ref{key}	latex-document"
+			],
+			[
+				"cite",
+				"cite{keylist}	latex-document"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 271.0,
+		"selected_items":
+		[
+			[
+				"manager",
+				"Project Manager"
+			],
+			[
+				"project m",
+				"Project Manager: Open Project in New Window"
+			],
+			[
+				"project",
+				"Project Manager"
+			],
+			[
+				"pro",
+				"Project Manager: Open Project"
+			],
+			[
+				"open pro",
+				"Project Manager: Open Project"
+			],
+			[
+				"oepn ro",
+				"Project Manager: Open Project"
+			],
+			[
+				"ope ",
+				"Project Manager: Open Project"
+			],
+			[
+				"markdown",
+				"Set Syntax: Markdown"
+			],
+			[
+				"saurus",
+				"Thesaurus search"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"fill",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"fill an",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"fill na",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"project manager",
+				"Project Manager"
+			],
+			[
+				"project mana",
+				"Project Manager: Remove Project"
+			],
+			[
+				"project ma",
+				"Project Manager"
+			],
+			[
+				"latex",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"clean",
+				"LaTeXing: Clean up (Remove) all Nonessential Files"
+			],
+			[
+				"clean ",
+				"LaTeXing: Clean up (Remove) all Nonessential Files"
+			],
+			[
+				"latexing fill",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"latexing",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"projectmana",
+				"Project Manager: Open Project in New Window"
+			],
+			[
+				"latexing root",
+				"Snippet: LaTeXing Option Root File"
+			],
+			[
+				"root fi",
+				"Snippet: LaTeXing Option Root File"
+			],
+			[
+				"proje",
+				"Project Manager: Open Project"
+			],
+			[
+				"latexint mas",
+				"LaTeXing: Import Citation(s)"
+			],
+			[
+				"la",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"late",
+				"LaTeXing: Fill Anywhere"
+			],
+			[
+				"manager pro",
+				"Project Manager: Add Project"
+			],
+			[
+				"open",
+				"Project Manager: Open Project"
+			],
+			[
+				"projec",
+				"Project Manager"
+			],
+			[
+				"opr",
+				"Project Manager: Open Project"
+			],
+			[
+				"add pro",
+				"Project Manager: Add Project"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 529.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts"
+	],
+	"file_history":
+	[
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/fabfile.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/plots.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/experiments.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/configParser.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc_mysqlcluster.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_2line.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_1line.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/compareClocks.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/client.database.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_5node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_7node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_4node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_3node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_2node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_6node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_localhost_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/experiments.txt",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/globalVar.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/parser.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/globals.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc_crdt.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/fabfile_local.py",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/sections/sec_solution.tex",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/template.tex",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/inforum.sublime-project",
+		"/Users/dnlopes/workspaces/thesis/tex/dissertation/Chapters/chapter2.tex",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/inforum.sublime-workspace",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/main.tex",
+		"/Users/dnlopes/workspaces/thesis/tex/inforum/typeinst/typeinst.tex",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_1node_128cores.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_5node_clients10.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc-database.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcw_localhost_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/setupTpcc.sh",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_1nodes_1users",
+		"/Users/dnlopes/Desktop/JavaGnuplot/src/main/java/Main.java",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/tpcc-create.sh",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/load_data.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/add_fkey_idx.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcw-database.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/new_compareClocks.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/clocksProcedure.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/new_clocksProcedure.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/micro-database.sql",
+		"/Users/dnlopes/Downloads/escada-0.5/starter/src/main/java/escada/replicator/StartReplica.java",
+		"/Users/dnlopes/Downloads/escada-0.5/starter/src/main/assembly/derby-dist.xml",
+		"/Users/dnlopes/Downloads/gapi-0.4 2/src/main/java/gorda/db/Transaction.java",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcw/database.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/build.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/clocksFunction.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_1nodes_5users",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_1nodes_10users",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_2nodes_10users",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/parseConfigFile.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/config1",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/experiments.txt",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/defaults.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/cleanup.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/database.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/sql-mysql.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcw/scripts/run-tpcw.sh",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/config.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/cluster_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/config.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/cluster_2node",
+		"/Users/dnlopes/workspaces/gcd/scripts/my.cnf",
+		"/Users/dnlopes/Desktop/workspaces/thesis/code/georeplication/applications/tpc-w-fenix/sql.properties",
+		"/Users/dnlopes/Desktop/workspaces/thesis/code/georeplication/applications/tpc-w-fenix/sql-mysql.properties",
+		"/Users/dnlopes/Desktop/workspaces/thesis/code/georeplication/applications/tpc-w-fenix/sql-mysql_spd_bypass.properties",
+		"/Users/dnlopes/Desktop/workspaces/thesis/code/georeplication/applications/tpc-w-fenix/sql-mysql_redblue_semantics.properties",
+		"/Users/dnlopes/workspaces/gcd/fabfile.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcw/tpcw-database.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc/tpcc-database.sql",
+		"/Users/dnlopes/workspaces/thesis/meetings/ForeignKeys",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/database.properties",
+		"/Users/dnlopes/Downloads/jTPCC/tpcc.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/crdtdb.tpcw.properties",
+		"/Users/dnlopes/workspaces/thesis/code/georeplication/applications/tpc-w-fenix/tpcw/servlets/TPCW_execute_search.java",
+		"/Users/dnlopes/workspaces/gcd/tpcw/populate/TPCW_Populate.java",
+		"/Users/dnlopes/workspaces/gcd/tpcw/scripts/database.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/application/tpcw/build.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/untitled",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/application/tpcw/output/run-tpcw.sh",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/application/tpcw/output/database.properties",
+		"/Users/dnlopes/Downloads/jTPCC/sql/mysql/ct_bench_mysql.sql",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/demo/Appl.java",
+		"/Users/dnlopes/workspaces/thesis/code/framework/application/micro/database.sql",
+		"/Users/dnlopes/workspaces/thesis/meetings/11-03-2015.txt",
+		"/Users/dnlopes/workspaces/thesis/code/framework/application/tpcw/database.sql",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/test/appl/ApplSendEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/test/appl/ApplLayer.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/Session.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/common/RegisterSocketEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/ChannelManager.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/package.html",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/interfaces/InitializableSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/JMXConfiguration.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpReader.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/Appia.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpCompleteLayer.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpCompleteSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ExternalEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ChannelEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/utils/SessionProperties.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/AppiaDuplicatedSessionsException.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/drop/DropSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/udpsimple/UdpSimpleSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/templates/SessionTemplate.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/fifo/FifoSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/frag/FragSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/sslcomplete/SslCompleteSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/nakfifo/NakFifoSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/fifounreliable/FifoUnreliableSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/nakfifo/multicast/NakFifoMulticastSession.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/sslcomplete/SslRegisterSocketEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/AppiaMulticastSupport.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/drop/DropLayer.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/SendableEvent.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/EventScheduler.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ChannelInit.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/ChannelCursor.java",
+		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/AppiaEventException.java"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"generateLatencyThroughputPlot",
+			"mergeTemporaryCSVfiles",
+			"mergeResultCSVFiles",
+			"mergeTemporaryCSVfiles",
+			"False",
+			"USE_CUSTOM_JDBC",
+			"custom",
+			"runLatencyThroughputExperiment",
+			"JDBC",
+			"is",
+			"custom",
+			"if ",
+			"mergeTemporaryCSVfiles",
+			"mergeResultCSVFiles",
+			"mergeTemporaryCSVfiles",
+			"mergeResultCSVFiles",
+			"if",
+			"generatePlotDataFile",
+			"generateLatencyThroughputPlot",
+			"createPlotDataFiles",
+			"generatePlotDataFile",
+			"generateLatencyThroughputPlot",
+			"generatePlotDataFile",
+			"mergeTemporaryCSVfiles",
+			"generatePlotDataFile",
+			"generateLatencyThroughputPlot",
+			"generatePlotDataFile",
+			"runLatencyThroughputExperiment",
+			"generatePlotDataFile",
+			"generateLatencyThroughput",
+			"mergeTemporaryCSVfiles",
+			"mergeIterationCSVFiles",
+			"mergeTemporaryCSVfiles\nmergeTemporaryCSVfiles",
+			"mergeResultCSVFiles",
+			"tail",
+			"client ",
+			"client.",
+			"client",
+			"startReplicators",
+			"mergeTemporaryCSVfiles",
+			"startReplicators",
+			"startReplicationLayer",
+			"emulator",
+			"LOG",
+			"areClientsRunning",
+			"generateLatencyThroughput",
+			"emulators_nodes",
+			"downloadLogs",
+			"downloadLogsTo",
+			"NUMBER_USERS_LIST_1REPLICA",
+			"startTPCCclients",
+			"startCoordinators",
+			"startCoordinatorsLayer",
+			"emulators_nodes",
+			"client_nodes",
+			"startClientEmulators",
+			"True",
+			"startDatabaseLayer",
+			"proxiesNumber",
+			"areClientsRunning",
+			"downloadLogsTo",
+			"databases",
+			"TOMCAT_START",
+			"MYSQL_SHUTDOWN_COMMAND",
+			"MYSQL_START_COMMAND",
+			"startDatabases",
+			"is_mysql_running",
+			"pushLogs",
+			"emulators_nodes",
+			"TPCC",
+			"replicatorResults",
+			"startDatabases",
+			"pushLogs",
+			"OUTPUT_DIR",
+			"LOG_FILE_DIR",
+			"killRu",
+			"running",
+			"killPro",
+			"prepareCode",
+			"kill",
+			"config.parse",
+			"prepareTPCCDatabase",
+			"distributeCode",
+			"config.",
+			"isOurSetup",
+			"CUSTOM_JDBC",
+			"customJDBC",
+			"usersList",
+			"numbersToReplicasMap",
+			"startDatabases",
+			"weakDBExperiment",
+			"proxiesIdToPortMap",
+			"replicators_map",
+			"proxiesIdToPortMap",
+			"proxies_nodes",
+			"proxi",
+			"client_",
+			"replicators_map",
+			"database_map",
+			"proxies_map",
+			"coordinators_map",
+			"database_map",
+			"configsMap",
+			"parseConfigInput",
+			"generateLatencyThroughput",
+			"areClientsRunning",
+			"checkClientsIsRunning",
+			"processLogFiles",
+			"proxiesNumber",
+			"checkClientsIsRunning",
+			"startTPCCclients",
+			"clients_nodes",
+			"status...",
+			"checkClientsIsRunning",
+			"startTPCCclients",
+			"processLogFiles",
+			"pushLogs",
+			"checkClientsIsRunning",
+			"startTPCCclients",
+			"currentId",
+			"proxiesIdToPortMap",
+			"replicatorsIdToPortMap",
+			"coordinatorsIdToPortMap",
+			"coordinatorsToPortMap",
+			"coordinatorsIdToPortMap",
+			"replicatorsIdToPortMap",
+			"coordinatorsIdToPortMap",
+			"coordinatorsHostToPortMap"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"172.16.24.194",
+			"micro-database.sql",
+			"stopMySQL",
+			"distributeCode",
+			"is_mysql_running",
+			"MYSQL_DIR",
+			"date",
+			"0",
+			"@LWWINTEGER",
+			"\\textit{",
+			"\\it{hypervisor}"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 35.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 212.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.markdown":
+	{
+		"height": 98.0
+	},
+	"project": "scripts.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"config",
+				"scripts/configParser.py"
+			],
+			[
+				"fab",
+				"scripts/fabfile.py"
+			],
+			[
+				"parse",
+				"scripts/configParser.py"
+			],
+			[
+				"acro",
+				"dissertation/Chapters/acronyms.tex"
+			],
+			[
+				"bib",
+				"dissertation/bibliography.bib"
+			],
+			[
+				"cha",
+				"dissertation/Chapters/chapter1.tex"
+			],
+			[
+				"bb",
+				"dissertation/bibliography.bib"
+			],
+			[
+				"acr",
+				"dissertation/Chapters/acronyms.tex"
+			],
+			[
+				"bi",
+				"dissertation/bibliography.bib"
+			],
+			[
+				".giti",
+				"dissertation/.gitignore"
+			],
+			[
+				"template",
+				"dissertation/template.tex"
+			],
+			[
+				"templ",
+				"dissertation/template.tex"
+			],
+			[
+				"tem",
+				"dissertation/template.tex"
+			],
+			[
+				"make",
+				"Makefile"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 400.0,
+		"selected_items":
+		[
+		],
+		"width": 400.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 205.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

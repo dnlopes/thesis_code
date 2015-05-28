@@ -57,9 +57,9 @@ def startCoordinators(configFile):
         run(command)
     
     if config.IS_LOCALHOST == True:
-        time.sleep(20)
+        time.sleep(30)
     else:
-        time.sleep(20)
+        time.sleep(30)
     
     time.sleep(10)
     if not isPortOpen(port):
@@ -82,9 +82,9 @@ def startReplicators(configFile):
         run(command)
     
     if config.IS_LOCALHOST == True:
-        time.sleep(20)
+        time.sleep(30)
     else:
-        time.sleep(20)
+        time.sleep(30)
 
     time.sleep(10)
     if not isPortOpen(port):
@@ -178,7 +178,20 @@ def executeTerminalCommandAtDir(command, atDir):
     with lcd(atDir):
         executeTerminalCommand(command)
 
+def killRunningProcesses():
+    logger.debug('cleaning running processes')    
+    with hide('running','output','warnings'):
+        execute(stopJava, hosts=config.distinct_nodes)
+        time.sleep(1)
+        execute(stopMySQL, hosts=config.database_nodes)
+        time.sleep(1)
+        execute(stopJava, hosts=config.distinct_nodes)
+        time.sleep(1)        
 
+def cleanOutputFiles():
+    with cd(config.BASE_DIR), hide('output','running'), settings(warn_only=True):
+        run('rm -rf ' + config.DEPLOY_DIR + '/*.log')
+        run('rm -rf ' + config.DEPLOY_DIR + '/*.temp')
 
 
 

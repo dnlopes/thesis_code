@@ -30,7 +30,7 @@ public class Proxy extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 	private static int TXN_COUNT = 0;
 	private static final int FREQUENCY = 150;
-	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = 30;
+	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = 50;
 
 	private final ObjectPool<IDBScratchPad> scratchpadsPool;
 	// associates a connection id with the corresponding scratchpad
