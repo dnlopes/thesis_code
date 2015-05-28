@@ -34,7 +34,7 @@ def generatePlotDataFile(outputDir, usersList, isCustomJDBC):
 		dirName = outputDir + "/" + str(numberUsers) + "user"
 		fileName = dirName + "/" + str(numberUsers)
 		
-		if isCustomJDBC:
+		if isCustomJDBC == 'true':
 			fileName += "users_latency-throughput_crdt.csv"
 		else:
 			fileName += "users_latency-throughput_orig.csv"
@@ -50,7 +50,7 @@ def generatePlotDataFile(outputDir, usersList, isCustomJDBC):
 		frame = pd.concat(list_)
 		
 		fileName=""
-		if isCustomJDBC:
+		if isCustomJDBC == 'true':
 			fileName = outputDir + "/latency-throughput_datapoints_crdt.csv"
 		else:
 			fileName = outputDir + "/latency-throughput_datapoints_orig.csv"
@@ -101,7 +101,7 @@ def mergeResultCSVFiles(outputDir, totalUsers, isCustomJDBC):
 	fileContent = "numberOps,avgLatency\n"
 	fileContent += str(totalOps) + "," + str(avgLatency)
 
-	if isCustomJDBC:
+	if isCustomJDBC == 'true':
 		fileName = outputDir + "/" + str(totalUsers) + "users_latency-throughput_crdt.csv"
 	else:
 		fileName = outputDir + "/" + str(totalUsers) + "users_latency-throughput_orig.csv"
@@ -133,29 +133,3 @@ def generateLatencyThroughputPlot2Line(plotDataFiles):
 	plotCommand +='\' ; outputfile=\'latency-throughput.eps\'\" '
 	plotCommand += config.EXPERIMENTS_DIR + "/" + LATENCY_THROUGHPUT_2LINE
 	fab.executeTerminalCommand(plotCommand)
-
-	
-
-if __name__ == '__main__':
-    
-    #if len(sys.argv) != 1:
-        #print "python plots.py <outputDir>"
-        #sys.exit()
-        
-#    option = sys.argv[1:]
-    #outputDir = "/Users/dnlopes/devel/thesis/code/weakdb/experiments/logs/27-05_11h50m35s_latency-throughput/1replica"
-    outputDir = "/home/dnl/logs/27-05_11h50m35s_latency-throughput/1replica"
-    usersList = [1,2]
-
-    generatePlotDataFile(outputDir, usersList, False)
-    generatePlotDataFile(outputDir, usersList, True)
-    generateLatencyThroughputPlot(outputDir)
-
-                
-    
-            
-    
-        
-    
-    
-    
