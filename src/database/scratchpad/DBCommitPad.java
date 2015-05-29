@@ -71,13 +71,11 @@ public class DBCommitPad implements IDBCommitPad
 			for(String statement : op.getOperationList())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				LOG.trace("executing on maindb: {}", rebuiltStatement);
+				//LOG.trace("executing on maindb: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
 			}
-			LOG.trace("executing txn batch", op.getTxnId());
 			stat.executeBatch();
-			LOG.trace("txn is about to be committed", op.getTxnId());
 			this.connection.commit();
 			success = true;
 			LOG.trace("txn {} committed", op.getTxnId());

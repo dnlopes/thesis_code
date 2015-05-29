@@ -114,7 +114,10 @@ public class DBScratchPad implements IDBScratchPad
 			// something went wrong
 			// commit fails
 			if(!this.activeTransaction.isReadyToCommit())
+			{
+				LOG.debug("txn not ready to commit. something went wrong");
 				return false;
+			}
 
 			this.activeTransaction.startWatch();
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
@@ -341,7 +344,6 @@ public class DBScratchPad implements IDBScratchPad
 			result += counter;
 		}
 
-		LOG.trace("update statement executed properly");
 		return result;
 	}
 
@@ -815,7 +817,6 @@ public class DBScratchPad implements IDBScratchPad
 					{
 						continue;
 					}
-					LOG.trace("UNIQUE INDEX " + columnName);
 					uniqueIndices.add(columnName);
 				}
 				uqIndices.close();
@@ -852,8 +853,6 @@ public class DBScratchPad implements IDBScratchPad
 				uniqueIndices.toArray(uqIndicesPlain);
 				uniqueIndices.clear();
 
-				LOG.trace("Unique indices: " + Arrays.toString(uqIndicesPlain));
-
 				this.tableDefinition = new TableDefinition(this.databaseTable.getName(), tableNameAlias, this.tableId,
 						colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
 
@@ -862,8 +861,6 @@ public class DBScratchPad implements IDBScratchPad
 				else
 					buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
 
-				LOG.trace("buffer1: {}", buffer.toString());
-				LOG.trace("buffer2: {}", buffer2.toString());
 				scratchpad.executeUpdateMainStorage(buffer2.toString());
 				scratchpad.executeUpdateMainStorage(buffer.toString());
 
@@ -879,7 +876,6 @@ public class DBScratchPad implements IDBScratchPad
 		public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
 				throws SQLException, ScratchpadException
 		{
-			LOG.trace("creating selection for query {}", selectOp.toString());
 			String queryToOrigin;
 			String queryToTemp;
 
@@ -942,7 +938,6 @@ public class DBScratchPad implements IDBScratchPad
 			buffer.append(")");
 
 			String finalQuery = buffer.toString();
-			LOG.trace("query generated: {}", finalQuery);
 
 			return db.executeQueryMainStorage(finalQuery);
 		}
@@ -1215,7 +1210,6 @@ public class DBScratchPad implements IDBScratchPad
 
 			this.recordedPkValues.put(insertedRow.getPrimaryKeyValue().getUniqueValue(), pkValue);
 
-			LOG.trace("new insert: {}", buffer.toString());
 			return result;
 		}
 
@@ -1234,7 +1228,6 @@ public class DBScratchPad implements IDBScratchPad
 		 */
 		private int executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
 		{
-			LOG.trace("fetching rows to delete");
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("(SELECT ");
 			buffer.append(this.pk.getQueryClause());
@@ -1253,8 +1246,6 @@ public class DBScratchPad implements IDBScratchPad
 			addWhere(buffer, deleteOp.getWhere());
 			buffer.append(")");
 			String query = buffer.toString();
-
-			LOG.trace("selection for delete: {}", query);
 
 			int rowsDeleted = 1;
 			ResultSet res = null;
@@ -1381,7 +1372,6 @@ public class DBScratchPad implements IDBScratchPad
 			buffer.append(" WHERE ");
 			buffer.append(updateOp.getWhere().toString());
 			String updateStr = buffer.toString();
-			LOG.trace("transformed update: {}", updateStr);
 			db.addToBatchUpdate(updateStr);
 			db.executeBatch();
 			this.modified = true;
