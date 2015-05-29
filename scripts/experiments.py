@@ -27,18 +27,18 @@ logger.addHandler(ch)
 ################################################################################################
 
 SCALABILITY_USERS_PER_REPLICA=8
-#SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5,6,7]
-SCALABILITY_NUMBER_REPLICAS=[1,2]
+SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5]
+#SCALABILITY_NUMBER_REPLICAS=[1,2]
 SCALABILITY_JDCBs=['crdt']
-#NUMBER_REPLICAS=[1,3,5]
-NUMBER_REPLICAS=[1]
+NUMBER_REPLICAS=[3,5]
+#NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
 JDCBs=['crdt']
 
 ################################################################################################
 #   ALL EXPERIMENTS CONFIGURATIONS
 ################################################################################################
-
+TO_DOWNLOAD_COMMANDS = []
 userListToReplicasNumber = dict()
 NUMBER_USERS_LIST_1REPLICA=[1]
 NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
@@ -46,6 +46,24 @@ NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
 userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
 userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
+
+@task
+def runAllExperiments(configsFilesBaseDir):
+	runFullScalabilityExperiment(configsFilesBaseDir)
+	runFullLatencyThroughputExperiment(configsFilesBaseDir)
+
+	print "\n"
+	logger.info("###########################################################################################")
+	logger.info("all experiments have finished!")		
+	logger.info("here are the scp commands to download all log files:")
+	
+	for command in TO_DOWNLOAD_COMMANDS:
+		print command
+		print "\n"
+
+	logger.info("###########################################################################################")
+	print "\n"
+	logger.info("Goodbye.")
 
 @task
 def runFullLatencyThroughputExperiment(configsFilesBaseDir):
@@ -93,6 +111,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
 		scpCommand += ROOT_OUTPUT_DIR
 		scpCommand += " /Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
+		TO_DOWNLOAD_COMMANDS.append(scpCommand)
 		print "\n"		
 		logger.info("###########################################################################################")
 		logger.info("all experiments have finished!")		
@@ -100,7 +119,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		logger.info(scpCommand)
 		logger.info("###########################################################################################")
 	print "\n"
-	logger.info("Goodbye.")
 
 @task
 def runFullScalabilityExperiment(configsFilesBaseDir):
@@ -136,6 +154,19 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 
 	logger.info("generating plot graphic for scalability experience with %s replicas", SCALABILITY_NUMBER_REPLICAS)
 	plots.generateScalabilityPlot(ROOT_OUTPUT_DIR, SCALABILITY_NUMBER_REPLICAS, SCALABILITY_JDCBs)
+
+	if not config.IS_LOCALHOST:
+		scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
+		scpCommand += ROOT_OUTPUT_DIR
+		scpCommand += " /Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
+		TO_DOWNLOAD_COMMANDS.append(scpCommand)
+		print "\n"		
+		logger.info("###########################################################################################")
+		logger.info("all experiments have finished!")		
+		logger.info("use the following command to copy the logs directories:")
+		logger.info(scpCommand)
+		logger.info("###########################################################################################")
+	print "\n"
 
 ################################################################################################
 #   START LAYERS METHODS

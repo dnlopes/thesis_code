@@ -18,7 +18,7 @@ logger.addHandler(ch)
 
 #IS_LOCALHOST = True
 IS_LOCALHOST = False
-TPCC_TEST_TIME=20
+TPCC_TEST_TIME=45
 
 ################################################################################################
 #   PREFIXS AND VARIABLES
