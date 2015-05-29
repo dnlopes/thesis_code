@@ -20,6 +20,8 @@ logger.addHandler(ch)
 
 LATENCY_THROUGHPUT_1LINE ="latency-throughput_1line.gp"
 LATENCY_THROUGHPUT_2LINE ="latency-throughput_2line.gp"
+SCALABILITY_1LINE = "scalability_1line.gp"
+SCALABILITY_2LINE = "scalability_2line.gp"
 
 ################################################################################################
 #   MAIN METHODS
@@ -32,6 +34,26 @@ def generateScalabilityPlot(outputDir, numberReplicasList, jdbcDriversList):
 		generateScalabilityLineForJDBC(outputDir, driver, numberReplicasList)
 
 	logger.info("generating scalability plot for %s drivers: ", jdbcDriversList)
+	plotDataFiles = glob.glob(outputDir + "/*.csv")
+
+	if len(plotDataFiles) == 1:
+		generateScalabilityPlot1Line(plotDataFiles, outputDir)
+	elif len(plotDataFiles) == 2:
+		generateScalabilityPlot12ine(plotDataFiles, outputDir)
+	else:
+		logger.error("unexpected number of csv files to plot graphic")
+		sys.exit()
+
+def generateScalabilityPlot1Line(plotDataFiles, outputDir):
+	logger.info("generating plot with 1 line")
+	plotCommand = 'gnuplot -e \"data1=\''
+	plotCommand +=plotDataFiles[0]
+	plotCommand += '\'; outputfile=\'scalability.eps\'\" '
+	plotCommand += config.EXPERIMENTS_DIR + "/" + SCALABILITY_1LINE
+	fab.executeTerminalCommandAtDir(plotCommand, outputDir)
+
+def generateScalabilityPlot12ine(plotDataFiles, outputDir):
+	pass	
 
 def generateScalabilityLineForJDBC(outputDir, jdbcDriver, numberReplicasList):
 	csvFiles = glob.glob(outputDir + "/*.results.temp")
@@ -41,23 +63,22 @@ def generateScalabilityLineForJDBC(outputDir, jdbcDriver, numberReplicasList):
 	foundFile = False
 	for replicaNum in numberReplicasList:
 		aDir = outputDir + "/" + str(replicaNum) + "replica"
-		fileSufix = config.ACTIVE_EXPERIMENT + "_" + jdbcDriver
-		csvFiles = glob.glob(aDir + "/*" + fileSufix)
-		if len(csvFiles) > 1:
-			logger.error("there should only exist one CSV file for each jdcb driver per replica folder")
+		fileSufix = jdbcDriver + ".csv"
+		fullDir = aDir + "/*" + fileSufix
+		csvFiles = glob.glob(fullDir)		
+		
+		if len(csvFiles) != 1:
+			logger.error("there should exist exactly one CSV file for each jdcb driver per replica folder at: %s", fullDir)
 			sys.exit()
-		if len(csvFiles) < 1:
-			logger.error("there should exist one CSV file for this jdcb driver per replica folder")
-			sys.exit()			
 
 		csvFileName = csvFiles[0]
-		df = pd.read_csv(file_,index_col=None, header=0)
+		df = pd.read_csv(csvFileName,index_col=None, header=0)
 		list_.append(df)
 		foundFile = True
 
 	if foundFile:
 		frame = pd.concat(list_)
-		fileName = outputDir + "/scalability_"
+		fileName = outputDir + "/scalability_datapoints_"
 		fileName += config.JDBC
 		fileName +=".csv"
 		frame.to_csv(fileName, sep=",", index=False)
@@ -134,7 +155,7 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	opsPerSecond = totalOps / config.TPCC_TEST_TIME
 	usersPerEmulator = totalUsers / numberOfReplicas
 	fileContent = "numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator\n"
-	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(opsPerSecond) + "," + str(usersPerEmulator)
+	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(totalUsers) + "," + str(usersPerEmulator)
 
 	fileName = outputDir + "/" + str(totalUsers) + config.ACTIVE_EXPERIMENT + "_"
 	fileName += config.JDBC

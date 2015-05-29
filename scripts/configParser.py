@@ -16,9 +16,9 @@ logger.addHandler(ch)
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
-IS_LOCALHOST = True
-#IS_LOCALHOST = False
-TPCC_TEST_TIME=45
+#IS_LOCALHOST = True
+IS_LOCALHOST = False
+TPCC_TEST_TIME=20
 
 ################################################################################################
 #   PREFIXS AND VARIABLES

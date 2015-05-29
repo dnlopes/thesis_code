@@ -104,7 +104,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 @task
 def runFullScalabilityExperiment(configsFilesBaseDir):
-	config.ACTIVE_EXPERIMENT = prefix_scalability_experiment	
+	config.ACTIVE_EXPERIMENT = config.prefix_scalability_experiment	
 	now = datetime.datetime.now()
 	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_scalability_experiment
 
@@ -135,7 +135,7 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 			logger.info('moving to the next iteration!')
 
 	logger.info("generating plot graphic for scalability experience with %s replicas", SCALABILITY_NUMBER_REPLICAS)
-	plots.generateScalabilityPlot(ROOT_OUTPUT_DIR, SCALABILITY_NUMBER_REPLICAS, jdbcDriversList)
+	plots.generateScalabilityPlot(ROOT_OUTPUT_DIR, SCALABILITY_NUMBER_REPLICAS, SCALABILITY_JDCBs)
 
 ################################################################################################
 #   START LAYERS METHODS
@@ -194,24 +194,24 @@ def downloadLogs(outputDir):
 def runScalabilityExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas):
 	
 	print "\n"
-	logger.info("########################################## starting new Scalability experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', configFile)
+	logger.info("########################################## starting new scalability experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', CONFIG_FILE)
 	logger.info('>> DATABASES: %s', config.database_nodes)
 	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
-	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
-	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
-	logger.info('>> TOTAL USERS: %s', totalUsers)
+	logger.info('>> NUMBER OF EMULATORS: %s', NUMBER_OF_EMULATORS)
+	logger.info('>> CLIENTS PER EMULATOR: %s', USERS_PER_EMULATOR)
+	logger.info('>> TOTAL USERS: %s', TOTAL_USERS)
 	logger.info('>> JDBC: %s', config.JDBC)
-	logger.info('>> OUTPUT DIR: %s', outputDir)
+	logger.info('>> OUTPUT DIR: %s', OUTPUT_DIR)
 	logger.info("#########################################################################################################################")
 	print "\n"
 
 	success = False
 	for attempt in range(10):
 		if config.JDBC == 'crdt':
-			success = runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+			success = runScalabilityExperimentCRDT(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
 		else:
-			success = runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+			success = runScalabilityExperimentBaseline(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
 		
 		if success:
 			break
