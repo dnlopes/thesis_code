@@ -83,7 +83,20 @@ public class CRDTStatement implements Statement
 	@Override
 	public boolean execute(String arg0) throws SQLException
 	{
-		throw new MissingImplementationException("missing implementation");
+		if(arg0.contains("commit"))
+		{
+			if(!proxy.commit(this.id))
+				throw new SQLException("txn commit failed");
+
+			return true;
+		}
+
+		if(arg0.contains("ROLLBACK"))
+		{
+			proxy.abort(this.id);
+		}
+
+		return true;
 	}
 
 	@Override

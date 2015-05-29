@@ -24,6 +24,7 @@
 	<property name="applications.dir" value="${base.dir}/applications" />
 	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
 	<property name="tpcc.dir" value="${applications.dir}/tpcc" />
+	<property name="tpcc_escada.dir" value="${applications.dir}/tpcc-escada" />
 
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -42,8 +43,11 @@
 
 	<!-- TPC-C properties -->
 	<property name="tpcc.src.dir" value="${tpcc.dir}/src" />
+	<property name="tpcc_escada.src.dir" value="${tpcc_escada.dir}/src" />
 	<property name="tpcc.dist.dir" value="${tpcc.dir}/dist" />
+	<property name="tpcc_escada.dist.dir" value="${tpcc_escada.dir}/dist" />
 	<property name="tpcc.classes.dir" value="${tpcc.dist.dir}/classes" />
+	<property name="tpcc_escada.classes.dir" value="${tpcc_escada.dist.dir}/classes" />
 
 	<!-- TPC-C resources-->
 	<path id="tpcc.resources.path">
@@ -79,6 +83,7 @@
 			<include name="slf4j-api-1.7.10.jar" />
 			<include name="log4j-1.2.17.jar" />
 			<include name="slf4j-log4j12-1.7.10.jar" />
+			<include name="commons-cli-1.2.jar" />
 		</fileset>
 		<fileset dir="${dist.dir}/jars/">
 			<include name="crdtjdbc.jar" />
@@ -206,6 +211,7 @@
 	<target name="tpcc-init" depends="tpcc-clean">
 		<tstamp />
 		<mkdir dir="${tpcc.classes.dir}" />
+		<mkdir dir="${tpcc_escada.classes.dir}" />
 	</target>
 	<target name="tpcc-clean">
 		<delete dir="${tpcc.dist.dir}" />
@@ -234,6 +240,49 @@
 			</fileset>
 		</jar>
 		<copy file="${jars.dir}/tpcc-client.jar" todir="${deploy.dir}" />
+	</target>
+	<target name="tpcc_escada-dist" depends="dist,tpcc-init" description="Compile and distribute TPC-C Escada">
+		<javac srcdir="${tpcc_escada.src.dir}" includes="**/*.java" includeantruntime="false"
+			   destdir="${tpcc_escada.classes.dir}"
+			   debug="true" deprecation="false" nowarn="yes">
+			<classpath refid="tpcc.classpath" />
+		</javac>
+		<jar destfile="${jars.dir}/tpcc_escada-client.jar" basedir="${tpcc_escada.classes.dir}">
+			<manifest>
+				<attribute name="Class-Path" value="." />
+				<attribute name="Main-Class" value="escada.tpc.common.clients.jmx.ClientEmulationStartup" />
+			</manifest>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="crdtjdbc.jar" />
+			</zipgroupfileset>
+			<fileset dir="${resources.dir}">
+				<include name="workload-config.properties" />
+				<include name="database-config.properties" />
+				<include name="log4j.properties" />
+				<include name="tpcc-database.sql" />
+			</fileset>
+		</jar>
+		<copy file="${jars.dir}/tpcc_escada-client.jar" todir="${deploy.dir}" />
+
+		<jar destfile="${jars.dir}/tpcc_escada-gendb.jar" basedir="${tpcc_escada.classes.dir}">
+			<manifest>
+				<attribute name="Class-Path" value="." />
+				<attribute name="Main-Class" value="escada.tpc.tpcc.database.populate.jmx.DatabasePopulate" />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+			<fileset dir="${resources.dir}">
+				<include name="workload-config.properties" />
+				<include name="database-config.properties" />
+				<include name="log4j.properties" />
+				<include name="tpcc-database.sql" />
+			</fileset>
+		</jar>
+		<copy file="${jars.dir}/tpcc_escada-client.jar" todir="${deploy.dir}" />
 	</target>
 	<target name="tpcc-gendb" depends="tpcc-dist" description="Generate TPC-C database">
 		<exec dir="${tpcc.dir}/database" executable="/bin/bash" osfamily="unix" failonerror="true" >

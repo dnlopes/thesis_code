@@ -33,6 +33,7 @@ public class CRDTConnection implements Connection
 	private static final int PROXY_ID = Integer.parseInt(System.getProperty("proxyid"));
 	private static final Proxy proxy;
 
+
 	static
 	{
 		NodeConfig config = Configuration.getInstance().getProxyConfigWithIndex(PROXY_ID);
@@ -117,7 +118,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public boolean isClosed() throws SQLException
 	{
-		throw new MissingImplementationException("missing implementation");
+		return false;
 	}
 
 	@Override

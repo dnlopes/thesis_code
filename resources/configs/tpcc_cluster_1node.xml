@@ -15,5 +15,5 @@
 		</proxies>
 	</topology>
 	<variables padPoolSize="100" dbName="tpcc_crdt"
-			   schemaFile="tpcc-database.sql" />
+			   schemaFile="tpcc_ddl.sql" />
 </config>

@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-import com.codefutures.tpcc.stats.ThreadStatistics;
+import escada.tpc.tpcc.stats.ThreadStatistics;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
