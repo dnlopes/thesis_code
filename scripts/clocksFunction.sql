@@ -58,5 +58,5 @@ END WHILE;
 END //
 DELIMITER ;
 
--- select testFunc('2-0-1', '1-0-0');
+-- select testClock('2-0-1', '1-0-0');
 -- select * from t1 where (select testFunc('2-0-1', '1-0-0') = 1) limit 5;

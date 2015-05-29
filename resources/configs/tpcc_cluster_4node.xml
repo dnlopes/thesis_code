@@ -23,6 +23,6 @@
 			<proxy id="4" host="node10" port="50013" refDatabase="4" refReplicator="4" refCoordinator="1" />
 		</proxies>
 	</topology>
-	<variables padPoolSize="120" dbName="tpcc_crdt"
+	<variables padPoolSize="100" dbName="tpcc_crdt"
 			   schemaFile="tpcc-database.sql" />
 </config>

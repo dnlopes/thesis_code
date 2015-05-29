@@ -1,5 +1,6 @@
 # Directories
 dist/
+experiments/logs
 applications/tpcw/webapp
 applications/tpcw/src
 applications/tpcc/pom.xml

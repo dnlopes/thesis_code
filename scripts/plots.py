@@ -25,6 +25,43 @@ LATENCY_THROUGHPUT_2LINE ="latency-throughput_2line.gp"
 #   MAIN METHODS
 ################################################################################################
 
+def generateScalabilityPlot(outputDir, numberReplicasList, jdbcDriversList):
+	
+	for driver in jdbcDriversList:
+		logger.debug("generating scalability plot data for driver: %s", driver)
+		generateScalabilityLineForJDBC(outputDir, driver, numberReplicasList)
+
+	logger.info("generating scalability plot for %s drivers: ", jdbcDriversList)
+
+def generateScalabilityLineForJDBC(outputDir, jdbcDriver, numberReplicasList):
+	csvFiles = glob.glob(outputDir + "/*.results.temp")
+
+	frame = pd.DataFrame()
+	list_ = []
+	foundFile = False
+	for replicaNum in numberReplicasList:
+		aDir = outputDir + "/" + str(replicaNum) + "replica"
+		fileSufix = config.ACTIVE_EXPERIMENT + "_" + jdbcDriver
+		csvFiles = glob.glob(aDir + "/*" + fileSufix)
+		if len(csvFiles) > 1:
+			logger.error("there should only exist one CSV file for each jdcb driver per replica folder")
+			sys.exit()
+		if len(csvFiles) < 1:
+			logger.error("there should exist one CSV file for this jdcb driver per replica folder")
+			sys.exit()			
+
+		csvFileName = csvFiles[0]
+		df = pd.read_csv(file_,index_col=None, header=0)
+		list_.append(df)
+		foundFile = True
+
+	if foundFile:
+		frame = pd.concat(list_)
+		fileName = outputDir + "/scalability_"
+		fileName += config.JDBC
+		fileName +=".csv"
+		frame.to_csv(fileName, sep=",", index=False)
+
 def generatePlotDataFile(outputDir, usersList):
 	frame = pd.DataFrame()
 	list_ = []
@@ -65,10 +102,10 @@ def generateLatencyThroughputPlot(outputDir):
 		logger.error("unexpected number of csv files to plot graphic")
 		sys.exit()
 
-def mergeTemporaryCSVfiles(outputDir, totalUsers):
+def mergeTemporaryCSVfiles(outputDir, totalUsers, numberOfReplicas):
 	logger.info("merging temporary CSV files")
 	mergeIterationCSVFiles(outputDir, totalUsers)
-	mergeResultCSVFiles(outputDir, totalUsers)
+	mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)
 	
 ################################################################################################
 #   "PRIVATE" METHODS
@@ -79,7 +116,7 @@ def mergeIterationCSVFiles(outputDir, totalUsers):
 	#logger.info("merging files: %s", tempCSVFiles)
 	pass
 
-def mergeResultCSVFiles(outputDir, totalUsers):
+def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
 	logger.info("merging files: %s", tempCSVFiles)
 	
@@ -90,14 +127,16 @@ def mergeResultCSVFiles(outputDir, totalUsers):
 		list_.append(df)
 
 	frame = pd.concat(list_)
-	#CSV format: numberOps,avgLatency
+	#CSV format: numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator
 	totalOps = frame['numberOps'].sum()
 	avgLatency = frame['avgLatency'].mean()
 	
-	fileContent = "numberOps,avgLatency\n"
-	fileContent += str(totalOps) + "," + str(avgLatency)
+	opsPerSecond = totalOps / config.TPCC_TEST_TIME
+	usersPerEmulator = totalUsers / numberOfReplicas
+	fileContent = "numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator\n"
+	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(opsPerSecond) + "," + str(usersPerEmulator)
 
-	fileName = outputDir + "/" + str(totalUsers) + "users_latency-throughput_"
+	fileName = outputDir + "/" + str(totalUsers) + config.ACTIVE_EXPERIMENT + "_"
 	fileName += config.JDBC
 	fileName +=".csv"
 	

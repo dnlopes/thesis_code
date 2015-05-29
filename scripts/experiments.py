@@ -26,6 +26,10 @@ logger.addHandler(ch)
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
+SCALABILITY_USERS_PER_REPLICA=8
+#SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5,6,7]
+SCALABILITY_NUMBER_REPLICAS=[1,2]
+SCALABILITY_JDCBs=['crdt']
 #NUMBER_REPLICAS=[1,3,5]
 NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
@@ -45,6 +49,7 @@ userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
 
 @task
 def runFullLatencyThroughputExperiment(configsFilesBaseDir):
+	config.ACTIVE_EXPERIMENT = config.prefix_latency_throughput_experiment
 	now = datetime.datetime.now()
 	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 
@@ -71,6 +76,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
 				with hide('output','running','warnings'),settings(warn_only=True):
 					local("mkdir -p " + OUTPUT_DIR + "/logs")
+
 				TOTAL_USERS = numberOfUsers
 				NUMBER_OF_EMULATORS = len(config.replicators_nodes)
 				USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
@@ -97,8 +103,40 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	logger.info("Goodbye.")
 
 @task
-def runScalabilityExperiment(configsFilesBaseDir):
-	
+def runFullScalabilityExperiment(configsFilesBaseDir):
+	config.ACTIVE_EXPERIMENT = prefix_scalability_experiment	
+	now = datetime.datetime.now()
+	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_scalability_experiment
+
+	for numberOfReplicas in SCALABILITY_NUMBER_REPLICAS:		
+		CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
+		if config.IS_LOCALHOST == True:
+			CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
+		
+		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"
+		
+		config.parseConfigFile(CONFIG_FILE)
+		fab.killRunningProcesses()
+		prepareCode()
+
+		logger.info("starting tests with %d replicas", numberOfReplicas)
+		for jdbc in JDCBs:
+			OUTPUT_DIR = REPLICA_OUTPUT_DIR
+			with hide('output','running','warnings'),settings(warn_only=True):
+				local("mkdir -p " + OUTPUT_DIR + "/logs")
+
+			config.JDBC=jdbc			
+			NUMBER_OF_EMULATORS = numberOfReplicas
+			USERS_PER_EMULATOR = SCALABILITY_USERS_PER_REPLICA
+			TOTAL_USERS = USERS_PER_EMULATOR * NUMBER_OF_EMULATORS
+			config.TOTAL_USERS = TOTAL_USERS
+			
+			runScalabilityExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
+			logger.info('moving to the next iteration!')
+
+	logger.info("generating plot graphic for scalability experience with %s replicas", SCALABILITY_NUMBER_REPLICAS)
+	plots.generateScalabilityPlot(ROOT_OUTPUT_DIR, SCALABILITY_NUMBER_REPLICAS, jdbcDriversList)
+
 ################################################################################################
 #   START LAYERS METHODS
 ################################################################################################
@@ -116,7 +154,6 @@ def startDatabaseLayer():
 def startCoordinatorsLayer(configFile):
 	with hide('running','output'):
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
-		logger.debug("outputs: %s", output)
 		for key, value in output.iteritems():
 			if value == '0':
 				logger.error('coordinator at %s failed to start', key)
@@ -151,12 +188,13 @@ def prepareCode():
 
 def downloadLogs(outputDir):
 	logger.info('downloading log files')
-	execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
+	with hide('running', 'output'):
+		execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
 
-def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+def runScalabilityExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas):
 	
 	print "\n"
-	logger.info("########################################## starting new experiment ##########################################")
+	logger.info("########################################## starting new Scalability experiment ##########################################")
 	logger.info('>> CONFIG FILE: %s', configFile)
 	logger.info('>> DATABASES: %s', config.database_nodes)
 	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
@@ -165,7 +203,93 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 	logger.info('>> TOTAL USERS: %s', totalUsers)
 	logger.info('>> JDBC: %s', config.JDBC)
 	logger.info('>> OUTPUT DIR: %s', outputDir)
-	logger.info("#############################################################################################################")
+	logger.info("#########################################################################################################################")
+	print "\n"
+
+	success = False
+	for attempt in range(10):
+		if config.JDBC == 'crdt':
+			success = runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+		else:
+			success = runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+		
+		if success:
+			break
+		else:
+			logger.error("experiment failed. Retrying...")
+			fab.killRunningProcesses()
+			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
+
+	if not success:
+		logger.error("failed to execute experiment after 10 retries. Exiting...")					
+		sys.exit()
+
+def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	success = startCoordinatorsLayer(configFile)
+	if success == True:
+		logger.info('all coordinators are online')       		
+	else:
+		logger.error("coordination layer failed to start")
+		return False   
+	
+	success = startReplicationLayer(configFile)
+	if success == True:
+		logger.info('all replicators are online')       		
+	else:
+		logger.error("replication layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	pass	
+
+def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	
+	print "\n"
+	logger.info("########################################## starting new Latency-Throughput experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', configFile)
+	logger.info('>> DATABASES: %s', config.database_nodes)
+	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
+	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
+	logger.info('>> TOTAL USERS: %s', totalUsers)
+	logger.info('>> JDBC: %s', config.JDBC)
+	logger.info('>> OUTPUT DIR: %s', outputDir)
+	logger.info("################################################################################################################################")
 	print "\n"
 
 	success = False
@@ -231,7 +355,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	logger.info('the experiment has finished!')
 	fab.killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeTemporaryCSVfiles(outputDir, totalUsers)	
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)	
 	logger.info('logs can be found at %s', outputDir)
 
 	return True

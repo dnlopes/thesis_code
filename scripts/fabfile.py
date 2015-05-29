@@ -57,13 +57,12 @@ def startCoordinators(configFile):
         run(command)
     
     if config.IS_LOCALHOST == True:
-        time.sleep(30)
+        time.sleep(20)
     else:
-        time.sleep(30)
+        time.sleep(10)
     
     time.sleep(10)
     if not isPortOpen(port):
-        logger.debug("coordinator is not running")
         return '0'
     return '1'
 
@@ -82,9 +81,9 @@ def startReplicators(configFile):
         run(command)
     
     if config.IS_LOCALHOST == True:
-        time.sleep(30)
+        time.sleep(20)
     else:
-        time.sleep(30)
+        time.sleep(20)
 
     time.sleep(10)
     if not isPortOpen(port):
@@ -179,7 +178,7 @@ def executeTerminalCommandAtDir(command, atDir):
         executeTerminalCommand(command)
 
 def killRunningProcesses():
-    logger.debug('cleaning running processes')    
+    logger.info('cleaning running processes')    
     with hide('running','output','warnings'):
         execute(stopJava, hosts=config.distinct_nodes)
         time.sleep(1)
