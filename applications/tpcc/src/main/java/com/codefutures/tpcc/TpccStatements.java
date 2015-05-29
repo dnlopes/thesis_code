@@ -95,15 +95,10 @@ public class TpccStatements {
     /**
      * Commit a transaction.
      */
-    public void commit() {
-        logger.trace("COMMIT");
-        try {
-            conn.commit();
-			logger.trace("txn committed");
-		} catch(SQLException e)
-		{
-            logger.trace("txn commit failed");
-        }
+    public void commit() throws SQLException
+	{
+		conn.commit();
+		logger.trace("txn committed");
     }
 
     /**
