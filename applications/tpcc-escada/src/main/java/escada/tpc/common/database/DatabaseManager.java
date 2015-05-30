@@ -156,10 +156,10 @@ public class DatabaseManager {
 
 			}
 
-			PerformanceLogger.info((startTime.getTime() - baseTime.getTime())
+			/*PerformanceLogger.info((startTime.getTime() - baseTime.getTime())
 					+ ":0:" + (finishTime.getTime() - baseTime.getTime()) + ":"
 					+ (finishTime.getTime() - startTime.getTime()) + ":"
-					+ transResult + ":" + transAccess + ":" + transName);
+					+ transResult + ":" + transAccess + ":" + transName);*/
 		}
 	}
 }

@@ -332,13 +332,13 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 
             logger.info("EBs finished.");
-            PerformanceLogger.info("-------------------- SUMMARY ---------------------------");
+            /*PerformanceLogger.info("-------------------- SUMMARY ---------------------------");
             PerformanceLogger.info("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
             PerformanceLogger.info("Average latency:"+PerformanceCounters.getReference().getAverageLatency());
             PerformanceLogger.info("Measured tpmC:"+PerformanceCounters.getReference().getTotalNewOrderCommitRate());
-			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());
+			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());  */
 			createOutputFiles();
-            PerformanceLogger.close();
+            //PerformanceLogger.close();
         } catch (Exception ex) {
             logger.info("Error while creating clients: ", ex);
         } finally {
@@ -537,7 +537,8 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 	{
 		int commitsCounter = PerformanceCounters.getReference().getCommitCounter();
 		double avgLatency = PerformanceCounters.getReference().getAverageLatency();
-
+		float abortRate = PerformanceCounters.getReference().getTotalAbortRate();
+		float tpmc = PerformanceCounters.getReference().getTotalNewOrderCommitRate();
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 
@@ -546,10 +547,14 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 		PrintWriter out = null;
 		try
 		{   StringBuilder buffer = new StringBuilder();
-			buffer.append("numberOps,avgLatency\n");
+			buffer.append("numberOps,avgLatency,tpmc,abortrate\n");
 			buffer.append(commitsCounter);
 			buffer.append(",");
 			buffer.append(avgLatency);
+			buffer.append(",");
+			buffer.append(tpmc);
+			buffer.append(",");
+			buffer.append(abortRate);
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
 			out.close();

@@ -33,16 +33,18 @@ public class PerformanceLogger {
 
     public static void setPrintWriter(String fileName)
     {
+		/*
         try {
             out=new PrintWriter(new FileWriter(fileName),true);
             out.println("StartTime:Replica:FinishTime:OperationTime:Result:Access:Type");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }       */
     }
 
 	public static boolean isPerformanceLoggerEnabled() {
-		return (out!=null);
+		//return (out!=null);
+		return true;
 	}
 
 	public static void info(String pStr) {
