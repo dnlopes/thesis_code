@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * @author Ricardo Vilaça
+ * @author Ricardo Vilaca
  * 
  */
 public class PerformanceLogger {

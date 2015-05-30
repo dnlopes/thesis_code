@@ -217,6 +217,7 @@
 	</target>
 	<target name="tpcc-clean">
 		<delete dir="${tpcc.dist.dir}" />
+		<delete dir="${tpcc_escada.dir}" />
 	</target>
 	<target name="tpcc-dist-codefuture" depends="dist,tpcc-init" >
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
