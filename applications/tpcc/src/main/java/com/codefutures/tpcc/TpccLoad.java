@@ -80,6 +80,7 @@ public class TpccLoad implements TpccConstants {
 
     private int runLoad(boolean overridePropertiesFile, String[] argv) {
 
+		/*
         if (overridePropertiesFile) {
             for (int i = 0; i < argv.length; i = i + 2) {
                 if (argv[i].equals("-m")) {
@@ -125,7 +126,9 @@ public class TpccLoad implements TpccConstants {
             jdbcUrl = properties.getProperty(JDBCURL);
             shardId = Integer.parseInt(properties.getProperty(SHARDID));
         }
-
+                  */
+		shardCount = 1;
+		shardId = 1;
         System.out.printf("*************************************\n");
         System.out.printf("*** Java TPC-C Data Loader version " + Tpcc.VERSION + " ***\n");
         System.out.printf("*************************************\n");
@@ -133,11 +136,13 @@ public class TpccLoad implements TpccConstants {
         final long start = System.currentTimeMillis();
         System.out.println("Execution time start: " + start);
 
+		/*
         if (mode == null) {
             throw new RuntimeException("Mode is null.");
         }
         boolean jdbcMode = mode.equalsIgnoreCase("JDBC");
-
+                */
+		/*
         if (jdbcMode) {
             if (dbUser == null) {
                 throw new RuntimeException("User is null.");
@@ -184,16 +189,16 @@ public class TpccLoad implements TpccConstants {
             System.out.printf("     [MIN WH]: %d\n", min_ware);
             System.out.printf("     [MAX WH]: %d\n", max_ware);
         }
-
+             */
         //TODO: Pass the seed in as a variable.
         Util.setSeed(seed);
 
         TpccLoadConfig loadConfig = new TpccLoadConfig();
 
 		/* EXEC SQL WHENEVER SQLERROR GOTO Error_SqlCall; */
-        if (jdbcMode) {
+        if (true) {
             try {
-                Class.forName(javaDriver);
+                Class.forName("com.mysql.jdbc.Driver");
             } catch (ClassNotFoundException e1) {
                 throw new RuntimeException("Class for mysql error", e1);
             }
@@ -203,12 +208,18 @@ public class TpccLoad implements TpccConstants {
             try {
                 //TODO: load from config
                 Properties jdbcConnectProp = new Properties();
-                jdbcConnectProp.setProperty("user", dbUser);
-                jdbcConnectProp.setProperty("password", dbPassword);
-                jdbcConnectProp.setProperty("useServerPrepStmts", "true");
-                jdbcConnectProp.setProperty("cachePrepStmts", "true");
+                jdbcConnectProp.setProperty("user", "sa");
+                jdbcConnectProp.setProperty("password", "101010");
+                //jdbcConnectProp.setProperty("useServerPrepStmts", "true");
+                //jdbcConnectProp.setProperty("cachePrepStmts", "true");
 
-                conn = DriverManager.getConnection(jdbcUrl, jdbcConnectProp);
+				String host = System.getProperty("dbhost");
+				String dbName = System.getProperty("dbname");
+				String url = "jdbc:mysql://" + host + ":3306/" + dbName;
+
+				System.out.println("Generating load to database: " + url);
+
+                conn = DriverManager.getConnection(url, jdbcConnectProp);
                 conn.setAutoCommit(false);
 
             } catch (SQLException e) {
@@ -311,6 +322,18 @@ public class TpccLoad implements TpccConstants {
 
     public static void main(String[] argv) {
 
+		if(argv.length != 2)
+		{
+			System.out.println("usage: java -jar tpcc-codefuture-gendb.jar <database host> <database name>");
+			System.exit(1);
+		}
+
+		String dbHost = argv[0];
+		String dbName = argv[1];
+
+		System.setProperty("dbhost", dbHost);
+		System.setProperty("dbname", dbName);
+
         // dump information about the environment we are running in
         String sysProp[] = {
                 "os.name",
@@ -330,10 +353,10 @@ public class TpccLoad implements TpccConstants {
         TpccLoad tpccLoad = new TpccLoad();
 
         int ret = 0;
-        if (argv.length == 0) {
-            System.out.println("Using the tpcc.properties file for the load configuration.");
-            tpccLoad.init();
-            ret = tpccLoad.runLoad(false, argv);
+        if (argv.length == 2) {
+            //System.out.println("Using the tpcc.properties file for the load configuration.");
+            //tpccLoad.init();
+            ret = tpccLoad.runLoad(true, argv);
         } else {
 
             if ((argv.length % 2) == 0) {

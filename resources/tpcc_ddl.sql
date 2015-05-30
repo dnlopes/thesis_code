@@ -43,7 +43,7 @@
 	@LWWDATETIME c_since date, 
 	@LWWSTRING c_credit char(2), 
 	@LWWINTEGER c_credit_lim bigint, 
-	@LWWINTEGER c_discount decimal(4,2), 
+	@LWWINTEGER c_discount decimal(12,2),
 	@NUMDELTAINTEGER c_balance decimal(12,2), 
 	@LWWINTEGER c_ytd_payment decimal(12,2), 
 	@LWWINTEGER c_payment_cnt smallint, 
@@ -62,8 +62,7 @@
 	@LWWDATETIME h_date date,
 	@LWWINTEGER h_amount decimal(6,2), 
 	@NORMALSTRING h_data varchar(24),
-	FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id),
-	FOREIGN KEY(h_c_w_id,h_c_d_id,h_c_id) REFERENCES customer(c_w_id,c_d_id,c_id)
+	FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 
 @ARSETTABLE create table orders (
@@ -131,6 +130,5 @@
 	@LWWINTEGER ol_amount decimal(6,2), 
 	@LWWSTRING ol_dist_info char(24),
 	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number),
-	FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id),
-	FOREIGN KEY(ol_supply_w_id,ol_i_id) REFERENCES stock(s_w_id,s_i_id)	
+	FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)
 )Engine=InnoDB;

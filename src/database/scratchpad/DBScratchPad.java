@@ -1558,13 +1558,13 @@ public class DBScratchPad implements IDBScratchPad
 			{
 				rs = pad.executeQueryMainStorage(buffer.toString());
 
+				rs.next();
+
 				if(rs.isBeforeFirst())
 				{
 					LOG.debug(buffer.toString());
 					throw new SQLException("result set is empty (could not fetch row from main storage)");
 				}
-
-				rs.next();
 
 				Row row = DatabaseCommon.getFullRow(rs, this.databaseTable);
 				if(row != null)
