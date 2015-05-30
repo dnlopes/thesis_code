@@ -1124,6 +1124,7 @@ public class DBScratchPad implements IDBScratchPad
 			pad.addToBatchUpdate(buffer.toString());
 			this.duplicatedRows.clear();
 			this.recordedPkValues.clear();
+			this.deletedRows.clear();
 			this.ops.clear();
 			this.modified = false;
 		}
@@ -1556,11 +1557,14 @@ public class DBScratchPad implements IDBScratchPad
 			try
 			{
 				rs = pad.executeQueryMainStorage(buffer.toString());
-				rs.next();
 
-				if(!rs.isLast())
-					RuntimeUtils.throwRunTimeException("ResultSet should contain exactly 1 row",
-							ExitCode.FETCH_RESULTS_ERROR);
+				if(rs.isBeforeFirst())
+				{
+					LOG.debug(buffer.toString());
+					throw new SQLException("result set is empty (could not fetch row from main storage)");
+				}
+
+				rs.next();
 
 				Row row = DatabaseCommon.getFullRow(rs, this.databaseTable);
 				if(row != null)

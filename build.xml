@@ -214,7 +214,7 @@
 		<mkdir dir="${tpcc.classes.dir}" />
 		<mkdir dir="${tpcc_escada.classes.dir}" />
 	</target>
-	<target name="tpcc-dist" depends="tpcc-init" description="Compile and ditribute TPC-C benchmarks">
+	<target name="tpcc-dist" depends="tpcc-init, dist" description="Compile and ditribute TPC-C benchmarks">
 		<antcall target="tpcc-dist-codefuture" />
 		<antcall target="tpcc-dist-escada" />
 	</target>
