@@ -31,10 +31,12 @@ public class UniqueConstraintEnforcer
 	private Set<String> currentValues;
 	private List<DataField> fields;
 	private UniqueConstraint constraint;
+	private String tableName;
 
 	public UniqueConstraintEnforcer(List<DataField> field, NodeConfig config, UniqueConstraint constraint)
 	{
 		this.fields = field;
+		this.tableName = field.get(0).getTableName();
 		this.currentValues = new HashSet<>();
 		this.constraint = constraint;
 		this.setup(config);
@@ -96,7 +98,7 @@ public class UniqueConstraintEnforcer
 				this.constraint.getConstraintIdentifier());
 	}
 
-	public boolean reservValue(String newValue)
+	public synchronized boolean reservValue(String newValue)
 	{
 		return this.currentValues.add(newValue);
 	}
@@ -115,5 +117,10 @@ public class UniqueConstraintEnforcer
 		}
 
 		return buffer.toString();
+	}
+
+	public String getTableName()
+	{
+		return this.tableName;
 	}
 }

@@ -17,7 +17,7 @@ public interface IDBScratchPad
 
 	public void startTransaction(int txnId);
 
-	public boolean commitTransaction(IProxyNetwork proxy);
+	public void commitTransaction(IProxyNetwork proxy) throws SQLException;
 
 	public int getScratchpadId();
 

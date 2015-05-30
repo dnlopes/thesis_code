@@ -19,6 +19,7 @@ package escada.tpc.tpcc.database.transaction.mysql;
 
 import escada.tpc.tpcc.database.transaction.dbTPCCDatabase;
 import org.apache.log4j.Logger;
+import runtime.IdentifierFactory;
 
 import java.sql.*;
 import java.util.Date;
@@ -84,7 +85,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				int _tempqtd;
 				int _s_remote_cnt;
 
-				//int d_next_o_id = IdentifierFactory.getNextId("district", "d_next_o_id");
+				int d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
 
 				statement = con.prepareStatement(
 						"select d_tax, d_next_o_id from district where d_w_id = ? and d_id = ?");
@@ -93,16 +94,17 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = statement.executeQuery();
 				rs.next();
 				_d_tax = rs.getDouble("d_tax");
-				_o_id = rs.getInt("d_next_o_id");
+				//_o_id = rs.getInt("d_next_o_id");
+				_o_id = d_next_o_id;
 				rs.close();
 				statement.close();
 
 				statement = con.prepareStatement(
-						"update district set d_next_o_id = d_next_o_id + 1 where d_w_id = ? and d_id = ?");
+						"update district set d_next_o_id = ? where d_w_id = ? and d_id = ?");
 
-				//statement.setInt(1, d_next_o_id);
-				statement.setInt(1, _w_id);
-				statement.setInt(2, _d_id);
+				statement.setInt(1, _o_id);
+				statement.setInt(2, _w_id);
+				statement.setInt(3, _d_id);
 				statement.executeUpdate();
 				statement.close();
 

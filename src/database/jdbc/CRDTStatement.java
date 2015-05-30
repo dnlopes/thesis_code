@@ -84,17 +84,10 @@ public class CRDTStatement implements Statement
 	public boolean execute(String arg0) throws SQLException
 	{
 		if(arg0.contains("commit"))
-		{
-			if(!proxy.commit(this.id))
-				throw new SQLException("txn commit failed");
-
-			return true;
-		}
+			this.proxy.commit(this.id);
 
 		if(arg0.contains("ROLLBACK"))
-		{
 			proxy.abort(this.id);
-		}
 
 		return true;
 	}

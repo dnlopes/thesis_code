@@ -91,26 +91,24 @@ public class Proxy extends AbstractNode
 		return pad.executeUpdate(op);
 	}
 
-	public boolean commit(int connectionId)
+	public void commit(int connectionId) throws SQLException
 	{
 		IDBScratchPad pad = this.activeScratchpads.get(connectionId);
 
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
 		if(pad == null)
-			return true;
+			return;
 
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
 			LOG.info("committing txn {}", pad.getActiveTransaction().getTxnId());
 
-		boolean commitResult = pad.commitTransaction(this.networkInterface);
+		pad.commitTransaction(this.networkInterface);
 
 		this.activeScratchpads.remove(connectionId);
 		this.scratchpadsPool.returnObject(pad);
-
-		return commitResult;
 	}
 
 	public void abort(int connectionId)
@@ -124,7 +122,7 @@ public class Proxy extends AbstractNode
 		this.scratchpadsPool.returnObject(pad);
 	}
 
-	public void closeTransaction(int connectionId)
+	public void closeTransaction(int connectionId) throws SQLException
 	{
 		IDBScratchPad pad = this.activeScratchpads.get(connectionId);
 

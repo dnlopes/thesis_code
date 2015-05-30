@@ -145,7 +145,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 			c.getWorkloadResources().setClients(usersNum);
 
 			c.getWorkloadResources().setConnectionPoolEnabled(true);
-			c.getWorkloadResources().setPoolSize(c.getWorkloadResources().getClients()+2);
+			c.getWorkloadResources().setPoolSize(c.getWorkloadResources().getClients() + 2);
 			//String clients=cmd.getOptionValue("clients");
           /*  if (clients!=null)
             {
@@ -332,6 +332,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
             PerformanceLogger.info("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
             PerformanceLogger.info("Average latency:"+PerformanceCounters.getReference().getAverageLatency());
             PerformanceLogger.info("Measured tpmC:"+PerformanceCounters.getReference().getTotalNewOrderCommitRate());
+			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitRate());
             PerformanceLogger.close();
         } catch (Exception ex) {
             logger.info("Error while creating clients: ", ex);

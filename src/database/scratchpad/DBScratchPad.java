@@ -90,51 +90,35 @@ public class DBScratchPad implements IDBScratchPad
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
 		}
 		this.activeTransaction = new Transaction(txnId);
-		this.activeTransaction.startWatch();
 
 		LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
 	}
 
 	@Override
-	public boolean commitTransaction(IProxyNetwork network)
+	public void commitTransaction(IProxyNetwork network) throws SQLException
 	{
-		this.activeTransaction.recordTime("runtime");
 		if(this.activeTransaction.isReadOnly())
-		{
-			LOG.trace("txn {} committed in {} ms (read-only)", this.activeTransaction.getTxnId(),
-					this.activeTransaction.getLatency());
-			return true;
-		} else
+			return;
+
+		else
 		{
 			// contact coordinator here
-			this.activeTransaction.startWatch();
+			// if coordinator allow, generate shadow op
 			this.prepareToCommit(network);
-			this.activeTransaction.recordTime("coordination");
 
 			// something went wrong
 			// commit fails
 			if(!this.activeTransaction.isReadyToCommit())
 			{
 				LOG.debug("txn not ready to commit. something went wrong");
-				return false;
+				throw new SQLException("txn not ready to commit. something went wrong");
 			}
 
-			this.activeTransaction.startWatch();
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
-			this.activeTransaction.recordTime("commit");
-
-			if(commitDecision)
-			{
-				LOG.trace("txn {} committed in {} ms", this.activeTransaction.getTxnId(),
-						this.activeTransaction.getLatency());
-				this.activeTransaction.printResults();
-
-			} else
-				LOG.warn("commit on main storage failed", this.activeTransaction.getTxnId());
-
-			return commitDecision;
+			if(!commitDecision)
+				throw new SQLException("commit on main storage failed");
 		}
 	}
 
@@ -292,7 +276,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 	}
 
-	private void prepareToCommit(IProxyNetwork network)
+	private void prepareToCommit(IProxyNetwork network) throws SQLException
 	{
 		LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
 
@@ -316,8 +300,9 @@ public class DBScratchPad implements IDBScratchPad
 				if(!response.isSuccess())
 				{
 					LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
-					return;
+					throw new SQLException(response.getErrorMessage());
 				}
+
 				List<RequestValue> requestValues = response.getRequestedValues();
 
 				if(requestValues != null)
@@ -327,7 +312,7 @@ public class DBScratchPad implements IDBScratchPad
 			this.activeTransaction.generateShadowOperation();
 		} catch(TException e)
 		{
-			LOG.error("failed to prepare operation {} for commit", this.activeTransaction.getTxnId(), e);
+			throw new SQLException(e.getMessage());
 		}
 	}
 

@@ -20,15 +20,6 @@ public class CoordinatorTestSetup
 		//Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(1));
 		Transaction txn = new Transaction(1);
 
-		txn.startWatch();
-		Thread.sleep(1000);
-		txn.recordTime("runtime");
-		txn.startWatch();
-		Thread.sleep(500);
-		txn.recordTime("coordination");
-		txn.startWatch();
-		Thread.sleep(200);
-		txn.recordTime("commit");
 
 		int  i =0;
 	}

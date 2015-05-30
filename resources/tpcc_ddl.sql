@@ -66,7 +66,7 @@
 )Engine=InnoDB;
 
 @ARSETTABLE create table orders (
-	@LWWINTEGER o_id int not null, 
+	@LWWINTEGER o_id int AUTO_INCREMENT not null, 
 	@LWWINTEGER o_d_id tinyint not null, 
 	@LWWINTEGER o_w_id smallint not null,
 	@LWWINTEGER o_c_id int,

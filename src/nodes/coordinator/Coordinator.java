@@ -121,13 +121,15 @@ public class Coordinator extends AbstractNode
 	{
 		String desiredValue = uniqueValue.getValue();
 		String constraintId = uniqueValue.getConstraintId();
-		if(this.uniquesEnforcers.get(constraintId).reservValue(desiredValue))
+		UniqueConstraintEnforcer enforcer = this.uniquesEnforcers.get(constraintId);
+
+		if(enforcer.reservValue(desiredValue))
 		{
 			LOG.trace("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
 			return true;
 		} else
 		{
-			String error = "unique value already in use: " + desiredValue;
+			String error = "unique value already in use: " + desiredValue + " for table " + enforcer.getTableName();
 			response.setErrorMessage(error);
 			LOG.trace("unique value already in use {} for table-field {}", desiredValue, constraintId);
 			return false;

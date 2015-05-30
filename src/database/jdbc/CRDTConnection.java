@@ -62,8 +62,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public void commit() throws SQLException
 	{
-		if(!proxy.commit(this.id))
-			throw new SQLException("txn commit failed");
+		proxy.commit(this.id);
 	}
 
 	@Override

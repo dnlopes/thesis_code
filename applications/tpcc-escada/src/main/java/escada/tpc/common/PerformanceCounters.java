@@ -87,7 +87,6 @@ public class PerformanceCounters implements PerformanceCountersMBean {
 	
     }
 
-
 	public synchronized float getIncommingRate() {
 		long current = System.currentTimeMillis();
 		long diff = current - lastComputationInComming;
