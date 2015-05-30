@@ -56,12 +56,12 @@ public class WorkloadResources implements WorkloadResourcesMBean {
     public WorkloadResources() {
 
 		Properties props = new Properties();
-		InputStream inStream = DatabasePopulate.class.getResourceAsStream("/workload-config.properties");
+		InputStream inStream = DatabasePopulate.class.getResourceAsStream("/tpcc-config.properties");
 
 		try {
 			props.load(inStream);
-		} catch (IOException e) {
-			logger.fatal("Unable to load properties from file (workload-config.properties). Using defaults!", e);
+		} catch (Exception e) {
+			logger.warn("Unable to load properties from file (tpcc-config.properties). Using defaults!", e);
 		}
 		TPCConst.setNumMinClients(Integer.parseInt(props.getProperty("tpcc.numclients", Integer.toString(TPCCConst.getCliWareHouse()))));
 		TPCCConst.setNumCustomer(Integer.parseInt(props.getProperty("tpcc.numcustomers", Integer.toString(TPCCConst.getNumCustomer()))));

@@ -4,6 +4,9 @@ experiments/logs
 applications/tpcw/webapp
 applications/tpcw/src
 applications/tpcc/pom.xml
+applications/tpcc-escada/README.mkd
+applications/tpcc-escada/pom.xml
+applications/tpcc-escada/target
 resources/gen-java/
 # MacOS X
 **/*.DS_Store

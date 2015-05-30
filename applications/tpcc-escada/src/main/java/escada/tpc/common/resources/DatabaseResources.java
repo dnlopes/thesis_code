@@ -106,8 +106,8 @@ public class DatabaseResources implements DatabaseResourcesMBean {
 		InputStream inStream = DatabasePopulate.class.getResourceAsStream("/database-config.properties");
 		try {
 			props.load(inStream);
-		} catch (IOException e) {
-			logger.warn("Unable to load properties from file (database-config.properties). Using defaults!", e);
+		} catch (Exception e) {
+			logger.warn("Unable to load properties from file (database-config.properties). Using defaults!");
 		}
 
 		this.connString = props.getProperty("db.connection.string", DEFAULT_JDBC_CONN_STRING);
