@@ -561,6 +561,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 	private void createIterationsFile()
 	{
+		/*
 		this.finalizeStats();
 
 		// iteration files
@@ -588,5 +589,6 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 		{
 			e.printStackTrace();
 		}
+		*/
 	}
 }

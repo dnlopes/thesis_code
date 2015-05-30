@@ -184,7 +184,6 @@
 	</target>
 	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<mkdir dir="${deploy.dir}/configs" />
-		<mkdir dir="${deploy.dir}/experiments" />
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">
 				<include name="*.jar" />
@@ -199,11 +198,6 @@
 		<copy todir="${deploy.dir}/configs">
 			<fileset dir="${resources.dir}/configs">
 				<include name="*.xml" />
-			</fileset>
-		</copy>
-		<copy todir="${deploy.dir}/experiments">
-			<fileset dir="${base.dir}/experiments">
-				<include name="*" />
 			</fileset>
 		</copy>
 	</target>
