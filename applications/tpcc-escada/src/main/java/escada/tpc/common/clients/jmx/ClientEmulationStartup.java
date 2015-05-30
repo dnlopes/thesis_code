@@ -357,7 +357,11 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
             logger.info("Ebs finished their jobs..");
             if (exit)
-                System.exit(0);
+			{
+				System.out.println("Terminating process now");
+				System.out.println("CLIENT TERMINATED");
+				System.exit(0);
+			}
         }
     }
 

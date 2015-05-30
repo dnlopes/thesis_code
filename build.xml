@@ -261,7 +261,7 @@
 			   debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcc.classpath" />
 		</javac>
-		<jar destfile="${jars.dir}/tpcc-escada-client.jar" basedir="${tpcc_escada.classes.dir}">
+		<jar destfile="${jars.dir}/tpcc-client.jar" basedir="${tpcc_escada.classes.dir}">
 			<manifest>
 				<attribute name="Class-Path" value="." />
 				<attribute name="Main-Class" value="escada.tpc.common.clients.jmx.ClientEmulationStartup" />
@@ -275,7 +275,7 @@
 				<include name="tpcc_ddl.sql" />
 			</fileset>
 		</jar>
-		<copy file="${jars.dir}/tpcc-escada-client.jar" todir="${deploy.dir}" />
+		<copy file="${jars.dir}/tpcc-client.jar" todir="${deploy.dir}" />
 
 		<jar destfile="${jars.dir}/tpcc-escada-gendb.jar" basedir="${tpcc_escada.classes.dir}">
 			<manifest>
