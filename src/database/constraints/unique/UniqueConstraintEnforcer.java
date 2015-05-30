@@ -14,10 +14,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -37,7 +35,7 @@ public class UniqueConstraintEnforcer
 	{
 		this.fields = field;
 		this.tableName = field.get(0).getTableName();
-		this.currentValues = new HashSet<>();
+		this.currentValues = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 		this.constraint = constraint;
 		this.setup(config);
 	}
@@ -98,7 +96,7 @@ public class UniqueConstraintEnforcer
 				this.constraint.getConstraintIdentifier());
 	}
 
-	public synchronized boolean reservValue(String newValue)
+	public boolean reservValue(String newValue)
 	{
 		return this.currentValues.add(newValue);
 	}

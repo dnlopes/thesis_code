@@ -30,8 +30,10 @@ import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.props.DatabaseProperties;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -59,14 +61,16 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
     private WorkloadResources workloadResources;
 
     private ServerControl server = new ServerControl();
+	private static int proxyId;
 
 
     public ClientEmulationStartup() throws InvalidTransactionException {
         if (logger.isInfoEnabled()) {
             logger.info("Loading resources!");
         }
+		proxyId = 0;
 
-        this.databaseResources = new DatabaseResources();
+		this.databaseResources = new DatabaseResources();
         this.workloadResources = new WorkloadResources();
     }
 
@@ -79,7 +83,8 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 		}
 
 		String configFile = args[0];
-		int proxyId = Integer.parseInt(args[1]);
+		proxyId = Integer.parseInt(args[1]);
+
 		int usersNum = Integer.parseInt(args[2]);
 		boolean useCustomJDBC = Boolean.parseBoolean(args[3]);
 		int testDuration = Integer.parseInt(args[4]);
@@ -106,7 +111,6 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
             CommandLine cmd = parser.parse( options, args);
 
             ClientEmulationStartup c = new ClientEmulationStartup();
-
 			c.getDatabaseResources().setPassword(dbProperties.getDbPwd());
 			c.getDatabaseResources().setUserName(dbProperties.getDbUser());
 			c.getWorkloadResources().setHostId(proxyId);
@@ -332,7 +336,8 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
             PerformanceLogger.info("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
             PerformanceLogger.info("Average latency:"+PerformanceCounters.getReference().getAverageLatency());
             PerformanceLogger.info("Measured tpmC:"+PerformanceCounters.getReference().getTotalNewOrderCommitRate());
-			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitRate());
+			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());
+			createOutputFiles();
             PerformanceLogger.close();
         } catch (Exception ex) {
             logger.info("Error while creating clients: ", ex);
@@ -527,4 +532,61 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
     public void stop() throws InvalidTransactionException {
         server.stopFirstClient();
     }
+
+	private void createOutputFiles()
+	{
+		int commitsCounter = PerformanceCounters.getReference().getCommitCounter();
+		double avgLatency = PerformanceCounters.getReference().getAverageLatency();
+
+
+		String fileName = "emulator" + proxyId + ".results.temp";
+
+		// OPS LATENCY CLIENTS
+
+		PrintWriter out = null;
+		try
+		{   StringBuilder buffer = new StringBuilder();
+			buffer.append("numberOps,avgLatency\n");
+			buffer.append(commitsCounter);
+			buffer.append(",");
+			buffer.append(avgLatency);
+			out = new PrintWriter(fileName);
+			out.write(buffer.toString());
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void createIterationsFile()
+	{
+		this.finalizeStats();
+
+		// iteration files
+		// CSV style: iteration,success,aborts,avgLatency,maxLatency,minLatency
+		String fileName = "emulator" + this.proxyId + ".iters.temp";
+		StringBuffer buffer = new StringBuffer();
+
+		buffer.append("emulatorid,iteration,success,aborts,avgLatency,maxLatency,minLatency\n");
+
+		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
+		{
+			buffer.append(this.proxyId);
+			buffer.append(",");
+			buffer.append(perSecondStats.toString());
+			buffer.append("\n");
+		}
+
+		PrintWriter out;
+		try
+		{
+			out = new PrintWriter(fileName);
+			out.write(buffer.toString());
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+	}
 }

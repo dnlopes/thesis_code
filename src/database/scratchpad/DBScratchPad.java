@@ -1167,7 +1167,8 @@ public class DBScratchPad implements IDBScratchPad
 
 					for(Constraint c : field.getInvariants())
 					{
-						if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE)
+						if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType()
+								== ConstraintType.AUTO_INCREMENT)
 							insertedRow.addConstraintToverify(c);
 					}
 				}

@@ -431,17 +431,25 @@ public class CreateStatementParser
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
 
+				boolean foundAutoIncrement = false;
 				for(int k = 0; k < pKeys.length; k++)
 				{
 					if(!fieldsMap.containsKey(pKeys[k]))
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[k]);
 
 					DataField field = fieldsMap.get(pKeys[k]);
+					if(isPrimaryKey)
+						field.setPrimaryKey();
 					// lets not add this constraint, its reduntant because it contains an auto increment field, which
 					// is by itself an unique value
 					if(field.isAutoIncrement())
-						continue;
+						foundAutoIncrement = true;
 				}
+
+				// if we found a auto incremental field in the PK, then there is no point added the PK constraint
+				// the autoincrement field garantees the uniqueness of the key
+				if (foundAutoIncrement)
+					continue;
 
 				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey);
 
@@ -453,8 +461,6 @@ public class CreateStatementParser
 					DataField field = fieldsMap.get(pKeys[j]);
 					uniqueConstraint.addField(field);
 					uniqueConstraint.setTableName(field.getTableName());
-					if(isPrimaryKey)
-						field.setPrimaryKey();
 					field.addInvariant(uniqueConstraint);
 				}
 

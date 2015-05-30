@@ -181,4 +181,8 @@ public class PerformanceCounters implements PerformanceCountersMBean {
 		this.performanceRefreshInterval = refreshInterval;
 	}
 
+	public int getCommitCounter()
+	{
+		return this.commitCounter;
+	}
 }
