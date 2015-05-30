@@ -72,7 +72,6 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
     public static void main(String args[]) {
 
-
 		if(args.length != 5)
 		{
 			logger.error("usage: java -jar <config_file_path> <proxyId> <num_users> <useCustomJDBC> <testDuration>");
@@ -122,6 +121,8 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 				buffer.append("/");
 				buffer.append(dbName);
 				c.getDatabaseResources().setConnectionString(buffer.toString());
+				c.getWorkloadResources().setDbClass("escada.tpc.tpcc.database.transaction.mysql" +
+						".dbTransactionMySqlCustom");
 			}
 			else
 			{
@@ -131,8 +132,10 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 				buffer.append(":");
 				buffer.append(dbProperties.getDbPort());
 				buffer.append("/");
-				buffer.append(dbName);
+				buffer.append("tpcc");
 				c.getDatabaseResources().setConnectionString(buffer.toString());
+				c.getWorkloadResources().setDbClass("escada.tpc.tpcc.database.transaction.mysql" +
+						".dbTransactionMySqlOrig");
 			}
 
 			c.getWorkloadResources().setRampUpTime(5);
@@ -143,7 +146,6 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 			c.getWorkloadResources().setConnectionPoolEnabled(true);
 			c.getWorkloadResources().setPoolSize(c.getWorkloadResources().getClients()+2);
-			c.getWorkloadResources().setDbClass("escada.tpc.tpcc.database.transaction.mysql.dbTransactionMySql");
 			//String clients=cmd.getOptionValue("clients");
           /*  if (clients!=null)
             {

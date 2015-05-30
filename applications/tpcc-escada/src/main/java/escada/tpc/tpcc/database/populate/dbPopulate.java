@@ -36,40 +36,49 @@ public class dbPopulate {
 
 		try {
 
+			logger.info("deleting from warehouse...");
 			pstmt = conn.prepareStatement("delete from warehouse");
 
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from district...");
 			pstmt = conn.prepareStatement("delete from district");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from customer...");
 			pstmt = conn.prepareStatement("delete from customer");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from item...");
 			pstmt = conn.prepareStatement("delete from item");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from stock...");
 			pstmt = conn.prepareStatement("delete from stock");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from orders...");
 			pstmt = conn.prepareStatement("delete from orders");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from order_line...");
 			pstmt = conn.prepareStatement("delete from order_line");
 			pstmt.execute();
 			conn.commit();
 
+			logger.info("deleting from history...");
 			pstmt = conn.prepareStatement("delete from history");
 			pstmt.execute();
 			conn.commit();
 
-			pstmt = conn.prepareStatement("delete from new_order");
+			logger.info("deleting from new_orders...");
+			pstmt = conn.prepareStatement("delete from new_orders");
 			pstmt.execute();
 			conn.commit();
 
@@ -134,7 +143,7 @@ public class dbPopulate {
 		try {
 			clean(conn);
 
-			logger.debug("populating warehouse...");
+			logger.info("populating warehouse...");
 
 			pstmt = conn
 					.prepareStatement("insert into warehouse (w_id,w_name,w_street_1,"
@@ -162,7 +171,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating district...");
+			logger.info("populating district...");
 			pstmt = conn
 					.prepareStatement("insert into district (d_id,d_w_id,d_name,"
 							+ "d_street_1,d_street_2,d_city,d_state,d_zip,d_tax,"
@@ -193,7 +202,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating customer...");
+			logger.info("populating customer...");
 			pstmt = conn
 					.prepareStatement("insert into customer (c_id,c_d_id,c_w_id,c_first,"
 							+ "c_middle,c_last,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,"
@@ -250,7 +259,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating history...");
+			logger.info("populating history...");
 			pstmt = conn.prepareStatement("insert into history "
 					+ "(h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,"
 					+ "h_amount,h_data) values (?,?,?,?,?,?,?,?)");
@@ -280,7 +289,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating orders...");
+			logger.info("populating orders...");
 			pstmt = conn.prepareStatement("insert into orders "
 					+ "(o_id,o_d_id,o_w_id,o_c_id,o_entry_d,o_carrier_id,"
 					+ "o_ol_cnt,o_all_local) values (?,?,?,?,?,?,?,?)");
@@ -321,9 +330,9 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating new_order...");
+			logger.info("populating new_order...");
 			pstmt = conn
-					.prepareStatement("insert into new_order (no_o_id,no_d_id,"
+					.prepareStatement("insert into new_orders (no_o_id,no_d_id,"
 							+ "no_w_id) values (?,?,?)");
 			for (int i = 1; i < (numWareh + 1); i++) {
 				for (int j = 1; j < (TPCCConst.getNumDistrict() + 1); j++) {
@@ -345,7 +354,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating item...");
+			logger.info("populating item...");
 			pstmt = conn
 					.prepareStatement("insert into item (i_id,i_im_id,i_name,"
 							+ "i_price,i_data) values (?,?,?,?,?)");
@@ -372,7 +381,7 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating stock...");
+			logger.info("populating stock...");
 			pstmt = conn
 					.prepareStatement("insert into stock "
 							+ "(s_i_id,s_w_id,s_quantity,s_dist_01,s_dist_02,s_dist_03,"
@@ -418,9 +427,9 @@ public class dbPopulate {
 				conn.commit();
 			cont = 0;
 
-			logger.debug("populating order_line...");
+			logger.info("populating order_line...");
 			pstmt = conn
-					.prepareStatement("insert into order_line  (ol_o_id,ol_d_id,ol_w_id,"
+					.prepareStatement("insert into order_line (ol_o_id,ol_d_id,ol_w_id,"
 							+ "ol_number,ol_i_id,ol_supply_w_id,ol_delivery_d,ol_quantity,ol_amount,"
 							+ "ol_dist_info) values (?,?,?,?,?,?,?,?,?,?)");
 			for (int i = 1; i < (numWareh + 1); i++) {

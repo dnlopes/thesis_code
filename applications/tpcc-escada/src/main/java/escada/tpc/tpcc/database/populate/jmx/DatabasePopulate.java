@@ -45,14 +45,14 @@ public class DatabasePopulate implements DatabasePopulateMBean {
 		workloadResources = new WorkloadResources();
 	}
 
-    public DatabasePopulate(String host) {
+    public DatabasePopulate(String host, String dbName) {
 
         if (logger.isInfoEnabled()) {
             logger.info("Trying to load resources for populate!");
         }
 
         databaseResources = new DatabaseResources();
-		String a = "jdbc:mysql://" + host + ":3306/tpcc";
+		String a = "jdbc:mysql://" + host + ":3306/" + dbName;
 		databaseResources.setConnectionString(a);
 		databaseResources.setDriver("com.mysql.jdbc.Driver");
 		databaseResources.setPassword("101010");
@@ -62,19 +62,21 @@ public class DatabasePopulate implements DatabasePopulateMBean {
 
     public static void main(String[] args) {
 
-		if(args.length < 1)
+		if(args.length < 2)
 		{
-			logger.error("usage: DatabasePopulate <dbHost> OR DatabasePopulate <dbHost> <populateHistory>");
+			logger.error("usage: DatabasePopulate <dbHost> <dbName> OR DatabasePopulate <dbHost> <dbName> " +
+					"<populateHistory>");
 			System.exit(0);
 		}
 
 		String dbHost = args[0];
+		String dbName = args[1];
 
-        try {
-            DatabasePopulate db=new DatabasePopulate(dbHost);
-			TPCCConst.setNumCustomer(50);
+		try {
+            DatabasePopulate db=new DatabasePopulate(dbHost, dbName);
+			//TPCCConst.setNumCustomer(50);
 	    logger.info("no main");
-            if(args.length > 1){
+            if(args.length > 2){
 		logger.info("args > 0");
 		db.populate("history");
 	    }

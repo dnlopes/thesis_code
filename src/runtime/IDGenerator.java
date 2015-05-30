@@ -60,7 +60,7 @@ public class IDGenerator
 			if(rs.next())
 			{
 				int lastId = rs.getInt(this.field.getFieldName());
-				this.currentValue.set(lastId + config.getId());
+				this.currentValue.set(lastId);
 			} else
 			{
 				LOG.error("could not fetch the last id for field {}", this.field.getFieldName());

@@ -21,7 +21,8 @@ import java.util.Properties;
  * It is an interface to a MySQL, which based is based on the the
  * distributions of the TPC-C.
  */
-public class dbNoTransactionMySql extends dbTransactionMySql {
+public class dbNoTransactionMySql extends dbTransactionMySqlCustom
+{
 
 	protected void InitTransaction(Properties obj, Connection con,
 			String transaction) throws java.sql.SQLException {

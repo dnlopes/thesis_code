@@ -303,7 +303,7 @@ CREATE INDEX ix_orders ON orders (o_w_id, o_d_id, o_c_id);
 -- TOC entry 32 (OID 1115807)
 -- Name: ix_new_order; Type: INDEX; Schema: public; Owner: tpcc
 --
-CREATE INDEX ix_new_order ON new_orders (no_w_id, no_d_id, no_o_id);
+CREATE INDEX ix_new_orders ON new_orders (no_w_id, no_d_id, no_o_id);
 --
 -- TOC entry 37 (OID 1115810)
 -- Name: ix_stock; Type: INDEX; Schema: public; Owner: tpcc

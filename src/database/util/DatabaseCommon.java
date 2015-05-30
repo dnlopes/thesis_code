@@ -33,7 +33,8 @@ public class DatabaseCommon
 			String fieldValue = rs.getObject(field.getFieldName()).toString();
 
 			if(fieldValue == null)
-				RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
+				//RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
+				throw new SQLException(("primary key cannot be null"));
 
 			FieldValue fValue = new FieldValue(field, fieldValue);
 			pkValue.addFieldValue(fValue);
@@ -68,12 +69,18 @@ public class DatabaseCommon
 
 		for(DataField field : dbTable.getNormalFields().values())
 		{
-			String fieldValue = rs.getObject(field.getFieldName()).toString();
-
+			Object fieldValue = rs.getObject(field.getFieldName());
+			String objString;
 			if(fieldValue == null)
-				RuntimeUtils.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
+				objString = "NULL";
+			else
+				objString = fieldValue.toString();
 
-			FieldValue fValue = new FieldValue(field, fieldValue);
+
+			//if(fieldValue == null)
+			//	RuntimeUtils.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
+
+			FieldValue fValue = new FieldValue(field, objString);
 			row.addFieldValue(fValue);
 		}
 
