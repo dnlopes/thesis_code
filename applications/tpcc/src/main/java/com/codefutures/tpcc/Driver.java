@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-import escada.tpc.tpcc.stats.ThreadStatistics;
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -50,7 +50,7 @@ public class Driver implements TpccConstants {
     public double[] max_rt = new double[TRANSACTION_COUNT];
 
     //Private variables
-    private final int MAX_RETRY = 2000;
+    private final int MAX_RETRY = 1;
     private final int RTIME_NEWORD = 5 * 1000;
     private final int RTIME_PAYMENT = 5 * 1000;
     private final int RTIME_ORDSTAT = 5 * 1000;

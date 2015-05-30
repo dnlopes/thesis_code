@@ -432,7 +432,10 @@ public class dbPopulate {
 							pstmt.setInt(2, j);
 							pstmt.setInt(3, i);
 							pstmt.setInt(4, c);
-							pstmt.setInt(5, rg.nextInt(100000) + 1);
+							// to make consistent with tpcc config...do not hardcode
+							//fix by: David
+							pstmt.setInt(5, rg.nextInt(TPCCConst.getNumItem()) + 1);
+							//pstmt.setInt(5, rg.nextInt(100000) + 1);
 							pstmt.setInt(6, i);
 							tStamp = new Timestamp(System.currentTimeMillis());
 							pstmt.setTimestamp(7, tStamp);

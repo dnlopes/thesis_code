@@ -13,9 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import escada.tpc.tpcc.stats.PerSecondStatistics;
-import escada.tpc.tpcc.stats.Statistics;
-import escada.tpc.tpcc.stats.ThreadStatistics;
+import com.codefutures.tpcc.stats.PerSecondStatistics;
+import com.codefutures.tpcc.stats.Statistics;
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;

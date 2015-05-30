@@ -79,28 +79,12 @@
 	FOREIGN KEY(o_w_id,o_d_id,o_c_id) REFERENCES customer(c_w_id,c_d_id,c_id)
 )Engine=InnoDB;
 
-@ARSETTABLE create table new_order (
+@ARSETTABLE create table new_orders (
 	@LWWINTEGER no_o_id int not null,
 	@LWWINTEGER no_d_id tinyint not null,
 	@LWWINTEGER no_w_id smallint not null,
 	PRIMARY KEY(no_w_id, no_d_id, no_o_id),
 	FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)	
-)Engine=InnoDB;
-
-@ARSETTABLE create table order_line ( 
-	@LWWINTEGER ol_o_id int not null, 
-	@LWWINTEGER ol_d_id tinyint not null,
-	@LWWINTEGER ol_w_id smallint not null,
-	@LWWINTEGER ol_number tinyint not null,
-	@LWWINTEGER ol_i_id int, 
-	@LWWINTEGER ol_supply_w_id smallint,
-	@LWWDATETIME ol_delivery_d date, 
-	@LWWINTEGER ol_quantity tinyint, 
-	@LWWINTEGER ol_amount decimal(6,2), 
-	@LWWSTRING ol_dist_info char(24),
-	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number),
-	FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id),
-	FOREIGN KEY(ol_supply_w_id,ol_i_id) REFERENCES stock(s_w_id,s_i_id)	
 )Engine=InnoDB;
 
 @ARSETTABLE create table item (
@@ -135,3 +119,18 @@
 	FOREIGN KEY(s_i_id) REFERENCES item(i_id)
 )Engine=InnoDB;
 
+@ARSETTABLE create table order_line ( 
+	@LWWINTEGER ol_o_id int not null, 
+	@LWWINTEGER ol_d_id tinyint not null,
+	@LWWINTEGER ol_w_id smallint not null,
+	@LWWINTEGER ol_number tinyint not null,
+	@LWWINTEGER ol_i_id int, 
+	@LWWINTEGER ol_supply_w_id smallint,
+	@LWWDATETIME ol_delivery_d date, 
+	@LWWINTEGER ol_quantity tinyint, 
+	@LWWINTEGER ol_amount decimal(6,2), 
+	@LWWSTRING ol_dist_info char(24),
+	PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number),
+	FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id),
+	FOREIGN KEY(ol_supply_w_id,ol_i_id) REFERENCES stock(s_w_id,s_i_id)	
+)Engine=InnoDB;

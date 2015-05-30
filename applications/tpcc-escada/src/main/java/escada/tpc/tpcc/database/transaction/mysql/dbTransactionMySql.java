@@ -745,6 +745,7 @@ public class dbTransactionMySql extends dbTPCCDatabase {
 					_c_id = __c_id;
 				}
 
+				logger.debug("c_id:"+_c_id+";c_w_id:"+__c_w_id+";c_d_id:"+__c_d_id);
 				statement = con
 						.prepareStatement("update customer set c_balance = c_balance - "
 								+ __h_amount
@@ -757,7 +758,7 @@ public class dbTransactionMySql extends dbTPCCDatabase {
 				statement.setInt(3, __c_d_id);
 				statement.executeUpdate();
 				statement.close();
-				logger.debug("c_id:"+_c_id+";c_w_id:"+__c_w_id+";c_d_id:"+__c_d_id);
+				//logger.debug("c_id:"+_c_id+";c_w_id:"+__c_w_id+";c_d_id:"+__c_d_id);
 				statement = con
 						.prepareStatement("select *  from customer  where c_id = ? and  c_w_id = ? and  c_d_id = ?");
 				statement.setInt(1, _c_id);

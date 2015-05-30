@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import escada.tpc.tpcc.stats.ThreadStatistics;
+import com.codefutures.tpcc.stats.ThreadStatistics;
 import database.jdbc.ConnectionFactory;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
