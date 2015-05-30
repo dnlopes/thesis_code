@@ -20,12 +20,17 @@ import escada.tpc.common.TPCConst;
  * It defines important constants used in the simulation of the TPC-C.
  */
 public class TPCCConst {
-	
-	public final static int CustomerA = 1023;
 
+
+	public final static int numberWareHouses = 1;
+	public static int rngDistrict = 10;
+	public static int numENDCustomer = 3000;
+	public static int numENDItem = 1000;
+
+
+	public final static int CustomerA = 1023;
 	public final static int numINICustomer = 1;
 
-	public static int numENDCustomer = 3000;
 
 	public final static int qtdINIItem = 5;
 
@@ -37,11 +42,9 @@ public class TPCCConst {
 
 	public final static int numINIItem = 1;
 
-	public static int numENDItem = 1000;
 
 	public final static int rngCarrier = 10;
 
-	public static int rngDistrict = 10;
 
 	public final static int probABORTNewOrder = 1;
 

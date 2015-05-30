@@ -110,11 +110,11 @@ public class DatabasePopulate implements DatabasePopulateMBean {
 
             dbPopulate db = new dbPopulate();
 	    if (table == null) {
-		db.populate(conn, workloadResources.getNumberOfWarehouses());
+		db.populate(conn, TPCCConst.numberWareHouses);
             }
 	    else {
 		logger.info("CALLING POPULATE HISTORY");
-		db.populateHistory(conn, workloadResources.getNumberOfWarehouses());
+		db.populateHistory(conn, TPCCConst.numberWareHouses);
            } 
 	   conn.close();
 

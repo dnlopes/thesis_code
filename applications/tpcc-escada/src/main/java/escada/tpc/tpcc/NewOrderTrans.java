@@ -20,6 +20,7 @@ import escada.tpc.common.TPCConst;
 import escada.tpc.common.util.RandGen;
 import escada.tpc.common.resources.WorkloadResources;
 import escada.tpc.tpcc.database.transaction.dbTPCCDatabase;
+import escada.tpc.tpcc.util.TPCCRandGen;
 
 import java.sql.SQLException;
 
@@ -34,8 +35,10 @@ public class NewOrderTrans extends StateObject {
 	private WorkloadResources workloadResources;
 	
 	public void initProcess(Emulation em, String hid) throws SQLException {
-		int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1;
-		int did = 0;
+		int wid = TPCCRandGen.randInt(1, TPCCConst.numberWareHouses);
+		int did = TPCCRandGen.randInt(1, TPCCConst.rngDistrict);
+		//int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1;
+		//int did = 0;
 		int cid = 0;
 		int qtd = 0;
 		boolean error = false;
@@ -52,7 +55,7 @@ public class NewOrderTrans extends StateObject {
 
 		outInfo.put("wid", Integer.toString(wid));
 
-		did = RandGen.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);
+		//did = RandGen.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);
 		outInfo.put("did", Integer.toString(did));
 
 		cid = RandGen.NURand(em.getRandom(), TPCCConst.CustomerA,
@@ -87,8 +90,15 @@ public class NewOrderTrans extends StateObject {
 					|| (em.getNumberConcurrentEmulators() <= TPCConst.getNumMinClients())) {
 				outInfo.put("supwid" + i, Integer.toString(wid));
 			} else {
-				supwid = RandGen.nextInt(em.getRandom(), 1, (em
-						.getNumberConcurrentEmulators() / TPCConst.getNumMinClients()) + 1);
+				if(TPCCConst.numberWareHouses == 1)
+					supwid = wid;
+				else
+				{
+					if(wid == TPCCConst.numberWareHouses)
+						supwid = 1;
+					else
+						supwid = wid + 1;
+				}
 				outInfo.put("supwid" + i, Integer.toString(supwid));
 				localWarehouse = false;
 			}

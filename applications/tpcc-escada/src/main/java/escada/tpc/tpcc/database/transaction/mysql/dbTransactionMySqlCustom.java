@@ -56,6 +56,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			{
 				int _w_id = Integer.parseInt((String) obj.get("wid"));
 				int _d_id = Integer.parseInt((String) obj.get("did"));
+
 				int _c_id = Integer.parseInt((String) obj.get("cid"));
 				int _o_ol_cnt = Integer.parseInt((String) obj.get("qtd"));
 				int _o_all_local = Integer.parseInt((String) obj.get("localwid"));
@@ -1014,12 +1015,16 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			{
 				int __w_id = Integer.parseInt((String) obj.get("wid"));
 				int __d_id = Integer.parseInt((String) obj.get("did"));
+
+				if(__w_id != 1 || __d_id > 5)
+					System.out.println("asdsadas");
+
 				int __threshhold = Integer.parseInt((String) obj.get("threshhold"));
 
 				int _o_id_low;
 				int _o_id_high;
 
-				statement = con.prepareStatement("select d_next_o_id from district where d_w_id = ? and  d_id = ?");
+				statement = con.prepareStatement("select d_next_o_id from district where d_w_id = ? and d_id = ?");
 				statement.setInt(1, __w_id);
 				statement.setInt(2, __d_id);
 				rs = statement.executeQuery();

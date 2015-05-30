@@ -749,6 +749,11 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				int __c_id = Integer.parseInt((String) obj.get("cid"));
 				String __c_last = (String) obj.get("lastname");
 
+				if(__w_id > 1 || __d_id > 5)
+				{
+					int a = 0;
+				}
+
 				String _w_street_1;
 				String _w_street_2;
 				String _w_city;
@@ -825,12 +830,18 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				statement.close();
 				//logger.debug("c_id:"+_c_id+";c_w_id:"+__c_w_id+";c_d_id:"+__c_d_id);
 				statement = con.prepareStatement(
-						"select *  from customer  where c_id = ? and  c_w_id = ? and  c_d_id = ?");
+						"select * from customer  where c_id = ? and  c_w_id = ? and  c_d_id = ?");
 				statement.setInt(1, _c_id);
 				statement.setInt(2, __c_w_id);
 				statement.setInt(3, __c_d_id);
 				rs = statement.executeQuery();
-				//
+				logger.info("c_id:" + _c_id + ";c_w_id:" + __c_w_id + ";c_d_id:" + __c_d_id);
+
+				if(!rs.isBeforeFirst())
+				{
+					int a = 0;
+				}
+
 				rs.next();
 				_c_balance = rs.getFloat("c_balance");
 				_c_first = rs.getString("c_first");

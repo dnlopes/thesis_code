@@ -34,9 +34,10 @@ public class PaymentTrans extends StateObject {
 	private WorkloadResources workloadResources;
 
 	public void initProcess(Emulation em, String hid) throws SQLException {
-		int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1;
+		//int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1;
+		int wid = TPCCRandGen.randInt(1, TPCCConst.numberWareHouses);
+		int did = TPCCRandGen.randInt(1, TPCCConst.rngDistrict);
 		int cid = 0;
-		int did = 0;
 		int cwid = 0;
 		int cdid = 0;
 		String lastname = null;
@@ -52,7 +53,7 @@ public class PaymentTrans extends StateObject {
 		outInfo.put("hid", hid);
 
 		outInfo.put("wid", Integer.toString(wid));
-		did = RandGen.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);
+		//did = RandGen.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);
 		outInfo.put("did", Integer.toString(did));
 
 		if (RandGen.nextInt(em.getRandom(), TPCCConst.rngLASTNAME + 1) <= TPCCConst.probLASTNAME) {
@@ -74,11 +75,14 @@ public class PaymentTrans extends StateObject {
 			outInfo.put("cwid", Integer.toString(wid));
 			outInfo.put("cdid", Integer.toString(did));
 		} else {
-			cdid = RandGen
-					.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);
+
+			cdid = TPCCRandGen.randInt(1, TPCCConst.rngDistrict);
+			/*cdid = RandGen
+					.nextInt(em.getRandom(), 1, TPCCConst.getNumDistrict() + 1);   */
 			outInfo.put("cdid", Integer.toString(cdid));
-			cwid = RandGen.nextInt(em.getRandom(), 1, (em
-					.getNumberConcurrentEmulators() / TPCConst.getNumMinClients()) + 1);
+			cwid = TPCCRandGen.randInt(1, TPCCConst.numberWareHouses);
+			/*cwid = RandGen.nextInt(em.getRandom(), 1, (em
+					.getNumberConcurrentEmulators() / TPCConst.getNumMinClients()) + 1);     */
 			outInfo.put("cwid", Integer.toString(cwid));
 		}
 

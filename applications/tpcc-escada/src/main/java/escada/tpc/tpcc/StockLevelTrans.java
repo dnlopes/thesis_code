@@ -20,6 +20,7 @@ import escada.tpc.common.TPCConst;
 import escada.tpc.common.util.RandGen;
 import escada.tpc.common.resources.WorkloadResources;
 import escada.tpc.tpcc.database.transaction.dbTPCCDatabase;
+import escada.tpc.tpcc.util.TPCCRandGen;
 
 import java.sql.SQLException;
 
@@ -33,8 +34,11 @@ public class StockLevelTrans extends StateObject {
 	private WorkloadResources workloadResources;
 
 	public void initProcess(Emulation em, String hid) throws SQLException {
-		int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1; 
-		int did = 0;
+		//int wid = (em.getEmulationId() / TPCConst.getNumMinClients()) + 1;
+
+		int wid = TPCCRandGen.randInt(1, TPCCConst.numberWareHouses);
+
+		int did = TPCCRandGen.randInt(1, TPCCConst.rngDistrict);
 		int threshhold = 0;
 		
 		System.out.println("Accessing warehouse " + wid);
@@ -47,6 +51,7 @@ public class StockLevelTrans extends StateObject {
 		outInfo.put("hid", hid);
 
 		outInfo.put("wid", Integer.toString(wid));
+
 		if (((em.getEmulationId() + 1) % TPCConst.getNumMinClients()) == 0) {
 			outInfo.put("did", Integer.toString(TPCConst.getNumMinClients()));
 		} else {
@@ -60,6 +65,8 @@ public class StockLevelTrans extends StateObject {
 		outInfo.put("threshhold", Integer.toString(threshhold));
 		outInfo.put("thinktime", Long.toString(em.getThinkTime()));
 		outInfo.put("file", em.getEmulationName());
+
+		outInfo.put("did", Integer.toString(did));
 	}
 
 	public void prepareProcess(Emulation em, String hid) throws SQLException {

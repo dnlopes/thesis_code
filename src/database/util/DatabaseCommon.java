@@ -6,8 +6,6 @@ import database.constraints.fk.ParentChildRelation;
 import database.scratchpad.IDBScratchPad;
 import org.apache.commons.dbutils.DbUtils;
 import runtime.QueryCreator;
-import runtime.RuntimeUtils;
-import util.ExitCode;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,31 +21,35 @@ import java.util.Map;
 public class DatabaseCommon
 {
 
-	public static PrimaryKeyValue getPrimaryKeyValue(ResultSet rs, DatabaseTable dbTable) throws SQLException
+	public static PrimaryKeyValue getPrimaryKeyValue(final ResultSet rs, DatabaseTable dbTable) throws SQLException
 	{
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(dbTable.getName());
 		PrimaryKey pk = dbTable.getPrimaryKey();
 
 		for(DataField field : pk.getPrimaryKeyFields().values())
 		{
-			String fieldValue = rs.getObject(field.getFieldName()).toString();
+			try
+			{
+				String fieldValue = rs.getObject(field.getFieldName()).toString();
+				if(fieldValue == null)
+					//RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
+					throw new SQLException(("primary key cannot be null"));
 
-			if(fieldValue == null)
-				//RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
-				throw new SQLException(("primary key cannot be null"));
+				FieldValue fValue = new FieldValue(field, fieldValue);
+				pkValue.addFieldValue(fValue);
+			} catch(SQLException e)
+			{
+				int a = 0;
+			}
 
-			FieldValue fValue = new FieldValue(field, fieldValue);
-			pkValue.addFieldValue(fValue);
 		}
-
 		return pkValue;
 	}
 
-	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints, IDBScratchPad pad)
-			throws SQLException
+	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
+																IDBScratchPad pad) throws SQLException
 	{
 		Map<ForeignKeyConstraint, Row> parentByConstraint = new HashMap<>();
-
 
 		for(int i = 0; i < constraints.size(); i++)
 		{
@@ -75,7 +77,6 @@ public class DatabaseCommon
 				objString = "NULL";
 			else
 				objString = fieldValue.toString();
-
 
 			//if(fieldValue == null)
 			//	RuntimeUtils.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
