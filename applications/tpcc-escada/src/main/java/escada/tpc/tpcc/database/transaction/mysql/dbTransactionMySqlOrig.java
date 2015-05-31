@@ -84,8 +84,6 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				int _tempqtd;
 				int _s_remote_cnt;
 
-				//int d_next_o_id = IdentifierFactory.getNextId("district", "d_next_o_id");
-
 				statement = con.prepareStatement(
 						"select d_tax, d_next_o_id from district where d_w_id = ? and d_id = ?");
 				statement.setInt(1, _w_id);
@@ -98,11 +96,11 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				statement.close();
 
 				statement = con.prepareStatement(
-						"update district set d_next_o_id = d_next_o_id + 1 where d_w_id = ? and d_id = ?");
+						"update district set d_next_o_id = ? where d_w_id = ? and d_id = ?");
 
-				//statement.setInt(1, d_next_o_id);
-				statement.setInt(1, _w_id);
-				statement.setInt(2, _d_id);
+				statement.setInt(1, _o_id);
+				statement.setInt(2, _w_id);
+				statement.setInt(3, _d_id);
 				statement.executeUpdate();
 				statement.close();
 
@@ -749,11 +747,6 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				int __c_id = Integer.parseInt((String) obj.get("cid"));
 				String __c_last = (String) obj.get("lastname");
 
-				if(__w_id > 1 || __d_id > 5)
-				{
-					int a = 0;
-				}
-
 				String _w_street_1;
 				String _w_street_2;
 				String _w_city;
@@ -837,10 +830,6 @@ public class dbTransactionMySqlOrig extends dbTPCCDatabase
 				rs = statement.executeQuery();
 				logger.info("c_id:" + _c_id + ";c_w_id:" + __c_w_id + ";c_d_id:" + __c_d_id);
 
-				if(!rs.isBeforeFirst())
-				{
-					int a = 0;
-				}
 
 				rs.next();
 				_c_balance = rs.getFloat("c_balance");

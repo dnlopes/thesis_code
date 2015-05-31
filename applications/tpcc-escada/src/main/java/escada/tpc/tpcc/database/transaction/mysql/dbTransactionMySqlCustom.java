@@ -300,14 +300,14 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					{
 						InitTransaction(con, "tx neworder", "w");
 						continue;
-					} else
+					} /*else
 					{
 						throw sqlex;
-					}
+					}   */
 				} else
 				{
 					RollbackTransaction(con, sqlex, "tx neworder", "w");
-					throw sqlex;
+					//throw sqlex;
 				}
 			} catch(java.lang.Exception ex)
 			{
@@ -1015,10 +1015,6 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			{
 				int __w_id = Integer.parseInt((String) obj.get("wid"));
 				int __d_id = Integer.parseInt((String) obj.get("did"));
-
-				if(__w_id != 1 || __d_id > 5)
-					System.out.println("asdsadas");
-
 				int __threshhold = Integer.parseInt((String) obj.get("threshhold"));
 
 				int _o_id_low;

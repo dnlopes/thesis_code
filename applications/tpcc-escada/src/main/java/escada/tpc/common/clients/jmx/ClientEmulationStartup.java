@@ -68,7 +68,6 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
         if (logger.isInfoEnabled()) {
             logger.info("Loading resources!");
         }
-		proxyId = 0;
 
 		this.databaseResources = new DatabaseResources();
         this.workloadResources = new WorkloadResources();
@@ -332,11 +331,11 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 
             logger.info("EBs finished.");
-            /*PerformanceLogger.info("-------------------- SUMMARY ---------------------------");
+            PerformanceLogger.info("-------------------- SUMMARY ---------------------------");
             PerformanceLogger.info("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
             PerformanceLogger.info("Average latency:"+PerformanceCounters.getReference().getAverageLatency());
             PerformanceLogger.info("Measured tpmC:"+PerformanceCounters.getReference().getTotalNewOrderCommitRate());
-			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());  */
+			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());
 			createOutputFiles();
             //PerformanceLogger.close();
         } catch (Exception ex) {

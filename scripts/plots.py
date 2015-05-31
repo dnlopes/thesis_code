@@ -150,12 +150,14 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	frame = pd.concat(list_)
 	#CSV format: numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator
 	totalOps = frame['numberOps'].sum()
+	tpmc = frame['tpmc'].sum()
 	avgLatency = frame['avgLatency'].mean()
+	abortRate = frame['abortrate'].mean()
 	
 	opsPerSecond = totalOps / config.TPCC_TEST_TIME
 	usersPerEmulator = totalUsers / numberOfReplicas
-	fileContent = "numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator\n"
-	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(totalUsers) + "," + str(usersPerEmulator)
+	fileContent = "numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator,abortrate,tpmc\n"
+	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(totalUsers) + "," + str(usersPerEmulator) + "," + str(abortRate) + "," + str(tpmc)
 
 	fileName = outputDir + "/" + str(totalUsers) + config.ACTIVE_EXPERIMENT + "_"
 	fileName += config.JDBC
