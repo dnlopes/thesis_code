@@ -331,11 +331,11 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 
             logger.info("EBs finished.");
-            PerformanceLogger.info("-------------------- SUMMARY ---------------------------");
-            PerformanceLogger.info("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
-            PerformanceLogger.info("Average latency:"+PerformanceCounters.getReference().getAverageLatency());
-            PerformanceLogger.info("Measured tpmC:"+PerformanceCounters.getReference().getTotalNewOrderCommitRate());
-			PerformanceLogger.info("Commit Counter:"+PerformanceCounters.getReference().getCommitCounter());
+            System.out.println("-------------------- SUMMARY ---------------------------");
+			System.out.println("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
+			System.out.println("Average latency:" + PerformanceCounters.getReference().getAverageLatency());
+			System.out.println("Measured tpmC:" + PerformanceCounters.getReference().getTotalNewOrderCommitRate());
+			System.out.println("Commit Counter:" + PerformanceCounters.getReference().getCommitCounter());
 			createOutputFiles();
             //PerformanceLogger.close();
         } catch (Exception ex) {
