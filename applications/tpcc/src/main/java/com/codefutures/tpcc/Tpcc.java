@@ -30,6 +30,7 @@ public class Tpcc implements TpccConstants
 	private static final boolean DEBUG = logger.isDebugEnabled();
 
 	public static final String VERSION = "1.0.1";
+	private static float TPMC;
 
 	private static final String DRIVER = "DRIVER";
 	private static final String WAREHOUSECOUNT = "WAREHOUSECOUNT";
@@ -41,6 +42,7 @@ public class Tpcc implements TpccConstants
 	private static final String DURATION = "DURATION";
 	private static final String JDBCURL = "JDBCURL";
 	private static final String JOINS = "JOINS";
+	public static boolean CUSTOM_JDBC;
 	private int proxyId;
 
 	private final List<TpccThread> clientThreads;
@@ -480,6 +482,7 @@ public class Tpcc implements TpccConstants
 		}
 
 		float tpcm = (success[0] + late[0]) * 60000f / actualTestTime;
+		TPMC = tpcm;
 
 		System.out.println();
 		System.out.println("<TpmC>");
@@ -518,11 +521,15 @@ public class Tpcc implements TpccConstants
 		boolean useCustomJDBC = Boolean.parseBoolean(argv[3]);
 		int testDuration = Integer.parseInt(argv[4]);
 
+
+
 		System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		System.setProperty("usersNum", String.valueOf(usersNum));
 		System.setProperty("customJDBC", String.valueOf(useCustomJDBC));
 		System.setProperty("testDuration", String.valueOf(testDuration));
+
+		CUSTOM_JDBC = useCustomJDBC;
 
 		System.out.println("TPCC version " + VERSION + " Number of Arguments: " + argv.length);
 
@@ -587,21 +594,28 @@ public class Tpcc implements TpccConstants
 
 	public void createOutputFiles()
 	{
-		int totalOps = 0;
+		int committed = 0;
 		long totalLatency = 0;
 
 		for(int i = 0; i < this.success2_sum.length; i++)
-			totalOps += success2_sum[i];
+			committed += success2_sum[i];
 
 		for(int i = 0; i < this.late2_sum.length; i++)
-			totalOps += late2_sum[i];
+			committed += late2_sum[i];
 
 		for(int i = 0; i < this.latencies.length; i++)
 			totalLatency += this.latencies[i];
 
-		long avgLatency = totalLatency / totalOps;
+		long avgLatency = totalLatency / committed;
 
-		logger.info("Total ops: {}", totalOps);
+		float abortCounter = 0;
+
+		for(int i = 0; i < this.failure2_sum.length; i++)
+			abortCounter += this.failure2_sum[i];
+
+		float abortPercentage = abortCounter * 1.0f / (abortCounter + committed);
+
+		logger.info("Total ops: {}", committed);
 		logger.info("Avg Latency: {}", avgLatency);
 
 		String fileName = "emulator" + this.proxyId + ".results.temp";
@@ -611,10 +625,14 @@ public class Tpcc implements TpccConstants
 		PrintWriter out = null;
 		try
 		{   StringBuilder buffer = new StringBuilder();
-			buffer.append("numberOps,avgLatency\n");
-			buffer.append(totalOps);
+			buffer.append("committed,avgLatency,tpmc,aborted\n");
+			buffer.append(committed);
 			buffer.append(",");
 			buffer.append(avgLatency);
+			buffer.append(",");
+			buffer.append(TPMC);
+			buffer.append(",");
+			buffer.append(abortPercentage);
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
 			out.close();

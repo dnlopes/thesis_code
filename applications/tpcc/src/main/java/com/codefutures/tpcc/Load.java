@@ -2,13 +2,76 @@ package com.codefutures.tpcc;
 
 import com.codefutures.tpcc.load.Record;
 import com.codefutures.tpcc.load.RecordLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 
 public class Load implements TpccConstants {
     private static boolean optionDebug = false;
 
+	private static final Logger logger = LoggerFactory.getLogger(Tpcc.class);
+
+
+	public static void clean(Connection conn)
+	{
+		PreparedStatement pstmt = null;
+
+		try {
+
+			logger.info("deleting from warehouse...");
+			pstmt = conn.prepareStatement("delete from warehouse");
+
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from district...");
+			pstmt = conn.prepareStatement("delete from district");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from customer...");
+			pstmt = conn.prepareStatement("delete from customer");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from item...");
+			pstmt = conn.prepareStatement("delete from item");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from stock...");
+			pstmt = conn.prepareStatement("delete from stock");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from orders...");
+			pstmt = conn.prepareStatement("delete from orders");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from order_line...");
+			pstmt = conn.prepareStatement("delete from order_line");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from history...");
+			pstmt = conn.prepareStatement("delete from history");
+			pstmt.execute();
+			conn.commit();
+
+			logger.info("deleting from new_orders...");
+			pstmt = conn.prepareStatement("delete from new_orders");
+			pstmt.execute();
+			conn.commit();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	}
     /*
       * ==================================================================+ |
       * ROUTINE NAME |      LoadItems | DESCRIPTION |      Loads the Item table |

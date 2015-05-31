@@ -92,7 +92,7 @@ def generatePlotDataFile(outputDir, usersList):
 		dirName = outputDir + "/" + str(numberUsers) + "user"
 		fileName = dirName + "/" + str(numberUsers)
 		
-		fileName += "users_latency-throughput_"
+		fileName += "latency-throughput_"
 		fileName += config.JDBC
 		fileName +=".csv"
 		
@@ -149,15 +149,15 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 
 	frame = pd.concat(list_)
 	#CSV format: numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator
-	totalOps = frame['numberOps'].sum()
+	totalOps = frame['committed'].sum()
 	tpmc = frame['tpmc'].sum()
 	avgLatency = frame['avgLatency'].mean()
-	abortRate = frame['abortrate'].mean()
+	aborted = frame['aborted'].mean()
 	
 	opsPerSecond = totalOps / config.TPCC_TEST_TIME
 	usersPerEmulator = totalUsers / numberOfReplicas
-	fileContent = "numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator,abortrate,tpmc\n"
-	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(totalUsers) + "," + str(usersPerEmulator) + "," + str(abortRate) + "," + str(tpmc)
+	fileContent = "commits,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator,aborted,tpmc\n"
+	fileContent += str(totalOps) + "," + str(opsPerSecond) + "," + str(avgLatency) + "," + str(numberOfReplicas) + "," + str(totalUsers) + "," + str(usersPerEmulator) + "," + str(aborted) + "," + str(tpmc)
 
 	fileName = outputDir + "/" + str(totalUsers) + config.ACTIVE_EXPERIMENT + "_"
 	fileName += config.JDBC

@@ -226,8 +226,9 @@ public class TpccLoad implements TpccConstants {
                 throw new RuntimeException("Connection error", e);
             }
 
+			Load.clean(conn);
 
-            Statement stmt;
+			Statement stmt;
             try {
                 stmt = conn.createStatement();
             } catch (SQLException e) {
@@ -268,7 +269,6 @@ public class TpccLoad implements TpccConstants {
         }
 
         System.out.printf("TPCC Data Load Started...\n");
-
         try {
             max_ware = num_ware;
             if (particle_flg == 0) {

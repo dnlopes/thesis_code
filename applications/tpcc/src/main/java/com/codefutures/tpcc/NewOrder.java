@@ -4,6 +4,7 @@ import java.sql.*;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import runtime.IdentifierFactory;
 
 
 public class NewOrder implements TpccConstants {
@@ -230,7 +231,10 @@ public class NewOrder implements TpccConstants {
             //Get prepared statement
             //"UPDATE district SET d_next_o_id = ? + 1 WHERE d_id = ? AND d_w_id = ?"
 
-            try {
+			if(Tpcc.CUSTOM_JDBC)
+				d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
+
+			try {
                 final PreparedStatement pstmt2 = pStmts.getStatement(2);
                 pstmt2.setInt(1, d_next_o_id);
                 pstmt2.setInt(2, d_id);
