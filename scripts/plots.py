@@ -36,7 +36,7 @@ def generateOverheadPlot(outputDir, usersList, jdbcDriversList):
 	dataFile = outputDir + "/" + "overhead_data.csv"
 	plotCommand = 'gnuplot -e \"data1=\''
 	plotCommand += dataFile
-	plotCommand += '\'; outputfile=\'overhead_driver.eps\'\" '
+	plotCommand += '\'; outputfile=\'overhead_data.eps\'\" '
 	plotCommand += config.EXPERIMENTS_DIR + "/" + OVERHEAD
 	fab.executeTerminalCommandAtDir(plotCommand, outputDir)
 
@@ -128,13 +128,13 @@ def generateOverheadDatafile(outputDir, usersList, jdbcDriversList):
 	
 	dataFileContent = "Users,Default,CRDT\n"
 	for userNum in usersList:
-		CURRENT_DIR = outputDir + "/" + str(userNum)		
+		CURRENT_DIR = outputDir + "/" + str(userNum) + "user"		
 		entry = str(userNum)
 
 		for jdbc in jdbcDriversList:
-			csvFileName = CURRENT_DIR + "/" + str(userNum) + "latency-throughput_" + str(jdbc) + ".csv"
+			csvFileName = CURRENT_DIR + "/" + str(userNum) + config.ACTIVE_EXPERIMENT + "_" + str(jdbc) + ".csv"
 			df = pd.read_csv(csvFileName,index_col=None, header=0)
-			avgLatency = frame['avgLatency'].sum()
+			avgLatency = df['avgLatency'].sum()
 			entry += "," + str(avgLatency)
 
 		entry +="\n"

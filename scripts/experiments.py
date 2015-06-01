@@ -34,7 +34,7 @@ NUMBER_REPLICAS=[3,5]
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
 OVERHEAD_JDCBs=['mysql','crdt']
-OVERHEAD_USERS_LIST=[1,5,10,20,40]
+OVERHEAD_USERS_LIST=[1,5]
 JDCBs=['crdt']
 
 ################################################################################################
@@ -185,7 +185,7 @@ def runFullOverheadExperiment(configsFilesBaseDir):
 	prepareCode()	
 	
 	for jdbc in OVERHEAD_JDCBs:	
-		logger.info("starting tests for JDBC: ", jdbc)	
+		logger.info("starting tests for JDBC: %s", jdbc)	
 		config.JDBC=jdbc			
 		for numUsers in OVERHEAD_USERS_LIST:
 			OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numUsers) + "user"
@@ -197,7 +197,7 @@ def runFullOverheadExperiment(configsFilesBaseDir):
 			TOTAL_USERS = USERS_PER_EMULATOR * NUMBER_OF_EMULATORS
 			config.TOTAL_USERS = TOTAL_USERS
 
-			runOverheadExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas, jdbc)		
+			runOverheadExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, jdbc)		
 			logger.info('moving to the next iteration!')
 
 	logger.info("generating plot graphic for overhead experience with %s users", OVERHEAD_USERS_LIST)
@@ -256,27 +256,27 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 #   HELPER AND "PRIVATE" METHODS
 ################################################################################################
 
-def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas, jdbc):
+def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, jdbc):
 	print "\n"
 	logger.info("########################################## starting overhead experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', CONFIG_FILE)
+	logger.info('>> CONFIG FILE: %s', configFile)
 	logger.info('>> DATABASES: %s', config.database_nodes)
 	if jdbc == 'crdt':
 		logger.info('>> REPLICATORS: %s', config.replicators_nodes)
-	logger.info('>> NUMBER OF EMULATORS: %s', NUMBER_OF_EMULATORS)
-	logger.info('>> CLIENTS PER EMULATOR: %s', USERS_PER_EMULATOR)
-	logger.info('>> TOTAL USERS: %s', TOTAL_USERS)
+	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
+	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
+	logger.info('>> TOTAL USERS: %s', totalUsers)
 	logger.info('>> JDBC: %s', config.JDBC)
-	logger.info('>> OUTPUT DIR: %s', OUTPUT_DIR)
+	logger.info('>> OUTPUT DIR: %s', outputDir)
 	logger.info("#########################################################################################################################")
 	print "\n"
 
 	success = False
 	for attempt in range(10):
 		if jdbc == 'crdt':
-			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 		else:
-			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 		
 		if success:
 			break
@@ -289,7 +289,7 @@ def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulat
 		logger.error("failed to execute experiment after 10 retries. Exiting...")					
 		sys.exit()
 
-def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	logger.info("starting database layer")
 	
 	success = startDatabaseLayer()
@@ -334,12 +334,12 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 	logger.info('the experiment has finished!')
 	fab.killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
 	logger.info('logs can be found at %s', outputDir)
 
 	return True
 
-def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	logger.info("starting database layer")
 	
 	success = startDatabaseLayer()
@@ -370,7 +370,7 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 	logger.info('the experiment has finished!')
 	fab.killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
 	logger.info('logs can be found at %s', outputDir)
 
 	return True
