@@ -33,6 +33,8 @@ SCALABILITY_JDCBs=['crdt']
 NUMBER_REPLICAS=[3,5]
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
+OVERHEAD_JDCBs=['mysql','crdt']
+OVERHEAD_USERS_LIST=[1,5,10,20,40]
 JDCBs=['crdt']
 
 ################################################################################################
@@ -168,6 +170,52 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 		logger.info("###########################################################################################")
 	print "\n"
 
+@task
+def runFullOverheadExperiment(configsFilesBaseDir):
+	config.ACTIVE_EXPERIMENT = config.prefix_overhead_experiment
+	now = datetime.datetime.now()
+	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_overhead_experiment
+	CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_1node.xml'
+	
+	if config.IS_LOCALHOST == True:
+		CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_1node.xml'
+	
+	config.parseConfigFile(CONFIG_FILE)
+	fab.killRunningProcesses()
+	prepareCode()	
+	
+	for jdbc in OVERHEAD_JDCBs:	
+		logger.info("starting tests for JDBC: ", jdbc)	
+		config.JDBC=jdbc			
+		for numUsers in OVERHEAD_USERS_LIST:
+			OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numUsers) + "user"
+			with hide('output','running','warnings'),settings(warn_only=True):
+				local("mkdir -p " + OUTPUT_DIR + "/logs")
+
+			NUMBER_OF_EMULATORS = 1
+			USERS_PER_EMULATOR = numUsers
+			TOTAL_USERS = USERS_PER_EMULATOR * NUMBER_OF_EMULATORS
+			config.TOTAL_USERS = TOTAL_USERS
+
+			runOverheadExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas, jdbc)		
+			logger.info('moving to the next iteration!')
+
+	logger.info("generating plot graphic for overhead experience with %s users", OVERHEAD_USERS_LIST)
+	plots.generateOverheadPlot(ROOT_OUTPUT_DIR, OVERHEAD_USERS_LIST, OVERHEAD_JDCBs)
+
+	if not config.IS_LOCALHOST:
+		scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
+		scpCommand += ROOT_OUTPUT_DIR
+		scpCommand += " /Users/dnlopes/devel/thesis/code/weakdb/experiments/logs"
+		TO_DOWNLOAD_COMMANDS.append(scpCommand)
+		print "\n"		
+		logger.info("###########################################################################################")
+		logger.info("all experiments have finished!")		
+		logger.info("use the following command to copy the logs directories:")
+		logger.info(scpCommand)
+		logger.info("###########################################################################################")
+	print "\n"
+
 ################################################################################################
 #   START LAYERS METHODS
 ################################################################################################
@@ -207,6 +255,125 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 ################################################################################################
 #   HELPER AND "PRIVATE" METHODS
 ################################################################################################
+
+def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas, jdbc):
+	print "\n"
+	logger.info("########################################## starting overhead experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', CONFIG_FILE)
+	logger.info('>> DATABASES: %s', config.database_nodes)
+	if jdbc == 'crdt':
+		logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+	logger.info('>> NUMBER OF EMULATORS: %s', NUMBER_OF_EMULATORS)
+	logger.info('>> CLIENTS PER EMULATOR: %s', USERS_PER_EMULATOR)
+	logger.info('>> TOTAL USERS: %s', TOTAL_USERS)
+	logger.info('>> JDBC: %s', config.JDBC)
+	logger.info('>> OUTPUT DIR: %s', OUTPUT_DIR)
+	logger.info("#########################################################################################################################")
+	print "\n"
+
+	success = False
+	for attempt in range(10):
+		if jdbc == 'crdt':
+			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+		else:
+			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas)
+		
+		if success:
+			break
+		else:
+			logger.error("experiment failed. Retrying...")
+			fab.killRunningProcesses()
+			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
+
+	if not success:
+		logger.error("failed to execute experiment after 10 retries. Exiting...")					
+		sys.exit()
+
+def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	success = startCoordinatorsLayer(configFile)
+	if success == True:
+		logger.info('all coordinators are online')       		
+	else:
+		logger.error("coordination layer failed to start")
+		return False   
+	
+	success = startReplicationLayer(configFile)
+	if success == True:
+		logger.info('all replicators are online')       		
+	else:
+		logger.error("replication layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
 
 def prepareCode():
 	logger.info('compiling source code')

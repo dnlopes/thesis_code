@@ -8,7 +8,7 @@ set output outputfile
 #set yrange [0:30]
 set ylabel "Latency (ms)"
 #set xrange [0:100000]
-set xlabel "Throughput"
+set xlabel "Throughput (txn/s)"
 set xtics nomirror rotate by -30 scale 0.5
 set xtics font "Helvetica,16" 
 
@@ -37,4 +37,4 @@ set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
 set datafile separator ','
 
-plot data1 every ::1 using 1:2 with linespoints ls 5 title 'TBD', data2 every ::1 using 1:2 with linespoints ls 3 title 'MySQL Cluster'
+plot data1 every ::1 using 2:3 with linespoints ls 5 title 'TBD', data2 every ::1 using 2:3 with linespoints ls 3 title 'MySQL Cluster'

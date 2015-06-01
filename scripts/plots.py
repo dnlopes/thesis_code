@@ -22,10 +22,23 @@ LATENCY_THROUGHPUT_1LINE ="latency-throughput_1line.gp"
 LATENCY_THROUGHPUT_2LINE ="latency-throughput_2line.gp"
 SCALABILITY_1LINE = "scalability_1line.gp"
 SCALABILITY_2LINE = "scalability_2line.gp"
+OVERHEAD = "overhead_chart.gp"
 
 ################################################################################################
 #   MAIN METHODS
 ################################################################################################
+
+def generateOverheadPlot(outputDir, usersList, jdbcDriversList):
+	
+	logger.info("generating overhead plot for drivers: %s", jdbcDriversList)
+	generateOverheadDatafile(outputDir, usersList, jdbcDriversList)
+
+	dataFile = outputDir + "/" + "overhead_data.csv"
+	plotCommand = 'gnuplot -e \"data1=\''
+	plotCommand += dataFile
+	plotCommand += '\'; outputfile=\'overhead_driver.eps\'\" '
+	plotCommand += config.EXPERIMENTS_DIR + "/" + OVERHEAD
+	fab.executeTerminalCommandAtDir(plotCommand, outputDir)
 
 def generateScalabilityPlot(outputDir, numberReplicasList, jdbcDriversList):
 	
@@ -110,6 +123,27 @@ def generatePlotDataFile(outputDir, usersList):
 		fileName +=".csv"
 
 		frame.to_csv(fileName, sep=",", index=False)
+
+def generateOverheadDatafile(outputDir, usersList, jdbcDriversList):
+	
+	dataFileContent = "Users,Default,CRDT\n"
+	for userNum in usersList:
+		CURRENT_DIR = outputDir + "/" + str(userNum)		
+		entry = str(userNum)
+
+		for jdbc in jdbcDriversList:
+			csvFileName = CURRENT_DIR + "/" + str(userNum) + "latency-throughput_" + str(jdbc) + ".csv"
+			df = pd.read_csv(csvFileName,index_col=None, header=0)
+			avgLatency = frame['avgLatency'].sum()
+			entry += "," + str(avgLatency)
+
+		entry +="\n"
+		dataFileContent += entry
+
+	fileName = "overhead_data.csv"
+	f = open(fileName,'w')
+	f.write(dataFileContent)
+	f.close()
 
 def generateLatencyThroughputPlot(outputDir):
 	plotDataFiles = glob.glob(outputDir + "/*.csv")

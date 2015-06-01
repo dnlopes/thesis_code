@@ -34,6 +34,7 @@ JDCB=""
 ACTIVE_EXPERIMENT=""
 prefix_latency_throughput_experiment = "latency-throughput"
 prefix_scalability_experiment = "scalability"
+prefix_overhead_experiment = "overhead"
 
 ################################################################################################
 #	COMMANDS AND BASE PATHS
