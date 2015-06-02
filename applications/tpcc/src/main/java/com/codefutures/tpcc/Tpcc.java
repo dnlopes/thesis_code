@@ -614,8 +614,11 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < this.failure2_sum.length; i++)
 			abortCounter += this.failure2_sum[i];
 
-		float abortPercentage = abortCounter * 1.0f / (abortCounter + committed);
-
+		float abortPercentage;
+		if(abortCounter > 0 || committed > 0)
+			abortPercentage = abortCounter * 1.0f / (abortCounter + committed);
+		else
+			abortPercentage = 0.0f;
 		logger.info("Total ops: {}", committed);
 		logger.info("Avg Latency: {}", avgLatency);
 

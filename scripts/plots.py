@@ -203,11 +203,13 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	#CSV format: numberOps,opsPerSecond,avgLatency,numberOfReplicas,usersNumber,usersPerEmulator
 	totalCommits = frame['committed'].sum()
 	tpmc = frame['tpmc'].sum()
-	tempDf = frame['committed' > 0]
 	
 	a = 0
 	for i in tempDf.index:
-		a += df['committed'][i]*df['avgLatency'][i]
+		commitcount = frame['committed'][i]
+		if commitcount <= 0:
+			continue
+		a += frame['committed'][i]*frame['avgLatency'][i]
 
 	avgLatency = a / totalCommits	
 	aborted = frame['aborted'].mean()

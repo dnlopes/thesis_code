@@ -46,9 +46,7 @@ def startDatabasesGalera(isMaster):
     with cd(config.GALERA_MYSQL_DIR), hide('running','output'):    
         run(command)    
     
-    time.sleep(20)
-    if isMaster:
-        time.sleep(10)
+    time.sleep(30)   
 
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
@@ -197,7 +195,6 @@ def isPortOpen(port):
         return output.find('LISTEN') != -1
 
 def areClientsRunning(emulatorsNumber):
-    stillRunning = False
     for y in xrange(1, emulatorsNumber+1):
         currentId = str(y)
         logFile = 'emulator' + str(currentId) + '.log'
@@ -205,9 +202,8 @@ def areClientsRunning(emulatorsNumber):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:
                 logger.warn('emulator %s not finished yet!', currentId)
-                return True
-
-    return stillRunning
+                return "True"
+    return "False"
 
 def executeTerminalCommand(command):
     local(command)    

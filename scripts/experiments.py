@@ -296,11 +296,13 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
+			for value in stillRunning.iteritems():				
+				if "True" in value:
+					isRunning = True
+					logger.info('experiment is still running!')
+					break
+				else:
+					isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -333,11 +335,13 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
+			for value in stillRunning.iteritems():				
+				if "True" in value:
+					isRunning = True
+					logger.info('experiment is still running!')
+					break
+				else:
+					isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -426,12 +430,13 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-		if stillRunning == True:
-			isRunning = True
-			logger.info('experiment is still running!')                
-		else:
-			isRunning = False
-
+			for value in stillRunning.iteritems():				
+				if "True" in value:
+					isRunning = True
+					logger.info('experiment is still running!')
+					break
+				else:
+					isRunning = False
 		if isRunning == True:
 			attempts += 1
 			time.sleep(20)
@@ -467,12 +472,13 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-		if stillRunning == True:
-			isRunning = True
-			logger.info('experiment is still running!')                
-		else:
-			isRunning = False
-
+			for value in stillRunning.iteritems():				
+				if "True" in value:
+					isRunning = True
+					logger.info('experiment is still running!')
+					break
+				else:
+					isRunning = False
 		if isRunning == True:
 			attempts += 1
 			time.sleep(20)
@@ -553,11 +559,13 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
+			for value in stillRunning.iteritems():				
+				if "True" in value:
+					isRunning = True
+					logger.info('experiment is still running!')
+					break
+				else:
+					isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
