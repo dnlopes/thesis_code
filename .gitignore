@@ -17,4 +17,4 @@ scripts/*.pyc
 # IDE
 *.iml
 .idea/*
-
+scripts/*.sublime-workspace
