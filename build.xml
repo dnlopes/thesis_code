@@ -223,7 +223,7 @@
 			   debug="true" deprecation="false" nowarn="yes">
 			<classpath refid="tpcc.classpath" />
 		</javac>
-		<jar destfile="${jars.dir}/tpcc-client.jar" basedir="${tpcc.classes.dir}">
+		<jar destfile="${jars.dir}/tpcc-codefuture-client.jar" basedir="${tpcc.classes.dir}">
 			<manifest>
 				<attribute name="Class-Path" value="." />
 				<attribute name="Main-Class" value="com.codefutures.tpcc.Tpcc" />
@@ -240,7 +240,7 @@
 				<include name="micro-database.sql" />
 			</fileset>
 		</jar>
-		<copy file="${jars.dir}/tpcc-client.jar" todir="${deploy.dir}" />
+		<copy file="${jars.dir}/tpcc-codefuture-client.jar" todir="${deploy.dir}" />
 		<jar destfile="${jars.dir}/tpcc-codefuture-gendb.jar" basedir="${tpcc.classes.dir}">
 			<manifest>
 				<attribute name="Class-Path" value="." />

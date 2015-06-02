@@ -31,6 +31,8 @@ if IS_LOCALHOST:
 MYSQL_PORT='3306'
 TOTAL_USERS=0
 JDCB=""
+#TPCC_VERSION='codefuture'
+TPCC_VERSION='escada'
 ACTIVE_EXPERIMENT=""
 prefix_latency_throughput_experiment = "latency-throughput"
 prefix_scalability_experiment = "scalability"

@@ -116,12 +116,18 @@ def startReplicators(configFile):
     return '1'
 
 def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
+    jarFile = ''
+    if config.TPCC_VERSION == 'escada':
+        jarFile = 'tpcc-escada-client.jar'
+    else:
+        jarFile = 'tpcc-codefuture-client.jar'
+
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
         logFile = 'emulator' + str(currentId) + '.log'
-        command = 'java -Xms2000m -Xmx4000m -jar tpcc-client.jar ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+        command = 'java -Xms2000m -Xmx4000m -jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         if config.IS_LOCALHOST:
-            command = 'java -jar tpcc-client.jar ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
+            command = 'java -jar tpcc-client.jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         
         logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
         logger.info('%s',command)
