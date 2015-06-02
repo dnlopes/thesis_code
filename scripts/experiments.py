@@ -29,11 +29,19 @@ logger.addHandler(ch)
 ################################################################################################		
 # LATENCY-THROUGHPUT VARIABLES
 ################################################################################################		
-NUMBER_REPLICAS=[3]
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
 #JDCBs=['crdt','galera']
 JDCBs=['galera']
+NUMBER_REPLICAS=[3]
+NUMBER_USERS_LIST_1REPLICA=[1]
+NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
+#NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
+NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
+userListToReplicasNumber = dict()
+userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
+userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
+userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
 
 ################################################################################################		
 # SCALABILITY VARIABLES
@@ -53,13 +61,7 @@ OVERHEAD_USERS_LIST=[1,5]
 #   ALL EXPERIMENTS CONFIGURATIONS
 ################################################################################################
 TO_DOWNLOAD_COMMANDS = []
-userListToReplicasNumber = dict()
-NUMBER_USERS_LIST_1REPLICA=[1]
-NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
-NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
-userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
-userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
-userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
+
 
 @task
 def runAllExperiments(configsFilesBaseDir):
@@ -248,12 +250,12 @@ def startDatabaseLayer():
 			masterList = [masterDatabaseReplica]
 			slavesReplicas = config.database_nodes[:]
 			slavesReplicas.remove(masterDatabaseReplica) 
-			logger.info("node %s will bootsrap Galera-Cluster", masterDatabaseReplica)
-			logger.info("%s will join after cluster is online", slavesReplicas)
+			logger.info("%s will bootstrap Galera-Cluster", masterDatabaseReplica)
+			logger.info("%s will join after the cluster is online", slavesReplicas)
 			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
 		
-		#start master replica (that will bootstrap the cluster)
-		output = execute(fab.startDatabasesGalera, True, hosts=masterList)
+			#start master replica (that will bootstrap the cluster)
+			output = execute(fab.startDatabasesGalera, True, hosts=masterList)
 		for key, value in output.iteritems():
 			if value == '0':
 				logger.error('database at %s failed to start', key)
@@ -263,7 +265,8 @@ def startDatabaseLayer():
 
 		if len(config.database_nodes) > 1:
 			#start remainning nodes
-			output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
+			with hide('running','output'):
+				output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
 			for key, value in output.iteritems():
 				if value == '0':
 					logger.error('database at %s failed to start', key)
@@ -612,7 +615,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	else:		
 		logger.error("database layer failed to start")
 		return False
-	
+		
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
 	time.sleep(config.TPCC_TEST_TIME+30)
@@ -644,15 +647,26 @@ def checkGaleraClusterStatus(masterReplicaHost):
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_cluster_size\';" | grep wsrep'
 	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
 
-	if str(numberOfReplicas) not in output:
+	if str(numberOfDatabases) not in output:
 		logger.error("cluster was not properly initialized: %s", output)
-		return False
+		return True
 
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_ready\';" | grep wsrep_ready'
 	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
 
 	if 'ON' not in output:
 		logger.error("cluster was not properly initialized: %s", output)
-		return False
+		return True
 
 	return True
+
+
+
+
+
+
+
+
+
+
+
