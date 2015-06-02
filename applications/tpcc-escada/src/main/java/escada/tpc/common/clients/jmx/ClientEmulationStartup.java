@@ -550,7 +550,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 		PrintWriter out = null;
 		try
 		{   StringBuilder buffer = new StringBuilder();
-			buffer.append("numberOps,avgLatency,tpmc,abortrate\n");
+			buffer.append("committed,avgLatency,tpmc,abortrate\n");
 			buffer.append(commitsCounter);
 			buffer.append(",");
 			buffer.append(avgLatency);
