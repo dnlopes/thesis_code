@@ -204,15 +204,15 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	totalCommits = frame['committed'].sum()
 	tpmc = frame['tpmc'].sum()
 	
-	a = 0
-	for i in frame.index:
-		commitcount = frame['committed'][i]
-		if commitcount <= 0:
-			continue
-		a += frame['committed'][i]*frame['avgLatency'][i]
+	#a = 0
+	#for i in frame.index:
+		#commitcount = frame['committed'][i]
+		#if commitcount <= 0:
+			#continue
+		#a += frame['committed'][i]*frame['avgLatency'][i]
 
-	avgLatency = a / totalCommits	
-	aborted = frame['aborted'].mean()
+	avgLatency = frame['avgLatency'].mean()
+	aborted = frame['abortrate'].mean()
 	
 	opsPerSecond = totalCommits / config.TPCC_TEST_TIME
 	usersPerEmulator = totalUsers / numberOfReplicas

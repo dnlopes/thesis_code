@@ -291,7 +291,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
-	time.sleep(config.TPCC_TEST_TIME+30)
+	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
 	while isRunning:
 		logger.info('checking experiment status...')   
@@ -328,7 +328,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
-	time.sleep(config.TPCC_TEST_TIME+30)
+	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
 	while isRunning:
 		logger.info('checking experiment status...')   
@@ -414,9 +414,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 	
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
-	time.sleep(config.TPCC_TEST_TIME+30)
-	if config.JDBC == 'galera':
-		time.sleep(60)
+	time.sleep(config.TPCC_TEST_TIME+20)	
 
 	isRunning = True
 	attempts = 0
@@ -456,7 +454,7 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 	
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
-	time.sleep(config.TPCC_TEST_TIME+30)
+	time.sleep(config.TPCC_TEST_TIME+20)
 	
 	isRunning = True
 	attempts = 0
@@ -546,7 +544,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 	
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
-	time.sleep(config.TPCC_TEST_TIME+30)
+	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
 	while isRunning:
 		logger.info('checking experiment status...')   

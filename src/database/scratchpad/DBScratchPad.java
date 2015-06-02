@@ -40,7 +40,10 @@ import util.exception.CheckConstraintViolatedException;
 import util.thrift.*;
 
 import java.sql.*;
+import java.sql.Date;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -51,6 +54,7 @@ public class DBScratchPad implements IDBScratchPad
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBScratchPad.class);
+	private static String defaultDate = null;
 
 	private ProxyConfig proxyConfig;
 	private Transaction activeTransaction;
@@ -74,6 +78,10 @@ public class DBScratchPad implements IDBScratchPad
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
+
+		java.util.Date dt = new java.util.Date();
+		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		defaultDate = sdf.format(dt);
 
 		this.createDBExecuters();
 	}
@@ -1447,9 +1455,12 @@ public class DBScratchPad implements IDBScratchPad
 						}
 
 						if(oldContent == null)
-							oldContent = "NULL";
+							if(field.isStringField())
+								oldContent = "NULL";
+							else if(field.isDateField())
+								oldContent = defaultDate;
 
-						if(field.isStringField() || field.isDateField())
+						if(field.isStringField())
 						{
 							buffer.append("'");
 							buffer.append(oldContent);
