@@ -135,16 +135,15 @@ public class Driver implements TpccConstants
 				count++;
 			} catch(Throwable th)
 			{
-				logger.error("FAILED", th);
-				Tpcc.activate_transaction = 0;
-				try
+				logger.error("this should not be happening", th);
+				/*try
 				{
 					conn.rollback();
 				} catch(SQLException e)
 				{
 					logger.error("", e);
 				}
-				return -1;
+				return -1;  */
 			} finally
 			{
 				if(DEBUG)
@@ -154,9 +153,9 @@ public class Driver implements TpccConstants
 			sequence = Util.seqGet();
 		}
 
-		logger.debug("Driver terminated after {} transactions", count);
+		logger.info("Driver terminated after {} transactions", count);
 
-		return (0);
+		return 0;
 
 	}
 

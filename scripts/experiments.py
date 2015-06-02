@@ -300,9 +300,8 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 			if utils.fabOutputContainsExpression(output, "True"):
 				isRunning = True
 				logger.info('experiment is still running!')
-				break
 			else:
-				isRunning = False
+				isRunning = False				
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -337,8 +336,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
 			if utils.fabOutputContainsExpression(output, "True"):
 				isRunning = True
-				logger.info('experiment is still running!')
-				break
+				logger.info('experiment is still running!')				
 			else:
 				isRunning = False
 		if isRunning == True:
@@ -431,8 +429,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
 			if utils.fabOutputContainsExpression(output, "True"):
 				isRunning = True
-				logger.info('experiment is still running!')
-				break
+				logger.info('experiment is still running!')				
 			else:
 				isRunning = False
 		if isRunning == True:
@@ -472,8 +469,7 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
 			if utils.fabOutputContainsExpression(output, "True"):
 				isRunning = True
-				logger.info('experiment is still running!')
-				break
+				logger.info('experiment is still running!')				
 			else:
 				isRunning = False
 		if isRunning == True:
@@ -558,8 +554,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
 			if utils.fabOutputContainsExpression(output, "True"):
 				isRunning = True
-				logger.info('experiment is still running!')
-				break
+				logger.info('experiment is still running!')				
 			else:
 				isRunning = False
 		if isRunning == True:
@@ -666,14 +661,14 @@ def checkGaleraClusterStatus(masterReplicaHost):
 	numberOfDatabases = len(config.database_nodes)
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_cluster_size\';" | grep wsrep'
 	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
-
+	logger.debug('cluster output: %s', output)
+	return True
 	if str(numberOfDatabases) not in output:
 		logger.error("cluster was not properly initialized: %s", output)
 		return True
 
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_ready\';" | grep wsrep_ready'
 	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
-
 	if 'ON' not in output:
 		logger.error("cluster was not properly initialized: %s", output)
 		return True
