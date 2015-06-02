@@ -18,7 +18,7 @@ logger.addHandler(ch)
 
 #IS_LOCALHOST = True
 IS_LOCALHOST = False
-TPCC_TEST_TIME=45
+TPCC_TEST_TIME=20
 
 ################################################################################################
 #   PREFIXS AND VARIABLES
@@ -45,6 +45,7 @@ MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf'
 BASE_DIR = '/local/' + user
 DEPLOY_DIR = BASE_DIR + '/deploy'
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
+GALERA_MYSQL_DIR = BASE_DIR + '/mysql-5.6-galera'
 HOME_DIR = '/home/' + user
 LOGS_DIR = HOME_DIR + '/logs'
 BACKUPS_DIR = HOME_DIR + '/backups'

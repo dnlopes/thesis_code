@@ -24,18 +24,30 @@ logger.addHandler(ch)
 
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
-################################################################################################
+################################################################################################		
 
+################################################################################################		
+# LATENCY-THROUGHPUT VARIABLES
+################################################################################################		
+NUMBER_REPLICAS=[3]
+#NUMBER_REPLICAS=[1]
+#JDCBs=['mysql_crdt', "default_jdbc"]
+#JDCBs=['crdt','galera']
+JDCBs=['galera']
+
+################################################################################################		
+# SCALABILITY VARIABLES
+################################################################################################		
+SCALABILITY_JDCBs=['crdt']
 SCALABILITY_USERS_PER_REPLICA=8
 SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5]
 #SCALABILITY_NUMBER_REPLICAS=[1,2]
-SCALABILITY_JDCBs=['crdt']
-NUMBER_REPLICAS=[3,5]
-#NUMBER_REPLICAS=[1]
-#JDCBs=['mysql_crdt', "default_jdbc"]
+
+################################################################################################		
+# OBERHEAD VARIABLES
+################################################################################################		
 OVERHEAD_JDCBs=['mysql','crdt']
 OVERHEAD_USERS_LIST=[1,5]
-JDCBs=['crdt']
 
 ################################################################################################
 #   ALL EXPERIMENTS CONFIGURATIONS
@@ -221,15 +233,47 @@ def runFullOverheadExperiment(configsFilesBaseDir):
 ################################################################################################
 
 def startDatabaseLayer():
-	with hide('running','output'):
-		execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
-		output = execute(fab.startDatabases, hosts=config.database_nodes)
+	if config.JDBC == 'crdt':
+		with hide('running','output'):
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
+			output = execute(fab.startDatabases, hosts=config.database_nodes)
+			for key, value in output.iteritems():
+				if value == '0':
+					logger.error('database at %s failed to start', key)
+					return False
+			return True
+	elif config.JDBC == 'galera':
+		with hide('running','output'):
+			masterDatabaseReplica = config.database_nodes[0]
+			masterList = [masterDatabaseReplica]
+			slavesReplicas = config.database_nodes[:]
+			slavesReplicas.remove(masterDatabaseReplica) 
+			logger.info("node %s will bootsrap Galera-Cluster", masterDatabaseReplica)
+			logger.info("%s will join after cluster is online", slavesReplicas)
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
+		
+		#start master replica (that will bootstrap the cluster)
+		output = execute(fab.startDatabasesGalera, True, hosts=masterList)
 		for key, value in output.iteritems():
 			if value == '0':
 				logger.error('database at %s failed to start', key)
 				return False
-		return True
+
+		time.sleep(10)	
+
+		if len(config.database_nodes) > 1:
+			#start remainning nodes
+			output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
+			for key, value in output.iteritems():
+				if value == '0':
+					logger.error('database at %s failed to start', key)
+					return False							
 			
+		return checkGaleraClusterStatus(masterDatabaseReplica)
+	else:
+		logger.error("unexpected driver: %s", config.JDBC)
+		sys.exit()
+		
 def startCoordinatorsLayer(configFile):
 	with hide('running','output'):
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
@@ -473,7 +517,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 	return True
 
 def runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
-	pass	
+	pass
 
 def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	
@@ -559,6 +603,56 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	return True
 
 def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
-	pass        
+	
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
 
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def checkGaleraClusterStatus(masterReplicaHost):
+	numberOfDatabases = len(config.database_nodes)
+	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_cluster_size\';" | grep wsrep'
+	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
+
+	if str(numberOfReplicas) not in output:
+		logger.error("cluster was not properly initialized: %s", output)
+		return False
+
+	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "SHOW STATUS LIKE \'wsrep_ready\';" | grep wsrep_ready'
+	output = fab.executeRemoteTerminalCommandAtDir(masterReplicaHost, command, config.GALERA_MYSQL_DIR)	
+
+	if 'ON' not in output:
+		logger.error("cluster was not properly initialized: %s", output)
+		return False
+
+	return True

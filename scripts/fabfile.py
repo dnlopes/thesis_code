@@ -31,6 +31,30 @@ env.hosts = ['localhost']
 ################################################################################################
 
 @parallel
+def startDatabasesGalera(isMaster):
+    mysqlCommand = ''
+    clusterAddress = generateClusterAddress()
+
+    mysqlCommand = 'nohup ' + config.MYSQL_START_COMMAND + ' --wsrep_cluster_address="' + clusterAddress + '"'
+    if isMaster:
+        mysqlCommand += " --wsrep-new-cluster"
+
+    command = 'nohup ' + mysqlCommand + ' >& /dev/null < /dev/null &'  
+
+    logger.info('starting database at %s', env.host_string)
+    logger.info(command)
+    with cd(config.MYSQL_DIR), hide('running','output'):    
+        run(command)    
+    
+    time.sleep(20)
+    if isMaster:
+        time.sleep(10)
+
+    if not isPortOpen(config.MYSQL_PORT):
+        return '0'
+    return '1'
+
+@parallel
 def startDatabases():
     command = 'nohup ' + config.MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'  
     logger.info('starting database at %s', env.host_string)
@@ -38,6 +62,9 @@ def startDatabases():
     with cd(config.MYSQL_DIR), hide('running','output'):    
         run(command)    
     time.sleep(20)
+    if config.JDBC == 'galera':
+        time.sleep(10)
+
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
     return '1'
@@ -126,12 +153,22 @@ def downloadLogsTo(outputDir):
 
 @parallel
 def prepareTPCCDatabase():
-    # assume mysql is not running
+
+    mysqlPackage = ''
+    if config.JDBC == 'crdt':
+        mysqlPackage = 'mysql-5.6_ready.tar.gz'
+    elif config.JDBC == 'galera':
+        mysqlPackage = 'mysql-5.6-galera_ready.tar.gz'
+    else:
+        logger.error("unexpected driver: %s", config.JDBC)
+        sys.exit()
+    
     logger.info('unpacking database at: %s', env.host_string)
     with cd(config.BASE_DIR), hide('output','running'):
         run('rm -rf mysql*')
-        run('cp ' + config.BACKUPS_DIR + '/mysql-5.6_ready.tar.gz ' + config.BASE_DIR)
-        run('tar zxvf mysql-5.6_ready.tar.gz')
+        run('cp ' + config.BACKUPS_DIR + '/' + mysqlPackage + " " + config.BASE_DIR)
+        run('tar zxvf ' + mysqlPackage)
+
     time.sleep(3)
 
 ################################################################################################
@@ -175,7 +212,15 @@ def executeTerminalCommand(command):
 
 def executeTerminalCommandAtDir(command, atDir):
     with lcd(atDir):
-        executeTerminalCommand(command)
+        return executeTerminalCommand(command)
+
+def executeRemoteTerminalCommandAtDir(hostName, command, atDir):
+    with cd(atDir):
+        return executeRemoteTerminalCommand(hostName, command)
+
+def executeRemoteTerminalCommand(hostName, command):
+    hostList = [hostName]
+    return execute(executeRemoteCommand, command, hosts=hostList)
 
 def killRunningProcesses():
     logger.info('cleaning running processes')    
@@ -191,6 +236,22 @@ def cleanOutputFiles():
     with cd(config.BASE_DIR), hide('output','running'), settings(warn_only=True):
         run('rm -rf ' + config.DEPLOY_DIR + '/*.log')
         run('rm -rf ' + config.DEPLOY_DIR + '/*.temp')
+
+def executeRemoteCommand(command):
+    output = run(command)
+    return output
+
+def generateClusterAddress():
+    clusterAddress = "gcomm://"
+
+    for i in range(len(config.database_nodes)):
+        nodeName = config.database_nodes[i]
+        clusterAddress += nodeName
+
+        if i < len(config.database_nodes) - 1:
+            clusterAddress += ","
+
+    return clusterAddress
 
 
 

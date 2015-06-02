@@ -4,6 +4,54 @@
 		"selected_items":
 		[
 			[
+				"av",
+				"avgLatency"
+			],
+			[
+				"jd",
+				"jdbcDriversList"
+			],
+			[
+				"OVER",
+				"OVERHEAD_USERS_LIST"
+			],
+			[
+				"con",
+				"configsFilesBaseDir"
+			],
+			[
+				"j",
+				"jdbcDriversList"
+			],
+			[
+				"tota",
+				"totalUsers"
+			],
+			[
+				"total",
+				"totalOps"
+			],
+			[
+				"cs",
+				"csvFiles"
+			],
+			[
+				"num",
+				"numberReplicasList"
+			],
+			[
+				"outpu",
+				"outputDir"
+			],
+			[
+				"numb",
+				"numberOfReplicas"
+			],
+			[
+				"SCAL",
+				"SCALABILITY_USERS_PER_REPLICA"
+			],
+			[
 				"exe",
 				"executeTerminalCommand"
 			],
@@ -36,20 +84,12 @@
 				"generatePlotDataFile"
 			],
 			[
-				"num",
-				"numberOfReplicas"
-			],
-			[
 				"u",
 				"usersList"
 			],
 			[
 				"tot",
 				"totalUsers"
-			],
-			[
-				"total",
-				"totalOps"
 			],
 			[
 				"tem",
@@ -102,10 +142,6 @@
 			[
 				"run",
 				"runLatencyThroughputExperiment"
-			],
-			[
-				"con",
-				"configParser"
 			],
 			[
 				"still",
@@ -391,11 +427,51 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "plots.py",
+			"settings":
+			{
+				"buffer_size": 8081,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "fabfile.py",
+			"settings":
+			{
+				"buffer_size": 7517,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "configParser.py",
+			"settings":
+			{
+				"buffer_size": 4872,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "experiments.py",
+			"settings":
+			{
+				"buffer_size": 21646,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/overhead_chart.gp",
+			"settings":
+			{
+				"buffer_size": 1175,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 271.0,
+		"height": 400.0,
 		"selected_items":
 		[
 			[
@@ -561,30 +637,66 @@
 	],
 	"file_history":
 	[
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/fabfile.py",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/plots.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/test.data",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/overhead_chart.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_1line.gp",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/experiments.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/fabfile.py",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/configParser.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/experiments.txt",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_2line.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc_ddl.sql",
+		"/Users/dnlopes/workspaces/thesis/code/emulator1.iters.temp",
+		"/Users/dnlopes/workspaces/thesis/code/emulator1.results.temp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_2node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_3node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_4node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_5node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_6node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_7node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_localhost_1node.xml",
+		"/Users/dnlopes/workspaces/thesis/code/emulator0.results.temp",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-151_00_10-TPC-C-time-20-clients-20-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-151_00_12-TPC-C-time-20-clients-20-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_23_35-TPC-C-time-20-clients-20-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_22_45-TPC-C-time-20-clients-15-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_22_46-TPC-C-time-20-clients-15-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_22_03-TPC-C-time-20-clients-6-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_22_04-TPC-C-time-20-clients-6-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/sql/create_tpcc.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/sql/create_crdt_tpcc.sql",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_48-TPC-C-time-20-clients-1-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_47-TPC-C-time-20-clients-1-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_45-TPC-C-time-20-clients-2-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_35-TPC-C-time-20-clients-2-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_33-TPC-C-time-20-clients-2-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_44-TPC-C-time-20-clients-2-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/TPCC-2015-05-150_17_07-TPC-C-time-20-clients-2-frag-1-think-false.dat",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc-config.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/sql/compareClocks.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc-database.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc-escada/target/tpc-c-0.1-SNAPSHOT-tpc-c/etc/sql/mysql/tpcc_new_crdt.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc-escada/target/tpc-c-0.1-SNAPSHOT-tpc-c/etc/sql/mysql/tpcc_new.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc_crdt.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/workload-config.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc-escada/target/tpc-c-0.1-SNAPSHOT-tpc-c/etc/workload-config.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc-escada/target/tpc-c-0.1-SNAPSHOT-tpc-c/etc/database-config-mysql.properties",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/scalability_2line.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/scalability_1line.gp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/plots.py",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/compareClocks.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/clocksFunction.sql",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/logs/28-05_23h36m45s_latency-throughput/5replica/240user/emulator1.results.temp",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/plot_data",
+		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/logs/28-05_21h02m54s_latency-throughput/5replica/120user/emulator1.results.temp",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc_mysqlcluster.sql",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_2line.gp",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput_1line.gp",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/compareClocks.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/client.database.properties",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_5node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_7node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_4node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_3node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_2node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_1node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_6node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_localhost_1node.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/experiments.txt",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/globalVar.py",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/parser.py",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/globals.py",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/latency-throughput.gp",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/create_tables_tpcc_crdt.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/fabfile_local.py",
 		"/Users/dnlopes/workspaces/thesis/tex/inforum/sections/sec_solution.tex",
 		"/Users/dnlopes/workspaces/thesis/tex/inforum/template.tex",
@@ -595,7 +707,6 @@
 		"/Users/dnlopes/workspaces/thesis/tex/inforum/typeinst/typeinst.tex",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_1node_128cores.xml",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcc_cluster_5node_clients10.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/tpcc-database.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/resources/configs/tpcw_localhost_1node.xml",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcc/database/setupTpcc.sh",
@@ -616,7 +727,6 @@
 		"/Users/dnlopes/Downloads/gapi-0.4 2/src/main/java/gorda/db/Transaction.java",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/applications/tpcw/database.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/build.xml",
-		"/Users/dnlopes/workspaces/thesis/code/weakdb/scripts/clocksFunction.sql",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_1nodes_5users",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_1nodes_10users",
 		"/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/tpcc_cluster_2nodes_10users",
@@ -654,41 +764,7 @@
 		"/Users/dnlopes/Downloads/jTPCC/sql/mysql/ct_bench_mysql.sql",
 		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/demo/Appl.java",
 		"/Users/dnlopes/workspaces/thesis/code/framework/application/micro/database.sql",
-		"/Users/dnlopes/workspaces/thesis/meetings/11-03-2015.txt",
-		"/Users/dnlopes/workspaces/thesis/code/framework/application/tpcw/database.sql",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/test/appl/ApplSendEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/test/net/sf/appia/test/appl/ApplLayer.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/Session.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/common/RegisterSocketEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/ChannelManager.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/package.html",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/interfaces/InitializableSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/management/jmx/JMXConfiguration.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpReader.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/Appia.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpCompleteLayer.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/tcpcomplete/TcpCompleteSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ExternalEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ChannelEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/utils/SessionProperties.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/AppiaDuplicatedSessionsException.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/drop/DropSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/udpsimple/UdpSimpleSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/xml/templates/SessionTemplate.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/fifo/FifoSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/frag/FragSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/sslcomplete/SslCompleteSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/nakfifo/NakFifoSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/fifounreliable/FifoUnreliableSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/nakfifo/multicast/NakFifoMulticastSession.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/sslcomplete/SslRegisterSocketEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/AppiaMulticastSupport.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/protocols/drop/DropLayer.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/SendableEvent.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/EventScheduler.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/events/channel/ChannelInit.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/ChannelCursor.java",
-		"/Users/dnlopes/Downloads/appia-4.1.1-src/src/core/net/sf/appia/core/AppiaEventException.java"
+		"/Users/dnlopes/workspaces/thesis/meetings/11-03-2015.txt"
 	],
 	"find":
 	{
@@ -706,6 +782,117 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"generateOverheadDatafile",
+			"driver",
+			"ACTIVE_EXPERIMENT",
+			"mergeResultCSVFiles",
+			"runOverheadExperimentCRDT",
+			"runOverheadExperiment",
+			"overhead",
+			"runOverheadExperiment",
+			"OVERHEAD_USERS_LIST",
+			"runOverheadExperiment",
+			"generateOverheadDatafile",
+			"generateOverheadPlot",
+			".dat",
+			"write",
+			"file",
+			"read_csv",
+			"abortRate",
+			"numberOps",
+			"generatePlotDataFile",
+			"tpmc",
+			"mergeResultCSVFiles",
+			"mergeTemporaryCSVfiles",
+			"runLatencyThroughputExperiment",
+			"startEm",
+			"MYSQL_START_COMMAND",
+			"new_order ",
+			"new_orders",
+			"order_line",
+			"orders ",
+			"order ",
+			"new_order ",
+			"d_next_o_id",
+			"o_deliv",
+			"new_orders",
+			"startDatabases",
+			"text",
+			"CREATE TABLE ",
+			"_del ",
+			"_del",
+			"text",
+			"item",
+			"distri",
+			"c_discount",
+			"new_order",
+			"new_orders",
+			"ix_new",
+			"new_orders",
+			"new_order",
+			"new_orders",
+			"new_or",
+			"fkey_order_line_2",
+			"order_line",
+			"order",
+			"orders",
+			"MYSQL_START_COMMAND",
+			"warehouse",
+			"text",
+			"varchar(500),",
+			"text",
+			"new_order",
+			"orders",
+			"NUMBER_REPLICAS",
+			"replicators_nodes",
+			"distinct_nodes",
+			"read_csv",
+			"generateScalabilityPlot",
+			"opsPerSecond",
+			"users",
+			"runScalabilityExperimentCRDT",
+			"runScalabilityExperiment",
+			"runFullScalabilityExperiment",
+			"generateScalabilityPlot",
+			"write",
+			"mergeResultCSVFiles",
+			"numberOps",
+			"mergeTemporaryCSVfiles",
+			"mergeResultCSVFiles",
+			"concat",
+			"mergeResultCSVFiles",
+			"runScalabilityExperiment",
+			"runScalabilityExperimentCRDT",
+			"mergeResultCSVFiles",
+			"mergeTemporaryCSVfiles",
+			"runScalabilityExperiment",
+			"generateScalabilityPlotDataFile",
+			"generateScalabilityLineForJDBC",
+			"startDatabaseLayer",
+			"runScalabilityExperiment",
+			"mergeTemporaryCSVfiles",
+			"config",
+			"mergeResultCSVFiles",
+			"runScalabilityExperiment",
+			"startTPCCclients",
+			"execute",
+			"downloadLogsTo",
+			"startCoordinatorsLayer",
+			"debug",
+			"killRunningProcesses",
+			"rm ",
+			"runLatencyThroughputExperimentCRDT",
+			"DIR_TO_DOWNLOAD",
+			"OUTPUT_ROOT_DIR",
+			"generatePlotDataFile",
+			"REPLICA_OUTPUT_DIR",
+			"PER_REPLICA_OUTPUT_DIR",
+			"runLatencyThroughputExperiment",
+			"runLatencyThroughputExperimentCRDT",
+			"killRunningProcesses",
+			"fab.",
+			"killRunningProcesses",
+			"runLatencyThroughputExperimentCRDT",
 			"generateLatencyThroughputPlot",
 			"mergeTemporaryCSVfiles",
 			"mergeResultCSVFiles",
@@ -722,118 +909,7 @@
 			"mergeResultCSVFiles",
 			"mergeTemporaryCSVfiles",
 			"mergeResultCSVFiles",
-			"if",
-			"generatePlotDataFile",
-			"generateLatencyThroughputPlot",
-			"createPlotDataFiles",
-			"generatePlotDataFile",
-			"generateLatencyThroughputPlot",
-			"generatePlotDataFile",
-			"mergeTemporaryCSVfiles",
-			"generatePlotDataFile",
-			"generateLatencyThroughputPlot",
-			"generatePlotDataFile",
-			"runLatencyThroughputExperiment",
-			"generatePlotDataFile",
-			"generateLatencyThroughput",
-			"mergeTemporaryCSVfiles",
-			"mergeIterationCSVFiles",
-			"mergeTemporaryCSVfiles\nmergeTemporaryCSVfiles",
-			"mergeResultCSVFiles",
-			"tail",
-			"client ",
-			"client.",
-			"client",
-			"startReplicators",
-			"mergeTemporaryCSVfiles",
-			"startReplicators",
-			"startReplicationLayer",
-			"emulator",
-			"LOG",
-			"areClientsRunning",
-			"generateLatencyThroughput",
-			"emulators_nodes",
-			"downloadLogs",
-			"downloadLogsTo",
-			"NUMBER_USERS_LIST_1REPLICA",
-			"startTPCCclients",
-			"startCoordinators",
-			"startCoordinatorsLayer",
-			"emulators_nodes",
-			"client_nodes",
-			"startClientEmulators",
-			"True",
-			"startDatabaseLayer",
-			"proxiesNumber",
-			"areClientsRunning",
-			"downloadLogsTo",
-			"databases",
-			"TOMCAT_START",
-			"MYSQL_SHUTDOWN_COMMAND",
-			"MYSQL_START_COMMAND",
-			"startDatabases",
-			"is_mysql_running",
-			"pushLogs",
-			"emulators_nodes",
-			"TPCC",
-			"replicatorResults",
-			"startDatabases",
-			"pushLogs",
-			"OUTPUT_DIR",
-			"LOG_FILE_DIR",
-			"killRu",
-			"running",
-			"killPro",
-			"prepareCode",
-			"kill",
-			"config.parse",
-			"prepareTPCCDatabase",
-			"distributeCode",
-			"config.",
-			"isOurSetup",
-			"CUSTOM_JDBC",
-			"customJDBC",
-			"usersList",
-			"numbersToReplicasMap",
-			"startDatabases",
-			"weakDBExperiment",
-			"proxiesIdToPortMap",
-			"replicators_map",
-			"proxiesIdToPortMap",
-			"proxies_nodes",
-			"proxi",
-			"client_",
-			"replicators_map",
-			"database_map",
-			"proxies_map",
-			"coordinators_map",
-			"database_map",
-			"configsMap",
-			"parseConfigInput",
-			"generateLatencyThroughput",
-			"areClientsRunning",
-			"checkClientsIsRunning",
-			"processLogFiles",
-			"proxiesNumber",
-			"checkClientsIsRunning",
-			"startTPCCclients",
-			"clients_nodes",
-			"status...",
-			"checkClientsIsRunning",
-			"startTPCCclients",
-			"processLogFiles",
-			"pushLogs",
-			"checkClientsIsRunning",
-			"startTPCCclients",
-			"currentId",
-			"proxiesIdToPortMap",
-			"replicatorsIdToPortMap",
-			"coordinatorsIdToPortMap",
-			"coordinatorsToPortMap",
-			"coordinatorsIdToPortMap",
-			"replicatorsIdToPortMap",
-			"coordinatorsIdToPortMap",
-			"coordinatorsHostToPortMap"
+			"if"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -841,6 +917,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"new_orders",
 			"172.16.24.194",
 			"micro-database.sql",
 			"stopMySQL",
@@ -862,8 +939,450 @@
 	"groups":
 	[
 		{
+			"selected": 2,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "plots.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8081,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4244,
+								4244
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "fabfile.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7517,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								379,
+								379
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "configParser.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4872,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1397,
+								1469
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1448.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "experiments.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21646,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13643,
+								13662
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2633.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/Users/dnlopes/workspaces/thesis/code/weakdb/experiments/overhead_chart.gp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1175,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								331,
+								331
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -913,7 +1432,7 @@
 	"project": "scripts.sublime-project",
 	"replace":
 	{
-		"height": 42.0
+		"height": 72.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -928,6 +1447,26 @@
 			[
 				"fab",
 				"scripts/fabfile.py"
+			],
+			[
+				"exper",
+				"scripts/experiments.py"
+			],
+			[
+				"experiemt",
+				"scripts/experiments.py"
+			],
+			[
+				"exp",
+				"scripts/experiments.py"
+			],
+			[
+				"plots",
+				"scripts/plots.py"
+			],
+			[
+				"xp",
+				"scripts/experiments.py"
 			],
 			[
 				"parse",
@@ -1004,7 +1543,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 205.0,
+	"side_bar_width": 235.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
