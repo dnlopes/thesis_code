@@ -113,6 +113,7 @@ public class TpccThread extends Thread {
             }
 
             driver.runTransaction(number, num_ware, num_conn);
+			logger.warn("EXITING THREAD WORK");
 
         } catch (Throwable e) {
             logger.error("Unhandled exception", e);

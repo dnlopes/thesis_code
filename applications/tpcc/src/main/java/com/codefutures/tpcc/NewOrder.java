@@ -3,7 +3,6 @@ package com.codefutures.tpcc;
 
 import java.sql.*;
 
-import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import runtime.IdentifierFactory;
@@ -12,7 +11,7 @@ import runtime.IdentifierFactory;
 public class NewOrder implements TpccConstants
 {
 
-	private static final Logger logger = LoggerFactory.getLogger(Driver.class);
+	private static final Logger logger = LoggerFactory.getLogger(NewOrder.class);
 	private static final boolean DEBUG = logger.isDebugEnabled();
 	private static final boolean TRACE = logger.isTraceEnabled();
 	private TpccStatements pStmts;
@@ -220,7 +219,8 @@ public class NewOrder implements TpccConstants
 				} catch(SQLException e)
 				{
 					logger.error(
-							"SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND c_d_id" +
+							"SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
+									"c_d_id" +
 									" " +
 									"= " + d_id + " AND c_id = " + c_id, e);
 					throw new Exception("NewOrder (join = false) select transaction error", e);
@@ -257,7 +257,8 @@ public class NewOrder implements TpccConstants
 			} catch(SQLException e)
 			{
 				logger.error(
-						"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id + "" +
+						"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id +
+								"" +
 								" " +
 								"FOR UPDATE", e);
 				throw new Exception("Neworder select transaction error", e);
@@ -316,9 +317,9 @@ public class NewOrder implements TpccConstants
 			} catch(SQLException e)
 			{
 				logger.error("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
-								"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
+						"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
 						"," +
-								o_ol_cnt + "," + o_all_local + ")", e);
+						o_ol_cnt + "," + o_all_local + ")", e);
 				throw new Exception("NewOrder insert transaction error", e);
 			}
 
@@ -424,7 +425,8 @@ public class NewOrder implements TpccConstants
 						logger.trace(
 								"SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
 										"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
-										"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR" +
+										"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " " +
+										"FOR" +
 										" " +
 										"UPDATE");
 					ResultSet rs = pstmt6.executeQuery();
@@ -448,9 +450,9 @@ public class NewOrder implements TpccConstants
 				} catch(SQLException e)
 				{
 					logger.error("SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
-									"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
-									"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR " +
-									"UPDATE", e);
+							"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
+							"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR " +
+							"UPDATE", e);
 					throw new Exception("NewOrder select transaction error", e);
 				}
 
@@ -520,10 +522,10 @@ public class NewOrder implements TpccConstants
 					pstmt8.setString(9, ol_dist_info);
 					if(TRACE)
 						logger.trace("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, " +
-										"ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) " +
-										"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id
-								+ "," + ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," +
-										ol_dist_info + ")");
+								"ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) " +
+								"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id + "," +
+								ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," +
+								ol_dist_info + ")");
 					pstmt8.executeUpdate();
 
 				} catch(SQLException e)
@@ -547,9 +549,8 @@ public class NewOrder implements TpccConstants
 		{
 			// Rollback if an aborted transaction, they are intentional in some percentage of cases.
 			if(logger.isDebugEnabled())
-			{
 				logger.debug("Caught AbortedTransactionException");
-			}
+
 			pStmts.rollback();
 			return 1; // this is not an error!
 		} catch(Exception e)

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.codefutures.tpcc.stats.PerSecondStatistics;
@@ -359,7 +360,8 @@ public class Tpcc implements TpccConstants
 			{
 				Thread.sleep(1000);
 				logger.info("collecting statistics {}", z);
-				this.collectStatistics(z);
+
+				//this.collectStatistics(z);
 				z++;
 			} catch(InterruptedException e)
 			{

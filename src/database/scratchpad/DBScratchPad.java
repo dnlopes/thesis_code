@@ -1460,7 +1460,7 @@ public class DBScratchPad implements IDBScratchPad
 							else if(field.isDateField())
 								oldContent = defaultDate;
 
-						if(field.isStringField())
+						if(field.isStringField() || field.isDateField())
 						{
 							buffer.append("'");
 							buffer.append(oldContent);

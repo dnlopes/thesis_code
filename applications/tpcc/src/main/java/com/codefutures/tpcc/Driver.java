@@ -135,15 +135,9 @@ public class Driver implements TpccConstants
 				count++;
 			} catch(Throwable th)
 			{
-				logger.error("this should not be happening", th);
-				/*try
-				{
-					conn.rollback();
-				} catch(SQLException e)
-				{
-					logger.error("", e);
-				}
-				return -1;  */
+				logger.error("this should not be happening. Abruptly exiting", th);
+				System.exit(1);
+
 			} finally
 			{
 				if(DEBUG)
