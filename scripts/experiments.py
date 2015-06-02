@@ -21,6 +21,7 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+TO_DOWNLOAD_COMMANDS = []
 
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
@@ -57,12 +58,9 @@ SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5]
 OVERHEAD_JDCBs=['mysql','crdt']
 OVERHEAD_USERS_LIST=[1,5]
 
-################################################################################################
-#   ALL EXPERIMENTS CONFIGURATIONS
-################################################################################################
-TO_DOWNLOAD_COMMANDS = []
-
-
+################################################################################################		
+# MAIN METHODS
+################################################################################################		
 @task
 def runAllExperiments(configsFilesBaseDir):
 	runFullScalabilityExperiment(configsFilesBaseDir)
@@ -118,7 +116,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				logger.info('moving to the next iteration!')
 				
 			logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-			plots.generatePlotDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
+			plots.generateLatencyThroughputDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
 
 		logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
 		plots.generateLatencyThroughputPlot(REPLICA_OUTPUT_DIR)
@@ -230,298 +228,9 @@ def runFullOverheadExperiment(configsFilesBaseDir):
 		logger.info("###########################################################################################")
 	print "\n"
 
-################################################################################################
-#   START LAYERS METHODS
-################################################################################################
-
-def startDatabaseLayer():
-	if config.JDBC == 'crdt':
-		with hide('running','output'):
-			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
-			output = execute(fab.startDatabases, hosts=config.database_nodes)
-			for key, value in output.iteritems():
-				if value == '0':
-					logger.error('database at %s failed to start', key)
-					return False
-			return True
-	elif config.JDBC == 'galera':
-		with hide('running','output'):
-			masterDatabaseReplica = config.database_nodes[0]
-			masterList = [masterDatabaseReplica]
-			slavesReplicas = config.database_nodes[:]
-			slavesReplicas.remove(masterDatabaseReplica) 
-			logger.info("%s will bootstrap Galera-Cluster", masterDatabaseReplica)
-			logger.info("%s will join after the cluster is online", slavesReplicas)
-			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
-		
-			#start master replica (that will bootstrap the cluster)
-			output = execute(fab.startDatabasesGalera, True, hosts=masterList)
-		for key, value in output.iteritems():
-			if value == '0':
-				logger.error('database at %s failed to start', key)
-				return False
-
-		time.sleep(10)	
-
-		if len(config.database_nodes) > 1:
-			#start remainning nodes
-			with hide('running','output'):
-				output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
-			for key, value in output.iteritems():
-				if value == '0':
-					logger.error('database at %s failed to start', key)
-					return False							
-			
-		return checkGaleraClusterStatus(masterDatabaseReplica)
-	else:
-		logger.error("unexpected driver: %s", config.JDBC)
-		sys.exit()
-		
-def startCoordinatorsLayer(configFile):
-	with hide('running','output'):
-		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
-		for key, value in output.iteritems():
-			if value == '0':
-				logger.error('coordinator at %s failed to start', key)
-				return False
-	return True    			
-
-def startReplicationLayer(configFile):
-	with hide('running','output'):
-		output = execute(fab.startReplicators, configFile, hosts=config.replicators_nodes)
-		for key, value in output.iteritems():
-			if value == '0':
-				logger.error('replicator at %s failed to start', key)
-				return False
-	return True    			    			
-
-def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, customJDBC):
-	with hide('running','output'):
-		execute(fab.startTPCCclients, configFile, emulatorsNumber, clientsPerEmulator, customJDBC, hosts=config.emulators_nodes)
-
-################################################################################################
-#   HELPER AND "PRIVATE" METHODS
-################################################################################################
-
-def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, jdbc):
-	print "\n"
-	logger.info("########################################## starting overhead experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', configFile)
-	logger.info('>> DATABASES: %s', config.database_nodes)
-	if jdbc == 'crdt':
-		logger.info('>> REPLICATORS: %s', config.replicators_nodes)
-	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
-	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
-	logger.info('>> TOTAL USERS: %s', totalUsers)
-	logger.info('>> JDBC: %s', config.JDBC)
-	logger.info('>> OUTPUT DIR: %s', outputDir)
-	logger.info("#########################################################################################################################")
-	print "\n"
-
-	success = False
-	for attempt in range(10):
-		if jdbc == 'crdt':
-			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-		else:
-			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-		
-		if success:
-			break
-		else:
-			logger.error("experiment failed. Retrying...")
-			fab.killRunningProcesses()
-			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
-
-	if not success:
-		logger.error("failed to execute experiment after 10 retries. Exiting...")					
-		sys.exit()
-
-def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
-	logger.info("starting database layer")
-	
-	success = startDatabaseLayer()
-	if success == True:		
-		logger.info("all databases instances are online") 
-	else:		
-		logger.error("database layer failed to start")
-		return False
-	
-	success = startCoordinatorsLayer(configFile)
-	if success == True:
-		logger.info('all coordinators are online')       		
-	else:
-		logger.error("coordination layer failed to start")
-		return False   
-	
-	success = startReplicationLayer(configFile)
-	if success == True:
-		logger.info('all replicators are online')       		
-	else:
-		logger.error("replication layer failed to start")
-		return False
-	
-	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
-
-	time.sleep(config.TPCC_TEST_TIME+30)
-	isRunning = True
-	while isRunning:
-		logger.info('checking experiment status...')   
-		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
-		if isRunning == True:
-			time.sleep(10)
-		else:
-			break
-
-	logger.info('the experiment has finished!')
-	fab.killRunningProcesses()
-	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
-	logger.info('logs can be found at %s', outputDir)
-
-	return True
-
-def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
-	logger.info("starting database layer")
-	
-	success = startDatabaseLayer()
-	if success == True:		
-		logger.info("all databases instances are online") 
-	else:		
-		logger.error("database layer failed to start")
-		return False
-	
-	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
-
-	time.sleep(config.TPCC_TEST_TIME+30)
-	isRunning = True
-	while isRunning:
-		logger.info('checking experiment status...')   
-		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
-		if isRunning == True:
-			time.sleep(10)
-		else:
-			break
-
-	logger.info('the experiment has finished!')
-	fab.killRunningProcesses()
-	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
-	logger.info('logs can be found at %s', outputDir)
-
-	return True
-
-def prepareCode():
-	logger.info('compiling source code')
-	with lcd(config.PROJECT_DIR), hide('output','running'):
-		local('ant purge tpcc-dist')
-	logger.info('uploading distribution to nodes: %s', config.distinct_nodes)
-	logger.info('deploying jars, resources and config files')
-	with hide('output','running'):
-		execute(fab.distributeCode, hosts=config.distinct_nodes)
-
-def downloadLogs(outputDir):
-	logger.info('downloading log files')
-	with hide('running', 'output'):
-		execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
-
-def runScalabilityExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas):
-	
-	print "\n"
-	logger.info("########################################## starting new scalability experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', CONFIG_FILE)
-	logger.info('>> DATABASES: %s', config.database_nodes)
-	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
-	logger.info('>> NUMBER OF EMULATORS: %s', NUMBER_OF_EMULATORS)
-	logger.info('>> CLIENTS PER EMULATOR: %s', USERS_PER_EMULATOR)
-	logger.info('>> TOTAL USERS: %s', TOTAL_USERS)
-	logger.info('>> JDBC: %s', config.JDBC)
-	logger.info('>> OUTPUT DIR: %s', OUTPUT_DIR)
-	logger.info("#########################################################################################################################")
-	print "\n"
-
-	success = False
-	for attempt in range(10):
-		if config.JDBC == 'crdt':
-			success = runScalabilityExperimentCRDT(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
-		else:
-			success = runScalabilityExperimentBaseline(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
-		
-		if success:
-			break
-		else:
-			logger.error("experiment failed. Retrying...")
-			fab.killRunningProcesses()
-			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
-
-	if not success:
-		logger.error("failed to execute experiment after 10 retries. Exiting...")					
-		sys.exit()
-
-def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
-	logger.info("starting database layer")
-	
-	success = startDatabaseLayer()
-	if success == True:		
-		logger.info("all databases instances are online") 
-	else:		
-		logger.error("database layer failed to start")
-		return False
-	
-	success = startCoordinatorsLayer(configFile)
-	if success == True:
-		logger.info('all coordinators are online')       		
-	else:
-		logger.error("coordination layer failed to start")
-		return False   
-	
-	success = startReplicationLayer(configFile)
-	if success == True:
-		logger.info('all replicators are online')       		
-	else:
-		logger.error("replication layer failed to start")
-		return False
-	
-	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
-
-	time.sleep(config.TPCC_TEST_TIME+30)
-	isRunning = True
-	while isRunning:
-		logger.info('checking experiment status...')   
-		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			if stillRunning == True:
-				isRunning = True
-				logger.info('experiment is still running!')                
-			else:
-				isRunning = False
-		if isRunning == True:
-			time.sleep(10)
-		else:
-			break
-
-	logger.info('the experiment has finished!')
-	fab.killRunningProcesses()
-	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
-	logger.info('logs can be found at %s', outputDir)
-
-	return True
-
-def runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
-	pass
-
+################################################################################################		
+# LATENCY-THROUGHPUT METHODS
+################################################################################################		
 def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	
 	print "\n"
@@ -641,6 +350,314 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	logger.info('logs can be found at %s', outputDir)
 
 	return True
+
+################################################################################################		
+# OVERHEAD METHODS
+################################################################################################		
+def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, jdbc):
+	print "\n"
+	logger.info("########################################## starting overhead experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', configFile)
+	logger.info('>> DATABASES: %s', config.database_nodes)
+	if jdbc == 'crdt':
+		logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
+	logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
+	logger.info('>> TOTAL USERS: %s', totalUsers)
+	logger.info('>> JDBC: %s', config.JDBC)
+	logger.info('>> OUTPUT DIR: %s', outputDir)
+	logger.info("#########################################################################################################################")
+	print "\n"
+
+	success = False
+	for attempt in range(10):
+		if jdbc == 'crdt':
+			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
+		else:
+			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
+		
+		if success:
+			break
+		else:
+			logger.error("experiment failed. Retrying...")
+			fab.killRunningProcesses()
+			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
+
+	if not success:
+		logger.error("failed to execute experiment after 10 retries. Exiting...")					
+		sys.exit()
+
+def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	success = startCoordinatorsLayer(configFile)
+	if success == True:
+		logger.info('all coordinators are online')       		
+	else:
+		logger.error("coordination layer failed to start")
+		return False   
+	
+	success = startReplicationLayer(configFile)
+	if success == True:
+		logger.info('all replicators are online')       		
+	else:
+		logger.error("replication layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	if config.JDBC == 'galera':
+		time.sleep(60)
+
+	isRunning = True
+	attempts = 0
+	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+		if stillRunning == True:
+			isRunning = True
+			logger.info('experiment is still running!')                
+		else:
+			isRunning = False
+
+		if isRunning == True:
+			attempts += 1
+			time.sleep(20)
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	
+	isRunning = True
+	attempts = 0
+	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+		if stillRunning == True:
+			isRunning = True
+			logger.info('experiment is still running!')                
+		else:
+			isRunning = False
+
+		if isRunning == True:
+			attempts += 1
+			time.sleep(20)
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+################################################################################################		
+# SCALABILITY METHODS
+################################################################################################		
+def runScalabilityExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas):
+	
+	print "\n"
+	logger.info("########################################## starting new scalability experiment ##########################################")
+	logger.info('>> CONFIG FILE: %s', CONFIG_FILE)
+	logger.info('>> DATABASES: %s', config.database_nodes)
+	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+	logger.info('>> NUMBER OF EMULATORS: %s', NUMBER_OF_EMULATORS)
+	logger.info('>> CLIENTS PER EMULATOR: %s', USERS_PER_EMULATOR)
+	logger.info('>> TOTAL USERS: %s', TOTAL_USERS)
+	logger.info('>> JDBC: %s', config.JDBC)
+	logger.info('>> OUTPUT DIR: %s', OUTPUT_DIR)
+	logger.info("#########################################################################################################################")
+	print "\n"
+
+	success = False
+	for attempt in range(10):
+		if config.JDBC == 'crdt':
+			success = runScalabilityExperimentCRDT(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
+		else:
+			success = runScalabilityExperimentBaseline(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS, numberOfReplicas)
+		
+		if success:
+			break
+		else:
+			logger.error("experiment failed. Retrying...")
+			fab.killRunningProcesses()
+			execute(fab.cleanOutputFiles, hosts=config.distinct_nodes)
+
+	if not success:
+		logger.error("failed to execute experiment after 10 retries. Exiting...")					
+		sys.exit()
+
+def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+	
+	success = startCoordinatorsLayer(configFile)
+	if success == True:
+		logger.info('all coordinators are online')       		
+	else:
+		logger.error("coordination layer failed to start")
+		return False   
+	
+	success = startReplicationLayer(configFile)
+	if success == True:
+		logger.info('all replicators are online')       		
+	else:
+		logger.error("replication layer failed to start")
+		return False
+	
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
+
+	time.sleep(config.TPCC_TEST_TIME+30)
+	isRunning = True
+	while isRunning:
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if stillRunning == True:
+				isRunning = True
+				logger.info('experiment is still running!')                
+			else:
+				isRunning = False
+		if isRunning == True:
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runScalabilityExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers, numberOfReplicas):
+	pass
+
+################################################################################################
+#   START LAYERS METHODS
+################################################################################################
+def startDatabaseLayer():
+	if config.JDBC == 'crdt':
+		with hide('running','output'):
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
+			output = execute(fab.startDatabases, hosts=config.database_nodes)
+			for key, value in output.iteritems():
+				if value == '0':
+					logger.error('database at %s failed to start', key)
+					return False
+			return True
+	elif config.JDBC == 'galera':
+		with hide('running','output'):
+			masterDatabaseReplica = config.database_nodes[0]
+			masterList = [masterDatabaseReplica]
+			slavesReplicas = config.database_nodes[:]
+			slavesReplicas.remove(masterDatabaseReplica) 
+			logger.info("%s will bootstrap Galera-Cluster", masterDatabaseReplica)
+			logger.info("%s will join after the cluster is online", slavesReplicas)
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
+		
+			#start master replica (that will bootstrap the cluster)
+			output = execute(fab.startDatabasesGalera, True, hosts=masterList)
+		for key, value in output.iteritems():
+			if value == '0':
+				logger.error('database at %s failed to start', key)
+				return False
+
+		time.sleep(10)	
+
+		if len(config.database_nodes) > 1:
+			#start remainning nodes
+			with hide('running','output'):
+				output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
+			for key, value in output.iteritems():
+				if value == '0':
+					logger.error('database at %s failed to start', key)
+					return False							
+			
+		return checkGaleraClusterStatus(masterDatabaseReplica)
+	else:
+		logger.error("unexpected driver: %s", config.JDBC)
+		sys.exit()
+		
+def startCoordinatorsLayer(configFile):
+	with hide('running','output'):
+		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
+		for key, value in output.iteritems():
+			if value == '0':
+				logger.error('coordinator at %s failed to start', key)
+				return False
+	return True    			
+
+def startReplicationLayer(configFile):
+	with hide('running','output'):
+		output = execute(fab.startReplicators, configFile, hosts=config.replicators_nodes)
+		for key, value in output.iteritems():
+			if value == '0':
+				logger.error('replicator at %s failed to start', key)
+				return False
+	return True    			    			
+
+def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, customJDBC):
+	with hide('running','output'):
+		execute(fab.startTPCCclients, configFile, emulatorsNumber, clientsPerEmulator, customJDBC, hosts=config.emulators_nodes)
+
+################################################################################################
+#   HELPER AND "PRIVATE" METHODS
+################################################################################################
+def prepareCode():
+	logger.info('compiling source code')
+	with lcd(config.PROJECT_DIR), hide('output','running'):
+		local('ant purge tpcc-dist')
+	logger.info('uploading distribution to nodes: %s', config.distinct_nodes)
+	logger.info('deploying jars, resources and config files')
+	with hide('output','running'):
+		execute(fab.distributeCode, hosts=config.distinct_nodes)
+
+def downloadLogs(outputDir):
+	logger.info('downloading log files')
+	with hide('running', 'output'):
+		execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
 
 def checkGaleraClusterStatus(masterReplicaHost):
 	numberOfDatabases = len(config.database_nodes)
