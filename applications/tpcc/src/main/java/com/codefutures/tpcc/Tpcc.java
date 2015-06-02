@@ -28,13 +28,11 @@ public class Tpcc implements TpccConstants
 
 	private static final Logger logger = LoggerFactory.getLogger(Tpcc.class);
 	private static final boolean DEBUG = logger.isDebugEnabled();
-
-	public static final String VERSION = "1.0.1";
 	private static float TPMC;
 
+	public static final String VERSION = "1.0.1";
 	private static final String DRIVER = "DRIVER";
 	private static final String WAREHOUSECOUNT = "WAREHOUSECOUNT";
-	private static final String DATABASE = "DATABASE";
 	private static final String USER = "USER";
 	private static final String PASSWORD = "PASSWORD";
 	private static final String CONNECTIONS = "CONNECTIONS";

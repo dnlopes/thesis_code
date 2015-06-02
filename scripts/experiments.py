@@ -12,6 +12,7 @@ import os
 import plots
 import configParser as config
 import fabfile as fab
+import utils as utils
 
 logger = logging.getLogger('expLogger')
 logger.setLevel(logging.DEBUG)
@@ -295,14 +296,13 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	while isRunning:
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			for value in stillRunning.iteritems():				
-				if "True" in value:
-					isRunning = True
-					logger.info('experiment is still running!')
-					break
-				else:
-					isRunning = False
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')
+				break
+			else:
+				isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -334,14 +334,13 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	while isRunning:
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			for value in stillRunning.iteritems():				
-				if "True" in value:
-					isRunning = True
-					logger.info('experiment is still running!')
-					break
-				else:
-					isRunning = False
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')
+				break
+			else:
+				isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -429,14 +428,13 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 			return False
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			for value in stillRunning.iteritems():				
-				if "True" in value:
-					isRunning = True
-					logger.info('experiment is still running!')
-					break
-				else:
-					isRunning = False
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')
+				break
+			else:
+				isRunning = False
 		if isRunning == True:
 			attempts += 1
 			time.sleep(20)
@@ -471,14 +469,13 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 			return False
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			for value in stillRunning.iteritems():				
-				if "True" in value:
-					isRunning = True
-					logger.info('experiment is still running!')
-					break
-				else:
-					isRunning = False
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')
+				break
+			else:
+				isRunning = False
 		if isRunning == True:
 			attempts += 1
 			time.sleep(20)
@@ -558,14 +555,13 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 	while isRunning:
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
-			stillRunning = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
-			for value in stillRunning.iteritems():				
-				if "True" in value:
-					isRunning = True
-					logger.info('experiment is still running!')
-					break
-				else:
-					isRunning = False
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')
+				break
+			else:
+				isRunning = False
 		if isRunning == True:
 			time.sleep(10)
 		else:
@@ -608,9 +604,9 @@ def startDatabaseLayer():
 			#start master replica (that will bootstrap the cluster)
 			output = execute(fab.startDatabasesGalera, True, hosts=masterList)
 		for key, value in output.iteritems():
-			if value == '0':
+			if utils.fabOutputContainsExpression(output, "0"):		
 				logger.error('database at %s failed to start', key)
-				return False
+				return False							
 
 		time.sleep(10)	
 
@@ -618,10 +614,9 @@ def startDatabaseLayer():
 			#start remainning nodes
 			with hide('running','output'):
 				output = execute(fab.startDatabasesGalera, False, hosts=slavesReplicas)
-			for key, value in output.iteritems():
-				if value == '0':
-					logger.error('database at %s failed to start', key)
-					return False							
+			if utils.fabOutputContainsExpression(output, "0"):		
+				logger.error('database at %s failed to start', key)
+				return False							
 			
 		return checkGaleraClusterStatus(masterDatabaseReplica)
 	else:

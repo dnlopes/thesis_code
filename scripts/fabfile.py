@@ -201,7 +201,7 @@ def areClientsRunning(emulatorsNumber):
         with cd(config.DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:
-                logger.warn('emulator %s not finished yet!', currentId)
+                logger.warn('emulator %s not yet finished', currentId)
                 return "True"
     return "False"
 
