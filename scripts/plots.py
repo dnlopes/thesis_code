@@ -205,7 +205,7 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	tpmc = frame['tpmc'].sum()
 	
 	a = 0
-	for i in tempDf.index:
+	for i in frame.index:
 		commitcount = frame['committed'][i]
 		if commitcount <= 0:
 			continue
