@@ -27,7 +27,7 @@ public class OrderStat implements TpccConstants {
 
         try {
 
-            pStmts.setAutoCommit(false);
+            //pStmts.setAutoCommit(false);
             if (DEBUG) logger.debug("Transaction: ORDER STAT");
             int w_id = w_id_arg;
             int d_id = d_id_arg;

@@ -21,7 +21,7 @@ public class Delivery implements TpccConstants {
     public int delivery(int w_id_arg, int o_carrier_id_arg) {
         try {
             // Start a transaction.
-            pStmts.setAutoCommit(false);
+            //pStmts.setAutoCommit(false);
             if (DEBUG) logger.debug("Transaction:	Delivery");
             int w_id = w_id_arg;
             int o_carrier_id = o_carrier_id_arg;

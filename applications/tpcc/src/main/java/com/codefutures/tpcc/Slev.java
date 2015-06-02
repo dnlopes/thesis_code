@@ -24,7 +24,7 @@ public class Slev implements TpccConstants {
                     int level_arg		/* stock level */
     ) {
         try {
-            pStmts.setAutoCommit(false);
+            //pStmts.setAutoCommit(false);
 
             if (DEBUG) logger.debug("Transaction: 	SLEV");
             int w_id = w_id_arg;
