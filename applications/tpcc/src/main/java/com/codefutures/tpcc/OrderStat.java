@@ -12,6 +12,7 @@ public class OrderStat implements TpccConstants {
     private static final boolean TRACE = logger.isTraceEnabled();
 
     private TpccStatements pStmts;
+	private ResultSet rs;
 
     public OrderStat(TpccStatements pStmts) {
         this.pStmts = pStmts;
@@ -63,13 +64,15 @@ public class OrderStat implements TpccConstants {
                     if (TRACE)
                         logger.trace("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last);
 
-                    ResultSet rs = pStmts.getStatement(20).executeQuery();
+                    this.rs = pStmts.getStatement(20).executeQuery();
                     if (rs.next()) {
                         namecnt = rs.getInt(1);
                     }
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last, e);
                     throw new Exception("OrderStat Select transaction error", e);
                 }
@@ -85,7 +88,7 @@ public class OrderStat implements TpccConstants {
                     if (TRACE) logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
                             "c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER BY c_first");
 
-                    ResultSet rs = pStmts.getStatement(21).executeQuery();
+                    this.rs = pStmts.getStatement(21).executeQuery();
                     if (namecnt % 2 == 1) { //?? Check
                         namecnt++;
                     } /* Locate midpoint customer; */
@@ -101,6 +104,8 @@ public class OrderStat implements TpccConstants {
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
                             "c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER BY c_first", e);
                     throw new Exception("OrderStat Select transaction error", e);
@@ -116,7 +121,7 @@ public class OrderStat implements TpccConstants {
                     pStmts.getStatement(22).setInt(3, c_id);
                     if (TRACE) logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
                             "c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
-                    ResultSet rs = pStmts.getStatement(22).executeQuery();
+                    this.rs = pStmts.getStatement(22).executeQuery();
                     if (rs.next()) {
                         c_balance = rs.getFloat(1);
                         c_first = rs.getString(2);
@@ -126,6 +131,8 @@ public class OrderStat implements TpccConstants {
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
                             "c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id, e);
                     throw new Exception("OrderStat select transaction error", e);
@@ -147,7 +154,7 @@ public class OrderStat implements TpccConstants {
                 if (TRACE) logger.trace("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
                         "WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND o_id = " +
                         "(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id);
-                ResultSet rs = pStmts.getStatement(23).executeQuery();
+                this.rs = pStmts.getStatement(23).executeQuery();
                 if (rs.next()) {
                     o_id = rs.getInt(1);
                     o_entry_d = rs.getString(2);
@@ -156,6 +163,8 @@ public class OrderStat implements TpccConstants {
 
                 rs.close();
             } catch (SQLException e) {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 logger.error("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
                         "WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND o_id = " +
                         "(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id, e);
@@ -172,7 +181,7 @@ public class OrderStat implements TpccConstants {
                 if (TRACE)
                     logger.trace("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
                             "WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " + o_id);
-                ResultSet rs = pStmts.getStatement(24).executeQuery();
+                this.rs = pStmts.getStatement(24).executeQuery();
                 while (rs.next()) {
                     ol_i_id = rs.getInt(1);
                     ol_supply_w_id = rs.getInt(2);
@@ -183,6 +192,8 @@ public class OrderStat implements TpccConstants {
 
                 rs.close();
             } catch (SQLException e) {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 logger.error("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
                         "WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " + o_id, e);
                 throw new Exception("OrderStat select transaction error", e);
@@ -194,6 +205,8 @@ public class OrderStat implements TpccConstants {
             return 1;
         } catch (Exception e) {
             try {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 // Rollback if an aborted transaction, they are intentional in some percentage of cases.
                 pStmts.rollback();
                 return 0;

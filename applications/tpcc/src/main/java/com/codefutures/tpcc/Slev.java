@@ -12,6 +12,7 @@ public class Slev implements TpccConstants {
     private static final boolean TRACE = logger.isTraceEnabled();
 
     private TpccStatements pStmts;
+	private ResultSet rs;
 
     public Slev(TpccStatements pStms) {
         this.pStmts = pStms;
@@ -42,13 +43,15 @@ public class Slev implements TpccConstants {
                 pStmts.getStatement(32).setInt(2, w_id);
                 if (TRACE)
                     logger.trace("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
-                ResultSet rs = pStmts.getStatement(32).executeQuery();
+                this.rs = pStmts.getStatement(32).executeQuery();
 
                 if (rs.next()) {
                     d_next_o_id = rs.getInt(1);
                 }
                 rs.close();
             } catch (SQLException e) {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id, e);
                 throw new Exception("Slev select transaction error", e);
             }
@@ -63,7 +66,7 @@ public class Slev implements TpccConstants {
                 if (TRACE)
                     logger.trace("SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id = " + d_id + " AND ol_o_id < " + d_next_o_id +
                             " AND ol_o_id >= (" + d_next_o_id + " - 20)");
-                ResultSet rs = pStmts.getStatement(32).executeQuery();
+                this.rs = pStmts.getStatement(32).executeQuery();
 
                 while (rs.next()) {
                     ol_i_id = rs.getInt(1);
@@ -71,6 +74,8 @@ public class Slev implements TpccConstants {
 
                 rs.close();
             } catch (SQLException e) {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 logger.error("SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id = " + d_id + " AND ol_o_id < " + d_next_o_id +
                         " AND ol_o_id >= (" + d_next_o_id + " - 20)", e);
                 throw new Exception("Slev select transaction error", e);
@@ -85,13 +90,15 @@ public class Slev implements TpccConstants {
                 pStmts.getStatement(34).setInt(3, level);
                 if (TRACE)
                     logger.trace("SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND s_quantity < " + level);
-                ResultSet rs = pStmts.getStatement(34).executeQuery();
+                this.rs = pStmts.getStatement(34).executeQuery();
                 if (rs.next()) {
                     i_count = rs.getInt(1);
                 }
 
                 rs.close();
             } catch (SQLException e) {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 logger.error("SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND s_quantity < " + level, e);
                 throw new Exception("Slev select transaction error", e);
             }
@@ -103,6 +110,8 @@ public class Slev implements TpccConstants {
 
         } catch (Exception e) {
             try {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 // Rollback if an aborted transaction, they are intentional in some percentage of cases.
                 pStmts.rollback();
                 return 0;

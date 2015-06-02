@@ -13,6 +13,7 @@ public class Delivery implements TpccConstants {
     private static final boolean TRACE = logger.isTraceEnabled();
 
     private TpccStatements pStmts;
+	private ResultSet rs;
 
     public Delivery(TpccStatements pStmts) {
         this.pStmts = pStmts;
@@ -44,7 +45,7 @@ public class Delivery implements TpccConstants {
                 try {
                     pStmts.getStatement(25).setInt(1, d_id);
                     pStmts.getStatement(25).setInt(2, w_id);
-                    ResultSet rs = pStmts.getStatement(25).executeQuery();
+                    rs = pStmts.getStatement(25).executeQuery();
 
                     if (rs.next()) {
                         no_o_id = rs.getInt(1);
@@ -52,6 +53,8 @@ public class Delivery implements TpccConstants {
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = " + d_id + " AND no_w_id = " + w_id, e);
                     throw new Exception("Delivery Select transaction error", e);
                 }
@@ -74,6 +77,8 @@ public class Delivery implements TpccConstants {
 
 
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("DELETE FROM new_orders WHERE no_o_id = " + no_o_id + " AND no_d_id = " + d_id + " AND no_w_id = " + w_id, e);
                     throw new Exception(" Delivery Delete transaction error", e);
                 }
@@ -87,7 +92,7 @@ public class Delivery implements TpccConstants {
                     pStmts.getStatement(27).setInt(1, no_o_id);
                     pStmts.getStatement(27).setInt(2, d_id);
                     pStmts.getStatement(27).setInt(3, w_id);
-                    ResultSet rs = pStmts.getStatement(27).executeQuery();
+                    this.rs = pStmts.getStatement(27).executeQuery();
 
                     if (rs.next()) {
                         c_id = rs.getInt(1);
@@ -96,6 +101,8 @@ public class Delivery implements TpccConstants {
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT o_c_id FROM orders WHERE o_id = " + no_o_id + " AND o_d_id = " + d_id + " AND o_w_id = " + w_id, e);
                     throw new Exception(" Delivery Select transaction error", e);
                 }
@@ -113,6 +120,8 @@ public class Delivery implements TpccConstants {
 
 
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("UPDATE orders SET o_carrier_id = " + o_carrier_id + " WHERE o_id = " + no_o_id + " AND o_d_id = " + d_id + " AND o_w_id = " + w_id, e);
                     throw new Exception("Delivery Update transcation error", e);
                 }
@@ -131,6 +140,8 @@ public class Delivery implements TpccConstants {
 
 
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("UPDATE order_line SET ol_delivery_d = " + currentTimeStamp.toString() + " WHERE ol_o_id = " + no_o_id + " AND ol_d_id = " + d_id + " AND ol_w_id = " + w_id, e);
                     throw new Exception("Delivery Update transaction error", e);
                 }
@@ -144,7 +155,7 @@ public class Delivery implements TpccConstants {
                     pStmts.getStatement(30).setInt(1, no_o_id);
                     pStmts.getStatement(30).setInt(2, d_id);
                     pStmts.getStatement(30).setInt(3, w_id);
-                    ResultSet rs = pStmts.getStatement(30).executeQuery();
+                    this.rs = pStmts.getStatement(30).executeQuery();
                     if (rs.next()) {
                         ol_total = rs.getFloat(1);
                     }
@@ -152,6 +163,8 @@ public class Delivery implements TpccConstants {
 
                     rs.close();
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("SELECT SUM(ol_amount) FROM order_line WHERE ol_o_id = " + no_o_id + " AND ol_d_id = " + d_id + " AND ol_w_id = " + w_id, e);
                     throw new Exception("Delivery Select transaction error", e);
                 }
@@ -170,6 +183,8 @@ public class Delivery implements TpccConstants {
 
 
                 } catch (SQLException e) {
+					if(!this.rs.isClosed())
+						this.rs.close();
                     logger.error("UPDATE customer SET c_balance = c_balance + " + ol_total + ", c_delivery_cnt = c_delivery_cnt + 1 WHERE c_id = " + c_id + " AND c_d_id = " + d_id + " AND c_w_id = " + w_id, e);
                     throw new Exception("Delivery Update transaction error", e);
                 }
@@ -182,6 +197,8 @@ public class Delivery implements TpccConstants {
 
         } catch (Exception e) {
             try {
+				if(!this.rs.isClosed())
+					this.rs.close();
                 // Rollback if an aborted transaction, they are intentional in some percentage of cases.
                 pStmts.rollback();
                 return 0;
