@@ -89,9 +89,8 @@ public class Payment implements TpccConstants {
             //Get prepared statement
             //"UPDATE warehouse SET w_ytd = w_ytd + ? WHERE w_id = ?"
             try {
-				PreparedStatement stat = pStmts.createPreparedStatement(9);
-                stat.setFloat(1, h_amount);
-                pStmts.getStatement(9).setInt(2, w_id);
+				pStmts.getStatement(9).setFloat(1, h_amount);
+				pStmts.getStatement(9).setInt(2, w_id);
                 if (TRACE) logger.trace("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
                 pStmts.getStatement(9).executeUpdate();
 

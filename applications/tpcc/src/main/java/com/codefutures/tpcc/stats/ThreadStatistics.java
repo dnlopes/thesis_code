@@ -56,6 +56,9 @@ public class ThreadStatistics
 
 	public void calculateMissingStats()
 	{
-		this.avgLatency = this.latencySum / this.successCounter;
+		if(this.successCounter == 0)
+			this.avgLatency = 65000;
+		else
+			this.avgLatency = this.latencySum / this.successCounter;
 	}
 }

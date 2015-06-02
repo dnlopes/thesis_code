@@ -104,7 +104,6 @@ public class Tpcc implements TpccConstants
 		this.perSecondStatsList = new ArrayList<>();
 	}
 
-
 	private void init()
 	{
 		logger.info("Loading properties from: " + PROPERTIESFILE);
@@ -374,7 +373,7 @@ public class Tpcc implements TpccConstants
 		// show results
 		System.out.println("---------------------------------------------------");
 		/*
-         *  Raw Results 
+		 *  Raw Results
          */
 
 		System.out.println("<Raw Results>");
@@ -521,8 +520,6 @@ public class Tpcc implements TpccConstants
 		boolean useCustomJDBC = Boolean.parseBoolean(argv[3]);
 		int testDuration = Integer.parseInt(argv[4]);
 
-
-
 		System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		System.setProperty("usersNum", String.valueOf(usersNum));
@@ -606,7 +603,11 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < this.latencies.length; i++)
 			totalLatency += this.latencies[i];
 
-		long avgLatency = totalLatency / committed;
+		long avgLatency;
+		if(committed == 0)
+			avgLatency = 65000;
+		else
+			avgLatency = totalLatency / committed;
 
 		float abortCounter = 0;
 
@@ -624,7 +625,8 @@ public class Tpcc implements TpccConstants
 
 		PrintWriter out = null;
 		try
-		{   StringBuilder buffer = new StringBuilder();
+		{
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("committed,avgLatency,tpmc,aborted\n");
 			buffer.append(committed);
 			buffer.append(",");
@@ -697,7 +699,6 @@ public class Tpcc implements TpccConstants
 		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
 			logger.info(perSecondStats.toString());
 	}
-
 
 }
 
