@@ -103,6 +103,9 @@ public class DBScratchPad implements IDBScratchPad
 	@Override
 	public void commitTransaction(IProxyNetwork network) throws SQLException
 	{
+		this.activeTransaction.endTransaction();
+		LOG.info("tx runtime: {}", this.activeTransaction.getElapsedtime());
+
 		if(this.activeTransaction.isReadOnly())
 			return;
 
@@ -111,7 +114,6 @@ public class DBScratchPad implements IDBScratchPad
 			// contact coordinator here
 			// if coordinator allow, generate shadow op
 			this.prepareToCommit(network);
-
 			// something went wrong
 			// commit fails
 			if(!this.activeTransaction.isReadyToCommit())
@@ -120,9 +122,14 @@ public class DBScratchPad implements IDBScratchPad
 				throw new SQLException("txn not ready to commit. something went wrong");
 			}
 
+			long startTime_2 = System.nanoTime();
+
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
+			long estimatedTime_2 = (System.nanoTime() - startTime_2) / 1000000;
+
+			LOG.info("commitTime time: {}", estimatedTime_2);
 			if(!commitDecision)
 				throw new SQLException("commit on main storage failed");
 		}
