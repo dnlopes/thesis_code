@@ -38,6 +38,8 @@ public class ClientEmulation extends EmulationConfiguration implements
 
 	private ClientEmulationMaster master;
 	private Connection connection;
+	private Emulation e = null;
+	private String controlKey = null;
 
 	public ClientEmulation()
 	{
@@ -47,8 +49,7 @@ public class ClientEmulation extends EmulationConfiguration implements
 				this.connection = ConnectionFactory.getCRDTConnection(ClientEmulationStartup.DB_PROPERTIES,
 						"tpcc_crdt");
 			else
-				this.connection = ConnectionFactory.getDefaultConnection(ClientEmulationStartup.DB_PROPERTIES,
-						"tpcc");
+				this.connection = ConnectionFactory.getDefaultConnection(ClientEmulationStartup.DB_PROPERTIES, "tpcc");
 		}
 		catch(SQLException | ClassNotFoundException ignored)
 		{
@@ -56,10 +57,6 @@ public class ClientEmulation extends EmulationConfiguration implements
 			System.exit(1);
 		}
 	}
-
-	private Emulation e = null;
-
-	private String controlKey = null;
 
 	/**
 	 * It initializes the client Emulation instantiating the appropriate
@@ -117,6 +114,7 @@ public class ClientEmulation extends EmulationConfiguration implements
 			e.setDatabase(this.getDatabase());
 			e.setEmulationName(this.getEmulationName());
 			e.setHostId(this.getHostId());
+			e.setConnection(this.connection);
 
 			this.master = master;
 			this.controlKey = controlKey;
@@ -175,11 +173,6 @@ public class ClientEmulation extends EmulationConfiguration implements
 	public void setCompletion(boolean fin) {
 		setFinished(fin);
 		e.setFinished(fin);
-	}
-
-	public Connection getClientConnection()
-	{
-		return this.connection;
 	}
 }
 

@@ -33,6 +33,7 @@ public class TPCCEmulation extends Emulation {
 	Logger logger = Logger.getLogger(TPCCEmulation.class);
 
 	StateObject curTrans = null;
+
 	private Connection connection;
 
 	// Pausable implementation
@@ -126,6 +127,11 @@ public class TPCCEmulation extends Emulation {
 	public Connection getClientConnection()
 	{
 		return this.connection;
+	}
+
+	public void setConnection(Connection connection)
+	{
+		this.connection = connection;
 	}
 
 }

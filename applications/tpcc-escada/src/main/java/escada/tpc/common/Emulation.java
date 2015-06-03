@@ -86,4 +86,7 @@ public abstract class Emulation extends EmulationConfiguration implements Pausab
 	}
 
 	public abstract Connection getClientConnection();
+
+	public abstract void setConnection(Connection connection);
+
 }

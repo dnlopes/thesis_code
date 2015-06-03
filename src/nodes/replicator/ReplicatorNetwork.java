@@ -28,7 +28,7 @@ import java.util.Map;
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
 {
 
-	private static final int POOL_SIZE = 1000;
+	private static final int POOL_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 	private Map<Integer, NodeConfig> replicatorsConfigs;
 	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> rpcsObjects;
