@@ -48,7 +48,7 @@ public class CRDTPreparedStatement implements PreparedStatement
 
 	private String generateStatement()
 	{
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		for(int i = 0; i < vals.length; i++)
 		{
 			buffer.append(sql.substring(i == 0 ? 0 : argPos[i - 1] + 1, argPos[i]));

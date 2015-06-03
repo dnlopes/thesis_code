@@ -35,18 +35,18 @@ public interface IExecuter
 	/**
 	 * Add deleted to where statement
 	 */
-	public void addDeletedKeysWhere(StringBuffer buffer);
+	public void addDeletedKeysWhere(StringBuilder buffer);
 
 	/**
 	 * Returns what should be in the from clause in select statements plus the primary key value for performance
 	 */
-	public void addFromTablePlusPrimaryKeyValues(StringBuffer buffer, boolean both, String[] tableNames,
+	public void addFromTablePlusPrimaryKeyValues(StringBuilder buffer, boolean both, String[] tableNames,
 										  String whereClauseStr);
 
 	/**
 	 * Returns the text for retrieving key and version vector in select statements
 	 */
-	public void addKeyVVBothTable(StringBuffer buffer, String tableAlias);
+	public void addKeyVVBothTable(StringBuilder buffer, String tableAlias);
 
 	/**
 	 * Called on scratchpad initialization for a given table. Allows to setup any internal state needed

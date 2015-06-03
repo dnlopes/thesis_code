@@ -157,7 +157,7 @@ public class TableDefinition
 		return colListAlias;
 	}
 
-	public void addAliasColumnList(StringBuffer buffer, String tableAlias)
+	public void addAliasColumnList(StringBuilder buffer, String tableAlias)
 	{
 		for(int i = 0; i < colsPlain.length; i++)
 		{

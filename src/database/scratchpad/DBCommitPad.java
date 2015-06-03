@@ -53,9 +53,7 @@ public class DBCommitPad implements IDBCommitPad
 			boolean commitDecision = this.tryCommit(op);
 
 			if(commitDecision)
-			{
 				return true;
-			}
 		}
 
 		return false;

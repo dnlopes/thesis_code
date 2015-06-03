@@ -40,9 +40,7 @@ import util.exception.CheckConstraintViolatedException;
 import util.thrift.*;
 
 import java.sql.*;
-import java.sql.Date;
 import java.sql.Statement;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -479,7 +477,7 @@ public class DBScratchPad implements IDBScratchPad
 		/**
 		 * Add deleted to where statement
 		 */
-		public void addDeletedKeysWhere(StringBuffer buffer)
+		public void addDeletedKeysWhere(StringBuilder buffer)
 		{
 
 		/*
@@ -500,7 +498,7 @@ public class DBScratchPad implements IDBScratchPad
 		/**
 		 * Returns what should be in the from clause in select statements plus the primary key
 		 */
-		public void addFromTablePlusPrimaryKeyValues(StringBuffer buffer, boolean both, String[] tableNames,
+		public void addFromTablePlusPrimaryKeyValues(StringBuilder buffer, boolean both, String[] tableNames,
 													 String whereClauseStr)
 		{
 			if(both && modified)
@@ -579,7 +577,7 @@ public class DBScratchPad implements IDBScratchPad
 		/**
 		 * Returns what should be in the what clause in select statements
 		 */
-		public void addKeyVVBothTable(StringBuffer buffer, String tableAlias)
+		public void addKeyVVBothTable(StringBuilder buffer, String tableAlias)
 		{
 			//		return tableDefinition.getPkListAlias() + "," + tableDefinition.getNameAlias() + "." +
 			// ScratchpadDefaults.SCRATCHPAD_COL_CLOCK;
@@ -599,7 +597,7 @@ public class DBScratchPad implements IDBScratchPad
 		/**
 		 * Add where clause to the current buffer, removing needed deleted Pks
 		 */
-		protected void addWhere(StringBuffer buffer, Expression e)
+		protected void addWhere(StringBuilder buffer, Expression e)
 		{
 			if(e == null)
 				return;
@@ -676,7 +674,7 @@ public class DBScratchPad implements IDBScratchPad
 		/**
 		 * Add where clause to the current buffer, removing needed deleted Pks
 		 */
-		protected void addWhere(StringBuffer buffer, Expression e, IExecuter[] policies, String[][] tables,
+		protected void addWhere(StringBuilder buffer, Expression e, IExecuter[] policies, String[][] tables,
 								boolean inTempTable)
 		{
 			if(e == null)
@@ -712,9 +710,9 @@ public class DBScratchPad implements IDBScratchPad
 				this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 				String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
 
-				StringBuffer buffer2 = new StringBuffer();
+				StringBuilder buffer2 = new StringBuilder();
 				buffer2.append("DROP TABLE IF EXISTS ");
-				StringBuffer buffer = new StringBuffer();
+				StringBuilder buffer = new StringBuilder();
 
 				if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
 					buffer.append("CREATE LOCAL TEMPORARY TABLE ");    // for H2
@@ -872,7 +870,7 @@ public class DBScratchPad implements IDBScratchPad
 			String queryToOrigin;
 			String queryToTemp;
 
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 
 			PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
 
@@ -884,12 +882,12 @@ public class DBScratchPad implements IDBScratchPad
 			if(columnsToFetch.size() == 1 && columnsToFetch.get(0).toString().equalsIgnoreCase("*"))
 				plainSelect.setSelectItems(this.selectAllItems);
 
-			StringBuffer whereClauseTemp = new StringBuffer();
+			StringBuilder whereClauseTemp = new StringBuilder();
 
 			if(plainSelect.getWhere() != null)
 				whereClauseTemp.append(plainSelect.getWhere());
 
-			StringBuffer whereClauseOrig = new StringBuffer(whereClauseTemp);
+			StringBuilder whereClauseOrig = new StringBuilder(whereClauseTemp);
 			whereClauseOrig.append(" AND ");
 			whereClauseOrig.append(SP_DELETED_EXPRESSION);
 
@@ -950,7 +948,7 @@ public class DBScratchPad implements IDBScratchPad
 			{
 				Debug.println("multi table select >>" + selectOp);
 				HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
-				StringBuffer buffer = new StringBuffer();
+				StringBuilder buffer = new StringBuilder();
 				buffer.append("select ");                        // select in base table
 				PlainSelect select = (PlainSelect) selectOp.getSelectBody();
 				List what = select.getSelectItems();
@@ -1135,7 +1133,7 @@ public class DBScratchPad implements IDBScratchPad
 		 */
 		private int executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
 		{
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("insert into ");
 			buffer.append(tempTableName);
 
@@ -1223,7 +1221,7 @@ public class DBScratchPad implements IDBScratchPad
 		 */
 		private int executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
 		{
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT ");
 			buffer.append(this.pk.getQueryClause());
 			buffer.append(" FROM ");
@@ -1263,7 +1261,7 @@ public class DBScratchPad implements IDBScratchPad
 					this.duplicatedRows.remove(rowToDelete.getPrimaryKeyValue());
 				}
 
-				buffer = new StringBuffer();
+				buffer = new StringBuilder();
 				buffer.append("delete from ");
 				buffer.append(this.tempTableName);
 				buffer.append(" where ");
@@ -1300,7 +1298,7 @@ public class DBScratchPad implements IDBScratchPad
 			Row updatedRow = this.getUpdatedRowFromDatabase(updateOp, db);
 
 			// now perform the actual update only in the scratchpad
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("UPDATE ");
 			buffer.append(this.tempTableName);
 			buffer.append(" SET ");
@@ -1385,7 +1383,7 @@ public class DBScratchPad implements IDBScratchPad
 		 */
 		private void addMissingRowsToScratchpad(Update updateOp, IDBScratchPad pad) throws SQLException
 		{
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
 			buffer.append(updateOp.getTables().get(0).toString());
 			addWhere(buffer, updateOp.getWhere());
@@ -1581,7 +1579,7 @@ public class DBScratchPad implements IDBScratchPad
 			}
 		}
 
-		private void generateNotInDeletedAndUpdatedClause(StringBuffer buffer)
+		private void generateNotInDeletedAndUpdatedClause(StringBuilder buffer)
 		{
 			if(this.duplicatedRows.size() == 0 && this.deletedRows.size() == 0)
 				return;

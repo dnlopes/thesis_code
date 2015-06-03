@@ -42,7 +42,7 @@ public final class DatabaseProperties
 
 	public String getUrl()
 	{
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append(this.getDbHost());
 		buffer.append(":");
 		buffer.append(this.getDbPort());
