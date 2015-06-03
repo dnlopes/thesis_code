@@ -37,7 +37,7 @@ abstract public class dbCLUSTERDatabase extends DatabaseManager {
 
 			Date NetStartTime = new java.util.Date();
 
-			con = getConnection();
+			//con = getConnection();
 
 			InitTransaction(con, "tx updatetrans", "w");
 
@@ -85,7 +85,7 @@ abstract public class dbCLUSTERDatabase extends DatabaseManager {
 
 			Date NetStartTime = new java.util.Date();
 
-			con = getConnection();
+			//con = getConnection();
 
 			InitTransaction(con, "tx readonlytrans", "r");
 

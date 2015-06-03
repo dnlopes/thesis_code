@@ -22,7 +22,6 @@ import escada.tpc.common.resources.DatabaseResources;
 import escada.tpc.common.resources.WorkloadResources;
 import escada.tpc.logger.PerformanceLogger;
 import escada.tpc.tpcc.database.populate.jmx.DatabasePopulate;
-import escada.tpc.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
@@ -62,6 +61,8 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
     private ServerControl server = new ServerControl();
 	private static int proxyId;
+	public static DatabaseProperties DB_PROPERTIES;
+	public static boolean IS_CUSTOM_JDBC;
 
 
     public ClientEmulationStartup() throws InvalidTransactionException {
@@ -86,6 +87,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
 		int usersNum = Integer.parseInt(args[2]);
 		boolean useCustomJDBC = Boolean.parseBoolean(args[3]);
+		IS_CUSTOM_JDBC = useCustomJDBC;
 		int testDuration = Integer.parseInt(args[4]);
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
@@ -103,26 +105,27 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
         //options.addOption("hostId",true,"Host identifier, allow to have statistics per host.");
         //options.addOption("dbConnectionString",true,"Database JDBC url.");
         try {
-			NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
-			DatabaseProperties dbProperties = nodeConfig.getDbProps();
-			String dbName = Configuration.getInstance().getDatabaseName();
+
             CommandLineParser parser = new PosixParser();
             CommandLine cmd = parser.parse( options, args);
 
             ClientEmulationStartup c = new ClientEmulationStartup();
-			c.getDatabaseResources().setPassword(dbProperties.getDbPwd());
-			c.getDatabaseResources().setUserName(dbProperties.getDbUser());
+
 			c.getWorkloadResources().setHostId(proxyId);
+			NodeConfig config = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+			DB_PROPERTIES = config.getDbProps();
+			c.getDatabaseResources().setPassword(DB_PROPERTIES.getDbPwd());
+			c.getDatabaseResources().setUserName(DB_PROPERTIES.getDbUser());
 
 			if(useCustomJDBC)
 			{
 				c.getDatabaseResources().setDriver("database.jdbc.CRDTDriver");
+				c.getDatabaseResources().setCustomJDBC(true);
 				StringBuffer buffer = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
-				buffer.append(dbProperties.getDbHost());
+				buffer.append(DB_PROPERTIES.getDbHost());
 				buffer.append(":");
-				buffer.append(dbProperties.getDbPort());
-				buffer.append("/");
-				buffer.append(dbName);
+				buffer.append(DB_PROPERTIES.getDbPort());
+				buffer.append("/tpcc_crdt");
 				c.getDatabaseResources().setConnectionString(buffer.toString());
 				c.getWorkloadResources().setDbClass("escada.tpc.tpcc.database.transaction.mysql" +
 						".dbTransactionMySqlCustom");
@@ -130,10 +133,11 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 			else
 			{
 				c.getDatabaseResources().setDriver("com.mysql.jdbc.Driver");
+				c.getDatabaseResources().setCustomJDBC(false);
 				StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
-				buffer.append(dbProperties.getDbHost());
+				buffer.append(DB_PROPERTIES.getDbHost());
 				buffer.append(":");
-				buffer.append(dbProperties.getDbPort());
+				buffer.append(DB_PROPERTIES.getDbPort());
 				buffer.append("/");
 				buffer.append("tpcc");
 				c.getDatabaseResources().setConnectionString(buffer.toString());
@@ -141,7 +145,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 						".dbTransactionMySqlOrig");
 			}
 
-			c.getWorkloadResources().setRampUpTime(5);
+			c.getWorkloadResources().setRampUpTime(10);
 			c.getWorkloadResources().setRampDownTime(5);
 			c.getWorkloadResources().setMeasurementTime(testDuration);
 
@@ -273,8 +277,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 
             for (int i = 0; i < this.workloadResources.getClients(); i++) {
 
-				ThreadStatistics stats = new ThreadStatistics(i);
-                e = new ClientEmulation(stats);
+                e = new ClientEmulation();
 
                 e.setFinished(false);
                 e.setTraceInformation(this.workloadResources.getTrace());

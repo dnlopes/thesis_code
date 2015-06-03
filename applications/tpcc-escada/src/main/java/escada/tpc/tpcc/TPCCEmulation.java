@@ -19,6 +19,7 @@ import escada.tpc.common.StateObject;
 import escada.tpc.common.util.RandGen;
 import org.apache.log4j.Logger;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -32,6 +33,7 @@ public class TPCCEmulation extends Emulation {
 	Logger logger = Logger.getLogger(TPCCEmulation.class);
 
 	StateObject curTrans = null;
+	private Connection connection;
 
 	// Pausable implementation
 	private boolean paused = false;
@@ -120,4 +122,10 @@ public class TPCCEmulation extends Emulation {
 
 		return (trans);
 	}
+
+	public Connection getClientConnection()
+	{
+		return this.connection;
+	}
+
 }

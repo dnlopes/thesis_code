@@ -77,18 +77,17 @@ public class CRDTStatement implements Statement
 	@Override
 	public void close() throws SQLException
 	{
-		this.proxy.closeTransaction(this.id);
 	}
 
 	@Override
 	public boolean execute(String arg0) throws SQLException
 	{
-		if(arg0.contains("commit"))
+		if(arg0.contains("start transaction"))
+			return true;
+		else if(arg0.contains("commit"))
 			this.proxy.commit(this.id);
-
-		if(arg0.contains("ROLLBACK"))
+		else if(arg0.contains("ROLLBACK"))
 			proxy.abort(this.id);
-
 		return true;
 	}
 

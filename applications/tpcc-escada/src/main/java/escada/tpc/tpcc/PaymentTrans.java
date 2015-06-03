@@ -102,7 +102,7 @@ public class PaymentTrans extends StateObject {
 		Object requestProcess = null;
 		dbTPCCDatabase db = (dbTPCCDatabase) em.getDatabase();
 		initProcess(em, hid);
-		requestProcess = db.TracePaymentDB(outInfo, hid);
+		requestProcess = db.TracePaymentDB(outInfo, hid, em.getClientConnection());
 
 		return (requestProcess);
 	}

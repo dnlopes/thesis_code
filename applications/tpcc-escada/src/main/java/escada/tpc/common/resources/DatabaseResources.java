@@ -36,6 +36,18 @@ public class DatabaseResources implements DatabaseResourcesMBean {
 	private String connString = DEFAULT_JDBC_CONN_STRING;
 	private String userName = DEFAULT_USER_NAME;
 	private String password = DEFAULT_PASSWORD;
+	private boolean iscustomJDBC;
+
+	public void setCustomJDBC(boolean iscustomJDBC)
+	{
+		this.iscustomJDBC = iscustomJDBC;
+	}
+
+	public boolean isIscustomJDBC()
+	{
+		return iscustomJDBC;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see escada.tpc.common.resources.DatabaseResourcesMBean#getDriver()

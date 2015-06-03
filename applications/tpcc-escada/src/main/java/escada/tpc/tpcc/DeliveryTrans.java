@@ -61,7 +61,7 @@ public class DeliveryTrans extends StateObject {
 		Object requestProcess = null;
 		dbTPCCDatabase db = (dbTPCCDatabase) em.getDatabase();
 		initProcess(em, hid);
-		requestProcess = db.TraceDeliveryDB(outInfo, hid);
+		requestProcess = db.TraceDeliveryDB(outInfo, hid, em.getClientConnection());
 
 		return (requestProcess);
 	}

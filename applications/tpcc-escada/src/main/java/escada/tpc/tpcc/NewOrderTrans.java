@@ -123,7 +123,7 @@ public class NewOrderTrans extends StateObject {
 		Object requestProcess = null;
 		dbTPCCDatabase db = (dbTPCCDatabase) em.getDatabase();
 		initProcess(em, hid);
-		requestProcess = db.TraceNewOrderDB(outInfo, hid);
+		requestProcess = db.TraceNewOrderDB(outInfo, hid, em.getClientConnection());
 
 		return (requestProcess);
 	}

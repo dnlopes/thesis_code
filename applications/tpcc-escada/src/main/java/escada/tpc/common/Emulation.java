@@ -14,6 +14,7 @@
 
 package escada.tpc.common;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public abstract class Emulation extends EmulationConfiguration implements PausableEmulation {
@@ -83,4 +84,6 @@ public abstract class Emulation extends EmulationConfiguration implements Pausab
 	public Object processIncrement() throws SQLException {
 		return (processIncrement(getHostId()));
 	}
+
+	public abstract Connection getClientConnection();
 }

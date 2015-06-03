@@ -14,8 +14,11 @@
 
 package escada.tpc.common.clients;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
+import database.jdbc.ConnectionFactory;
+import escada.tpc.common.clients.jmx.ClientEmulationStartup;
 import escada.tpc.tpcc.stats.ThreadStatistics;
 import org.apache.log4j.Logger;
 
@@ -34,11 +37,24 @@ public class ClientEmulation extends EmulationConfiguration implements
 	private static Logger logger = Logger.getLogger(ClientEmulation.class);
 
 	private ClientEmulationMaster master;
-	private ThreadStatistics stats;
+	private Connection connection;
 
-	public ClientEmulation(ThreadStatistics stats)
+	public ClientEmulation()
 	{
-		this.stats = stats;
+		try
+		{
+			if(ClientEmulationStartup.IS_CUSTOM_JDBC)
+				this.connection = ConnectionFactory.getCRDTConnection(ClientEmulationStartup.DB_PROPERTIES,
+						"tpcc_crdt");
+			else
+				this.connection = ConnectionFactory.getDefaultConnection(ClientEmulationStartup.DB_PROPERTIES,
+						"tpcc");
+		}
+		catch(SQLException | ClassNotFoundException ignored)
+		{
+			logger.error("failed to create connection");
+			System.exit(1);
+		}
 	}
 
 	private Emulation e = null;
@@ -159,6 +175,11 @@ public class ClientEmulation extends EmulationConfiguration implements
 	public void setCompletion(boolean fin) {
 		setFinished(fin);
 		e.setFinished(fin);
+	}
+
+	public Connection getClientConnection()
+	{
+		return this.connection;
 	}
 }
 

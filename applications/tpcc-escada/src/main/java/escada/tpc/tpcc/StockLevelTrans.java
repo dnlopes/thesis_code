@@ -77,7 +77,7 @@ public class StockLevelTrans extends StateObject {
 		Object requestProcess = null;
 		dbTPCCDatabase db = (dbTPCCDatabase) em.getDatabase();
 		initProcess(em, hid);
-		requestProcess = db.TraceStockLevelDB(outInfo, hid);
+		requestProcess = db.TraceStockLevelDB(outInfo, hid, em.getClientConnection());
 
 		return (requestProcess);
 	}

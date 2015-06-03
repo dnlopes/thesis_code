@@ -75,7 +75,7 @@ public class OrderStatusTrans extends StateObject {
 		Object requestProcess = null;
 		dbTPCCDatabase db = (dbTPCCDatabase) em.getDatabase();
 		initProcess(em, hid);
-		requestProcess = db.TraceOrderStatusDB(outInfo, hid);
+		requestProcess = db.TraceOrderStatusDB(outInfo, hid, em.getClientConnection());
 
 		return (requestProcess);
 	}

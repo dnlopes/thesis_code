@@ -126,7 +126,8 @@ public class DatabaseManager {
 	 *            the connection be released and stored into the pool
 	 */
 	public void returnConnection(Connection con) {
-		cn.returnConnection(con);
+		return;
+		//cn.returnConnection(con);
 	}
 
 	public void processLog(Date startTime, Date finishTime, String transResult,

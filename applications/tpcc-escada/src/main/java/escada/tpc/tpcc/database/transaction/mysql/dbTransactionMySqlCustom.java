@@ -36,7 +36,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 
 	private Logger logger = Logger.getLogger(dbTransactionMySqlCustom.class);
 
-	protected HashSet NewOrderDB(Properties obj, Connection con) throws java.sql.SQLException
+	protected HashSet NewOrderDB(Properties obj, Connection con) throws SQLException
 	{
 
 		boolean resubmit = Boolean.parseBoolean((String) obj.get("resubmit"));
@@ -48,15 +48,14 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			ResultSet rs = null, rs02 = null;
 			String cursor = null;
 
-			java.util.Date NetStartTime = null;
-			java.util.Date NetFinishTime = null;
-			NetStartTime = new java.util.Date();
+			Date NetStartTime = null;
+			Date NetFinishTime = null;
+			NetStartTime = new Date();
 
 			try
 			{
 				int _w_id = Integer.parseInt((String) obj.get("wid"));
 				int _d_id = Integer.parseInt((String) obj.get("did"));
-
 				int _c_id = Integer.parseInt((String) obj.get("cid"));
 				int _o_ol_cnt = Integer.parseInt((String) obj.get("qtd"));
 				int _o_all_local = Integer.parseInt((String) obj.get("localwid"));
@@ -86,8 +85,6 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				int _tempqtd;
 				int _s_remote_cnt;
 
-				int d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
-
 				statement = con.prepareStatement(
 						"select d_tax, d_next_o_id from district where d_w_id = ? and d_id = ?");
 				statement.setInt(1, _w_id);
@@ -96,7 +93,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs.next();
 				_d_tax = rs.getDouble("d_tax");
 				//_o_id = rs.getInt("d_next_o_id");
-				_o_id = d_next_o_id;
+				_o_id = IdentifierFactory.getNextId("orders", "o_id");
 				rs.close();
 				statement.close();
 
@@ -285,11 +282,11 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = null;
 				statement = null;
 
-				NetFinishTime = new java.util.Date();
+				NetFinishTime = new Date();
 
 				processLog(NetStartTime, NetFinishTime, "processing", "w", "tx neworder");
 
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("NewOrder - SQL Exception " + sqlex.getMessage());
 				if((sqlex.getMessage().indexOf("serialize") != -1) || (sqlex.getMessage().indexOf(
@@ -309,7 +306,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					RollbackTransaction(con, sqlex, "tx neworder", "w");
 					//throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -330,7 +327,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		return (dbtrace);
 	}
 
-	protected HashSet DeliveryDB(Properties obj, Connection con) throws java.sql.SQLException
+	protected HashSet DeliveryDB(Properties obj, Connection con) throws SQLException
 	{
 
 		boolean resubmit = Boolean.parseBoolean((String) obj.get("resubmit"));
@@ -342,9 +339,9 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			ResultSet rs = null;
 			String cursor = null;
 
-			java.util.Date NetStartTime = null;
-			java.util.Date NetFinishTime = null;
-			NetStartTime = new java.util.Date();
+			Date NetStartTime = null;
+			Date NetFinishTime = null;
+			NetStartTime = new Date();
 
 			try
 			{
@@ -492,10 +489,10 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = null;
 				statement = null;
 
-				NetFinishTime = new java.util.Date();
+				NetFinishTime = new Date();
 				processLog(NetStartTime, NetFinishTime, "processing", "w", "tx delivery");
 
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("Delivery - SQL Exception " + sqlex.getMessage());
 				if((sqlex.getMessage().indexOf("serialize") != -1) || (sqlex.getMessage().indexOf(
@@ -515,7 +512,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					RollbackTransaction(con, sqlex, "tx delivery", "w");
 					throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -534,7 +531,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		} return (dbtrace);
 	}
 
-	protected HashSet OrderStatusDB(Properties obj, Connection con) throws java.sql.SQLException
+	protected HashSet OrderStatusDB(Properties obj, Connection con) throws SQLException
 	{
 
 		boolean resubmit = Boolean.parseBoolean((String) obj.get("resubmit"));
@@ -546,9 +543,9 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			ResultSet rs = null;
 			String cursor = null;
 
-			java.util.Date NetStartTime = null;
-			java.util.Date NetFinishTime = null;
-			NetStartTime = new java.util.Date();
+			Date NetStartTime = null;
+			Date NetFinishTime = null;
+			NetStartTime = new Date();
 
 			try
 			{
@@ -652,7 +649,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = null;
 				statement = null;
 
-				NetFinishTime = new java.util.Date();
+				NetFinishTime = new Date();
 
 				String str = (String) (obj).get("cid");
 
@@ -664,7 +661,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					processLog(NetStartTime, NetFinishTime, "processing", "r", "tx orderstatus 02");
 				}
 
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("OrderStatus - SQL Exception " + sqlex.getMessage());
 				String str = (String) (obj).get("cid");
@@ -705,7 +702,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					}
 					throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -726,7 +723,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		return (dbtrace);
 	}
 
-	protected HashSet PaymentDB(Properties obj, Connection con) throws java.sql.SQLException
+	protected HashSet PaymentDB(Properties obj, Connection con) throws SQLException
 	{
 
 		boolean resubmit = Boolean.parseBoolean((String) obj.get("resubmit"));
@@ -738,9 +735,9 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			ResultSet rs = null;
 			String cursor = null;
 
-			java.util.Date NetStartTime = null;
-			java.util.Date NetFinishTime = null;
-			NetStartTime = new java.util.Date();
+			Date NetStartTime = null;
+			Date NetFinishTime = null;
+			NetStartTime = new Date();
 
 			try
 			{
@@ -828,12 +825,14 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				statement.close();
 				//logger.debug("c_id:"+_c_id+";c_w_id:"+__c_w_id+";c_d_id:"+__c_d_id);
 				statement = con.prepareStatement(
-						"select *  from customer  where c_id = ? and  c_w_id = ? and  c_d_id = ?");
+						"select * from customer  where c_id = ? and  c_w_id = ? and  c_d_id = ?");
 				statement.setInt(1, _c_id);
 				statement.setInt(2, __c_w_id);
 				statement.setInt(3, __c_d_id);
 				rs = statement.executeQuery();
-				//
+				logger.info("c_id:" + _c_id + ";c_w_id:" + __c_w_id + ";c_d_id:" + __c_d_id);
+
+
 				rs.next();
 				_c_balance = rs.getFloat("c_balance");
 				_c_first = rs.getString("c_first");
@@ -926,7 +925,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = null;
 				statement = null;
 
-				NetFinishTime = new java.util.Date();
+				NetFinishTime = new Date();
 				String str = (String) (obj).get("cid");
 				if(str.equals("0"))
 				{
@@ -935,7 +934,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				{
 					processLog(NetStartTime, NetFinishTime, "processing", "w", "tx payment 02");
 				}
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("Payment - SQL Exception " + sqlex.getMessage());
 				String str = (String) (obj).get("cid");
@@ -974,7 +973,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					}
 					throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -995,7 +994,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		return (dbtrace);
 	}
 
-	protected HashSet StockLevelDB(java.util.Properties obj, Connection con) throws java.sql.SQLException
+	protected HashSet StockLevelDB(Properties obj, Connection con) throws SQLException
 	{
 
 		boolean resubmit = Boolean.parseBoolean((String) obj.get("resubmit"));
@@ -1007,9 +1006,9 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			ResultSet rs = null;
 			String cursor = null;
 
-			java.util.Date NetStartTime = null;
-			java.util.Date NetFinishTime = null;
-			NetStartTime = new java.util.Date();
+			Date NetStartTime = null;
+			Date NetFinishTime = null;
+			NetStartTime = new Date();
 
 			try
 			{
@@ -1020,7 +1019,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				int _o_id_low;
 				int _o_id_high;
 
-				statement = con.prepareStatement("select d_next_o_id from district where d_w_id = ? and d_id = ?");
+				statement = con.prepareStatement("select d_next_o_id from district where d_w_id = ? and  d_id = ?");
 				statement.setInt(1, __w_id);
 				statement.setInt(2, __d_id);
 				rs = statement.executeQuery();
@@ -1050,10 +1049,10 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = null;
 				statement = null;
 
-				NetFinishTime = new java.util.Date();
+				NetFinishTime = new Date();
 				processLog(NetStartTime, NetFinishTime, "processing", "r", "tx stocklevel");
 
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("StockLevel - SQL Exception " + sqlex.getMessage());
 				if((sqlex.getMessage().indexOf("serialize") != -1) || (sqlex.getMessage().indexOf(
@@ -1073,7 +1072,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					RollbackTransaction(con, sqlex, "tx stocklevel", "r");
 					throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -1094,23 +1093,23 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		return (dbtrace);
 	}
 
-	protected void InitTransaction(Connection con, String strTrans, String strAccess) throws java.sql.SQLException
+	protected void InitTransaction(Connection con, String strTrans, String strAccess) throws SQLException
 	{
 		Statement statement = null;
 		try
 		{
-			Date NetStartTime = new java.util.Date();
+			Date NetStartTime = new Date();
 
-			//statement = con.createStatement();
-			//statement.execute("start transaction");
-			//statement.execute("set transaction isolation level serializable");
-			//statement.execute("select '" + strTrans + "'");
+			statement = con.createStatement();
+			statement.execute("start transaction");
+			statement.execute("set transaction isolation level serializable");
+			statement.execute("select '" + strTrans + "'");
 
-			Date NetFinishTime = new java.util.Date();
+			Date NetFinishTime = new Date();
 
 			processLog(NetStartTime, NetFinishTime, "beginning", strAccess, strTrans);
 
-		} catch(java.lang.Exception ex)
+		} catch(Exception ex)
 		{
 			logger.fatal("Unexpected error. Something bad happend");
 			ex.printStackTrace(System.err);
@@ -1124,7 +1123,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		}
 	}
 
-	protected void CommitTransaction(Connection con, String strTrans, String strAccess) throws java.sql.SQLException
+	protected void CommitTransaction(Connection con, String strTrans, String strAccess) throws SQLException
 	{
 		{
 			boolean resubmit = false;
@@ -1132,15 +1131,15 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			try
 			{
 
-				Date NetStartTime = new java.util.Date();
+				Date NetStartTime = new Date();
 				statement = con.createStatement();
 				statement.execute("commit");
 
-				Date NetFinishTime = new java.util.Date();
+				Date NetFinishTime = new Date();
 
 				processLog(NetStartTime, NetFinishTime, "committing", strAccess, strTrans);
 
-			} catch(java.sql.SQLException sqlex)
+			} catch(SQLException sqlex)
 			{
 				logger.warn("Commit " + strTrans + " - SQL Exception " + sqlex.getMessage());
 				if((sqlex.getMessage().indexOf("serialize") != -1) || (sqlex.getMessage().indexOf(
@@ -1160,7 +1159,7 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 					RollbackTransaction(con, sqlex, strTrans, strAccess);
 					//throw sqlex;
 				}
-			} catch(java.lang.Exception ex)
+			} catch(Exception ex)
 			{
 				logger.fatal("Unexpected error. Something bad happend");
 				ex.printStackTrace(System.err);
@@ -1176,23 +1175,23 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 	}
 
 	protected void RollbackTransaction(Connection con, Exception dump, String strTrans, String strAccess)
-			throws java.sql.SQLException
+			throws SQLException
 	{
 		Statement statement = null;
 		try
 		{
-			Date NetStartTime = new java.util.Date();
+			Date NetStartTime = new Date();
 
 			statement = con.createStatement();
 			statement.execute("ROLLBACK");
 
-			Date NetFinishTime = new java.util.Date();
+			Date NetFinishTime = new Date();
 
 			processLog(NetStartTime, NetFinishTime, "aborting", strAccess, strTrans);
-		} catch(java.sql.SQLException e)
+		} catch(SQLException e)
 		{
 			e.printStackTrace();
-		} catch(java.lang.Exception ex)
+		} catch(Exception ex)
 		{
 			logger.fatal("Unexpected error. Something bad happend");
 			ex.printStackTrace(System.err);
