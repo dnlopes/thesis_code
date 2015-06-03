@@ -8,9 +8,13 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import util.ObjectPool;
 import util.defaults.Configuration;
+
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
 
@@ -24,17 +28,75 @@ import java.util.Map;
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
 {
 
+	private static final int POOL_SIZE = 1000;
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 	private Map<Integer, NodeConfig> replicatorsConfigs;
+	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> rpcsObjects;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
+		this.rpcsObjects = new HashMap<>();
 
 		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
+
+		this.setup();
+	}
+
+	private void setup()
+	{
+		for(NodeConfig config : this.replicatorsConfigs.values())
+			this.createConnectionPoolForReplicator(config);
+	}
+
+	private void createConnectionPoolForReplicator(NodeConfig config)
+	{
+		LOG.trace("creating connection pool to replicator {}", config.getId());
+
+		boolean isReady = false;
+		do
+		{
+			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+			try
+			{
+				newTransport.open();
+				isReady = true;
+			} catch(TTransportException e)
+			{
+				LOG.debug("replicator {} still not ready for connections", config.getId());
+				try
+				{
+					Thread.sleep(200);
+				} catch(InterruptedException e1)
+				{
+					e1.printStackTrace();
+				}
+			} finally
+			{
+				newTransport.close();
+			}
+
+		} while(!isReady);
+
+		ObjectPool<ReplicatorRPC.Client> pool = new ObjectPool<>();
+
+		for(int i = 0; i < POOL_SIZE; i++)
+		{
+			ReplicatorRPC.Client rpcConnection = this.createReplicatorConnection(config);
+
+			if(rpcConnection == null)
+			{
+				LOG.warn("error while creating connections for remote replicators: {}");
+				continue;
+			}
+
+			pool.addObject(rpcConnection);
+		}
+
+		this.rpcsObjects.put(config.getId(), pool);
 	}
 
 	@Override
@@ -42,21 +104,37 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	{
 		for(NodeConfig config : this.replicatorsConfigs.values())
 		{
-			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+			ReplicatorRPC.Client rpcConnection = this.rpcsObjects.get(config.getId()).borrowObject();
 
+			if(rpcConnection == null)
+			{
+				LOG.warn("no rpc connection available for replicator {}", config.getId());
+				rpcConnection = this.createReplicatorConnection(config);
+			}
 			try
 			{
-				newTransport.open();
-				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
-				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
-				client.commitOperationAsync(thriftOperation);
+				rpcConnection.commitOperationAsync(thriftOperation);
 			} catch(TException e)
 			{
-				LOG.warn("failed to send shadow operation to replicator {}", config.getId(), e);
-			} finally
-			{
-				newTransport.close();
+				LOG.warn("failed to send shadow operation to replicator {}: {}", config.getId(), e.getMessage());
 			}
 		}
+	}
+
+	private ReplicatorRPC.Client createReplicatorConnection(NodeConfig config)
+	{
+		TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+		try
+		{
+			newTransport.open();
+		} catch(TTransportException e)
+		{
+			LOG.error("error while creating connections for remote replicators: {}", e.getMessage());
+			newTransport.close();
+			return null;
+		}
+
+		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+		return new ReplicatorRPC.Client(protocol);
 	}
 }

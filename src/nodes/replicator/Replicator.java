@@ -13,6 +13,10 @@ import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+
 
 /**
  * Created by dnlopes on 15/03/15.
@@ -25,6 +29,7 @@ public class Replicator extends AbstractNode
 	private LogicalClock clock;
 	private IReplicatorNetwork networkInterface;
 	private ObjectPool<IDBCommitPad> commitPadPool;
+	private Lock clockLock;
 
 	public Replicator(NodeConfig config)
 	{
@@ -33,8 +38,7 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		this.networkInterface = new ReplicatorNetwork(this.config);
 		this.commitPadPool = new ObjectPool<>();
-
-		this.setupPads();
+		this.clockLock = new ReentrantLock();
 
 		try
 		{
@@ -44,6 +48,7 @@ public class Replicator extends AbstractNode
 			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
 		}
 
+		this.setupPads();
 		LOG.info("replicator {} online", this.config.getId());
 	}
 
@@ -94,23 +99,28 @@ public class Replicator extends AbstractNode
 
 	public LogicalClock getNextClock()
 	{
-		synchronized(this.clock)
-		{
-			LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
-			this.clock = newClock;
-			newClock.increment(this.config.getId() - 1);
-			return newClock;
-		}
+		this.clockLock.lock();
+
+		LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
+		this.clock = newClock;
+		newClock.increment(this.config.getId() - 1);
+
+		this.clockLock.unlock();
+
+		LOG.debug("clock incremented to {}", newClock.toString());
+		return newClock;
 	}
 
 	public void mergeWithRemoteClock(LogicalClock clock)
 	{
-		synchronized(this.clock)
-		{
-			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
-			this.clock = this.clock.maxClock(clock);
-			LOG.debug("merged clock is {}", this.clock.toString());
-		}
+
+		LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
+		this.clockLock.lock();
+
+		this.clock = this.clock.maxClock(clock);
+		this.clockLock.unlock();
+
+		LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
 	public void deliverShadowOperation(ShadowOperation shadowOp)
