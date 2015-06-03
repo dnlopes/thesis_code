@@ -34,6 +34,7 @@ public class NewOrder implements TpccConstants
 	int[] stock = new int[MAX_NUM_ITEMS];
 	int[] ol_num_seq = new int[MAX_NUM_ITEMS];
 	boolean joins;
+	private ResultSet rs;
 
 	/**
 	 * Constructor.
@@ -159,7 +160,7 @@ public class NewOrder implements TpccConstants
 								"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = " +
 										w_id + " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " +
 										c_id);
-					ResultSet rs = pstmt0.executeQuery();
+					this.rs = pstmt0.executeQuery();
 					if(rs.next())
 					{
 						c_discount = rs.getFloat(1);
@@ -170,6 +171,8 @@ public class NewOrder implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = " + w_id
 									+ " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id,
@@ -199,25 +202,28 @@ public class NewOrder implements TpccConstants
 										"c_d_id = " + d_id + " AND c_id = " + c_id);
 					if(TRACE)
 						logger.trace("SELECT w_tax FROM warehouse WHERE w_id = " + w_id);
-					ResultSet rs0 = pstmt35.executeQuery();
+					this.rs = pstmt35.executeQuery();
 
-					if(rs0.next())
+					if(this.rs.next())
 					{
-						c_discount = rs0.getFloat(1);
-						c_last = rs0.getString(2);
-						c_credit = rs0.getString(3);
+						c_discount = this.rs.getFloat(1);
+						c_last = this.rs.getString(2);
+						c_credit = this.rs.getString(3);
 					}
-					rs0.close();
+					this.rs.close();
 
-					ResultSet rs1 = pstmt36.executeQuery();
+					this.rs = pstmt36.executeQuery();
 
-					if(rs1.next())
+					if(this.rs.next())
 					{
-						w_tax = rs1.getFloat(1);
+						w_tax = this.rs.getFloat(1);
 					}
-					rs1.close();
+					this.rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
+
 					logger.error(
 							"SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
 									"c_d_id" +
@@ -241,11 +247,11 @@ public class NewOrder implements TpccConstants
 					logger.trace(
 							"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id
 									+ " FOR UPDATE");
-				ResultSet rs = pstmt1.executeQuery();
+				this.rs = pstmt1.executeQuery();
 				if(rs.next())
 				{
-					d_next_o_id = rs.getInt(1);
-					d_tax = rs.getFloat(2);
+					d_next_o_id = this.rs.getInt(1);
+					d_tax = this.rs.getFloat(2);
 				} else
 				{
 					logger.error(
@@ -256,6 +262,8 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
+				if(!this.rs.isClosed())
+					this.rs.close();
 				logger.error(
 						"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id +
 								"" +
@@ -285,6 +293,8 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
+				if(!this.rs.isClosed())
+					this.rs.close();
 				logger.error(
 						"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + d_id + " AND " +
 								"d_w_id = " + w_id, e);
@@ -316,6 +326,8 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
+				if(!this.rs.isClosed())
+					this.rs.close();
 				logger.error("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
 						"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
 						"," +
@@ -339,6 +351,8 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
+				if(!this.rs.isClosed())
+					this.rs.close();
 				logger.error(
 						"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + d_id + "," + w_id
 								+ ")",
@@ -388,12 +402,12 @@ public class NewOrder implements TpccConstants
 					pstmt5.setInt(1, ol_i_id);
 					if(TRACE)
 						logger.trace("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id);
-					ResultSet rs = pstmt5.executeQuery();
-					if(rs.next())
+					this.rs = pstmt5.executeQuery();
+					if(this.rs.next())
 					{
-						i_price = rs.getFloat(1);
-						i_name = rs.getString(2);
-						i_data = rs.getString(3);
+						i_price = this.rs.getFloat(1);
+						i_name = this.rs.getString(2);
+						i_data = this.rs.getString(3);
 					} else
 					{
 						if(DEBUG)
@@ -403,9 +417,11 @@ public class NewOrder implements TpccConstants
 						throw new AbortedTransactionException();
 					}
 
-					rs.close();
+					this.rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id, e);
 					throw new Exception("NewOrder select transaction error", e);
 				}
@@ -429,7 +445,7 @@ public class NewOrder implements TpccConstants
 										"FOR" +
 										" " +
 										"UPDATE");
-					ResultSet rs = pstmt6.executeQuery();
+					this.rs = pstmt6.executeQuery();
 					if(rs.next())
 					{
 						s_quantity = rs.getInt(1);
@@ -446,9 +462,11 @@ public class NewOrder implements TpccConstants
 						s_dist_10 = rs.getString(12);
 					}
 
-					rs.close();
+					this.rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error("SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
 							"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
 							"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR " +
@@ -495,6 +513,8 @@ public class NewOrder implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"UPDATE stock SET s_quantity = " + s_quantity + " WHERE s_i_id = " + ol_i_id + " AND " +
 									"s_w_id = " + ol_supply_w_id, e);
@@ -530,6 +550,8 @@ public class NewOrder implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, " +
 									"ol_quantity, ol_amount, ol_dist_info) " +

@@ -250,6 +250,7 @@ public class OrderStat implements TpccConstants
 			return 1;
 		} catch(Exception e)
 		{
+			DbUtils.closeQuietly(this.rs);
 			try
 			{
 				// Rollback if an aborted transaction, they are intentional in some percentage of cases.
@@ -261,7 +262,7 @@ public class OrderStat implements TpccConstants
 		} finally
 		{
 			logger.error("OrderStat error");
-			DbUtils.closeQuietly(this.rs);
+
 		}
 		return 0;
 	}

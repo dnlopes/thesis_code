@@ -310,7 +310,6 @@ public class Tpcc implements TpccConstants
 
 		Util.seqInit(10, 10, 1, 1, 1);
 
-
         /* set up threads */
 
 		if(DEBUG)
@@ -328,10 +327,11 @@ public class Tpcc implements TpccConstants
 			this.clientThreads.add((TpccThread) worker);
 		}
 
+
 		if(rampupTime > 0)
 		{
 			// rampup time
-			System.out.printf("\nRAMPUP START.\n\n");
+			System.out.println("\nRAMPUP START.\n\n");
 			try
 			{
 				Thread.sleep(rampupTime * 1000);
@@ -339,11 +339,8 @@ public class Tpcc implements TpccConstants
 			{
 				logger.error("Rampup wait interrupted", e);
 			}
-			System.out.printf("\nRAMPUP END.\n\n");
+			System.out.println("\nRAMPUP END.\n\n");
 		}
-
-		// measure time
-		System.out.printf("\nMEASURING START.\n\n");
 
 		// start counting
 		counting_on = true;
@@ -360,8 +357,7 @@ public class Tpcc implements TpccConstants
 			{
 				Thread.sleep(1000);
 				logger.info("collecting statistics {}", z);
-
-				//this.collectStatistics(z);
+				this.collectStatistics(z);
 				z++;
 			} catch(InterruptedException e)
 			{

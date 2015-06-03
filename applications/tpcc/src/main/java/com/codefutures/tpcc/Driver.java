@@ -518,7 +518,7 @@ public class Driver implements TpccConstants
 				{
 					if(rt < RTIME_ORDSTAT)
 					{
-						success[2]++;
+						//success[2]++;
 						success2[2][t_num]++;
 						latencies[t_num] += rt;
 						this.stats.incrementSuccess();

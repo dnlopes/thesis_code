@@ -63,6 +63,8 @@ public class Delivery implements TpccConstants
 					this.rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error("SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = " + d_id + " AND " +
 							"no_w_id" +
 							" " +
@@ -91,6 +93,8 @@ public class Delivery implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"DELETE FROM new_orders WHERE no_o_id = " + no_o_id + " AND no_d_id = " + d_id + " AND " +
 									"no_w_id = " + w_id, e);
@@ -116,6 +120,8 @@ public class Delivery implements TpccConstants
 					this.rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"SELECT o_c_id FROM orders WHERE o_id = " + no_o_id + " AND o_d_id = " + d_id + " AND " +
 									"o_w_id = " + w_id, e);
@@ -136,6 +142,8 @@ public class Delivery implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"UPDATE orders SET o_carrier_id = " + o_carrier_id + " WHERE o_id = " + no_o_id + " AND " +
 									"o_d_id = " + d_id + " AND o_w_id = " + w_id, e);
@@ -158,6 +166,8 @@ public class Delivery implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"UPDATE order_line SET ol_delivery_d = " + currentTimeStamp.toString() + " WHERE ol_o_id" +
 									" " +
@@ -184,6 +194,8 @@ public class Delivery implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error(
 							"SELECT SUM(ol_amount) FROM order_line WHERE ol_o_id = " + no_o_id + " AND ol_d_id = " +
 									d_id + " AND ol_w_id = " + w_id, e);
@@ -205,6 +217,8 @@ public class Delivery implements TpccConstants
 
 				} catch(SQLException e)
 				{
+					if(!this.rs.isClosed())
+						this.rs.close();
 					logger.error("UPDATE customer SET c_balance = c_balance + " + ol_total + ", c_delivery_cnt = " +
 							"c_delivery_cnt + 1 WHERE c_id = " + c_id + " AND c_d_id = " + d_id + " AND " +
 							"c_w_id" +

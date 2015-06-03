@@ -99,6 +99,8 @@ public class Payment implements TpccConstants
 
 			} catch(SQLException e)
 			{
+				if(!this.rs.isClosed())
+					this.rs.close();
 				logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id, e);
 				throw new Exception("Payment Update transaction error", e);
 			}
@@ -506,6 +508,7 @@ public class Payment implements TpccConstants
 			return 1;
 		} catch(Exception e)
 		{
+			DbUtils.closeQuietly(this.rs);
 			try
 			{
 				// Rollback if an aborted transaction, they are intentional in some percentage of cases.
@@ -517,7 +520,7 @@ public class Payment implements TpccConstants
 		} finally
 		{
 			logger.error("Payment error");
-			DbUtils.closeQuietly(this.rs);
+
 		}
 		return 0;
 	}
