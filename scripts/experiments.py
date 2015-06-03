@@ -111,7 +111,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 					local("mkdir -p " + OUTPUT_DIR + "/logs")
 
 				TOTAL_USERS = numberOfUsers
-				NUMBER_OF_EMULATORS = len(config.replicators_nodes)
+				NUMBER_OF_EMULATORS = len(config.emulators_nodes)
 				USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
 				runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 				logger.info('moving to the next iteration!')

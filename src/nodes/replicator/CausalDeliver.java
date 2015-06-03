@@ -58,12 +58,6 @@ public class CausalDeliver implements Deliver
 			replicator.deliverShadowOperation(op);
 		else
 			this.addToQueue(op);
-		/*{
-			synchronized(this.pendingOperations)
-			{
-				this.pendingOperations.add(op);
-			}
-		}*/
 	}
 
 	private void addToQueue(ShadowOperation op)

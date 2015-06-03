@@ -35,7 +35,7 @@ def startDatabasesGalera(isMaster):
     mysqlCommand = ''
     clusterAddress = generateClusterAddress()
 
-    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_cluster_address="' + clusterAddress + '"'
+    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
     if isMaster:
         mysqlCommand += " --wsrep-new-cluster"
 
