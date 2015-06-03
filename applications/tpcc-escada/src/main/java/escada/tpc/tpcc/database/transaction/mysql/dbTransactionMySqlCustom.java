@@ -1100,10 +1100,10 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 		{
 			Date NetStartTime = new Date();
 
-			statement = con.createStatement();
-			statement.execute("start transaction");
-			statement.execute("set transaction isolation level serializable");
-			statement.execute("select '" + strTrans + "'");
+			//statement = con.createStatement();
+			//statement.execute("start transaction");
+			//statement.execute("set transaction isolation level serializable");
+			//statement.execute("select '" + strTrans + "'");
 
 			Date NetFinishTime = new Date();
 
@@ -1132,9 +1132,9 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 			{
 
 				Date NetStartTime = new Date();
-				statement = con.createStatement();
-				statement.execute("commit");
-
+				//statement = con.createStatement();
+				//statement.execute("commit");
+				con.commit();
 				Date NetFinishTime = new Date();
 
 				processLog(NetStartTime, NetFinishTime, "committing", strAccess, strTrans);

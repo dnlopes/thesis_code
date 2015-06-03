@@ -103,9 +103,6 @@ public class DBScratchPad implements IDBScratchPad
 	@Override
 	public void commitTransaction(IProxyNetwork network) throws SQLException
 	{
-		this.activeTransaction.endTransaction();
-		LOG.info("tx runtime: {}", this.activeTransaction.getElapsedtime());
-
 		if(this.activeTransaction.isReadOnly())
 			return;
 

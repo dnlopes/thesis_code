@@ -24,8 +24,6 @@ public class Transaction
 	private List<Operation> txnOps;
 	private Map<Integer, Operation> txnOpsMap;
 	private int opsCounter;
-	private long initTime;
-	private long elapsedTime;
 
 	public Transaction(int txnId)
 	{
@@ -100,21 +98,4 @@ public class Transaction
 	{
 		return this.txnOps.size() == 0;
 	}
-
-	public void startTransaction()
-	{
-		this.initTime = System.nanoTime();
-	}
-
-	public void endTransaction()
-	{
-		this.elapsedTime = (this.initTime - System.nanoTime()) / 1000000;
-	}
-
-	public long getElapsedtime()
-	{
-		return this.elapsedTime;
-	}
-
-
 }
