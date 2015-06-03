@@ -135,19 +135,10 @@ public class Slev implements TpccConstants
 
 		} catch(Exception e)
 		{
-			try
-			{
-				// Rollback if an aborted transaction, they are intentional in some percentage of cases.
-				pStmts.rollback();
-			} catch(Throwable th)
-			{
-				logger.error("throwable found: {}", th.getMessage());
-			}
-		} finally
-		{
-			logger.error("Slev error");
 			DbUtils.closeQuietly(this.rs);
+			logger.error("Slev error: {}", e.getMessage());
+			pStmts.rollback();
+			return 0;
 		}
-		return 0;
 	}
 }

@@ -509,20 +509,11 @@ public class Payment implements TpccConstants
 		} catch(Exception e)
 		{
 			DbUtils.closeQuietly(this.rs);
-			try
-			{
-				// Rollback if an aborted transaction, they are intentional in some percentage of cases.
-				pStmts.rollback();
-			} catch(Throwable th)
-			{
-				logger.error("throwable found: {}", th.getMessage());
-			}
-		} finally
-		{
-			logger.error("Payment error");
-
+			logger.error("Payment error: {}", e.getMessage());
+			pStmts.rollback();
+			return 0;
 		}
-		return 0;
+
 	}
 
 }

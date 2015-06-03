@@ -3,6 +3,7 @@ package com.codefutures.tpcc;
 
 import java.sql.*;
 
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import runtime.IdentifierFactory;
@@ -569,6 +570,7 @@ public class NewOrder implements TpccConstants
 			return 1;
 		} catch(AbortedTransactionException ate)
 		{
+			DbUtils.closeQuietly(this.rs);
 			// Rollback if an aborted transaction, they are intentional in some percentage of cases.
 			if(logger.isDebugEnabled())
 				logger.debug("Caught AbortedTransactionException");
@@ -577,7 +579,8 @@ public class NewOrder implements TpccConstants
 			return 1; // this is not an error!
 		} catch(Exception e)
 		{
-			logger.error("New Order error", e);
+			DbUtils.closeQuietly(this.rs);
+			logger.error("New Order error: {}", e.getMessage());
 			pStmts.rollback();
 			return 0;
 		}

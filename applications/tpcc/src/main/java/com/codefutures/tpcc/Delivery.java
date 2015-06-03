@@ -233,21 +233,9 @@ public class Delivery implements TpccConstants
 		} catch(Exception e)
 		{
 			DbUtils.closeQuietly(this.rs);
-
-			try
-			{
-				// Rollback if an aborted transaction, they are intentional in some percentage of cases.
-				pStmts.rollback();
-				return 0;
-			} catch(Throwable th)
-			{
-				logger.error("thwrowable catched. Exiting abruptly", th);
-				System.exit(1);
-				return 0;
-			} finally
-			{
-				logger.error("Delivery error", e);
-			}
+			logger.error("Delivery error: {}", e.getMessage());
+			pStmts.rollback();
+			return 0;
 		}
 	}
 }
