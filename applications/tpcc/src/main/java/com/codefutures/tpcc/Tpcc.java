@@ -317,7 +317,7 @@ public class Tpcc implements TpccConstants
 		ExecutorService executor = Executors.newFixedThreadPool(numConn, new NamedThreadFactory("tpcc-thread"));
 
 		// Start each server.
-
+		counting_on = true;
 		for(int i = 0; i < numConn; i++)
 		{
 			Runnable worker = new TpccThread(i, port, 1, dbUser, dbPassword, numWare, numConn, javaDriver, jdbcUrl,
@@ -343,7 +343,7 @@ public class Tpcc implements TpccConstants
 		}
 
 		// start counting
-		counting_on = true;
+		//counting_on = true;
 
 		// loop for the measure_time
 		final long startTime = System.currentTimeMillis();
