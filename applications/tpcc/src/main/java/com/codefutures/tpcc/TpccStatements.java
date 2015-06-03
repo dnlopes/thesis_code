@@ -19,7 +19,8 @@ public class TpccStatements {
     private final PreparedStatement[] pStmts = new PreparedStatement[STMT_COUNT];
 	private final String[] pStmtsStrings = new String[STMT_COUNT];
 
-    public TpccStatements(Connection conn, int fetchSize) throws Exception {
+    public TpccStatements(Connection conn, int fetchSize) throws SQLException
+	{
         this.conn = conn;
 
         // NewOrder statements.

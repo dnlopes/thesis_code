@@ -75,45 +75,45 @@ public class Driver implements TpccConstants
 				  int[] failure, int[][] success2, int[][] late2, int[][] retry2, int[][] failure2, double[] latencies,
 				  boolean joins)
 	{
+		this.stats = stats;
+		this.conn = conn;
+
 		try
 		{
-			this.stats = stats;
-			this.conn = conn;
-
 			pStmts = new TpccStatements(conn, fetchSize);
-
-			// Initialize the transactions.
-			newOrder = new NewOrder(pStmts, joins);
-			payment = new Payment(pStmts);
-			orderStat = new OrderStat(pStmts);
-			slev = new Slev(pStmts);
-			delivery = new Delivery(pStmts);
-
-			this.success = success;
-			this.late = late;
-			this.retry = retry;
-			this.failure = failure;
-
-			this.success2 = success2;
-			this.late2 = late2;
-			this.retry2 = retry2;
-			this.failure2 = failure2;
-			this.latencies = latencies;
-
-			for(int i = 0; i < TRANSACTION_COUNT; i++)
-			{
-				max_rt[i] = 0.0;
-			}
-
-		} catch(Throwable th)
+		} catch(SQLException e)
 		{
-			throw new RuntimeException("Error initializing Driver", th);
+			logger.error("error initializing TpccStatements for client driver", e);
+			System.exit(1);
+		}
+
+		// Initialize the transactions.
+		newOrder = new NewOrder(pStmts, joins);
+		payment = new Payment(pStmts);
+		orderStat = new OrderStat(pStmts);
+		slev = new Slev(pStmts);
+		delivery = new Delivery(pStmts);
+
+		this.success = success;
+		this.late = late;
+		this.retry = retry;
+		this.failure = failure;
+
+		this.success2 = success2;
+		this.late2 = late2;
+		this.retry2 = retry2;
+		this.failure2 = failure2;
+		this.latencies = latencies;
+
+		for(int i = 0; i < TRANSACTION_COUNT; i++)
+		{
+			max_rt[i] = 0.0;
 		}
 	}
 
 	private final Executor exec = Executors.newSingleThreadExecutor();
 
-	public int runTransaction(final int t_num, final int numWare, final int numConn)
+	public int runBenchmark(final int t_num, final int numWare, final int numConn)
 	{
 
 		num_ware = numWare;
@@ -126,31 +126,19 @@ public class Driver implements TpccConstants
 		int sequence = Util.seqGet();
 		while(Tpcc.activate_transaction == 1)
 		{
-			try
-			{
-				if(DEBUG)
-					logger.debug("BEFORE runTransaction: sequence: " + sequence);
+			if(DEBUG)
+				logger.debug("BEFORE runTransaction: sequence: " + sequence);
 
-				doNextTransaction(t_num, sequence);
-				count++;
-			} catch(Throwable th)
-			{
-				logger.error("this should not be happening. Abruptly exiting", th);
-				System.exit(1);
+			doNextTransaction(t_num, sequence);
+			count++;
 
-			} finally
-			{
-				if(DEBUG)
-					logger.debug("AFTER runTransaction: sequence: " + sequence);
-			}
-
+			if(DEBUG)
+				logger.debug("AFTER runTransaction: sequence: " + sequence);
 			sequence = Util.seqGet();
 		}
 
 		logger.info("Driver terminated after {} transactions", count);
-
 		return 0;
-
 	}
 
 	private void doNextTransaction(int t_num, int sequence)
@@ -172,7 +160,8 @@ public class Driver implements TpccConstants
 			doSlev(t_num);
 		} else
 		{
-			throw new IllegalStateException("Error - Unknown sequence");
+			logger.error("unkown sequence number: {}", sequence);
+			System.exit(1);
 		}
 	}
 
@@ -182,37 +171,28 @@ public class Driver implements TpccConstants
 	  */
 	private int doNeword(int t_num)
 	{
-		int c_num = 0;
-		int i = 0;
-		int ret = 0;
-		double rt = 0.0;
-
-		long beginTime = 0;
-		long endTime = 0;
-
-		int w_id = 0;
-		int d_id = 0;
-		int c_id = 0;
-		int ol_cnt = 0;
-		int all_local = 1;
+		int c_num, i, ret, w_id, d_id, c_id, ol_cnt, rbk;
+		int returnValue = 0;
+		int all_local = 0;
 		int notfound = MAXITEMS + 1;
-		int rbk = 0;
+		double latency;
+		long beginTime, endTime;
 
 		int[] itemid = new int[MAX_NUM_ITEMS];
 		int[] supware = new int[MAX_NUM_ITEMS];
 		int[] qty = new int[MAX_NUM_ITEMS];
 
 		if(num_node == 0)
-		{
 			w_id = Util.randomNumber(1, num_ware);
-		} else
+		else
 		{
 			c_num = ((num_node * t_num) / num_conn); /* drop moduls */
 			w_id = Util.randomNumber(1 + (num_ware * c_num) / num_node, (num_ware * (c_num + 1)) / num_node);
 		}
 		if(w_id < 1)
 		{
-			throw new IllegalStateException("Invalid warehouse ID " + w_id);
+			logger.error("invalid warehouse id: {}", w_id);
+			return 0;
 		}
 
 		d_id = Util.randomNumber(1, DIST_PER_WARE);
@@ -235,7 +215,7 @@ public class Driver implements TpccConstants
 					supware[i] = w_id;
 				} else
 				{
-					supware[i] = otherWare(w_id);
+					supware[i] = selectRemoteWarehouse(w_id);
 					all_local = 0;
 				}
 			} else
@@ -249,34 +229,35 @@ public class Driver implements TpccConstants
 		for(i = 0; i < MAX_RETRY; i++)
 		{
 			if(DEBUG)
-				logger.debug(
-						"t_num: " + t_num + " w_id: " + w_id + " c_id: " + c_id + " ol_cnt: " + ol_cnt + " all_local:" +
-								" " +
-								"" + all_local + " qty: " + Arrays.toString(qty));
+				logger.debug("t_num: " + t_num + " w_id: " + w_id + " c_id: " + c_id + " ol_cnt: " + ol_cnt + " " +
+						"all_local:" +
+						" " +
+						"" + all_local + " qty: " + Arrays.toString(qty));
 			ret = newOrder.neword(t_num, w_id, d_id, c_id, ol_cnt, all_local, itemid, supware, qty);
 			endTime = System.currentTimeMillis();
 
 			if(ret == 1)
 			{
-
-				rt = (double) (endTime - beginTime);
-
-				if(DEBUG)
-					logger.debug("BEFORE rt value: " + rt + " max_rt[0] value: " + max_rt[0]);
-
-				if(rt > max_rt[0])
-					max_rt[0] = rt;
+				logger.trace("neworder txn succedeed");
+				returnValue = 1;
+				latency = (double) (endTime - beginTime);
 
 				if(DEBUG)
-					logger.debug("AFTER rt value: " + rt + " max_rt[0] value: " + max_rt[0]);
+					logger.debug("BEFORE rt value: " + latency + " max_rt[0] value: " + max_rt[0]);
 
-				RtHist.histInc(0, rt);
+				if(latency > max_rt[0])
+					max_rt[0] = latency;
+
+				if(DEBUG)
+					logger.debug("AFTER rt value: " + latency + " max_rt[0] value: " + max_rt[0]);
+
+				RtHist.histInc(0, latency);
 
 				if(Tpcc.counting_on)
 				{
 					if(DEBUG)
-						logger.debug(" rt: " + rt + " RTIME_NEWORD " + RTIME_NEWORD);
-					if(rt < RTIME_NEWORD)
+						logger.debug(" rt: " + latency + " RTIME_NEWORD " + RTIME_NEWORD);
+					if(latency < RTIME_NEWORD)
 					{
 						if(DEBUG)
 							logger.debug("Rt < RTIME_NEWORD");
@@ -292,10 +273,10 @@ public class Driver implements TpccConstants
 						this.stats.incrementSuccess();
 					}
 				}
-
-				return (1); /* end */
 			} else
 			{
+				logger.error("newOrder error: {}", newOrder.getLastError());
+				returnValue = 0;
 				if(Tpcc.counting_on)
 				{
 
@@ -314,22 +295,7 @@ public class Driver implements TpccConstants
 			this.stats.incrementAborts();
 		}
 
-		return (0);
-	}
-
-	/*
-	  * produce the id of a valid warehouse other than home_ware
-	  * (assuming there is one)
-	  */
-	private int otherWare(int home_ware)
-	{
-		int tmp;
-
-		if(num_ware == 1)
-			return home_ware;
-		while((tmp = Util.randomNumber(1, num_ware)) == home_ware)
-			;
-		return tmp;
+		return returnValue;
 	}
 
 	/*
@@ -337,45 +303,32 @@ public class Driver implements TpccConstants
 	  */
 	private int doPayment(int t_num)
 	{
-		int c_num = 0;
-		int byname = 0;
-		int i = 0;
-		int ret = 0;
-		double rt = 0.0;
+		int c_num, byname, i, ret;
+		int returnValue = 0;
+		double latency;
 
-		//clock_t clk1,clk2;
-		//struct timespec tbuf1;
-		//struct timespec tbuf2;
-
-		long beginTime = 0;
-		long endTime = 0;
-		int w_id = 0;
-		int d_id = 0;
-		int c_w_id = 0;
-		int c_d_id = 0;
-		int c_id = 0;
-		int h_amount = 0;
-		String c_last = null;
+		long beginTime, endTime;
+		int w_id, d_id, c_w_id, c_d_id, c_id, h_amount;
+		String c_last;
 
 		if(num_node == 0)
-		{
 			w_id = Util.randomNumber(1, num_ware);
-		} else
+		else
 		{
 			c_num = ((num_node * t_num) / num_conn); /* drop moduls */
 			w_id = Util.randomNumber(1 + (num_ware * c_num) / num_node, (num_ware * (c_num + 1)) / num_node);
 		}
+
 		d_id = Util.randomNumber(1, DIST_PER_WARE);
 		c_id = Util.nuRand(1023, 1, CUST_PER_DIST);
 		c_last = Util.lastName(Util.nuRand(255, 0, 999));
 		h_amount = Util.randomNumber(1, 5000);
+
 		if(Util.randomNumber(1, 100) <= 60)
-		{
 			byname = 1; /* select by last name */
-		} else
-		{
+		else
 			byname = 0; /* select by customer id */
-		}
+
 		if(ALLOW_MULTI_WAREHOUSE_TX)
 		{
 			if(Util.randomNumber(1, 100) <= 85)
@@ -384,7 +337,7 @@ public class Driver implements TpccConstants
 				c_d_id = d_id;
 			} else
 			{
-				c_w_id = otherWare(w_id);
+				c_w_id = selectRemoteWarehouse(w_id);
 				c_d_id = Util.randomNumber(1, DIST_PER_WARE);
 			}
 		} else
@@ -393,12 +346,8 @@ public class Driver implements TpccConstants
 			c_d_id = d_id;
 		}
 
-		// if(DEBUG) logger.debug("Payment| cnum: " + c_num + "  w_id: " +w_id + " d_id: " + d_id + " c_id: " + c_id +
-		// " c_last: " + c_last + " h_amount: " + h_amount + " byname: " + byname + " c_w_id: " + c_w_id +  " c_d_id:
-		// " + c_d_id );
-
-		//clk1 = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &tbuf1 );
 		beginTime = System.currentTimeMillis();
+
 		for(i = 0; i < MAX_RETRY; i++)
 		{
 			ret = payment.payment(t_num, w_id, d_id, byname, c_w_id, c_d_id, c_id, c_last, h_amount);
@@ -407,41 +356,42 @@ public class Driver implements TpccConstants
 
 			if(ret >= 1)
 			{
-				//rt = (double)(tbuf2.tv_sec * 1000.0 + tbuf2.tv_nsec/1000000.0-tbuf1.tv_sec * 1000.0 - tbuf1
-				// .tv_nsec/1000000.0);
-				rt = (double) (endTime - beginTime);
+				logger.trace("payment txn succedeed");
+				returnValue = 1;
 
-				if(rt > max_rt[1])
-					max_rt[1] = rt;
-				RtHist.histInc(1, rt);
+				latency = (double) (endTime - beginTime);
+
+				if(latency > max_rt[1])
+					max_rt[1] = latency;
+
+				RtHist.histInc(1, latency);
 				if(Tpcc.counting_on)
 				{
-					if(rt < RTIME_PAYMENT)
+					if(latency < RTIME_PAYMENT)
 					{
 						success[1]++;
 						success2[1][t_num]++;
-						latencies[t_num] += rt;
+						latencies[t_num] += latency;
 						this.stats.incrementSuccess();
 						this.stats.addLatency(endTime - beginTime);
 					} else
 					{
 						late[1]++;
 						late2[1][t_num]++;
-						latencies[t_num] += rt;
+						latencies[t_num] += latency;
 						this.stats.incrementSuccess();
 						this.stats.addLatency(endTime - beginTime);
 					}
 				}
-
-				return (1); /* end */
 			} else
 			{
+				logger.error("payment error: {}", payment.getLastError());
+				returnValue = 0;
 				if(Tpcc.counting_on)
 				{
 					retry[1]++;
 					retry2[1][t_num]++;
 				}
-
 			}
 		}
 
@@ -454,7 +404,7 @@ public class Driver implements TpccConstants
 			this.stats.incrementAborts();
 		}
 
-		return 0;
+		return returnValue;
 	}
 
 	/*
@@ -466,10 +416,8 @@ public class Driver implements TpccConstants
 		int byname = 0;
 		int i = 0;
 		int ret = 0;
+		int returnValue = 0;
 		double rt = 0.0;
-		/*clock_t clk1,clk2;
-		  struct timespec tbuf1;
-          struct timespec tbuf2;*/
 		long beginTime = 0;
 		long endTime = 0;
 
@@ -507,6 +455,8 @@ public class Driver implements TpccConstants
 
 			if(ret >= 1)
 			{
+				logger.trace("orderstat txn succedeed");
+				returnValue = 1;
 				//rt = (double)(tbuf2.tv_sec * 1000.0 + tbuf2.tv_nsec/1000000.0-tbuf1.tv_sec * 1000.0 - tbuf1
 				// .tv_nsec/1000000.0)
 				rt = (double) (endTime - beginTime);
@@ -532,10 +482,11 @@ public class Driver implements TpccConstants
 						this.stats.addLatency(endTime - beginTime);
 					}
 				}
-
-				return (1); /* end */
 			} else
 			{
+				logger.error("orderstat error: {}", orderStat.getLastError());
+				returnValue = 0;
+
 				if(Tpcc.counting_on)
 				{
 					retry[2]++;
@@ -554,8 +505,7 @@ public class Driver implements TpccConstants
 			this.stats.incrementAborts();
 		}
 
-		return (0);
-
+		return returnValue;
 	}
 
 	/*
@@ -566,6 +516,7 @@ public class Driver implements TpccConstants
 		int c_num = 0;
 		int i = 0;
 		int ret = 0;
+		int returnValue = 0;
 		double rt = 0.0;
 		long beginTime = 0;
 		long endTime = 0;
@@ -589,7 +540,8 @@ public class Driver implements TpccConstants
 			endTime = System.currentTimeMillis();
 			if(ret >= 1)
 			{
-
+				logger.trace("delivery txn succedeed");
+				returnValue = 1;
 				rt = (double) (endTime - beginTime);
 
 				if(rt > max_rt[3])
@@ -613,11 +565,10 @@ public class Driver implements TpccConstants
 						this.stats.addLatency(endTime - beginTime);
 					}
 				}
-
-				return (1); /* end */
 			} else
 			{
-
+				logger.error("delivery error: {}", delivery.getLastError());
+				returnValue = 0;
 				if(Tpcc.counting_on)
 				{
 					retry[3]++;
@@ -635,8 +586,7 @@ public class Driver implements TpccConstants
 			this.stats.incrementAborts();
 		}
 
-		return (0);
-
+		return returnValue;
 	}
 
 	/*
@@ -647,6 +597,7 @@ public class Driver implements TpccConstants
 		int c_num = 0;
 		int i = 0;
 		int ret = 0;
+		int returnValue = 0;
 		double rt = 0.0;
 		long beginTime = 0;
 		long endTime = 0;
@@ -675,7 +626,8 @@ public class Driver implements TpccConstants
 
 			if(ret >= 1)
 			{
-
+				logger.trace("slev txn succedeed");
+				returnValue = 1;
 				rt = (double) (endTime - beginTime);
 
 				if(rt > max_rt[4])
@@ -699,16 +651,16 @@ public class Driver implements TpccConstants
 						this.stats.addLatency(endTime - beginTime);
 					}
 				}
-
-				return (1); /* end */
 			} else
 			{
+				logger.error("slev error: {}", slev.getLastError());
+				returnValue = 0;
+
 				if(Tpcc.counting_on)
 				{
 					retry[4]++;
 					retry2[4][t_num]++;
 				}
-
 			}
 		}
 
@@ -720,9 +672,22 @@ public class Driver implements TpccConstants
 			failure2[4][t_num]++;
 			this.stats.incrementAborts();
 		}
+		return returnValue;
+	}
 
-		return (0);
+	/*
+	  * produce the id of a valid warehouse other than home_ware
+	  * (assuming there is one)
+	  */
+	private int selectRemoteWarehouse(int home_ware)
+	{
+		int tmp;
 
+		if(num_ware == 1)
+			return home_ware;
+		while((tmp = Util.randomNumber(1, num_ware)) == home_ware)
+			;
+		return tmp;
 	}
 
 }

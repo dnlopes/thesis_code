@@ -19,6 +19,14 @@ public class OrderStat implements TpccConstants
 	private TpccStatements pStmts;
 	private ResultSet rs;
 
+	public String getLastError()
+	{
+		return lastError;
+	}
+
+	private String lastError;
+
+
 	public OrderStat(TpccStatements pStmts)
 	{
 		this.pStmts = pStmts;
@@ -30,9 +38,6 @@ public class OrderStat implements TpccConstants
 					   int c_id_arg,		/* customer id */
 					   String c_last_arg  /* customer last name, format? */)
 	{
-
-		try
-		{
 
 			//pStmts.setAutoCommit(false);
 			if(DEBUG)
@@ -84,13 +89,15 @@ public class OrderStat implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error(
 							"SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
 									" AND c_last = " + c_last,
 							e);
-					throw new Exception("OrderStat Select transaction error", e);
+					return 0;
 				}
 
 				//Get the prepared statement
@@ -126,13 +133,15 @@ public class OrderStat implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 							"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER BY " +
 									"c_first",
 							e);
-					throw new Exception("OrderStat Select transaction error", e);
+					return 0;
 				}
 
 			} else
@@ -161,11 +170,13 @@ public class OrderStat implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 							"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id, e);
-					throw new Exception("OrderStat select transaction error", e);
+					return 0;
 				}
 
 			}
@@ -200,15 +211,17 @@ public class OrderStat implements TpccConstants
 				rs.close();
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
 						"WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND o_id " +
 								"= " +
 						"(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND " +
 								"o_c_id = " + c_id,
 						e);
-				throw new Exception("OrderState select transaction error", e);
+				return 0;
 			}
 
 			//Get prepared statement
@@ -237,21 +250,25 @@ public class OrderStat implements TpccConstants
 				rs.close();
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
 						"WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " + o_id, e);
-				throw new Exception("OrderStat select transaction error", e);
+				return 0;
 			}
 
 			// Commit.
-			pStmts.commit();
-
-			return 1;
-		} catch(Exception e)
+		try
 		{
+			pStmts.commit();
+			return 1;
+
+		} catch(SQLException e)
+		{
+			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
-			logger.error("OrderStat error: {}", e.getMessage());
 			pStmts.rollback();
 			return 0;
 		}

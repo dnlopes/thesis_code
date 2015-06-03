@@ -19,6 +19,13 @@ public class Slev implements TpccConstants
 	private TpccStatements pStmts;
 	private ResultSet rs;
 
+	public String getLastError()
+	{
+		return lastError;
+	}
+
+	private String lastError;
+
 	public Slev(TpccStatements pStms)
 	{
 		this.pStmts = pStms;
@@ -28,10 +35,6 @@ public class Slev implements TpccConstants
 					int d_id_arg,		/* district id */
 					int level_arg		/* stock level */)
 	{
-		try
-		{
-			//pStmts.setAutoCommit(false);
-
 			if(DEBUG)
 				logger.debug("Transaction: 	SLEV");
 			int w_id = w_id_arg;
@@ -59,10 +62,12 @@ public class Slev implements TpccConstants
 				rs.close();
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id, e);
-				throw new Exception("Slev select transaction error", e);
+				return 0;
 			}
 
 			//Get prepared statement
@@ -89,13 +94,15 @@ public class Slev implements TpccConstants
 				rs.close();
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error(
 						"SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id = " + d_id +
 								" AND ol_o_id < " + d_next_o_id +
 								" AND ol_o_id >= (" + d_next_o_id + " - 20)", e);
-				throw new Exception("Slev select transaction error", e);
+				return 0;
 			}
 
 			//Get prepared statement
@@ -120,23 +127,25 @@ public class Slev implements TpccConstants
 				rs.close();
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error(
 						"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND " +
 								"s_quantity < " + level, e);
-				throw new Exception("Slev select transaction error", e);
+				return 0;
 			}
 
 			// Commit.
-			pStmts.commit();
-
-			return 1;
-
-		} catch(Exception e)
+		try
 		{
+			pStmts.commit();
+			return 1;
+		} catch(SQLException e)
+		{
+			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
-			logger.error("Slev error: {}", e.getMessage());
 			pStmts.rollback();
 			return 0;
 		}

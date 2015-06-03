@@ -101,12 +101,6 @@ public class Util implements TpccConstants {
         }
         int value = min + div;
 
-        /*
-        if (value < min || value > max) {
-            throw new IllegalStateException("next=" + next + ", div=" + div + ", min=" + min + ", max=" + max + ", value=" + value);
-        }
-        */
-
         return value;
     }
 
@@ -131,7 +125,8 @@ public class Util implements TpccConstants {
                 C = C_8191;
                 break;
             default:
-                throw new RuntimeException("NURand: unexpected value (%d) of A used\n" + A);
+				System.out.println("NURand: unexpected value");
+                System.exit(1);
         }
 
         return ((((randomNumber(0, A) | randomNumber(x, y)) + C) % (y - x + 1)) + x);

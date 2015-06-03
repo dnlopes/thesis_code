@@ -37,6 +37,13 @@ public class NewOrder implements TpccConstants
 	boolean joins;
 	private ResultSet rs;
 
+	public String getLastError()
+	{
+		return lastError;
+	}
+
+	private String lastError;
+
 	/**
 	 * Constructor.
 	 *
@@ -100,9 +107,6 @@ public class NewOrder implements TpccConstants
 
 		try
 		{
-
-			// Start a transaction.
-			//pStmts.setAutoCommit(false);
 			if(DEBUG)
 				logger.debug("Transaction:	New Order");
 			int w_id = w_id_arg;
@@ -172,13 +176,15 @@ public class NewOrder implements TpccConstants
 					rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error(
 							"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = " + w_id
 									+ " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id,
 							e);
-					throw new Exception("NewOrder select transaction error", e);
+					return 0;
 				}
 			} else if(!joins)
 			{
@@ -222,22 +228,20 @@ public class NewOrder implements TpccConstants
 					this.rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
 
-					logger.error(
-							"SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
+					logger.error("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
 									"c_d_id" +
 									" " +
 									"= " + d_id + " AND c_id = " + c_id, e);
-					throw new Exception("NewOrder (join = false) select transaction error", e);
+					return 0;
 				}
 			} else
 			{
 				logger.error("joins is empty or null");
 			}
-			//Get prepared statement
-			//"SELECT d_next_o_id, d_tax FROM district WHERE d_id = ? AND d_w_id = ? FOR UPDATE"
 
 			try
 			{
@@ -263,14 +267,16 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
-				logger.error(
-						"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id +
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
+				logger.error("SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " +
+						w_id +
 								"" +
 								" " +
 								"FOR UPDATE", e);
-				throw new Exception("Neworder select transaction error", e);
+				return 0;
 			}
 
 			//Get prepared statement
@@ -294,19 +300,17 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error(
 						"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + d_id + " AND " +
 								"d_w_id = " + w_id, e);
-				throw new Exception("NewOrder update transaction error", e);
+				return 0;
 			}
 
 			o_id = d_next_o_id;
-
-			//Get prepared statement
-			//"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES(?, ?, ?, ?,
-			// ?, ?, ?)"
 
 			try
 			{
@@ -327,13 +331,15 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
 						"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
 						"," +
 						o_ol_cnt + "," + o_all_local + ")", e);
-				throw new Exception("NewOrder insert transaction error", e);
+				return 0;
 			}
 
 			//Get prepared statement
@@ -352,13 +358,15 @@ public class NewOrder implements TpccConstants
 
 			} catch(SQLException e)
 			{
-				if(!this.rs.isClosed())
-					this.rs.close();
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
 				logger.error(
 						"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + d_id + "," + w_id
 								+ ")",
 						e);
-				throw new Exception("NewOrder insert transaction error", e);
+				return 0;
 			}
 
             /* sort orders to avoid DeadLock */
@@ -421,10 +429,12 @@ public class NewOrder implements TpccConstants
 					this.rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id, e);
-					throw new Exception("NewOrder select transaction error", e);
+					return 0;
 				}
 
 				price[ol_num_seq[ol_number - 1]] = i_price;
@@ -466,13 +476,15 @@ public class NewOrder implements TpccConstants
 					this.rs.close();
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error("SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
 							"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
 							"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR " +
 							"UPDATE", e);
-					throw new Exception("NewOrder select transaction error", e);
+					return 0;
 				}
 
 				ol_dist_info = pickDistInfo(ol_dist_info, d_id);    /* pick correct * s_dist_xx */
@@ -514,12 +526,14 @@ public class NewOrder implements TpccConstants
 
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error(
 							"UPDATE stock SET s_quantity = " + s_quantity + " WHERE s_i_id = " + ol_i_id + " AND " +
 									"s_w_id = " + ol_supply_w_id, e);
-					throw new Exception("NewOrder update transaction error", e);
+					return 0;
 				}
 
 				ol_amount = ol_quantity * i_price * (1 + w_tax + d_tax) * (1 - c_discount);
@@ -551,8 +565,10 @@ public class NewOrder implements TpccConstants
 
 				} catch(SQLException e)
 				{
-					if(!this.rs.isClosed())
-						this.rs.close();
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(this.rs);
+					pStmts.rollback();
+
 					logger.error(
 							"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, " +
 									"ol_quantity, ol_amount, ol_dist_info) " +
@@ -560,14 +576,31 @@ public class NewOrder implements TpccConstants
 									"," +
 									"" + ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," + ol_dist_info +
 									")", e);
-					throw new Exception("NewOrder insert transaction error", e);
+					return 0;
 				}
 
 			}
 			// Commit.
-			pStmts.commit();
+			try
+			{
+				pStmts.commit();
+				return 1;
 
-			return 1;
+			} catch(SQLException e)
+			{
+				lastError = e.getMessage();
+				DbUtils.closeQuietly(this.rs);
+				pStmts.rollback();
+
+				logger.error("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id," +
+						" " +
+								"ol_quantity, ol_amount, ol_dist_info) " +
+								"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id +
+								"," +
+								"" + ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," + ol_dist_info +
+								")", e);
+				return 0;
+			}
 		} catch(AbortedTransactionException ate)
 		{
 			DbUtils.closeQuietly(this.rs);
@@ -577,12 +610,6 @@ public class NewOrder implements TpccConstants
 
 			pStmts.rollback();
 			return 1; // this is not an error!
-		} catch(Exception e)
-		{
-			DbUtils.closeQuietly(this.rs);
-			logger.error("New Order error: {}", e.getMessage());
-			pStmts.rollback();
-			return 0;
 		}
 	}
 }
