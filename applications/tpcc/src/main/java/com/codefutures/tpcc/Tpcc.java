@@ -605,7 +605,7 @@ public class Tpcc implements TpccConstants
 		float tpmc = TPMC;   */
 
 		int commitsCounter = 0;
-		long totalLatency = 0;
+		float totalLatency = 0.0f;
 
 		for(int i = 0; i < this.success2_sum.length; i++)
 			commitsCounter += success2_sum[i];
@@ -616,11 +616,13 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < this.latencies.length; i++)
 			totalLatency += this.latencies[i];
 
-		long avgLatency;
+		float avgLatency;
 		if(commitsCounter == 0)
 			avgLatency = 65000;
 		else
 			avgLatency = totalLatency / commitsCounter;
+
+
 
 		float abortCounter = 0;
 
@@ -633,6 +635,10 @@ public class Tpcc implements TpccConstants
 		else
 			abortRate = 0.0f;
 
+
+		AVG_LATENCY = avgLatency;
+		ABORT_RATE = abortRate;
+		COMMITS = commitsCounter;
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 

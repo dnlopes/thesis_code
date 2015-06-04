@@ -515,7 +515,7 @@ public class Driver implements TpccConstants
 			}
 		}
 
-		if(Tpcc.counting_on)
+		if(Tpcc.counting_on && returnValue == 0)
 		{
 			retry[2]--;
 			retry2[2][t_num]--;
