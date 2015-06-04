@@ -232,7 +232,7 @@ public class TpccStatements
 			conn.rollback();
 		} catch(SQLException e)
 		{
-			logger.error("ROLLBACK FAILED", e);
+			//logger.error("ROLLBACK FAILED");
 		}
 	}
 }

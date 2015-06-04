@@ -102,8 +102,8 @@ public class Payment implements TpccConstants
 			this.ps = pStmts.createPreparedStatement(9);
 			ps.setFloat(1, h_amount);
 			ps.setInt(2, w_id);
-			if(TRACE)
-				logger.trace("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
+			//if(TRACE)
+				//logger.trace("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
 			ps.executeUpdate();
 
 		} catch(SQLException e)
@@ -113,7 +113,7 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
+			//logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
 			return 0;
 		}
 
@@ -125,11 +125,11 @@ public class Payment implements TpccConstants
 		{
 			this.ps = pStmts.createPreparedStatement(10);
 			ps.setInt(1, w_id);
-			if(TRACE)
+			/*if(TRACE)
 				logger.trace(
 						"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id " +
 								"=" +
-								" " + w_id);
+								" " + w_id);   */
 			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
@@ -150,9 +150,9 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error(
+			/*logger.error(
 					"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id = " +
-							w_id);
+							w_id);         */
 			return 0;
 		}
 
@@ -165,10 +165,10 @@ public class Payment implements TpccConstants
 			ps.setFloat(1, h_amount);
 			ps.setInt(2, w_id);
 			ps.setInt(3, d_id);
-			if(TRACE)
+			/*if(TRACE)
 				logger.trace("UPDATE district SET d_ytd = d_ytd + " + h_amount + " WHERE d_w_id = " + w_id + " AND " +
 								"d_id" +
-								" = " + d_id);
+								" = " + d_id);   */
 			ps.executeUpdate();
 
 		} catch(SQLException e)
@@ -178,9 +178,9 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error(
+			/*logger.error(
 					"UPDATE district SET d_ytd = d_ytd + " + h_amount + " WHERE d_w_id = " + w_id + " AND d_id = " +
-							d_id);
+							d_id);           */
 			return 0;
 		}
 
@@ -194,11 +194,11 @@ public class Payment implements TpccConstants
 			this.ps = pStmts.createPreparedStatement(12);
 			ps.setInt(1, w_id);
 			ps.setInt(2, d_id);
-			if(TRACE)
+			/*if(TRACE)
 				logger.trace(
 						"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id" +
 								" " +
-								"= " + w_id + " AND d_id = " + d_id);
+								"= " + w_id + " AND d_id = " + d_id); */
 			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
@@ -218,9 +218,9 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error(
+			/*logger.error(
 					"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id = " +
-							w_id + " AND d_id = " + d_id);
+							w_id + " AND d_id = " + d_id);   */
 			return 0;
 		}
 
@@ -239,9 +239,9 @@ public class Payment implements TpccConstants
 				ps.setInt(1, c_w_id);
 				ps.setInt(2, c_d_id);
 				ps.setString(3, c_last);
-				if(TRACE)
+				/*if(TRACE)
 					logger.trace("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " +
-							c_d_id + " AND c_last = " + c_last);
+							c_d_id + " AND c_last = " + c_last);     */
 				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
@@ -256,8 +256,8 @@ public class Payment implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
-								" AND c_last = " + c_last);
+				/*logger.error("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
+								" AND c_last = " + c_last);            */
 				return 0;
 			}
 
@@ -270,11 +270,11 @@ public class Payment implements TpccConstants
 				ps.setInt(1, c_w_id);
 				ps.setInt(2, c_d_id);
 				ps.setString(3, c_last);
-				if(TRACE)
+				/*if(TRACE)
 					logger.trace("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
 							"" +
 									" " +
-									"AND c_last = " + c_last + " ORDER BY c_first");
+									"AND c_last = " + c_last + " ORDER BY c_first");  */
 
 				if(namecnt % 2 == 1)
 				{
@@ -302,10 +302,10 @@ public class Payment implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " " +
+				/*logger.error("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " " +
 						"AND" +
 								" " +
-								"c_last = " + c_last + " ORDER BY c_first");
+								"c_last = " + c_last + " ORDER BY c_first"); */
 				return 0;
 			}
 
@@ -323,12 +323,12 @@ public class Payment implements TpccConstants
 			ps.setInt(1, c_w_id);
 			ps.setInt(2, c_d_id);
 			ps.setInt(3, c_id);
-			if(TRACE)
+			/*if(TRACE)
 				logger.trace("SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, " +
 						"c_phone, c_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer " +
 						"WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id +
 						"" +
-						" FOR UPDATE");
+						" FOR UPDATE");        */
 			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
@@ -357,12 +357,13 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error("SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, c_phone," +
+			/*logger.error("SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip,
+			c_phone," +
 					" " +
 							"c_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer " +
 							"WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id + " " +
 							"FOR" +
-							" UPDATE");
+							" UPDATE"); */
 			return 0;
 		}
 
@@ -381,10 +382,10 @@ public class Payment implements TpccConstants
 					ps.setInt(1, c_w_id);
 					ps.setInt(2, c_d_id);
 					ps.setInt(3, c_id);
-					if(TRACE)
+					/*if(TRACE)
 						logger.trace(
 								"SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + "" +
-										" AND c_id = " + c_id);
+										" AND c_id = " + c_id);*/
 					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
@@ -399,9 +400,9 @@ public class Payment implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error("SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
+					/*logger.error("SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
 									"" +
-									" AND c_id = " + c_id);
+									" AND c_id = " + c_id);*/
 					return 0;
 				}
 
@@ -423,11 +424,11 @@ public class Payment implements TpccConstants
 					ps.setInt(3, c_w_id);
 					ps.setInt(4, c_d_id);
 					ps.setInt(5, c_id);
-					if(TRACE)
+				/*	if(TRACE)
 						logger.trace(
 								"UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE" +
 										" " +
-										"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
+										"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id); */
 					ps.executeUpdate();
 
 				} catch(SQLException e)
@@ -437,8 +438,8 @@ public class Payment implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error("UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE " +
-									"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
+				/*	logger.error("UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE " +
+									"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);*/
 					return 0;
 				}
 
@@ -455,11 +456,11 @@ public class Payment implements TpccConstants
 					ps.setInt(2, c_w_id);
 					ps.setInt(3, c_d_id);
 					ps.setInt(4, c_id);
-					if(TRACE)
+					/*if(TRACE)
 						logger.trace("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id +
 								"" +
 										" " +
-										"AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
+										"AND c_d_id = " + c_d_id + " AND c_id = " + c_id);*/
 					ps.executeUpdate();
 
 				} catch(SQLException e)
@@ -468,11 +469,11 @@ public class Payment implements TpccConstants
 					DbUtils.closeQuietly(this.rs);
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
-
+				/*
 					logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " " +
 							"AND" +
 									" " +
-									"c_d_id = " + c_d_id + " AND c_id = " + c_id);
+									"c_d_id = " + c_d_id + " AND c_id = " + c_id);  */
 					return 0;
 				}
 
@@ -490,11 +491,11 @@ public class Payment implements TpccConstants
 				ps.setInt(2, c_w_id);
 				ps.setInt(3, c_d_id);
 				ps.setInt(4, c_id);
-				if(TRACE)
+		/*		if(TRACE)
 					logger.trace("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " " +
 							"AND" +
 									" " +
-									"c_d_id = " + c_d_id + " AND c_id = " + c_id);
+									"c_d_id = " + c_d_id + " AND c_id = " + c_id);    */
 				ps.executeUpdate();
 
 			} catch(SQLException e)
@@ -504,8 +505,8 @@ public class Payment implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " AND " +
-								"c_d_id = " + c_d_id + " AND c_id = " + c_id);
+				/*logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " AND " +
+								"c_d_id = " + c_d_id + " AND c_id = " + c_id);*/
 				return 0;
 			}
 
@@ -528,11 +529,11 @@ public class Payment implements TpccConstants
 			ps.setString(6, currentTimeStamp.toString());
 			ps.setFloat(7, h_amount);
 			ps.setString(8, h_data);
-			if(TRACE)
+			/*if(TRACE)
 				logger.trace("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, " +
 						"h_data)" +
 						" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
-						currentTimeStamp.toString() + "," + h_amount + "," /*+ h_data*/);
+						currentTimeStamp.toString() + "," + h_amount + ","); */
 			ps.executeUpdate();
 
 		} catch(SQLException e)
@@ -542,9 +543,10 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
+			/*logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
 							" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
-							currentTimeStamp.toString() + "," + h_amount + "," /*+ h_data*/);
+							currentTimeStamp.toString() + "," + h_amount + "," h_data);
+			*/
 			return 0;
 		}
 

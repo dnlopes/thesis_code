@@ -79,10 +79,10 @@ public class OrderStat implements TpccConstants
 					ps.setInt(1, c_w_id);
 					ps.setInt(2, c_d_id);
 					ps.setString(3, c_last);
-					if(TRACE)
+					/*if(TRACE)
 						logger.trace(
 								"SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " +
-										c_d_id + " AND c_last = " + c_last);
+										c_d_id + " AND c_last = " + c_last);*/
 
 					this.rs = ps.executeQuery();
 					if(rs.next())
@@ -98,9 +98,9 @@ public class OrderStat implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error(
+					/*logger.error(
 							"SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
-									" AND c_last = " + c_last);
+									" AND c_last = " + c_last);     */
 					return 0;
 				}
 
@@ -115,10 +115,10 @@ public class OrderStat implements TpccConstants
 					ps.setInt(1, c_w_id);
 					ps.setInt(2, c_d_id);
 					ps.setString(3, c_last);
-					if(TRACE)
+					/*if(TRACE)
 						logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 								"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER" +
-								" BY c_first");
+								" BY c_first");   */
 
 					this.rs = ps.executeQuery();
 					if(namecnt % 2 == 1)
@@ -144,9 +144,9 @@ public class OrderStat implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
+					/*logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 							"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER BY " +
-									"c_first");
+									"c_first");     */
 					return 0;
 				}
 
@@ -162,9 +162,9 @@ public class OrderStat implements TpccConstants
 					ps.setInt(1, c_w_id);
 					ps.setInt(2, c_d_id);
 					ps.setInt(3, c_id);
-					if(TRACE)
-						logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
-								"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
+					//if(TRACE)
+					//	logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
+					//			"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
 					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
@@ -182,8 +182,8 @@ public class OrderStat implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
-							"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
+					//logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
+					//		"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
 					return 0;
 				}
 
@@ -204,12 +204,12 @@ public class OrderStat implements TpccConstants
 				ps.setInt(4, c_w_id);
 				ps.setInt(5, c_d_id);
 				ps.setInt(6, c_id);
-				if(TRACE)
+				/*if(TRACE)
 					logger.trace("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
 							"WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND " +
 							"o_id = " +
 							"(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " " +
-							"AND o_c_id = " + c_id);
+							"AND o_c_id = " + c_id);  */
 				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
@@ -226,11 +226,11 @@ public class OrderStat implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
+				/*logger.error("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
 						"WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND o_id " +
 								"= " +
 						"(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND " +
-								"o_c_id = " + c_id);
+								"o_c_id = " + c_id);    */
 				return 0;
 			}
 
@@ -244,11 +244,11 @@ public class OrderStat implements TpccConstants
 				ps.setInt(1, c_w_id);
 				ps.setInt(2, c_d_id);
 				ps.setInt(3, o_id);
-				if(TRACE)
+			/*	if(TRACE)
 					logger.trace(
 							"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
 									"WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " +
-									o_id);
+									o_id);                                                                        */
 				this.rs = ps.executeQuery();
 				while(rs.next())
 				{
@@ -267,8 +267,9 @@ public class OrderStat implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
-						"WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " + o_id);
+				//logger.error("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line
+				// " +
+				//		"WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " + o_id);
 				return 0;
 			}
 

@@ -54,8 +54,8 @@ public class Slev implements TpccConstants
 				this.ps = pStmts.createPreparedStatement(32);
 				ps.setInt(1, d_id);
 				ps.setInt(2, w_id);
-				if(TRACE)
-					logger.trace("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
+			/*	if(TRACE)
+					logger.trace("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);*/
 				this.rs = ps.executeQuery();
 
 				if(rs.next())
@@ -70,7 +70,7 @@ public class Slev implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
+				//logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
 				return 0;
 			}
 
@@ -84,11 +84,11 @@ public class Slev implements TpccConstants
 				ps.setInt(2, d_id);
 				ps.setInt(3, d_next_o_id);
 				ps.setInt(4, d_next_o_id);
-				if(TRACE)
+				/*if(TRACE)
 					logger.trace("SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id =" +
 							" " +
 									d_id + " AND ol_o_id < " + d_next_o_id +
-									" AND ol_o_id >= (" + d_next_o_id + " - 20)");
+									" AND ol_o_id >= (" + d_next_o_id + " - 20)");       */
 				this.rs = ps.executeQuery();
 
 				while(rs.next())
@@ -104,10 +104,10 @@ public class Slev implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error(
+				/*logger.error(
 						"SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id = " + d_id +
 								" AND ol_o_id < " + d_next_o_id +
-								" AND ol_o_id >= (" + d_next_o_id + " - 20)");
+								" AND ol_o_id >= (" + d_next_o_id + " - 20)");         */
 				return 0;
 			}
 
@@ -121,10 +121,10 @@ public class Slev implements TpccConstants
 				ps.setInt(2, ol_i_id);
 				ps.setInt(3, level);
 				if(TRACE)
-					logger.trace(
+					/*logger.trace(
 							"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND" +
 									" " +
-									"s_quantity < " + level);
+									"s_quantity < " + level); */
 				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
@@ -139,9 +139,9 @@ public class Slev implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error(
+				/*logger.error(
 						"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND " +
-								"s_quantity < " + level);
+								"s_quantity < " + level);*/
 				return 0;
 			}
 
