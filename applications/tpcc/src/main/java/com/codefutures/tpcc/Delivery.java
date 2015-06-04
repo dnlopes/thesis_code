@@ -79,7 +79,7 @@ public class Delivery implements TpccConstants
 				logger.error("SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = " + d_id + " AND " +
 						"no_w_id" +
 						" " +
-						"= " + w_id, e);
+						"= " + w_id);
 				return 0;
 			}
 
@@ -110,7 +110,7 @@ public class Delivery implements TpccConstants
 				pStmts.rollback();
 
 				logger.error("DELETE FROM new_orders WHERE no_o_id = " + no_o_id + " AND no_d_id = " + d_id + " AND " +
-								"no_w_id = " + w_id, e);
+								"no_w_id = " + w_id);
 				return 0;
 			}
 
@@ -139,7 +139,7 @@ public class Delivery implements TpccConstants
 				pStmts.rollback();
 
 				logger.error("SELECT o_c_id FROM orders WHERE o_id = " + no_o_id + " AND o_d_id = " + d_id + " AND " +
-								"o_w_id = " + w_id, e);
+								"o_w_id = " + w_id);
 				return 0;
 			}
 
@@ -195,7 +195,7 @@ public class Delivery implements TpccConstants
 						"ol_o_id" +
 								" " +
 								"=" +
-								" " + no_o_id + " AND ol_d_id = " + d_id + " AND ol_w_id = " + w_id, e);
+								" " + no_o_id + " AND ol_d_id = " + d_id + " AND ol_w_id = " + w_id);
 				return 0;
 			}
 
@@ -223,7 +223,7 @@ public class Delivery implements TpccConstants
 				pStmts.rollback();
 
 				logger.error("SELECT SUM(ol_amount) FROM order_line WHERE ol_o_id = " + no_o_id + " AND ol_d_id = " +
-								d_id + " AND ol_w_id = " + w_id, e);
+								d_id + " AND ol_w_id = " + w_id);
 				return 0;
 			}
 
@@ -251,7 +251,7 @@ public class Delivery implements TpccConstants
 				logger.error("UPDATE customer SET c_balance = c_balance + " + ol_total + ", c_delivery_cnt = " +
 						"c_delivery_cnt + 1 WHERE c_id = " + c_id + " AND c_d_id = " + d_id + " AND " +
 						"c_w_id" +
-						" = " + w_id, e);
+						" = " + w_id);
 				return 0;
 			}
 		}

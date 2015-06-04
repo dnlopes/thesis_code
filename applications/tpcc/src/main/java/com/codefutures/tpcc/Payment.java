@@ -113,7 +113,7 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id, e);
+			logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
 			return 0;
 		}
 
@@ -152,8 +152,7 @@ public class Payment implements TpccConstants
 
 			logger.error(
 					"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id = " +
-							w_id,
-					e);
+							w_id);
 			return 0;
 		}
 
@@ -181,8 +180,7 @@ public class Payment implements TpccConstants
 
 			logger.error(
 					"UPDATE district SET d_ytd = d_ytd + " + h_amount + " WHERE d_w_id = " + w_id + " AND d_id = " +
-							d_id,
-					e);
+							d_id);
 			return 0;
 		}
 
@@ -222,8 +220,7 @@ public class Payment implements TpccConstants
 
 			logger.error(
 					"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id = " +
-							w_id + " AND d_id = " + d_id,
-					e);
+							w_id + " AND d_id = " + d_id);
 			return 0;
 		}
 
@@ -260,7 +257,7 @@ public class Payment implements TpccConstants
 				pStmts.rollback();
 
 				logger.error("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
-								" AND c_last = " + c_last, e);
+								" AND c_last = " + c_last);
 				return 0;
 			}
 
@@ -308,7 +305,7 @@ public class Payment implements TpccConstants
 				logger.error("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " " +
 						"AND" +
 								" " +
-								"c_last = " + c_last + " ORDER BY c_first", e);
+								"c_last = " + c_last + " ORDER BY c_first");
 				return 0;
 			}
 
@@ -365,7 +362,7 @@ public class Payment implements TpccConstants
 							"c_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer " +
 							"WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id + " " +
 							"FOR" +
-							" UPDATE", e);
+							" UPDATE");
 			return 0;
 		}
 
@@ -404,7 +401,7 @@ public class Payment implements TpccConstants
 
 					logger.error("SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
 									"" +
-									" AND c_id = " + c_id, e);
+									" AND c_id = " + c_id);
 					return 0;
 				}
 
@@ -441,7 +438,7 @@ public class Payment implements TpccConstants
 					pStmts.rollback();
 
 					logger.error("UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE " +
-									"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id, e);
+									"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
 					return 0;
 				}
 
@@ -475,7 +472,7 @@ public class Payment implements TpccConstants
 					logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " " +
 							"AND" +
 									" " +
-									"c_d_id = " + c_d_id + " AND c_id = " + c_id, e);
+									"c_d_id = " + c_d_id + " AND c_id = " + c_id);
 					return 0;
 				}
 
@@ -508,7 +505,7 @@ public class Payment implements TpccConstants
 				pStmts.rollback();
 
 				logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " AND " +
-								"c_d_id = " + c_d_id + " AND c_id = " + c_id, e);
+								"c_d_id = " + c_d_id + " AND c_id = " + c_id);
 				return 0;
 			}
 
@@ -547,7 +544,7 @@ public class Payment implements TpccConstants
 
 			logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
 							" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
-							currentTimeStamp.toString() + "," + h_amount + "," /*+ h_data*/, e);
+							currentTimeStamp.toString() + "," + h_amount + "," /*+ h_data*/);
 			return 0;
 		}
 

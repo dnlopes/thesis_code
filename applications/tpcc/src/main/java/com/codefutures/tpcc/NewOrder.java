@@ -185,8 +185,7 @@ public class NewOrder implements TpccConstants
 
 					logger.error(
 							"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = " + w_id
-									+ " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id,
-							e);
+									+ " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " + c_id);
 					return 0;
 				}
 			} else if(!joins)
@@ -243,7 +242,7 @@ public class NewOrder implements TpccConstants
 					logger.error("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
 									"c_d_id" +
 									" " +
-									"= " + d_id + " AND c_id = " + c_id, e);
+									"= " + d_id + " AND c_id = " + c_id);
 					return 0;
 				}
 			} else
@@ -285,7 +284,7 @@ public class NewOrder implements TpccConstants
 						w_id +
 								"" +
 								" " +
-								"FOR UPDATE", e);
+								"FOR UPDATE");
 				return 0;
 			}
 
@@ -318,7 +317,7 @@ public class NewOrder implements TpccConstants
 
 				logger.error(
 						"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + d_id + " AND " +
-								"d_w_id = " + w_id, e);
+								"d_w_id = " + w_id);
 				return 0;
 			}
 
@@ -352,7 +351,7 @@ public class NewOrder implements TpccConstants
 				logger.error("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
 						"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
 						"," +
-						o_ol_cnt + "," + o_all_local + ")", e);
+						o_ol_cnt + "," + o_all_local + ")");
 				return 0;
 			}
 
@@ -380,8 +379,7 @@ public class NewOrder implements TpccConstants
 
 				logger.error(
 						"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + d_id + "," + w_id
-								+ ")",
-						e);
+								+ ")");
 				return 0;
 			}
 
@@ -451,7 +449,7 @@ public class NewOrder implements TpccConstants
 					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
-					logger.error("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id, e);
+					logger.error("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id);
 					return 0;
 				}
 
@@ -503,7 +501,7 @@ public class NewOrder implements TpccConstants
 					logger.error("SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
 							"s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM " +
 							"stock WHERE s_i_id = " + ol_i_id + " AND s_w_id = " + ol_supply_w_id + " FOR " +
-							"UPDATE", e);
+							"UPDATE");
 					return 0;
 				}
 
@@ -554,7 +552,7 @@ public class NewOrder implements TpccConstants
 
 					logger.error(
 							"UPDATE stock SET s_quantity = " + s_quantity + " WHERE s_i_id = " + ol_i_id + " AND " +
-									"s_w_id = " + ol_supply_w_id, e);
+									"s_w_id = " + ol_supply_w_id);
 					return 0;
 				}
 
@@ -599,7 +597,7 @@ public class NewOrder implements TpccConstants
 									"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id +
 									"," +
 									"" + ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," + ol_dist_info +
-									")", e);
+									")");
 					return 0;
 				}
 
@@ -623,7 +621,7 @@ public class NewOrder implements TpccConstants
 								"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id +
 								"," +
 								"" + ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," + ol_dist_info +
-								")", e);
+								")");
 				return 0;
 			}
 		} catch(AbortedTransactionException ate)

@@ -70,7 +70,7 @@ public class Slev implements TpccConstants
 				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
-				logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id, e);
+				logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
 				return 0;
 			}
 
@@ -107,7 +107,7 @@ public class Slev implements TpccConstants
 				logger.error(
 						"SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id = " + d_id +
 								" AND ol_o_id < " + d_next_o_id +
-								" AND ol_o_id >= (" + d_next_o_id + " - 20)", e);
+								" AND ol_o_id >= (" + d_next_o_id + " - 20)");
 				return 0;
 			}
 
@@ -141,7 +141,7 @@ public class Slev implements TpccConstants
 
 				logger.error(
 						"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND " +
-								"s_quantity < " + level, e);
+								"s_quantity < " + level);
 				return 0;
 			}
 
