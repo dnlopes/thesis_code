@@ -203,17 +203,11 @@ public class NewOrder implements TpccConstants
 					ps.setInt(column++, d_id);
 					ps.setInt(column++, c_id);
 
-					//SELECT w_tax FROM warehouse WHERE w_id = ?
-					//final PreparedStatement pstmt36 = ps.getStatement(36);
-					this.ps = pStmts.createPreparedStatement(36);
-					ps.setInt(1, w_id);
-
 					if(TRACE)
 						logger.trace(
 								"SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
 										"c_d_id = " + d_id + " AND c_id = " + c_id);
-					if(TRACE)
-						logger.trace("SELECT w_tax FROM warehouse WHERE w_id = " + w_id);
+
 					this.rs = ps.executeQuery();
 
 					if(this.rs.next())
@@ -222,13 +216,22 @@ public class NewOrder implements TpccConstants
 						c_last = this.rs.getString(2);
 						c_credit = this.rs.getString(3);
 					}
-					this.rs.close();
+
+					//SELECT w_tax FROM warehouse WHERE w_id = ?
+					//final PreparedStatement pstmt36 = ps.getStatement(36);
+					this.ps = pStmts.createPreparedStatement(36);
+					ps.setInt(1, w_id);
+
+					if(TRACE)
+						logger.trace("SELECT w_tax FROM warehouse WHERE w_id = " + w_id);
+
 					this.rs = ps.executeQuery();
 
 					if(this.rs.next())
 					{
 						w_tax = this.rs.getFloat(1);
 					}
+
 					this.rs.close();
 				} catch(SQLException e)
 				{
