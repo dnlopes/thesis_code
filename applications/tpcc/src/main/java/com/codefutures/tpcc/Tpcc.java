@@ -481,6 +481,7 @@ public class Tpcc implements TpccConstants
 		}
 
 		float tpcm = (success[0] + late[0]) * 60000f / actualTestTime;
+		TPMC = tpcm;
 
 		System.out.println();
 		System.out.println("<TpmC>");
@@ -597,10 +598,41 @@ public class Tpcc implements TpccConstants
 
 	public void createOutputFiles()
 	{
+		/*
 		int commitsCounter = COMMITS;
 		double avgLatency = AVG_LATENCY;
 		float abortRate = ABORT_RATE;
-		float tpmc = TPMC;
+		float tpmc = TPMC;   */
+
+		int commitsCounter = 0;
+		long totalLatency = 0;
+
+		for(int i = 0; i < this.success2_sum.length; i++)
+			commitsCounter += success2_sum[i];
+
+		for(int i = 0; i < this.late2_sum.length; i++)
+			commitsCounter += late2_sum[i];
+
+		for(int i = 0; i < this.latencies.length; i++)
+			totalLatency += this.latencies[i];
+
+		long avgLatency;
+		if(commitsCounter == 0)
+			avgLatency = 65000;
+		else
+			avgLatency = totalLatency / commitsCounter;
+
+		float abortCounter = 0;
+
+		for(int i = 0; i < this.failure2_sum.length; i++)
+			abortCounter += this.failure2_sum[i];
+
+		float abortRate;
+		if(abortCounter > 0 || commitsCounter > 0)
+			abortRate = abortCounter * 1.0f / (abortCounter + commitsCounter);
+		else
+			abortRate = 0.0f;
+
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 
@@ -609,12 +641,12 @@ public class Tpcc implements TpccConstants
 		PrintWriter out = null;
 		try
 		{   StringBuilder buffer = new StringBuilder();
-			buffer.append("committed,avgLatency,tpmc,abortrate\n");
+			buffer.append("commitsCounter,avgLatency,tpmc,abortrate\n");
 			buffer.append(commitsCounter);
 			buffer.append(",");
 			buffer.append(avgLatency);
 			buffer.append(",");
-			buffer.append(tpmc);
+			buffer.append(TPMC);
 			buffer.append(",");
 			buffer.append(abortRate);
 			out = new PrintWriter(fileName);
