@@ -36,6 +36,7 @@ public class NewOrder implements TpccConstants
 	int[] ol_num_seq = new int[MAX_NUM_ITEMS];
 	boolean joins;
 	private ResultSet rs;
+	private PreparedStatement ps;
 
 	public String getLastError()
 	{
@@ -155,17 +156,18 @@ public class NewOrder implements TpccConstants
 				try
 				{
 					int column = 1;
-					final PreparedStatement pstmt0 = pStmts.getStatement(0);
-					pstmt0.setInt(column++, w_id);
-					pstmt0.setInt(column++, w_id);
-					pstmt0.setInt(column++, d_id);
-					pstmt0.setInt(column++, c_id);
+					//final PreparedStatement pstmt0 = pStmts.getStatement(0);
+					this.ps = pStmts.createPreparedStatement(0);
+					ps.setInt(column++, w_id);
+					ps.setInt(column++, w_id);
+					ps.setInt(column++, d_id);
+					ps.setInt(column++, c_id);
 					if(TRACE)
 						logger.trace(
 								"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = " +
 										w_id + " AND c_w_id = " + w_id + " AND c_d_id = " + d_id + " AND c_id = " +
 										c_id);
-					this.rs = pstmt0.executeQuery();
+					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
 						c_discount = rs.getFloat(1);
@@ -178,6 +180,7 @@ public class NewOrder implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(ps);
 					pStmts.rollback();
 
 					logger.error(
@@ -194,14 +197,16 @@ public class NewOrder implements TpccConstants
 				{
 					int column = 1;
 					//SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?
-					final PreparedStatement pstmt35 = pStmts.getStatement(35);
-					pstmt35.setInt(column++, w_id);
-					pstmt35.setInt(column++, d_id);
-					pstmt35.setInt(column++, c_id);
+					//final PreparedStatement pstmt35 = pStmts.getStatement(35);
+					this.ps = pStmts.createPreparedStatement(35);
+					ps.setInt(column++, w_id);
+					ps.setInt(column++, d_id);
+					ps.setInt(column++, c_id);
 
 					//SELECT w_tax FROM warehouse WHERE w_id = ?
-					final PreparedStatement pstmt36 = pStmts.getStatement(36);
-					pstmt36.setInt(1, w_id);
+					//final PreparedStatement pstmt36 = ps.getStatement(36);
+					this.ps = pStmts.createPreparedStatement(36);
+					ps.setInt(1, w_id);
 
 					if(TRACE)
 						logger.trace(
@@ -209,7 +214,7 @@ public class NewOrder implements TpccConstants
 										"c_d_id = " + d_id + " AND c_id = " + c_id);
 					if(TRACE)
 						logger.trace("SELECT w_tax FROM warehouse WHERE w_id = " + w_id);
-					this.rs = pstmt35.executeQuery();
+					this.rs = ps.executeQuery();
 
 					if(this.rs.next())
 					{
@@ -218,8 +223,7 @@ public class NewOrder implements TpccConstants
 						c_credit = this.rs.getString(3);
 					}
 					this.rs.close();
-
-					this.rs = pstmt36.executeQuery();
+					this.rs = ps.executeQuery();
 
 					if(this.rs.next())
 					{
@@ -230,6 +234,7 @@ public class NewOrder implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = " + w_id + " AND " +
@@ -245,14 +250,15 @@ public class NewOrder implements TpccConstants
 
 			try
 			{
-				final PreparedStatement pstmt1 = pStmts.getStatement(1);
-				pstmt1.setInt(1, d_id);
-				pstmt1.setInt(2, w_id);
+				//final PreparedStatement pstmt1 = pStmts.getStatement(1);
+				this.ps = pStmts.createPreparedStatement(1);
+				ps.setInt(1, d_id);
+				ps.setInt(2, w_id);
 				if(TRACE)
 					logger.trace(
 							"SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " + w_id
 									+ " FOR UPDATE");
-				this.rs = pstmt1.executeQuery();
+				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
 					d_next_o_id = this.rs.getInt(1);
@@ -269,6 +275,7 @@ public class NewOrder implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT d_next_o_id, d_tax FROM district WHERE d_id = " + d_id + "  AND d_w_id = " +
@@ -287,21 +294,23 @@ public class NewOrder implements TpccConstants
 
 			try
 			{
-				final PreparedStatement pstmt2 = pStmts.getStatement(2);
-				pstmt2.setInt(1, d_next_o_id);
-				pstmt2.setInt(2, d_id);
-				pstmt2.setInt(3, w_id);
+				//final PreparedStatement pstmt2 = pStmts.getStatement(2);
+				this.ps = pStmts.createPreparedStatement(2);
+				ps.setInt(1, d_next_o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
 				if(TRACE)
 					logger.trace(
 							"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + d_id + " AND" +
 									" " +
 									"d_w_id = " + w_id);
-				pstmt2.executeUpdate();
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error(
@@ -314,25 +323,27 @@ public class NewOrder implements TpccConstants
 
 			try
 			{
-				final PreparedStatement pstmt3 = pStmts.getStatement(3);
-				pstmt3.setInt(1, o_id);
-				pstmt3.setInt(2, d_id);
-				pstmt3.setInt(3, w_id);
-				pstmt3.setInt(4, c_id);
-				pstmt3.setString(5, currentTimeStamp);
-				pstmt3.setInt(6, o_ol_cnt);
-				pstmt3.setInt(7, o_all_local);
+				//final PreparedStatement pstmt3 = pStmts.getStatement(3);
+				this.ps = pStmts.createPreparedStatement(3);
+				ps.setInt(1, o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
+				ps.setInt(4, c_id);
+				ps.setString(5, currentTimeStamp);
+				ps.setInt(6, o_ol_cnt);
+				ps.setInt(7, o_all_local);
 				if(TRACE)
 					logger.trace(
 							"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
 									"VALUES(" + o_id + "," + d_id + "," + w_id + "," + c_id + "," + currentTimeStamp +
 									"," + o_ol_cnt + "," + o_all_local + ")");
-				pstmt3.executeUpdate();
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
@@ -346,20 +357,22 @@ public class NewOrder implements TpccConstants
 			//"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (?,?,?)
 			try
 			{
-				final PreparedStatement pstmt4 = pStmts.getStatement(4);
-				pstmt4.setInt(1, o_id);
-				pstmt4.setInt(2, d_id);
-				pstmt4.setInt(3, w_id);
+				//final PreparedStatement pstmt4 = pStmts.getStatement(4);
+				this.ps = pStmts.createPreparedStatement(4);
+				ps.setInt(1, o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
 				if(TRACE)
 					logger.trace(
 							"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + d_id + "," +
 									w_id + ")");
-				pstmt4.executeUpdate();
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error(
@@ -407,11 +420,12 @@ public class NewOrder implements TpccConstants
 
 				try
 				{
-					final PreparedStatement pstmt5 = pStmts.getStatement(5);
-					pstmt5.setInt(1, ol_i_id);
+					//final PreparedStatement pstmt5 = pStmts.getStatement(5);
+					this.ps = pStmts.createPreparedStatement(5);
+					ps.setInt(1, ol_i_id);
 					if(TRACE)
 						logger.trace("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id);
-					this.rs = pstmt5.executeQuery();
+					this.rs = ps.executeQuery();
 					if(this.rs.next())
 					{
 						i_price = this.rs.getFloat(1);
@@ -431,6 +445,7 @@ public class NewOrder implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT i_price, i_name, i_data FROM item WHERE i_id =" + ol_i_id, e);
@@ -445,9 +460,10 @@ public class NewOrder implements TpccConstants
 				// s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE s_i_id = ? AND s_w_id = ? FOR UPDATE"
 				try
 				{
-					final PreparedStatement pstmt6 = pStmts.getStatement(6);
-					pstmt6.setInt(1, ol_i_id);
-					pstmt6.setInt(2, ol_supply_w_id);
+					//final PreparedStatement pstmt6 = pStmts.getStatement(6);
+					this.ps = pStmts.createPreparedStatement(6);
+					ps.setInt(1, ol_i_id);
+					ps.setInt(2, ol_supply_w_id);
 					if(TRACE)
 						logger.trace(
 								"SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
@@ -456,7 +472,7 @@ public class NewOrder implements TpccConstants
 										"FOR" +
 										" " +
 										"UPDATE");
-					this.rs = pstmt6.executeQuery();
+					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
 						s_quantity = rs.getInt(1);
@@ -478,6 +494,7 @@ public class NewOrder implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, " +
@@ -513,21 +530,23 @@ public class NewOrder implements TpccConstants
 				//"UPDATE stock SET s_quantity = ? WHERE s_i_id = ? AND s_w_id = ?"
 				try
 				{
-					final PreparedStatement pstmt7 = pStmts.getStatement(7);
-					pstmt7.setInt(1, s_quantity);
-					pstmt7.setInt(2, ol_i_id);
-					pstmt7.setInt(3, ol_supply_w_id);
+					//final PreparedStatement pstmt7 = pStmts.getStatement(7);
+					this.ps = pStmts.createPreparedStatement(7);
+					ps.setInt(1, s_quantity);
+					ps.setInt(2, ol_i_id);
+					ps.setInt(3, ol_supply_w_id);
 					if(TRACE)
 						logger.trace(
 								"UPDATE stock SET s_quantity = " + s_quantity + " WHERE s_i_id = " + ol_i_id + " AND" +
 										" " +
 										"s_w_id = " + ol_supply_w_id);
-					pstmt7.executeUpdate();
+					ps.executeUpdate();
 
 				} catch(SQLException e)
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error(
@@ -545,28 +564,30 @@ public class NewOrder implements TpccConstants
 
 				try
 				{
-					final PreparedStatement pstmt8 = pStmts.getStatement(8);
-					pstmt8.setInt(1, o_id);
-					pstmt8.setInt(2, d_id);
-					pstmt8.setInt(3, w_id);
-					pstmt8.setInt(4, ol_number);
-					pstmt8.setInt(5, ol_i_id);
-					pstmt8.setInt(6, ol_supply_w_id);
-					pstmt8.setInt(7, ol_quantity);
-					pstmt8.setFloat(8, ol_amount);
-					pstmt8.setString(9, ol_dist_info);
+					//final PreparedStatement pstmt8 = pStmts.getStatement(8);
+					this.ps = pStmts.createPreparedStatement(8);
+					ps.setInt(1, o_id);
+					ps.setInt(2, d_id);
+					ps.setInt(3, w_id);
+					ps.setInt(4, ol_number);
+					ps.setInt(5, ol_i_id);
+					ps.setInt(6, ol_supply_w_id);
+					ps.setInt(7, ol_quantity);
+					ps.setFloat(8, ol_amount);
+					ps.setString(9, ol_dist_info);
 					if(TRACE)
 						logger.trace("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, " +
 								"ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) " +
 								"VALUES (" + o_id + "," + d_id + "," + w_id + "," + ol_number + "," + ol_i_id + "," +
 								ol_supply_w_id + "," + ol_quantity + "," + ol_amount + "," +
 								ol_dist_info + ")");
-					pstmt8.executeUpdate();
+					ps.executeUpdate();
 
 				} catch(SQLException e)
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error(
@@ -590,6 +611,7 @@ public class NewOrder implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id," +
@@ -604,6 +626,7 @@ public class NewOrder implements TpccConstants
 		} catch(AbortedTransactionException ate)
 		{
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			// Rollback if an aborted transaction, they are intentional in some percentage of cases.
 			if(logger.isDebugEnabled())
 				logger.debug("Caught AbortedTransactionException");

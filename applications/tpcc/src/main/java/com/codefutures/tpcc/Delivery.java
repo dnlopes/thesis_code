@@ -19,6 +19,7 @@ public class Delivery implements TpccConstants
 
 	private TpccStatements pStmts;
 	private ResultSet rs;
+	private PreparedStatement ps;
 
 	public String getLastError()
 	{
@@ -57,9 +58,10 @@ public class Delivery implements TpccConstants
 						"= " + w_id);
 			try
 			{
-				pStmts.getStatement(25).setInt(1, d_id);
-				pStmts.getStatement(25).setInt(2, w_id);
-				this.rs = pStmts.getStatement(25).executeQuery();
+				this.ps = pStmts.createPreparedStatement(25);
+				ps.setInt(1, d_id);
+				ps.setInt(2, w_id);
+				this.rs = ps.executeQuery();
 
 				if(rs.next())
 				{
@@ -71,6 +73,7 @@ public class Delivery implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = " + d_id + " AND " +
@@ -93,15 +96,17 @@ public class Delivery implements TpccConstants
 								"no_w_id = " + w_id);
 			try
 			{
-				pStmts.getStatement(26).setInt(1, no_o_id);
-				pStmts.getStatement(26).setInt(2, d_id);
-				pStmts.getStatement(26).setInt(3, w_id);
-				pStmts.getStatement(26).executeUpdate();
+				this.ps = pStmts.createPreparedStatement(26);
+				ps.setInt(1, no_o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("DELETE FROM new_orders WHERE no_o_id = " + no_o_id + " AND no_d_id = " + d_id + " AND " +
@@ -114,10 +119,11 @@ public class Delivery implements TpccConstants
 								"o_w_id = " + w_id);
 			try
 			{
-				pStmts.getStatement(27).setInt(1, no_o_id);
-				pStmts.getStatement(27).setInt(2, d_id);
-				pStmts.getStatement(27).setInt(3, w_id);
-				this.rs = pStmts.getStatement(27).executeQuery();
+				this.ps = pStmts.createPreparedStatement(27);
+				ps.setInt(1, no_o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
+				this.rs = ps.executeQuery();
 
 				if(this.rs.next())
 				{
@@ -129,6 +135,7 @@ public class Delivery implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT o_c_id FROM orders WHERE o_id = " + no_o_id + " AND o_d_id = " + d_id + " AND " +
@@ -142,16 +149,18 @@ public class Delivery implements TpccConstants
 								"o_d_id = " + d_id + " AND o_w_id = " + w_id);
 			try
 			{
-				pStmts.getStatement(28).setInt(1, o_carrier_id);
-				pStmts.getStatement(28).setInt(2, no_o_id);
-				pStmts.getStatement(28).setInt(3, d_id);
-				pStmts.getStatement(28).setInt(4, w_id);
-				pStmts.getStatement(28).executeUpdate();
+				this.ps = pStmts.createPreparedStatement(28);
+				ps.setInt(1, o_carrier_id);
+				ps.setInt(2, no_o_id);
+				ps.setInt(3, d_id);
+				ps.setInt(4, w_id);
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("UPDATE orders SET o_carrier_id = " + o_carrier_id + " WHERE o_id = " + no_o_id + " AND" +
@@ -168,16 +177,18 @@ public class Delivery implements TpccConstants
 								" " + no_o_id + " AND ol_d_id = " + d_id + " AND ol_w_id = " + w_id);
 			try
 			{
-				pStmts.getStatement(29).setString(1, currentTimeStamp.toString());
-				pStmts.getStatement(29).setInt(2, no_o_id);
-				pStmts.getStatement(29).setInt(3, d_id);
-				pStmts.getStatement(29).setInt(4, w_id);
-				pStmts.getStatement(29).executeUpdate();
+				this.ps = pStmts.createPreparedStatement(29);
+				ps.setString(1, currentTimeStamp.toString());
+				ps.setInt(2, no_o_id);
+				ps.setInt(3, d_id);
+				ps.setInt(4, w_id);
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("UPDATE order_line SET ol_delivery_d = " + currentTimeStamp.toString() + " WHERE " +
@@ -193,10 +204,11 @@ public class Delivery implements TpccConstants
 								d_id + " AND ol_w_id = " + w_id);
 			try
 			{
-				pStmts.getStatement(30).setInt(1, no_o_id);
-				pStmts.getStatement(30).setInt(2, d_id);
-				pStmts.getStatement(30).setInt(3, w_id);
-				this.rs = pStmts.getStatement(30).executeQuery();
+				this.ps = pStmts.createPreparedStatement(30);
+				ps.setInt(1, no_o_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, w_id);
+				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
 					ol_total = rs.getFloat(1);
@@ -207,6 +219,7 @@ public class Delivery implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT SUM(ol_amount) FROM order_line WHERE ol_o_id = " + no_o_id + " AND ol_d_id = " +
@@ -221,16 +234,18 @@ public class Delivery implements TpccConstants
 						" = " + w_id);
 			try
 			{
-				pStmts.getStatement(31).setFloat(1, ol_total);
-				pStmts.getStatement(31).setInt(2, c_id);
-				pStmts.getStatement(31).setInt(3, d_id);
-				pStmts.getStatement(31).setInt(4, w_id);
-				pStmts.getStatement(31).executeUpdate();
+				this.ps = pStmts.createPreparedStatement(31);
+				ps.setFloat(1, ol_total);
+				ps.setInt(2, c_id);
+				ps.setInt(3, d_id);
+				ps.setInt(4, w_id);
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("UPDATE customer SET c_balance = c_balance + " + ol_total + ", c_delivery_cnt = " +
@@ -249,6 +264,7 @@ public class Delivery implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 			return 0;
 		}

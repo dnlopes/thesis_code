@@ -1,6 +1,7 @@
 package com.codefutures.tpcc;
 
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -18,6 +19,8 @@ public class OrderStat implements TpccConstants
 
 	private TpccStatements pStmts;
 	private ResultSet rs;
+	private PreparedStatement ps;
+
 
 	public String getLastError()
 	{
@@ -72,15 +75,16 @@ public class OrderStat implements TpccConstants
 				//"SELECT count(c_id) FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ?"
 				try
 				{
-					pStmts.getStatement(20).setInt(1, c_w_id);
-					pStmts.getStatement(20).setInt(2, c_d_id);
-					pStmts.getStatement(20).setString(3, c_last);
+					this.ps = pStmts.createPreparedStatement(20);
+					ps.setInt(1, c_w_id);
+					ps.setInt(2, c_d_id);
+					ps.setString(3, c_last);
 					if(TRACE)
 						logger.trace(
 								"SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " +
 										c_d_id + " AND c_last = " + c_last);
 
-					this.rs = pStmts.getStatement(20).executeQuery();
+					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
 						namecnt = rs.getInt(1);
@@ -91,6 +95,7 @@ public class OrderStat implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error(
@@ -106,15 +111,17 @@ public class OrderStat implements TpccConstants
 
 				try
 				{
-					pStmts.getStatement(21).setInt(1, c_w_id);
-					pStmts.getStatement(21).setInt(2, c_d_id);
-					pStmts.getStatement(21).setString(3, c_last);
+					this.ps = pStmts.createPreparedStatement(21);
+
+					ps.setInt(1, c_w_id);
+					ps.setInt(2, c_d_id);
+					ps.setString(3, c_last);
 					if(TRACE)
 						logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 								"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_last = " + c_last + " ORDER" +
 								" BY c_first");
 
-					this.rs = pStmts.getStatement(21).executeQuery();
+					this.rs = ps.executeQuery();
 					if(namecnt % 2 == 1)
 					{ //?? Check
 						namecnt++;
@@ -135,6 +142,7 @@ public class OrderStat implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
@@ -152,13 +160,14 @@ public class OrderStat implements TpccConstants
 				// = ?"
 				try
 				{
-					pStmts.getStatement(22).setInt(1, c_w_id);
-					pStmts.getStatement(22).setInt(2, c_d_id);
-					pStmts.getStatement(22).setInt(3, c_id);
+					this.ps = pStmts.createPreparedStatement(22);
+					ps.setInt(1, c_w_id);
+					ps.setInt(2, c_d_id);
+					ps.setInt(3, c_id);
 					if(TRACE)
 						logger.trace("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
 								"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
-					this.rs = pStmts.getStatement(22).executeQuery();
+					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
 						c_balance = rs.getFloat(1);
@@ -172,6 +181,7 @@ public class OrderStat implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE " +
@@ -188,19 +198,21 @@ public class OrderStat implements TpccConstants
 			// = ? AND o_id = (SELECT MAX(o_id) FROM orders WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ?)"
 			try
 			{
-				pStmts.getStatement(23).setInt(1, c_w_id);
-				pStmts.getStatement(23).setInt(2, c_d_id);
-				pStmts.getStatement(23).setInt(3, c_id);
-				pStmts.getStatement(23).setInt(4, c_w_id);
-				pStmts.getStatement(23).setInt(5, c_d_id);
-				pStmts.getStatement(23).setInt(6, c_id);
+				this.ps = pStmts.createPreparedStatement(23);
+
+				ps.setInt(1, c_w_id);
+				ps.setInt(2, c_d_id);
+				ps.setInt(3, c_id);
+				ps.setInt(4, c_w_id);
+				ps.setInt(5, c_d_id);
+				ps.setInt(6, c_id);
 				if(TRACE)
 					logger.trace("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
 							"WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " AND o_c_id = " + c_id + " AND " +
 							"o_id = " +
 							"(SELECT MAX(o_id) FROM orders WHERE o_w_id = " + c_w_id + " AND o_d_id = " + c_d_id + " " +
 							"AND o_c_id = " + c_id);
-				this.rs = pStmts.getStatement(23).executeQuery();
+				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
 					o_id = rs.getInt(1);
@@ -213,6 +225,7 @@ public class OrderStat implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders " +
@@ -229,15 +242,17 @@ public class OrderStat implements TpccConstants
 			// AND ol_d_id = ? AND ol_o_id = ?"
 			try
 			{
-				pStmts.getStatement(24).setInt(1, c_w_id);
-				pStmts.getStatement(24).setInt(2, c_d_id);
-				pStmts.getStatement(24).setInt(3, o_id);
+				this.ps = pStmts.createPreparedStatement(24);
+				
+				ps.setInt(1, c_w_id);
+				ps.setInt(2, c_d_id);
+				ps.setInt(3, o_id);
 				if(TRACE)
 					logger.trace(
 							"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
 									"WHERE ol_w_id = " + c_w_id + " AND ol_d_id = " + c_d_id + " AND ol_o_id = " +
 									o_id);
-				this.rs = pStmts.getStatement(24).executeQuery();
+				this.rs = ps.executeQuery();
 				while(rs.next())
 				{
 					ol_i_id = rs.getInt(1);
@@ -252,6 +267,7 @@ public class OrderStat implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line " +
@@ -269,6 +285,7 @@ public class OrderStat implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 			return 0;
 		}

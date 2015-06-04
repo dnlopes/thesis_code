@@ -1,6 +1,7 @@
 package com.codefutures.tpcc;
 
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -18,6 +19,7 @@ public class Slev implements TpccConstants
 
 	private TpccStatements pStmts;
 	private ResultSet rs;
+	private PreparedStatement ps;
 
 	public String getLastError()
 	{
@@ -49,11 +51,12 @@ public class Slev implements TpccConstants
 
 			try
 			{
-				pStmts.getStatement(32).setInt(1, d_id);
-				pStmts.getStatement(32).setInt(2, w_id);
+				this.ps = pStmts.createPreparedStatement(32);
+				ps.setInt(1, d_id);
+				ps.setInt(2, w_id);
 				if(TRACE)
 					logger.trace("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id);
-				this.rs = pStmts.getStatement(32).executeQuery();
+				this.rs = ps.executeQuery();
 
 				if(rs.next())
 				{
@@ -64,6 +67,7 @@ public class Slev implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT d_next_o_id FROM district WHERE d_id = " + d_id + " AND d_w_id = " + w_id, e);
@@ -75,16 +79,17 @@ public class Slev implements TpccConstants
 			// >= (? - 20)"
 			try
 			{
-				pStmts.getStatement(33).setInt(1, w_id);
-				pStmts.getStatement(33).setInt(2, d_id);
-				pStmts.getStatement(33).setInt(3, d_next_o_id);
-				pStmts.getStatement(33).setInt(4, d_next_o_id);
+				this.ps = pStmts.createPreparedStatement(33);
+				ps.setInt(1, w_id);
+				ps.setInt(2, d_id);
+				ps.setInt(3, d_next_o_id);
+				ps.setInt(4, d_next_o_id);
 				if(TRACE)
 					logger.trace("SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = " + w_id + " AND ol_d_id =" +
 							" " +
 									d_id + " AND ol_o_id < " + d_next_o_id +
 									" AND ol_o_id >= (" + d_next_o_id + " - 20)");
-				this.rs = pStmts.getStatement(32).executeQuery();
+				this.rs = ps.executeQuery();
 
 				while(rs.next())
 				{
@@ -96,6 +101,7 @@ public class Slev implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error(
@@ -110,15 +116,16 @@ public class Slev implements TpccConstants
 
 			try
 			{
-				pStmts.getStatement(34).setInt(1, w_id);
-				pStmts.getStatement(34).setInt(2, ol_i_id);
-				pStmts.getStatement(34).setInt(3, level);
+				this.ps = pStmts.createPreparedStatement(34);
+				ps.setInt(1, w_id);
+				ps.setInt(2, ol_i_id);
+				ps.setInt(3, level);
 				if(TRACE)
 					logger.trace(
 							"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND" +
 									" " +
 									"s_quantity < " + level);
-				this.rs = pStmts.getStatement(34).executeQuery();
+				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
 					i_count = rs.getInt(1);
@@ -129,6 +136,7 @@ public class Slev implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error(
@@ -146,6 +154,7 @@ public class Slev implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 			return 0;
 		}

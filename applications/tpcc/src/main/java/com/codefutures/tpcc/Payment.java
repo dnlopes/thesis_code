@@ -1,6 +1,7 @@
 package com.codefutures.tpcc;
 
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -20,6 +21,8 @@ public class Payment implements TpccConstants
 
 	private TpccStatements pStmts;
 	private ResultSet rs;
+	private PreparedStatement ps;
+
 
 	public String getLastError()
 	{
@@ -96,16 +99,18 @@ public class Payment implements TpccConstants
 		//"UPDATE warehouse SET w_ytd = w_ytd + ? WHERE w_id = ?"
 		try
 		{
-			pStmts.getStatement(9).setFloat(1, h_amount);
-			pStmts.getStatement(9).setInt(2, w_id);
+			this.ps = pStmts.createPreparedStatement(9);
+			ps.setFloat(1, h_amount);
+			ps.setInt(2, w_id);
 			if(TRACE)
 				logger.trace("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id);
-			pStmts.getStatement(9).executeUpdate();
+			ps.executeUpdate();
 
 		} catch(SQLException e)
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error("UPDATE warehouse SET w_ytd = w_ytd + " + h_amount + " WHERE w_id = " + w_id, e);
@@ -118,13 +123,14 @@ public class Payment implements TpccConstants
 
 		try
 		{
-			pStmts.getStatement(10).setInt(1, w_id);
+			this.ps = pStmts.createPreparedStatement(10);
+			ps.setInt(1, w_id);
 			if(TRACE)
 				logger.trace(
 						"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id " +
 								"=" +
 								" " + w_id);
-			this.rs = pStmts.getStatement(10).executeQuery();
+			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
 				w_street_1 = rs.getString(1);
@@ -141,6 +147,7 @@ public class Payment implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error(
@@ -155,19 +162,21 @@ public class Payment implements TpccConstants
 		//"UPDATE district SET d_ytd = d_ytd + ? WHERE d_w_id = ? AND d_id = ?"
 		try
 		{
-			pStmts.getStatement(11).setFloat(1, h_amount);
-			pStmts.getStatement(11).setInt(2, w_id);
-			pStmts.getStatement(11).setInt(3, d_id);
+			this.ps = pStmts.createPreparedStatement(11);
+			ps.setFloat(1, h_amount);
+			ps.setInt(2, w_id);
+			ps.setInt(3, d_id);
 			if(TRACE)
 				logger.trace("UPDATE district SET d_ytd = d_ytd + " + h_amount + " WHERE d_w_id = " + w_id + " AND " +
 								"d_id" +
 								" = " + d_id);
-			pStmts.getStatement(11).executeUpdate();
+			ps.executeUpdate();
 
 		} catch(SQLException e)
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error(
@@ -184,14 +193,15 @@ public class Payment implements TpccConstants
 
 		try
 		{
-			pStmts.getStatement(12).setInt(1, w_id);
-			pStmts.getStatement(12).setInt(2, d_id);
+			this.ps = pStmts.createPreparedStatement(12);
+			ps.setInt(1, w_id);
+			ps.setInt(2, d_id);
 			if(TRACE)
 				logger.trace(
 						"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id" +
 								" " +
 								"= " + w_id + " AND d_id = " + d_id);
-			this.rs = pStmts.getStatement(12).executeQuery();
+			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
 				d_street_1 = rs.getString(1);
@@ -207,6 +217,7 @@ public class Payment implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error(
@@ -227,13 +238,14 @@ public class Payment implements TpccConstants
 
 			try
 			{
-				pStmts.getStatement(13).setInt(1, c_w_id);
-				pStmts.getStatement(13).setInt(2, c_d_id);
-				pStmts.getStatement(13).setString(3, c_last);
+				this.ps = pStmts.createPreparedStatement(13);
+				ps.setInt(1, c_w_id);
+				ps.setInt(2, c_d_id);
+				ps.setString(3, c_last);
 				if(TRACE)
 					logger.trace("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " +
 							c_d_id + " AND c_last = " + c_last);
-				this.rs = pStmts.getStatement(13).executeQuery();
+				this.rs = ps.executeQuery();
 				if(rs.next())
 				{
 					namecnt = rs.getInt(1);
@@ -244,6 +256,7 @@ public class Payment implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT count(c_id) FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
@@ -256,9 +269,10 @@ public class Payment implements TpccConstants
 
 			try
 			{
-				pStmts.getStatement(14).setInt(1, c_w_id);
-				pStmts.getStatement(14).setInt(2, c_d_id);
-				pStmts.getStatement(14).setString(3, c_last);
+				this.ps = pStmts.createPreparedStatement(14);
+				ps.setInt(1, c_w_id);
+				ps.setInt(2, c_d_id);
+				ps.setString(3, c_last);
 				if(TRACE)
 					logger.trace("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
 							"" +
@@ -270,7 +284,7 @@ public class Payment implements TpccConstants
 					namecnt++;	/* Locate midpoint customer; */
 				}
 
-				this.rs = pStmts.getStatement(14).executeQuery();
+				this.rs = ps.executeQuery();
 				for(n = 0; n < namecnt / 2; n++)
 				{
 					if(rs.next())
@@ -288,6 +302,7 @@ public class Payment implements TpccConstants
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("SELECT c_id FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " " +
@@ -307,16 +322,17 @@ public class Payment implements TpccConstants
 		// FOR UPDATE"
 		try
 		{
-			pStmts.getStatement(15).setInt(1, c_w_id);
-			pStmts.getStatement(15).setInt(2, c_d_id);
-			pStmts.getStatement(15).setInt(3, c_id);
+			this.ps = pStmts.createPreparedStatement(15);
+			ps.setInt(1, c_w_id);
+			ps.setInt(2, c_d_id);
+			ps.setInt(3, c_id);
 			if(TRACE)
 				logger.trace("SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, " +
 						"c_phone, c_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer " +
 						"WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id +
 						"" +
 						" FOR UPDATE");
-			this.rs = pStmts.getStatement(15).executeQuery();
+			this.rs = ps.executeQuery();
 			if(rs.next())
 			{
 				c_first = rs.getString(1);
@@ -341,6 +357,7 @@ public class Payment implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error("SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, c_phone," +
@@ -363,14 +380,15 @@ public class Payment implements TpccConstants
 				//"SELECT c_data FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
 				try
 				{
-					pStmts.getStatement(16).setInt(1, c_w_id);
-					pStmts.getStatement(16).setInt(2, c_d_id);
-					pStmts.getStatement(16).setInt(3, c_id);
+					this.ps = pStmts.createPreparedStatement(16);
+					ps.setInt(1, c_w_id);
+					ps.setInt(2, c_d_id);
+					ps.setInt(3, c_id);
 					if(TRACE)
 						logger.trace(
 								"SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + "" +
 										" AND c_id = " + c_id);
-					this.rs = pStmts.getStatement(16).executeQuery();
+					this.rs = ps.executeQuery();
 					if(rs.next())
 					{
 						c_data = rs.getString(1);
@@ -381,6 +399,7 @@ public class Payment implements TpccConstants
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("SELECT c_data FROM customer WHERE c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id +
@@ -401,23 +420,24 @@ public class Payment implements TpccConstants
 				//"UPDATE customer SET c_balance = ?, c_data = ? WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
 				try
 				{
-					//System.out.print("Executed UPDATE.\n");
-					pStmts.getStatement(17).setFloat(1, c_balance);
-					pStmts.getStatement(17).setString(2, c_data);
-					pStmts.getStatement(17).setInt(3, c_w_id);
-					pStmts.getStatement(17).setInt(4, c_d_id);
-					pStmts.getStatement(17).setInt(5, c_id);
+					this.ps = pStmts.createPreparedStatement(17);
+					ps.setFloat(1, c_balance);
+					ps.setString(2, c_data);
+					ps.setInt(3, c_w_id);
+					ps.setInt(4, c_d_id);
+					ps.setInt(5, c_id);
 					if(TRACE)
 						logger.trace(
 								"UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE" +
 										" " +
 										"c_w_id = " + c_w_id + " AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
-					pStmts.getStatement(17).executeUpdate();
+					ps.executeUpdate();
 
 				} catch(SQLException e)
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("UPDATE customer SET c_balance = " + c_balance + ", c_data = " + c_data + " WHERE " +
@@ -433,21 +453,23 @@ public class Payment implements TpccConstants
 
 				try
 				{
-					pStmts.getStatement(18).setFloat(1, c_balance);
-					pStmts.getStatement(18).setInt(2, c_w_id);
-					pStmts.getStatement(18).setInt(3, c_d_id);
-					pStmts.getStatement(18).setInt(4, c_id);
+					this.ps = pStmts.createPreparedStatement(18);
+					ps.setFloat(1, c_balance);
+					ps.setInt(2, c_w_id);
+					ps.setInt(3, c_d_id);
+					ps.setInt(4, c_id);
 					if(TRACE)
 						logger.trace("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id +
 								"" +
 										" " +
 										"AND c_d_id = " + c_d_id + " AND c_id = " + c_id);
-					pStmts.getStatement(18).executeUpdate();
+					ps.executeUpdate();
 
 				} catch(SQLException e)
 				{
 					lastError = e.getMessage();
 					DbUtils.closeQuietly(this.rs);
+					DbUtils.closeQuietly(this.ps);
 					pStmts.rollback();
 
 					logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " " +
@@ -466,21 +488,23 @@ public class Payment implements TpccConstants
 
 			try
 			{
-				pStmts.getStatement(18).setFloat(1, c_balance);
-				pStmts.getStatement(18).setInt(2, c_w_id);
-				pStmts.getStatement(18).setInt(3, c_d_id);
-				pStmts.getStatement(18).setInt(4, c_id);
+				this.ps = pStmts.createPreparedStatement(18);
+				ps.setFloat(1, c_balance);
+				ps.setInt(2, c_w_id);
+				ps.setInt(3, c_d_id);
+				ps.setInt(4, c_id);
 				if(TRACE)
 					logger.trace("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " " +
 							"AND" +
 									" " +
 									"c_d_id = " + c_d_id + " AND c_id = " + c_id);
-				pStmts.getStatement(18).executeUpdate();
+				ps.executeUpdate();
 
 			} catch(SQLException e)
 			{
 				lastError = e.getMessage();
 				DbUtils.closeQuietly(this.rs);
+				DbUtils.closeQuietly(this.ps);
 				pStmts.rollback();
 
 				logger.error("UPDATE customer SET c_balance = " + c_balance + " WHERE c_w_id = " + c_w_id + " AND " +
@@ -498,25 +522,27 @@ public class Payment implements TpccConstants
 		// ?, ?, ?, ?, ?, ?)"
 		try
 		{
-			pStmts.getStatement(19).setInt(1, c_d_id);
-			pStmts.getStatement(19).setInt(2, c_w_id);
-			pStmts.getStatement(19).setInt(3, c_id);
-			pStmts.getStatement(19).setInt(4, d_id);
-			pStmts.getStatement(19).setInt(5, w_id);
-			pStmts.getStatement(19).setString(6, currentTimeStamp.toString());
-			pStmts.getStatement(19).setFloat(7, h_amount);
-			pStmts.getStatement(19).setString(8, h_data);
+			this.ps = pStmts.createPreparedStatement(19);
+			ps.setInt(1, c_d_id);
+			ps.setInt(2, c_w_id);
+			ps.setInt(3, c_id);
+			ps.setInt(4, d_id);
+			ps.setInt(5, w_id);
+			ps.setString(6, currentTimeStamp.toString());
+			ps.setFloat(7, h_amount);
+			ps.setString(8, h_data);
 			if(TRACE)
 				logger.trace("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, " +
 						"h_data)" +
 						" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
 						currentTimeStamp.toString() + "," + h_amount + "," /*+ h_data*/);
-			pStmts.getStatement(19).executeUpdate();
+			ps.executeUpdate();
 
 		} catch(SQLException e)
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
 			logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
@@ -533,6 +559,7 @@ public class Payment implements TpccConstants
 		{
 			lastError = e.getMessage();
 			DbUtils.closeQuietly(this.rs);
+			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 			return 0;
 		}
