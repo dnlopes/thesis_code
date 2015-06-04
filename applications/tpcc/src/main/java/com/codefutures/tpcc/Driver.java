@@ -17,13 +17,14 @@ public class Driver implements TpccConstants
 
 	private static final Logger logger = LoggerFactory.getLogger(Driver.class);
 	private static final boolean DEBUG = logger.isDebugEnabled();
+	private PerformanceCounters performanceCounter;
 
 	public PerformanceCounters getPerformanceCounter()
 	{
 		return performanceCounter;
 	}
 
-	private PerformanceCounters performanceCounter;
+
 	/**
 	 * Can be disabled for debug use only.
 	 */
@@ -173,6 +174,7 @@ public class Driver implements TpccConstants
 			System.exit(1);
 		}
 
+		/*
 		if(success == 0) //aborted
 			this.performanceCounter.setAbortRate();
 		else if(success == 1)
@@ -180,7 +182,7 @@ public class Driver implements TpccConstants
 			this.performanceCounter.setCommitRate();
 			if(sequence == 0)
 				this.performanceCounter.setTPMC();
-		}
+		}                                    */
 	}
 
 	/*
@@ -259,7 +261,7 @@ public class Driver implements TpccConstants
 				logger.trace("neworder txn succedeed");
 				returnValue = 1;
 				latency = (double) (endTime - beginTime);
-				this.performanceCounter.setLatency(latency);
+				//this.performanceCounter.setLatency(latency);
 
 				if(DEBUG)
 					logger.debug("BEFORE rt value: " + latency + " max_rt[0] value: " + max_rt[0]);
@@ -379,7 +381,7 @@ public class Driver implements TpccConstants
 				returnValue = 1;
 
 				latency = (double) (endTime - beginTime);
-				this.performanceCounter.setLatency(latency);
+				//this.performanceCounter.setLatency(latency);
 				if(latency > max_rt[1])
 					max_rt[1] = latency;
 
@@ -477,7 +479,7 @@ public class Driver implements TpccConstants
 				logger.trace("orderstat txn succedeed");
 				returnValue = 1;
 				rt = (double) (endTime - beginTime);
-				this.performanceCounter.setLatency(rt);
+				//this.performanceCounter.setLatency(rt);
 				if(rt > max_rt[2])
 					max_rt[2] = rt;
 				RtHist.histInc(2, rt);
@@ -560,7 +562,7 @@ public class Driver implements TpccConstants
 				logger.trace("delivery txn succedeed");
 				returnValue = 1;
 				rt = (double) (endTime - beginTime);
-				this.performanceCounter.setLatency(rt);
+				//this.performanceCounter.setLatency(rt);
 				if(rt > max_rt[3])
 					max_rt[3] = rt;
 				RtHist.histInc(3, rt);
@@ -646,7 +648,7 @@ public class Driver implements TpccConstants
 				logger.trace("slev txn succedeed");
 				returnValue = 1;
 				rt = (double) (endTime - beginTime);
-				this.performanceCounter.setLatency(rt);
+				//this.performanceCounter.setLatency(rt);
 				if(rt > max_rt[4])
 					max_rt[4] = rt;
 				RtHist.histInc(4, rt);

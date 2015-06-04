@@ -581,7 +581,7 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
-		tpcc.mergeCounters();
+		//tpcc.mergeCounters();
 		tpcc.createOutputFiles();
 		tpcc.createIterationsFile();
 		System.out.println("-------------------- SUMMARY ---------------------------");
