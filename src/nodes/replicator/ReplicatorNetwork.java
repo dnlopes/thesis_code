@@ -54,7 +54,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private void createConnectionPoolForReplicator(NodeConfig config)
 	{
-		LOG.trace("creating connection pool to replicator {}", config.getId());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("creating connection pool to replicator {}", config.getId());
 
 		boolean isReady = false;
 		do
@@ -66,7 +67,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				isReady = true;
 			} catch(TTransportException e)
 			{
-				LOG.debug("replicator {} still not ready for connections", config.getId());
+				if(Configuration.DEBUG_ENABLED)
+					LOG.debug("replicator {} still not ready for connections", config.getId());
 				try
 				{
 					Thread.sleep(500);
@@ -97,7 +99,9 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 
 		this.rpcsObjects.put(config.getId(), pool);
-		LOG.debug("created {} connections to replicator {}", pool.getPoolSize(), config.getId());
+
+		if(Configuration.DEBUG_ENABLED)
+			LOG.debug("created {} connections to replicator {}", pool.getPoolSize(), config.getId());
 	}
 
 	@Override
@@ -163,7 +167,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			newTransport.open();
 		} catch(TTransportException e)
 		{
-			LOG.error("error while creating connections for remote replicators: {}", e.getMessage());
+			LOG.warn("error while creating connections for remote replicators: {}", e.getMessage());
 			newTransport.close();
 			return null;
 		}

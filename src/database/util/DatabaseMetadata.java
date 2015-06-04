@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
+import util.defaults.Configuration;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +41,8 @@ public class DatabaseMetadata
 		}
 
 		tablesMap.put(table.getName(), table);
-		LOG.trace("table {} added", table.getName());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("table {} added", table.getName());
 	}
 
 	public Collection<DatabaseTable> getAllTables()

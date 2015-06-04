@@ -45,7 +45,8 @@ public class CheckConstraintEnforcer
 
 	private void setup(NodeConfig config)
 	{
-		LOG.trace("scanning all used values");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("scanning all used values");
 
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("SELECT ");
@@ -76,7 +77,8 @@ public class CheckConstraintEnforcer
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		LOG.trace("{} values inserted", this.currentValues.size());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("{} values inserted", this.currentValues.size());
 	}
 
 	public boolean applyDelta(String id, String delta)

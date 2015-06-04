@@ -8,6 +8,7 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.Configuration;
 import util.thrift.CoordinatorRPC;
 
 
@@ -36,7 +37,8 @@ public class CoordinatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		LOG.info("starting coordinator server on port {}", this.me.getSocketAddress().getPort());
+		if(Configuration.INFO_ENABLED)
+			LOG.info("starting coordinator server on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}
 }

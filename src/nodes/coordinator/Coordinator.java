@@ -62,7 +62,7 @@ public class Coordinator extends AbstractNode
 					ExitCode.NOINITIALIZATION);
 		}
 
-		LOG.info("coordinator {} online", this.config.getId());
+		System.out.println("coordinator " + this.config.getId() + " online");
 	}
 
 	public CoordinatorResponse processInvariants(CoordinatorRequest req)
@@ -93,7 +93,9 @@ public class Coordinator extends AbstractNode
 			this.processRequestValue(reqValue);
 
 		response.setRequestedValues(req.getRequests());
-		LOG.trace("all requests were successfully processed");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("all requests were successfully processed");
+
 		response.setSuccess(true);
 		return response;
 	}
@@ -106,7 +108,8 @@ public class Coordinator extends AbstractNode
 
 		if(this.checkEnforcers.get(constraintId).applyDelta(rowId, delta))
 		{
-			LOG.trace("delta value {} applied sucessfully", delta);
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("delta value {} applied sucessfully", delta);
 			return true;
 		} else
 		{
@@ -125,13 +128,17 @@ public class Coordinator extends AbstractNode
 
 		if(enforcer.reservValue(desiredValue))
 		{
-			LOG.trace("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
+
 			return true;
 		} else
 		{
 			String error = "unique value already in use: " + desiredValue + " for table " + enforcer.getTableName();
 			response.setErrorMessage(error);
-			LOG.trace("unique value already in use {} for table-field {}", desiredValue, constraintId);
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("unique value already in use {} for table-field {}", desiredValue, constraintId);
+
 			return false;
 		}
 	}
@@ -141,7 +148,9 @@ public class Coordinator extends AbstractNode
 		String constraintId = reqValue.getConstraintId();
 		int newId = this.autoIncrementsEnforcers.get(constraintId).getNextId();
 		reqValue.setRequestedValue(String.valueOf(newId));
-		LOG.trace("providing new auto incremented value {} for table-field {}", newId, constraintId);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("providing new auto incremented value {} for table-field {}", newId, constraintId);
+
 		return true;
 	}
 

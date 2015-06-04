@@ -9,6 +9,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
+import runtime.RuntimeUtils;
+import util.ExitCode;
 import util.ObjectPool;
 import util.defaults.Configuration;
 import runtime.operation.ShadowOperation;
@@ -46,10 +48,11 @@ public class Replicator extends AbstractNode
 		} catch(TTransportException e)
 		{
 			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
 
 		this.setupPads();
-		LOG.info("replicator {} online", this.config.getId());
+		System.out.println("replicator " + this.config.getId() + " online");
 	}
 
 	/**
@@ -72,7 +75,7 @@ public class Replicator extends AbstractNode
 		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
 
 		if(!commitDecision)
-			LOG.error("something went very wrong. State will not converge because operation failed to commit");
+			LOG.warn("something went very wrong. State will not converge because operation failed to commit");
 
 		this.commitPadPool.returnObject(pad);
 
@@ -94,7 +97,8 @@ public class Replicator extends AbstractNode
 			this.commitPadPool.addObject(commitPad);
 		}
 
-		LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
+		if(Configuration.INFO_ENABLED)
+			LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
 	}
 
 	public LogicalClock getNextClock()
@@ -107,20 +111,24 @@ public class Replicator extends AbstractNode
 
 		this.clockLock.unlock();
 
-		LOG.debug("clock incremented to {}", newClock.toString());
+		if(Configuration.DEBUG_ENABLED)
+			LOG.debug("clock incremented to {}", newClock.toString());
+
 		return newClock;
 	}
 
 	public void mergeWithRemoteClock(LogicalClock clock)
 	{
+		if(Configuration.DEBUG_ENABLED)
+			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
 
-		LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
 		this.clockLock.lock();
 
 		this.clock = this.clock.maxClock(clock);
 		this.clockLock.unlock();
 
-		LOG.debug("merged clock is {}", this.clock.toString());
+		if(Configuration.DEBUG_ENABLED)
+			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
 	public void deliverShadowOperation(ShadowOperation shadowOp)

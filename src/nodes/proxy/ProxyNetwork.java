@@ -16,6 +16,7 @@ import runtime.RuntimeUtils;
 import runtime.operation.ShadowOperation;
 import util.ExitCode;
 import util.ObjectPool;
+import util.defaults.Configuration;
 import util.thrift.*;
 
 
@@ -126,7 +127,8 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 	private void setup()
 	{
-		LOG.info("setting up client connections");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("setting up client connections");
 		ProxyConfig proxyConfig = (ProxyConfig) this.me;
 		NodeConfig coordConfig = proxyConfig.getCoordinatorConfig();
 		NodeConfig replicatorConfig = proxyConfig.getReplicatorConfig();

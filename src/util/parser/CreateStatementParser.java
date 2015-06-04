@@ -30,6 +30,7 @@ import database.util.table.ArsetTable;
 import database.util.table.AusetTable;
 import database.util.table.READONLY_Table;
 import database.util.table.UosetTable;
+import util.defaults.Configuration;
 
 
 /**
@@ -397,7 +398,8 @@ public class CreateStatementParser
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
-			LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
 		}
 
 		return fieldsMap;

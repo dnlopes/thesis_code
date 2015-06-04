@@ -25,7 +25,8 @@ public class IdentifierFactory
 
 	public static void createGenerators(NodeConfig config)
 	{
-		LOG.info("bootstraping id generators for auto increment fields");
+		if(Configuration.INFO_ENABLED)
+			LOG.info("bootstraping id generators for auto increment fields");
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
 			List<DataField> fields = table.getFieldsList();
@@ -51,7 +52,8 @@ public class IdentifierFactory
 		IDGenerator newGenerator = new IDGenerator(field, config);
 
 		ID_GENERATORS_MAP.put(key, newGenerator);
-		LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
 				newGenerator.getCurrentValue());
 	}
 
@@ -68,7 +70,8 @@ public class IdentifierFactory
 			RuntimeUtils.throwRunTimeException("id generator not found for key " + key, ExitCode.ID_GENERATOR_ERROR);
 
 		int id = ID_GENERATORS_MAP.get(key).getNextId();
-		LOG.trace("new unique id generated for key {}: {}", key, id);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("new unique id generated for key {}: {}", key, id);
 		return id;
 	}
 

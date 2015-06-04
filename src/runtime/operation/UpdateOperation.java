@@ -7,6 +7,7 @@ import database.util.*;
 import runtime.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.*;
 
@@ -77,7 +78,8 @@ public class UpdateOperation extends AbstractOperation implements Operation
 					break;
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
 				request.addToUniqueValues(uniqueValue);
-				LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case CHECK:
 				DataField currField = c.getFields().get(0);
@@ -94,7 +96,8 @@ public class UpdateOperation extends AbstractOperation implements Operation
 					applyDeltaRequest.setDeltaValue(deltaValue);
 					applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
 					request.addToDeltaValues(applyDeltaRequest);
-					LOG.trace("new delta check entry added");
+					if(Configuration.TRACE_ENABLED)
+						LOG.trace("new delta check entry added");
 				}
 				break;
 			case FOREIGN_KEY:

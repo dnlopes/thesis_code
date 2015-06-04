@@ -31,6 +31,9 @@ import java.util.Map;
  */
 public final class Configuration
 {
+	public static boolean DEBUG_ENABLED;
+	public static boolean TRACE_ENABLED;
+	public static boolean INFO_ENABLED;
 
 	private static Configuration ourInstance = new Configuration();
 	private static Logger LOG;
@@ -51,8 +54,14 @@ public final class Configuration
 	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
+		INFO_ENABLED = LOG.isInfoEnabled();
+		TRACE_ENABLED = LOG.isTraceEnabled();
+		DEBUG_ENABLED = LOG.isDebugEnabled();
+
 		CONFIG_FILE = System.getProperty("configPath");
-		LOG.info("loading configuration file: {}", CONFIG_FILE);
+		if(Configuration.INFO_ENABLED)
+			LOG.info("loading configuration file: {}", CONFIG_FILE);
+
 
 		this.watch = new StopWatch();
 		this.replicators = new HashMap<>();
@@ -80,7 +89,8 @@ public final class Configuration
 		this.databaseMetadata = parser.parseAnnotations();
 		this.watch.stop();
 
-		LOG.trace("config file successfully loaded in {} ms", watch.getTime());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("config file successfully loaded in {} ms", watch.getTime());
 	}
 
 	public static Configuration getInstance()
@@ -131,9 +141,12 @@ public final class Configuration
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = BASE_DIR + "/" + map.getNamedItem("schemaFile").getNodeValue();
 
-		LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
-		LOG.info("Database name: {}", this.databaseName);
-		LOG.info("DDL file: {}", this.schemaFile);
+		if(Configuration.INFO_ENABLED)
+		{
+			LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
+			LOG.info("Database name: {}", this.databaseName);
+			LOG.info("DDL file: {}", this.schemaFile);
+		}
 	}
 
 	private void parseTopology(Node node)

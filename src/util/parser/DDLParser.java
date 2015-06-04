@@ -26,6 +26,7 @@ import database.util.table.AusetTable;
 import database.util.table.READONLY_Table;
 import database.util.table.UosetTable;
 import database.util.DatabaseTable;
+import util.defaults.Configuration;
 
 
 /**
@@ -53,7 +54,8 @@ public class DDLParser
 	{
 		this.fileName = fileName;
 		this.databaseMetadata = new DatabaseMetadata();
-		LOG.trace("parser created for schema file {}", this.fileName);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("parser created for schema file {}", this.fileName);
 	}
 
 	/**
@@ -113,7 +115,9 @@ public class DDLParser
 	 */
 	public DatabaseMetadata parseAnnotations()
 	{
-		LOG.trace("parsing file: {}", this.fileName);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("parsing file: {}", this.fileName);
+
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
 		this.tableCrdtFormMap = new HashMap<>();
 

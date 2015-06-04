@@ -8,6 +8,7 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.Configuration;
 import util.thrift.ReplicatorRPC;
 
 
@@ -34,7 +35,8 @@ public class ReplicatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		LOG.info("starting replicator server on port {}", this.me.getSocketAddress().getPort());
+		if(Configuration.INFO_ENABLED)
+			LOG.info("starting replicator server on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}
 }

@@ -7,6 +7,7 @@ import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.operation.ShadowOperation;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 import java.sql.Connection;
@@ -34,7 +35,7 @@ public class DBCommitPad implements IDBCommitPad
 			this.connection = ConnectionFactory.getDefaultConnection(config);
 		} catch(SQLException e)
 		{
-			LOG.error("failed to create connection for DBCommitPad", e);
+			LOG.warn("failed to create connection for DBCommitPad", e);
 		}
 	}
 
@@ -44,9 +45,11 @@ public class DBCommitPad implements IDBCommitPad
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
+			if(Configuration.INFO_ENABLED)
+				LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
 
-		LOG.trace("commiting op from replicator {}", op.getReplicatorId());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
 		{
@@ -69,14 +72,17 @@ public class DBCommitPad implements IDBCommitPad
 			for(String statement : op.getOperationList())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				//LOG.trace("executing on maindb: {}", rebuiltStatement);
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("executing on maindb: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
 			}
 			stat.executeBatch();
 			this.connection.commit();
 			success = true;
-			LOG.trace("txn {} committed", op.getTxnId());
+
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("txn {} committed", op.getTxnId());
 
 		} catch(SQLException e)
 		{
@@ -86,7 +92,7 @@ public class DBCommitPad implements IDBCommitPad
 				LOG.warn("txn {} rollback ({})", op.getTxnId(), e.getMessage());
 			} catch(SQLException e1)
 			{
-				LOG.error("failed to rollback txn {} (panic)", op.getTxnId(), e1);
+				LOG.warn("failed to rollback txn {}", op.getTxnId(), e1);
 			}
 		} finally
 		{

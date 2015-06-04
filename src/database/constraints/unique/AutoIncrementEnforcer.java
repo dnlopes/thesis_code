@@ -74,7 +74,8 @@ public class AutoIncrementEnforcer
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
 		}
 
-		LOG.trace("current id for field {} is {}", this.field.getFieldName(), this.currentId);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("current id for field {} is {}", this.field.getFieldName(), this.currentId);
 	}
 
 	public synchronized int getNextId()

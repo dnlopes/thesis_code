@@ -6,6 +6,7 @@ import database.util.*;
 import runtime.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.*;
 
@@ -53,7 +54,8 @@ public class InsertOperation extends AbstractOperation implements Operation
 				requestValue.setFieldName(fieldValue.getDataField().getFieldName());
 				requestValue.setOpId(this.id);
 				request.addToRequests(requestValue);
-				LOG.trace("new request id entry added for constraint {}", c.getConstraintIdentifier());
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("new request id entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case UNIQUE:
 				StringBuilder buffer = new StringBuilder();
@@ -67,7 +69,8 @@ public class InsertOperation extends AbstractOperation implements Operation
 				}
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
 				request.addToUniqueValues(uniqueValue);
-				LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case FOREIGN_KEY:
 				break;

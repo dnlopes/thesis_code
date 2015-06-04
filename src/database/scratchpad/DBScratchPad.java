@@ -97,7 +97,8 @@ public class DBScratchPad implements IDBScratchPad
 		}
 		this.activeTransaction = new Transaction(txnId);
 
-		LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
 	}
 
 	@Override
@@ -115,7 +116,8 @@ public class DBScratchPad implements IDBScratchPad
 			// commit fails
 			if(!this.activeTransaction.isReadyToCommit())
 			{
-				LOG.debug("txn not ready to commit. something went wrong");
+				if(Configuration.DEBUG_ENABLED)
+					LOG.debug("txn not ready to commit. something went wrong");
 				throw new SQLException("txn not ready to commit. something went wrong");
 			}
 
@@ -283,7 +285,8 @@ public class DBScratchPad implements IDBScratchPad
 
 	private void prepareToCommit(IProxyNetwork network) throws SQLException
 	{
-		LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
 
 		try
 		{
@@ -304,7 +307,8 @@ public class DBScratchPad implements IDBScratchPad
 						proxyConfig.getCoordinatorConfig());
 				if(!response.isSuccess())
 				{
-					LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+					if(Configuration.TRACE_ENABLED)
+						LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 					throw new SQLException(response.getErrorMessage());
 				}
 
@@ -387,8 +391,6 @@ public class DBScratchPad implements IDBScratchPad
 
 	private class DBExecuter implements IExecuter
 	{
-
-		private final Logger LOG = LoggerFactory.getLogger(DBExecuter.class);
 		private final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 
 		private TableDefinition tableDefinition;
@@ -520,18 +522,21 @@ public class DBScratchPad implements IDBScratchPad
 						String pk = tableDefinition.getPksPlain()[j];
 						if(subExpressionStrs[i].contains(pk))
 						{
-							LOG.trace("I identified one primary key from your where clause " + pk);
+							if(Configuration.TRACE_ENABLED)
+								LOG.trace("I identified one primary key from your where clause " + pk);
 							if(subExpressionStrs[i].contains("="))
 							{
 								String tempStr = subExpressionStrs[i].replaceAll("\\s+", "");
-								LOG.trace("I remove all space " + tempStr);
+								if(Configuration.TRACE_ENABLED)
+									LOG.trace("I remove all space " + tempStr);
 								int indexOfEqualSign = tempStr.indexOf('=');
 								if(indexOfEqualSign < tempStr.length() - 1)
 								{
 									String valuePart = tempStr.substring(indexOfEqualSign + 1);
 									if(this.isInteger(valuePart))
 									{
-										LOG.trace("We identified an integer");
+										if(Configuration.TRACE_ENABLED)
+											LOG.trace("We identified an integer");
 										if(!isFirst)
 										{
 											pkValueStrBuilder.append("AND");
@@ -718,7 +723,8 @@ public class DBScratchPad implements IDBScratchPad
 				else
 					buffer.append("CREATE TABLE IF NOT EXISTS ");        // for mysql
 
-				LOG.trace("creating temporary table {}", this.tempTableName);
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("creating temporary table {}", this.tempTableName);
 
 				buffer.append(tempTableName);
 				buffer2.append(tempTableName);
@@ -859,7 +865,8 @@ public class DBScratchPad implements IDBScratchPad
 				LOG.error("failed to create temporary tables for scratchpad", e);
 				RuntimeUtils.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
-			LOG.trace("executor for table {} created", this.databaseTable.getName());
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("executor for table {} created", this.databaseTable.getName());
 		}
 
 		@Override
@@ -1554,7 +1561,8 @@ public class DBScratchPad implements IDBScratchPad
 
 				if(!rs.isBeforeFirst())
 				{
-					LOG.debug(buffer.toString());
+					if(Configuration.DEBUG_ENABLED)
+						LOG.debug(buffer.toString());
 					throw new SQLException("result set is empty (could not fetch row from main storage)");
 				}
 

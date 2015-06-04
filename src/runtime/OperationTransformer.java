@@ -324,12 +324,14 @@ public class OperationTransformer
 	private static Set<String> findMissingDataFields(String tableName, List<String> colList, List<String> valueList)
 	{
 		if(DB_METADATA == null)
-			LOG.debug("DATABASE METADATA IS NULL");
+			if(Configuration.DEBUG_ENABLED)
+				LOG.debug("DATABASE METADATA IS NULL");
 
 		DatabaseTable dtB = DB_METADATA.getTable(tableName);
 
 		if(dtB == null)
-			LOG.debug("dtb is null!!");
+			if(Configuration.DEBUG_ENABLED)
+				LOG.debug("dtb is null!!");
 		return dtB.findMisingDataField(colList, valueList);
 	}
 
@@ -521,7 +523,8 @@ public class OperationTransformer
 			//executeUpdate the primaryKeySelectStr
 			try
 			{
-				LOG.trace("fetching rows from main database");
+				if(Configuration.TRACE_ENABLED)
+					LOG.trace("fetching rows from main database");
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
 				newUpdates = assembleUpdates(updateStmt.getTables().get(0).getName(), colList, valList, rs);
@@ -795,7 +798,8 @@ public class OperationTransformer
 	 */
 	private static String[] assembleUpdates(String tableName, List<String> colList, List<String> valList, ResultSet rs)
 	{
-		LOG.trace("assembling update for table {}", tableName);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("assembling update for table {}", tableName);
 
 		StringBuilder buffer = new StringBuilder();
 		String updateMainBody;
@@ -848,9 +852,11 @@ public class OperationTransformer
 		{
 			e.printStackTrace();
 			LOG.error("failed to assemble update query");
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ERRORTRANSFORM);
 		}
 
-		LOG.trace("update query assembled correctly");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("update query assembled correctly");
 		return updateStrList.toArray(new String[updateStrList.size()]);
 	}
 
@@ -866,7 +872,8 @@ public class OperationTransformer
 	 */
 	private static String[] assembleDeletes(String tableName, ResultSet rs)
 	{
-		LOG.trace("assembling deletes for table {}", tableName);
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("assembling deletes for table {}", tableName);
 
 		StringBuilder buffer = new StringBuilder();
 		String deleteMainBody;
@@ -911,8 +918,10 @@ public class OperationTransformer
 		{
 			e.printStackTrace();
 			LOG.error("failed to assemble delete query");
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ERRORTRANSFORM);
 		}
-		LOG.trace("delete query assembled correctly");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("delete query assembled correctly");
 		return deleteStrList.toArray(new String[deleteStrList.size()]);
 	}
 

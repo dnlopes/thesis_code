@@ -30,7 +30,7 @@ public class Proxy extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Proxy.class);
 	private static int TXN_COUNT = 0;
 	private static final int FREQUENCY = 150;
-	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = 50;
+	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = Integer.parseInt(System.getProperty("usersNum")) + 5;
 
 	private final ObjectPool<IDBScratchPad> scratchpadsPool;
 	// associates a connection id with the corresponding scratchpad
@@ -58,8 +58,7 @@ public class Proxy extends AbstractNode
 		IdentifierFactory.createGenerators(this.config);
 
 		this.setup();
-
-		LOG.info("proxy {} online.", this.config.getId());
+		System.out.println("proxy " + this.config.getId() + " online");
 	}
 
 	public int assignConnectionId()
@@ -103,7 +102,8 @@ public class Proxy extends AbstractNode
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			LOG.info("committing txn {}", pad.getActiveTransaction().getTxnId());
+			if(Configuration.INFO_ENABLED)
+				LOG.info("committing txn {}", pad.getActiveTransaction().getTxnId());
 
 		pad.commitTransaction(this.networkInterface);
 
@@ -184,7 +184,8 @@ public class Proxy extends AbstractNode
 			}
 		}
 
-		LOG.info("{} scratchpads available for temporary execution", this.scratchpadsPool.getPoolSize());
+		if(Configuration.INFO_ENABLED)
+			LOG.info("{} scratchpads available for temporary execution", this.scratchpadsPool.getPoolSize());
 	}
 
 	private boolean connectionIsActive(int connectionId)

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
 import runtime.RuntimeUtils;
 import runtime.operation.ShadowOperation;
+import util.defaults.Configuration;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
 
@@ -35,7 +36,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
-		LOG.trace("new clock assigned: {}", newClock.getClockValue());
+
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
 		ShadowOperation shadowOp = RuntimeUtils.decodeThriftOperation(thriftOp);
 		shadowOp.setReplicatorId(this.replicator.getConfig().getId());
@@ -58,7 +61,8 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public void commitOperationAsync(ThriftOperation thriftOp) throws TException
 	{
-		LOG.trace("received op from other replicator");
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("received op from other replicator");
 
 		ShadowOperation shadowOp = RuntimeUtils.decodeThriftOperation(thriftOp);
 		LogicalClock remoteClock = new LogicalClock(thriftOp.getClock());

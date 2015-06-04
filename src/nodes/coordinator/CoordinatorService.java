@@ -4,6 +4,7 @@ package nodes.coordinator;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.Configuration;
 import util.thrift.*;
 
 /**
@@ -24,14 +25,17 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	@Override
 	public CoordinatorResponse checkInvariants(CoordinatorRequest request) throws TException
 	{
-		LOG.trace("request {} received", request.getRequestId());
+		if(Configuration.TRACE_ENABLED)
+			LOG.trace("request {} received", request.getRequestId());
 
 		CoordinatorResponse response = this.coordinator.processInvariants(request);
 
 		if(!response.isSuccess())
-			LOG.trace("txn is not allowed to commit. Please abort");
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("txn is not allowed to commit. Please abort");
 		else
-			LOG.trace("txn is allowed to commit.");
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("txn is allowed to commit.");
 
 		return response;
 	}
