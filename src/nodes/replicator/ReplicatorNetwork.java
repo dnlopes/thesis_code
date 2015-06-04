@@ -43,7 +43,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 
-		this.setup();
+		//this.setup();
 	}
 
 	private void setup()
@@ -103,8 +103,26 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	@Override
 	public void sendOperationToRemote(ThriftOperation thriftOperation)
 	{
+		//for(NodeConfig config : this.replicatorsConfigs.values())
+		//	this.sendToRemote(thriftOperation, config);
 		for(NodeConfig config : this.replicatorsConfigs.values())
-			this.sendToRemote(thriftOperation, config);
+		{
+			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+
+			try
+			{
+				newTransport.open();
+				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
+				client.commitOperationAsync(thriftOperation);
+			} catch(TException e)
+			{
+				LOG.warn("failed to send shadow operation to replicator {}", config.getId(), e);
+			} finally
+			{
+				newTransport.close();
+			}
+		}
 	}
 
 	private void sendToRemote(ThriftOperation op, NodeConfig config)
