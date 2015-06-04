@@ -4,41 +4,38 @@ package com.codefutures.tpcc.stats;
 /**
  * Created by dnlopes on 04/06/15.
  */
-public class PerformanceCounters {
+public class PerformanceCounters
+{
 
 	private long performanceRefreshInterval = 10000L;
-	public static final float MINIMUM_VALUE = 0.05F;
+	public final float MINIMUM_VALUE = 0.05F;
 
 	private float inCommingRate = 0F;
-
 	private float commitRate = 0F;
-
 	private float abortRate = 0F;
-
-	private double latencyRate=0F;
-
+	private double latencyRate = 0F;
 	private int inCommingCounter = 0;
-
 	private int abortCounter = 0;
-
 	private int commitCounter = 0;
-	private int totalNewOrderCommitCounter =0;
-
-	private long lastComputationInComming, lastComputationAbort, lastComputationCommit = 0, lastComputationLatency=0;
-	private long firstNewOrderCommit =-1;
-	private int totalAbortCounter =0;
-	private int totalCommitCounter=0;
+	private int totalNewOrderCommitCounter = 0;
+	private long lastComputationInComming, lastComputationAbort, lastComputationCommit = 0, lastComputationLatency = 0;
+	private long firstNewOrderCommit = -1;
+	private int totalAbortCounter = 0;
+	private int totalCommitCounter = 0;
 	private double latencyAccumulator = 0;
 
-	private PerformanceCounters() {
+	public PerformanceCounters()
+	{
 	}
 
-	public synchronized float getAbortRate() {
+	public float getAbortRate()
+	{
 		long current = System.currentTimeMillis();
 		long diff = current - lastComputationAbort;
 		float t = abortRate;
 
-		if (diff > performanceRefreshInterval && diff > 0) {
+		if(diff > performanceRefreshInterval && diff > 0)
+		{
 			t = ((float) abortCounter / (float) (diff)) * 1000;
 			t = (t < MINIMUM_VALUE ? 0 : t);
 			lastComputationAbort = current;
@@ -49,12 +46,14 @@ public class PerformanceCounters {
 		return (abortRate);
 	}
 
-	public synchronized float getCommitRate() {
+	public float getCommitRate()
+	{
 		long current = System.currentTimeMillis();
 		long diff = current - lastComputationCommit;
 		float t = commitRate;
 
-		if (diff > performanceRefreshInterval && diff > 0) {
+		if(diff > performanceRefreshInterval && diff > 0)
+		{
 			t = ((float) commitCounter / (float) (diff)) * 1000;
 			t = (t < MINIMUM_VALUE ? 0 : t);
 			lastComputationCommit = current;
@@ -65,7 +64,8 @@ public class PerformanceCounters {
 		return (commitRate);
 	}
 
-	public synchronized float getTotalNewOrderCommitRate() {
+	public float getTotalNewOrderCommitRate()
+	{
 		long current = System.currentTimeMillis();
 		long diff = current - firstNewOrderCommit;
 		float t = ((float) totalNewOrderCommitCounter / (float) (diff)) * 1000 * 60;
@@ -73,17 +73,20 @@ public class PerformanceCounters {
 		return (t);
 	}
 
-	public synchronized float getTotalAbortRate() {
-		return ((float) totalAbortCounter*1.0f)/( (float) totalAbortCounter+totalCommitCounter);
+	public float getTotalAbortRate()
+	{
+		return ((float) totalAbortCounter * 1.0f) / ((float) totalAbortCounter + totalCommitCounter);
 
 	}
 
-	public synchronized float getIncommingRate() {
+	public float getIncommingRate()
+	{
 		long current = System.currentTimeMillis();
 		long diff = current - lastComputationInComming;
 		float t = inCommingRate;
 
-		if (diff > performanceRefreshInterval && diff > 0) {
+		if(diff > performanceRefreshInterval && diff > 0)
+		{
 			t = ((float) inCommingCounter / (float) (diff)) * 1000;
 			t = (t < MINIMUM_VALUE ? 0 : t);
 			lastComputationInComming = current;
@@ -94,17 +97,21 @@ public class PerformanceCounters {
 		return (inCommingRate);
 	}
 
-	public synchronized double getAverageLatency() {
+	public double getAverageLatency()
+	{
 
 		long current = System.currentTimeMillis();
 		long diff = current - lastComputationLatency;
 		double t = this.latencyRate;
 
-		if (diff > performanceRefreshInterval && diff > 0) {
-			if(this.latencyCounter > 0) {
-				t = ((double)this.latencyAccumulator) / ((double)this.latencyCounter);
+		if(diff > performanceRefreshInterval && diff > 0)
+		{
+			if(this.latencyCounter > 0)
+			{
+				t = ((double) this.latencyAccumulator) / ((double) this.latencyCounter);
 				t = (t < MINIMUM_VALUE ? 0 : t);
-			} else {
+			} else
+			{
 				t = 0.0;
 			}
 
@@ -117,58 +124,56 @@ public class PerformanceCounters {
 		return this.latencyRate;
 	}
 
-	public static synchronized void setIncommingRate() {
-		if (reference != null) {
-			reference.inCommingCounter++;
-		}
+	public void setIncommingRate()
+	{
+		
+		inCommingCounter++;
+		
 	}
 
-	public static synchronized void setAbortRate() {
-		if (reference != null) {
-			reference.abortCounter++;
-			reference.totalAbortCounter++;
-		}
+	public void setAbortRate()
+	{
+		
+		abortCounter++;
+		totalAbortCounter++;
+		
 	}
 
-	public static synchronized void setCommitRate() {
-		if (reference != null) {
-			reference.commitCounter++;
-			reference.totalCommitCounter++;
-		}
+	public void setCommitRate()
+	{
+		
+		commitCounter++;
+		totalCommitCounter++;
+		
 	}
 
-	public static void setTPMC() {
-		if (reference != null) {
-			if (reference.firstNewOrderCommit <0)
-			{
-				reference.firstNewOrderCommit =System.currentTimeMillis();
-			}
-			reference.totalNewOrderCommitCounter++;
+	public void setTPMC()
+	{
+		
+		if(firstNewOrderCommit < 0)
+		{
+			firstNewOrderCommit = System.currentTimeMillis();
 		}
-	}
-
-	public static PerformanceCounters getReference() {
-		if (reference == null) {
-			reference = new PerformanceCounters();
-		}
-		return (reference);
+		totalNewOrderCommitCounter++;
 	}
 
 	private double latencyCounter = 0;
-	public static synchronized void setLatency(double latency) {
-		if (reference != null) {
-			reference.latencyAccumulator += latency;
-			reference.latencyCounter++;
-		}
+
+	public void setLatency(double latency)
+	{
+		
+		latencyAccumulator += latency;
+		latencyCounter++;
+		
 	}
 
-	private static PerformanceCounters reference;
-
-	public long getPerformanceRefreshInterval() {
+	public long getPerformanceRefreshInterval()
+	{
 		return this.performanceRefreshInterval;
 	}
 
-	public void setPerformanceRefreshInterval(long refreshInterval) {
+	public void setPerformanceRefreshInterval(long refreshInterval)
+	{
 		this.performanceRefreshInterval = refreshInterval;
 	}
 

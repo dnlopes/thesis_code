@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 import database.jdbc.ConnectionFactory;
 import nodes.NodeConfig;
@@ -43,6 +44,7 @@ public class TpccThread extends Thread
 	String driverClassName;
 	String jdbcUrl;
 	int fetchSize;
+
 
 	public ThreadStatistics getStats()
 	{
@@ -186,6 +188,11 @@ public class TpccThread extends Thread
 			System.exit(1);
 		}
 		return conn;
+	}
+
+	public PerformanceCounters getPerformanceCounter()
+	{
+		return this.driver.getPerformanceCounter();
 	}
 }
 

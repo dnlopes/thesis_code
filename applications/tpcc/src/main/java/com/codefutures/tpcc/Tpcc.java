@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +22,7 @@ import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import runtime.operation.AbstractOperation;
 import util.defaults.Configuration;
 import util.props.DatabaseProperties;
 
@@ -30,7 +32,6 @@ public class Tpcc implements TpccConstants
 
 	private static final Logger logger = LoggerFactory.getLogger(Tpcc.class);
 	private static final boolean DEBUG = logger.isDebugEnabled();
-	private static final PerformanceCounters performanceCounters = PerformanceCounters.getReference();
 
 	public static final String VERSION = "1.0.1";
 	private static final String DRIVER = "DRIVER";
@@ -44,8 +45,10 @@ public class Tpcc implements TpccConstants
 	private static final String JOINS = "JOINS";
 	public static boolean CUSTOM_JDBC;
 	private int proxyId;
+	private PerformanceCounters MAIN_PERFORMANCE_COUNTER = new PerformanceCounters();
 
 	private final List<TpccThread> clientThreads;
+	private List<PerformanceCounters> performanceCounters = new LinkedList<>();
 	private final List<PerSecondStatistics> perSecondStatsList;
 	private final Statistics mainStats;
 
@@ -578,13 +581,14 @@ public class Tpcc implements TpccConstants
 			}
 
 		}
+		tpcc.mergeCounters();
 		tpcc.createOutputFiles();
 		tpcc.createIterationsFile();
 		System.out.println("-------------------- SUMMARY ---------------------------");
-		System.out.println("Abort rate:" + performanceCounters.getTotalAbortRate());
-		System.out.println("Average latency:" + performanceCounters.getAverageLatency());
-		System.out.println("Commit Counter:" + performanceCounters.getCommitCounter());
-		System.out.println("Measured tpmC:" + performanceCounters.getTotalNewOrderCommitRate());
+		System.out.println("Abort rate:" + ABORT_RATE);
+		System.out.println("Average latency:" + AVG_LATENCY);
+		System.out.println("Commit Counter:" + COMMITS);
+		System.out.println("Measured tpmC:" + TPMC);
 		System.out.println("--------------------------------------------------------");
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
@@ -593,10 +597,10 @@ public class Tpcc implements TpccConstants
 
 	public void createOutputFiles()
 	{
-		int commitsCounter = performanceCounters.getCommitCounter();
-		double avgLatency = performanceCounters.getAverageLatency();
-		float abortRate = performanceCounters.getTotalAbortRate();
-		float tpmc = performanceCounters.getTotalNewOrderCommitRate();
+		int commitsCounter = COMMITS;
+		double avgLatency = AVG_LATENCY;
+		float abortRate = ABORT_RATE;
+		float tpmc = TPMC;
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 
@@ -677,6 +681,47 @@ public class Tpcc implements TpccConstants
 		for(PerSecondStatistics perSecondStats : this.perSecondStatsList)
 			logger.info(perSecondStats.toString());
 	}
+
+	private void mergeCounters()
+	{
+		int totalOps = 0;
+		double avgLatency = 0;
+		float abortRate = 0.0f;
+		float tpmc = 0.0f;
+
+
+		for(TpccThread thread : this.clientThreads)
+			this.performanceCounters.add(thread.getPerformanceCounter());
+
+
+		for(PerformanceCounters counter : this.performanceCounters)
+			totalOps += counter.getCommitCounter();
+
+		COMMITS = totalOps;
+
+		for(PerformanceCounters counter : this.performanceCounters)
+			avgLatency += counter.getAverageLatency() * counter.getCommitCounter();
+
+		avgLatency = avgLatency / totalOps;
+		AVG_LATENCY = avgLatency;
+
+		for(PerformanceCounters counter : this.performanceCounters)
+			abortRate += counter.getTotalAbortRate() * counter.getCommitCounter();
+
+		abortRate = abortRate / totalOps;
+		ABORT_RATE = abortRate;
+
+		for(PerformanceCounters counter : this.performanceCounters)
+			tpmc += counter.getTotalNewOrderCommitRate() * counter.getCommitCounter();
+
+		tpmc = tpmc / totalOps;
+		TPMC = tpmc;
+	}
+
+	public static int COMMITS = 0;
+	public static double AVG_LATENCY = 0;
+	public static float ABORT_RATE, TPMC = 0.0f;
+
 
 }
 

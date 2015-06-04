@@ -119,14 +119,9 @@ public class DBScratchPad implements IDBScratchPad
 				throw new SQLException("txn not ready to commit. something went wrong");
 			}
 
-			long startTime_2 = System.nanoTime();
-
 			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
 					this.proxyConfig.getReplicatorConfig());
 
-			long estimatedTime_2 = (System.nanoTime() - startTime_2) / 1000000;
-
-			LOG.info("commitTime time: {}", estimatedTime_2);
 			if(!commitDecision)
 				throw new SQLException("commit on main storage failed");
 		}
