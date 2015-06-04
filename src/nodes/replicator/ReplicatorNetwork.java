@@ -69,7 +69,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				LOG.debug("replicator {} still not ready for connections", config.getId());
 				try
 				{
-					Thread.sleep(200);
+					Thread.sleep(500);
 				} catch(InterruptedException e1)
 				{
 					e1.printStackTrace();
@@ -89,7 +89,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 			if(rpcConnection == null)
 			{
-				LOG.warn("error while creating connections for remote replicators: {}");
+				LOG.warn("failed to create connection for remote replicators: {}");
 				continue;
 			}
 
@@ -97,27 +97,43 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 
 		this.rpcsObjects.put(config.getId(), pool);
+		LOG.debug("created {} connections to replicator {}", pool.getPoolSize(), config.getId());
 	}
 
 	@Override
 	public void sendOperationToRemote(ThriftOperation thriftOperation)
 	{
 		for(NodeConfig config : this.replicatorsConfigs.values())
-		{
-			ReplicatorRPC.Client rpcConnection = this.rpcsObjects.get(config.getId()).borrowObject();
+			this.sendToRemote(thriftOperation, config);
+	}
 
+	private void sendToRemote(ThriftOperation op, NodeConfig config)
+	{
+		if(!this.rpcsObjects.containsKey(config.getId()))
+		{
+			LOG.warn("unkown replicator: {}", config.getId());
+			return;
+		}
+
+		ObjectPool<ReplicatorRPC.Client> pool = this.rpcsObjects.get(config.getId());
+
+		ReplicatorRPC.Client rpcConnection = pool.borrowObject();
+		if(rpcConnection == null)
+		{
+			LOG.warn("no rpc connection available for replicator {}", config.getId());
+			rpcConnection = this.createReplicatorConnection(config);
 			if(rpcConnection == null)
 			{
-				LOG.warn("no rpc connection available for replicator {}", config.getId());
-				rpcConnection = this.createReplicatorConnection(config);
+				LOG.warn("could not create connection to replicator {}", config.getId());
+				return;
 			}
-			try
-			{
-				rpcConnection.commitOperationAsync(thriftOperation);
-			} catch(TException e)
-			{
-				LOG.warn("failed to send shadow operation to replicator {}: {}", config.getId(), e.getMessage());
-			}
+		}
+		try
+		{
+			rpcConnection.commitOperationAsync(op);
+		} catch(TException e)
+		{
+			LOG.warn("failed to send shadow operation to replicator {}: {}", config.getId(), e.getMessage());
 		}
 	}
 
