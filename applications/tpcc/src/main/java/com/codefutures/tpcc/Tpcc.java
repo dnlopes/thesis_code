@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.codefutures.tpcc.stats.PerSecondStatistics;
+import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.Statistics;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
@@ -580,6 +581,12 @@ public class Tpcc implements TpccConstants
 		}
 		tpcc.createOutputFiles();
 		tpcc.createIterationsFile();
+		System.out.println("-------------------- SUMMARY ---------------------------");
+		System.out.println("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
+		System.out.println("Average latency:" + PerformanceCounters.getReference().getAverageLatency());
+		System.out.println("Commit Counter:" + PerformanceCounters.getReference().getCommitCounter());
+		System.out.println("Measured tpmC:" + PerformanceCounters.getReference().getTotalNewOrderCommitRate());
+		System.out.println("--------------------------------------------------------");
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
 		System.exit(ret);
@@ -587,53 +594,26 @@ public class Tpcc implements TpccConstants
 
 	public void createOutputFiles()
 	{
-		int committed = 0;
-		long totalLatency = 0;
+		int commitsCounter = PerformanceCounters.getReference().getCommitCounter();
+		double avgLatency = PerformanceCounters.getReference().getAverageLatency();
+		float abortRate = PerformanceCounters.getReference().getTotalAbortRate();
+		float tpmc = PerformanceCounters.getReference().getTotalNewOrderCommitRate();
 
-		for(int i = 0; i < this.success2_sum.length; i++)
-			committed += success2_sum[i];
-
-		for(int i = 0; i < this.late2_sum.length; i++)
-			committed += late2_sum[i];
-
-		for(int i = 0; i < this.latencies.length; i++)
-			totalLatency += this.latencies[i];
-
-		long avgLatency;
-		if(committed == 0)
-			avgLatency = 65000;
-		else
-			avgLatency = totalLatency / committed;
-
-		float abortCounter = 0;
-
-		for(int i = 0; i < this.failure2_sum.length; i++)
-			abortCounter += this.failure2_sum[i];
-
-		float abortPercentage;
-		if(abortCounter > 0 || committed > 0)
-			abortPercentage = abortCounter * 1.0f / (abortCounter + committed);
-		else
-			abortPercentage = 0.0f;
-		logger.info("Total ops: {}", committed);
-		logger.info("Avg Latency: {}", avgLatency);
-
-		String fileName = "emulator" + this.proxyId + ".results.temp";
+		String fileName = "emulator" + proxyId + ".results.temp";
 
 		// OPS LATENCY CLIENTS
 
 		PrintWriter out = null;
 		try
-		{
-			StringBuilder buffer = new StringBuilder();
-			buffer.append("committed,avgLatency,tpmc,aborted\n");
-			buffer.append(committed);
+		{   StringBuilder buffer = new StringBuilder();
+			buffer.append("committed,avgLatency,tpmc,abortrate\n");
+			buffer.append(commitsCounter);
 			buffer.append(",");
 			buffer.append(avgLatency);
 			buffer.append(",");
-			buffer.append(TPMC);
+			buffer.append(tpmc);
 			buffer.append(",");
-			buffer.append(abortPercentage);
+			buffer.append(abortRate);
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
 			out.close();

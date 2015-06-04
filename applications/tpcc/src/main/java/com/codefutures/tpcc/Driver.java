@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
+import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -143,25 +144,35 @@ public class Driver implements TpccConstants
 
 	private void doNextTransaction(int t_num, int sequence)
 	{
+		int success = 0;
 		if(sequence == 0)
 		{
-			doNeword(t_num);
+			success = doNeword(t_num);
 		} else if(sequence == 1)
 		{
-			doPayment(t_num);
+			success = doPayment(t_num);
 		} else if(sequence == 2)
 		{
-			doOrdstat(t_num);
+			success = doOrdstat(t_num);
 		} else if(sequence == 3)
 		{
-			doDelivery(t_num);
+			success = doDelivery(t_num);
 		} else if(sequence == 4)
 		{
-			doSlev(t_num);
+			success = doSlev(t_num);
 		} else
 		{
 			logger.error("unkown sequence number: {}", sequence);
 			System.exit(1);
+		}
+
+		if(success == 0) //aborted
+			PerformanceCounters.setAbortRate();
+		else if(success == 1)
+		{
+			PerformanceCounters.setCommitRate();
+			if(sequence == 0)
+				PerformanceCounters.setTPMC();
 		}
 	}
 
@@ -241,6 +252,7 @@ public class Driver implements TpccConstants
 				logger.trace("neworder txn succedeed");
 				returnValue = 1;
 				latency = (double) (endTime - beginTime);
+				PerformanceCounters.setLatency(latency);
 
 				if(DEBUG)
 					logger.debug("BEFORE rt value: " + latency + " max_rt[0] value: " + max_rt[0]);
@@ -360,7 +372,7 @@ public class Driver implements TpccConstants
 				returnValue = 1;
 
 				latency = (double) (endTime - beginTime);
-
+				PerformanceCounters.setLatency(latency);
 				if(latency > max_rt[1])
 					max_rt[1] = latency;
 
@@ -457,10 +469,8 @@ public class Driver implements TpccConstants
 			{
 				logger.trace("orderstat txn succedeed");
 				returnValue = 1;
-				//rt = (double)(tbuf2.tv_sec * 1000.0 + tbuf2.tv_nsec/1000000.0-tbuf1.tv_sec * 1000.0 - tbuf1
-				// .tv_nsec/1000000.0)
 				rt = (double) (endTime - beginTime);
-
+				PerformanceCounters.setLatency(rt);
 				if(rt > max_rt[2])
 					max_rt[2] = rt;
 				RtHist.histInc(2, rt);
@@ -543,7 +553,7 @@ public class Driver implements TpccConstants
 				logger.trace("delivery txn succedeed");
 				returnValue = 1;
 				rt = (double) (endTime - beginTime);
-
+				PerformanceCounters.setLatency(rt);
 				if(rt > max_rt[3])
 					max_rt[3] = rt;
 				RtHist.histInc(3, rt);
@@ -629,7 +639,7 @@ public class Driver implements TpccConstants
 				logger.trace("slev txn succedeed");
 				returnValue = 1;
 				rt = (double) (endTime - beginTime);
-
+				PerformanceCounters.setLatency(rt);
 				if(rt > max_rt[4])
 					max_rt[4] = rt;
 				RtHist.histInc(4, rt);
