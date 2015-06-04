@@ -30,7 +30,7 @@ public class Tpcc implements TpccConstants
 
 	private static final Logger logger = LoggerFactory.getLogger(Tpcc.class);
 	private static final boolean DEBUG = logger.isDebugEnabled();
-	private static float TPMC;
+	private static final PerformanceCounters performanceCounters = PerformanceCounters.getReference();
 
 	public static final String VERSION = "1.0.1";
 	private static final String DRIVER = "DRIVER";
@@ -478,7 +478,6 @@ public class Tpcc implements TpccConstants
 		}
 
 		float tpcm = (success[0] + late[0]) * 60000f / actualTestTime;
-		TPMC = tpcm;
 
 		System.out.println();
 		System.out.println("<TpmC>");
@@ -582,10 +581,10 @@ public class Tpcc implements TpccConstants
 		tpcc.createOutputFiles();
 		tpcc.createIterationsFile();
 		System.out.println("-------------------- SUMMARY ---------------------------");
-		System.out.println("Abort rate:" + PerformanceCounters.getReference().getTotalAbortRate());
-		System.out.println("Average latency:" + PerformanceCounters.getReference().getAverageLatency());
-		System.out.println("Commit Counter:" + PerformanceCounters.getReference().getCommitCounter());
-		System.out.println("Measured tpmC:" + PerformanceCounters.getReference().getTotalNewOrderCommitRate());
+		System.out.println("Abort rate:" + performanceCounters.getTotalAbortRate());
+		System.out.println("Average latency:" + performanceCounters.getAverageLatency());
+		System.out.println("Commit Counter:" + performanceCounters.getCommitCounter());
+		System.out.println("Measured tpmC:" + performanceCounters.getTotalNewOrderCommitRate());
 		System.out.println("--------------------------------------------------------");
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
@@ -594,10 +593,10 @@ public class Tpcc implements TpccConstants
 
 	public void createOutputFiles()
 	{
-		int commitsCounter = PerformanceCounters.getReference().getCommitCounter();
-		double avgLatency = PerformanceCounters.getReference().getAverageLatency();
-		float abortRate = PerformanceCounters.getReference().getTotalAbortRate();
-		float tpmc = PerformanceCounters.getReference().getTotalNewOrderCommitRate();
+		int commitsCounter = performanceCounters.getCommitCounter();
+		double avgLatency = performanceCounters.getAverageLatency();
+		float abortRate = performanceCounters.getTotalAbortRate();
+		float tpmc = performanceCounters.getTotalNewOrderCommitRate();
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 
