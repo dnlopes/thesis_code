@@ -38,6 +38,7 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
 		this.commitPadPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
+		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		try
 		{
@@ -46,7 +47,6 @@ public class Replicator extends AbstractNode
 		{
 			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
 		}
-		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		this.setupPads();
 		LOG.info("replicator {} online", this.config.getId());
