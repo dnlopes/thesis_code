@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.codefutures.tpcc.stats.PerSecondStatistics;
@@ -22,7 +21,6 @@ import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import runtime.operation.AbstractOperation;
 import util.defaults.Configuration;
 import util.props.DatabaseProperties;
 
@@ -321,7 +319,7 @@ public class Tpcc implements TpccConstants
 		ExecutorService executor = Executors.newFixedThreadPool(numConn, new NamedThreadFactory("tpcc-thread"));
 
 		// Start each server.
-		counting_on = true;
+		//counting_on = true;
 		for(int i = 0; i < numConn; i++)
 		{
 			Runnable worker = new TpccThread(i, port, 1, dbUser, dbPassword, numWare, numConn, javaDriver, jdbcUrl,
@@ -330,7 +328,6 @@ public class Tpcc implements TpccConstants
 			executor.execute(worker);
 			this.clientThreads.add((TpccThread) worker);
 		}
-
 
 		if(rampupTime > 0)
 		{
@@ -347,7 +344,7 @@ public class Tpcc implements TpccConstants
 		}
 
 		// start counting
-		//counting_on = true;
+		counting_on = true;
 
 		// loop for the measure_time
 		final long startTime = System.currentTimeMillis();
@@ -369,6 +366,7 @@ public class Tpcc implements TpccConstants
 			}
 		}
 		final long actualTestTime = System.currentTimeMillis() - startTime;
+		counting_on = false;
 
 		// show results
 		System.out.println("---------------------------------------------------");
@@ -382,10 +380,11 @@ public class Tpcc implements TpccConstants
 			System.out.printf("  |%s| sc:%d  lt:%d  rt:%d  fl:%d \n", TRANSACTION_NAME[i], success[i], late[i],
 					retry[i], failure[i]);
 		}
+
 		System.out.printf(" in %f sec.\n", actualTestTime / 1000.0f);
 
         /*
-        * Raw Results 2
+		* Raw Results 2
         */
 		System.out.println("<Raw Results2(sum ver.)>");
 		for(int i = 0; i < TRANSACTION_COUNT; i++)
@@ -480,18 +479,26 @@ public class Tpcc implements TpccConstants
 			System.out.println(" " + TRANSACTION_NAME[j] + " Total: " + (success[j] + late[j]));
 		}
 
-		float tpcm = (success[0] + late[0]) * 60000f / actualTestTime;
-		TPMC = tpcm;
+		//float tpcm = (success[0] + late[0]) * 60000f / actualTestTime;
+		//TPMC = tpcm;
+		int newOrderCommits = 0;
+		for(int k = 0; k < numConn; k++)
+		{
+			newOrderCommits += success2[0][k];
+			newOrderCommits += late2[0][k];
+		}
+
+		TPMC = newOrderCommits * 60000f / actualTestTime;
 
 		System.out.println();
 		System.out.println("<TpmC>");
-		System.out.println(tpcm + " TpmC");
+		System.out.println(TPMC + " TpmC");
 
 		// stop threads
 		System.out.printf("\nSTOPPING THREADS\n");
 		activate_transaction = 0;
-
 		executor.shutdown();
+
 		try
 		{
 			executor.awaitTermination(30, TimeUnit.SECONDS);
@@ -585,12 +592,12 @@ public class Tpcc implements TpccConstants
 		//tpcc.mergeCounters();
 		tpcc.createOutputFiles();
 		tpcc.createIterationsFile();
-		System.out.println("-------------------- SUMMARY ---------------------------");
+		System.out.println("--------------------------- SUMMARY ---------------------------");
 		System.out.println("Abort rate:" + ABORT_RATE);
 		System.out.println("Average latency:" + AVG_LATENCY);
 		System.out.println("Commit Counter:" + COMMITS);
 		System.out.println("Measured tpmC:" + TPMC);
-		System.out.println("--------------------------------------------------------");
+		System.out.println("---------------------------------------------------------------");
 		System.out.println("Terminating process now");
 		System.out.println("CLIENT TERMINATED");
 		System.exit(ret);
@@ -616,29 +623,18 @@ public class Tpcc implements TpccConstants
 		for(int i = 0; i < this.latencies.length; i++)
 			totalLatency += this.latencies[i];
 
-		float avgLatency;
-		if(commitsCounter == 0)
-			avgLatency = 65000;
-		else
-			avgLatency = totalLatency / commitsCounter;
-
-
+		float avgLatency = totalLatency / commitsCounter;
 
 		float abortCounter = 0;
 
 		for(int i = 0; i < this.failure2_sum.length; i++)
 			abortCounter += this.failure2_sum[i];
 
-		float abortRate;
-		if(abortCounter > 0 || commitsCounter > 0)
-			abortRate = abortCounter * 1.0f / (abortCounter + commitsCounter);
-		else
-			abortRate = 0.0f;
+		float abortRate = abortCounter * 1.0f / (abortCounter + commitsCounter);
 
-
+		COMMITS = commitsCounter;
 		AVG_LATENCY = avgLatency;
 		ABORT_RATE = abortRate;
-		COMMITS = commitsCounter;
 
 		String fileName = "emulator" + proxyId + ".results.temp";
 
@@ -646,11 +642,12 @@ public class Tpcc implements TpccConstants
 
 		PrintWriter out = null;
 		try
-		{   StringBuilder buffer = new StringBuilder();
-			buffer.append("commitsCounter,avgLatency,tpmc,abortrate\n");
-			buffer.append(commitsCounter);
+		{
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("committed,avgLatency,tpmc,abortrate\n");
+			buffer.append(COMMITS);
 			buffer.append(",");
-			buffer.append(avgLatency);
+			buffer.append(AVG_LATENCY);
 			buffer.append(",");
 			buffer.append(TPMC);
 			buffer.append(",");
@@ -727,10 +724,8 @@ public class Tpcc implements TpccConstants
 		float abortRate = 0.0f;
 		float tpmc = 0.0f;
 
-
 		for(TpccThread thread : this.clientThreads)
 			this.performanceCounters.add(thread.getPerformanceCounter());
-
 
 		for(PerformanceCounters counter : this.performanceCounters)
 			totalOps += counter.getCommitCounter();
@@ -759,7 +754,6 @@ public class Tpcc implements TpccConstants
 	public static int COMMITS = 0;
 	public static double AVG_LATENCY = 0;
 	public static float ABORT_RATE, TPMC = 0.0f;
-
 
 }
 

@@ -7,8 +7,6 @@ import plots
 import configParser as config
 import fabfile as fab
 
-
-
 def lineContainsExpression(line, expression):
 	if expression in line:
 		return True

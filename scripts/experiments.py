@@ -35,11 +35,13 @@ TO_DOWNLOAD_COMMANDS = []
 #JDCBs=['mysql_crdt', "default_jdbc"]
 #JDCBs=['crdt','galera']
 JDCBs=['galera','crdt']
-NUMBER_REPLICAS=[3]
+NUMBER_REPLICAS=[3,5]
 NUMBER_USERS_LIST_1REPLICA=[1]
-NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
+#NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
-NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
+NUMBER_USERS_LIST_3REPLICA=[6,12,24,48,96,192]
+#NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
+NUMBER_USERS_LIST_5REPLICA=[10,20,40,80,160,320]
 userListToReplicasNumber = dict()
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
 userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
@@ -248,7 +250,7 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 	print "\n"
 
 	success = False
-	for attempt in range(10):
+	for attempt in range(4):
 		if config.JDBC == 'crdt':
 			success = runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 		else:
@@ -293,7 +295,11 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 
 	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
+	attempts = 0
 	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
@@ -303,6 +309,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 			else:
 				isRunning = False				
 		if isRunning == True:
+			attempts += 1
 			time.sleep(10)
 		else:
 			break
@@ -331,6 +338,9 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
 	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
@@ -340,6 +350,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 			else:
 				isRunning = False
 		if isRunning == True:
+			attempts += 1
 			time.sleep(10)
 		else:
 			break
@@ -347,7 +358,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	logger.info('the experiment has finished!')
 	fab.killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)	
 	logger.info('logs can be found at %s', outputDir)
 
 	return True
@@ -546,7 +557,11 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 
 	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
+	attempts = 0
 	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
 		logger.info('checking experiment status...')   
 		with hide('running', 'output'):
 			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
@@ -556,6 +571,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 			else:
 				isRunning = False
 		if isRunning == True:
+			attempts += 1
 			time.sleep(10)
 		else:
 			break
@@ -581,27 +597,24 @@ def startDatabaseLayer():
 			output = execute(fab.startDatabases, hosts=config.database_nodes)
 			for key, value in output.iteritems():
 				if value == '0':
-					logger.error('database at %s failed to start', key)
+					logger.warn('database at %s failed to start', key)
 					return False
 			return True
 	elif config.JDBC == 'galera':
 		with hide('running','output'):
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
 			masterDatabaseReplica = config.database_nodes[0]
 			masterList = [masterDatabaseReplica]
 			slavesReplicas = config.database_nodes[:]
 			slavesReplicas.remove(masterDatabaseReplica) 
 			logger.info("%s will bootstrap Galera-Cluster", masterDatabaseReplica)
-			logger.info("%s will join after the cluster is online", slavesReplicas)
-			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
-		
+			logger.info("%s will join after the cluster is online", slavesReplicas)		
 			#start master replica (that will bootstrap the cluster)
 			output = execute(fab.startDatabasesGalera, True, hosts=masterList)
 		for key, value in output.iteritems():
 			if utils.fabOutputContainsExpression(output, "0"):		
 				logger.error('database at %s failed to start', key)
-				return False							
-
-		time.sleep(10)	
+				return False								
 
 		if len(config.database_nodes) > 1:
 			#start remainning nodes
@@ -611,7 +624,7 @@ def startDatabaseLayer():
 				logger.error('database at %s failed to start', key)
 				return False							
 			
-		return checkGaleraClusterStatus(masterDatabaseReplica)
+		return True
 	else:
 		logger.error("unexpected driver: %s", config.JDBC)
 		sys.exit()

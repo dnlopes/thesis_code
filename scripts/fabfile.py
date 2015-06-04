@@ -35,18 +35,18 @@ def startDatabasesGalera(isMaster):
     mysqlCommand = ''
     clusterAddress = generateClusterAddress()
 
-    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_retry_autocommit=1 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
+    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_retry_autocommit=0 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
     if isMaster:
         mysqlCommand += " --wsrep-new-cluster"
 
-    command = 'nohup ' + mysqlCommand + ' >& /dev/null < /dev/null &'  
+    command = 'nohup ' + mysqlCommand + ' >& /dev/null < /dev/null &'
 
     logger.info('starting database at %s', env.host_string)
     logger.info(command)
     with cd(config.GALERA_MYSQL_DIR), hide('running','output'):    
         run(command)    
     
-    time.sleep(15)   
+    time.sleep(30)   
 
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
@@ -59,9 +59,8 @@ def startDatabases():
     logger.info(command)
     with cd(config.MYSQL_DIR), hide('running','output'):    
         run(command)    
-    time.sleep(20)
-    if config.JDBC == 'galera':
-        time.sleep(10)
+    
+    time.sleep(30)
 
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
