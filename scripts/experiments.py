@@ -337,6 +337,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 
 	time.sleep(config.TPCC_TEST_TIME+20)
 	isRunning = True
+	attempts = 0
 	while isRunning:
 		if attempts >= 6:
 			logger.error("checked 6 times if clients were running. Something is probably wrong")

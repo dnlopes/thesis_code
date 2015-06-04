@@ -79,13 +79,8 @@ def startCoordinators(configFile):
     logger.info('%s',command)
     with cd(config.DEPLOY_DIR), hide('running','output'):
         run(command)
-    
-    if config.IS_LOCALHOST == True:
-        time.sleep(20)
-    else:
-        time.sleep(10)
-    
-    time.sleep(10)
+       
+    time.sleep(30)
     if not isPortOpen(port):
         return '0'
     return '1'
@@ -104,12 +99,7 @@ def startReplicators(configFile):
     with cd(config.DEPLOY_DIR), hide('running','output'):
         run(command)
     
-    if config.IS_LOCALHOST == True:
-        time.sleep(20)
-    else:
-        time.sleep(20)
-
-    time.sleep(10)
+    time.sleep(30)
     if not isPortOpen(port):
         return '0'
     return '1'
