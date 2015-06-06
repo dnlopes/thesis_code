@@ -91,7 +91,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
 		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	 
-		CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
+		CONFIG_FILE = configsFilesBaseDir +'/amazon_tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
 		if config.IS_LOCALHOST == True:
 			CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
 		
