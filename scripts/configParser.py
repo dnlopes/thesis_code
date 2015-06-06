@@ -43,7 +43,7 @@ prefix_overhead_experiment = "overhead"
 ################################################################################################
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
-MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf'
+MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --max-connections=750'
 BASE_DIR = '/local/' + user
 DEPLOY_DIR = BASE_DIR + '/deploy'
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'

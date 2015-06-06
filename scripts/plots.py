@@ -189,7 +189,7 @@ def mergeIterationCSVFiles(outputDir, totalUsers):
 	#logger.info("merging files: %s", tempCSVFiles)
 	pass
 
-def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):	
+def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
 	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
 	logger.info("merging files: %s", tempCSVFiles)
 	
