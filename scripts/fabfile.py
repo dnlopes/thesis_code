@@ -138,11 +138,10 @@ def distributeCode():
         put(config.PROJECT_DIR + '/resources/*.properties', config.DEPLOY_DIR)
 
 def downloadLogsTo(outputDir):
-    logger.info('%s is moving log files to proper directory', env.host_string)
-    
-    with cd(config.DEPLOY_DIR), hide('warnings', 'output', 'running'), settings(warn_only=True):
-        run('cp *.temp ' + outputDir)
-        run('cp *.log '  + outputDir + "/logs")
+    logger.info('downloading log files from %s', env.host_string)    
+    with cd(config.DEPLOY_DIR), hide('warnings', 'output', 'running'), settings(warn_only=True):    
+        get(config.DEPLOY_DIR + "/*.temp", outputDir)
+        get(config.DEPLOY_DIR + "/*.log", outputDir + "/logs")        
 
 @parallel
 def prepareTPCCDatabase():

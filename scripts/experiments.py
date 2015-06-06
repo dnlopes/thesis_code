@@ -667,7 +667,7 @@ def prepareCode():
 def downloadLogs(outputDir):
 	logger.info('downloading log files')
 	with hide('running', 'output'):
-		execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)  
+		execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)
 
 def checkGaleraClusterStatus(masterReplicaHost):
 	numberOfDatabases = len(config.database_nodes)

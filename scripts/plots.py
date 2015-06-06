@@ -180,7 +180,7 @@ def generateScalabilityDataPointsForJDBC(outputDir, jdbcDriver, numberReplicasLi
 #   "PRIVATE" METHODS
 ################################################################################################
 def mergeTemporaryCSVfiles(outputDir, totalUsers, numberOfReplicas):
-	logger.info("merging temporary CSV files")
+	logger.info("merging temporary CSV files from: %s", outputDir)
 	#mergeIterationCSVFiles(outputDir, totalUsers)
 	mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas)
 
@@ -189,7 +189,7 @@ def mergeIterationCSVFiles(outputDir, totalUsers):
 	#logger.info("merging files: %s", tempCSVFiles)
 	pass
 
-def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
+def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):	
 	tempCSVFiles = glob.glob(outputDir + "/*.results.temp")
 	logger.info("merging files: %s", tempCSVFiles)
 	
