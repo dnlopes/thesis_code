@@ -99,7 +99,7 @@ def startReplicators(configFile):
     with cd(config.DEPLOY_DIR), hide('running','output'):
         run(command)
     
-    time.sleep(30)
+    time.sleep(45)
     if not isPortOpen(port):
         return '0'
     return '1'
