@@ -27,11 +27,11 @@ public class MicroBenchmark
 		int testDuration = Integer.parseInt(args[1]);
 		int writePercentage = Integer.parseInt(args[2]);
 
-		Workload workload = new MicroWorkload(writePercentage, NUMBER_OF_TABLES);
+		//Workload workload = new MicroWorkload(writePercentage, NUMBER_OF_TABLES);
 
-		Emulator em = new Emulator(numberClients, testDuration, workload);
+		//Emulator em = new Emulator(numberClients, testDuration, workload);
 
-		em.startBenchmark();
-		em.collectStatistics();
+		//em.startBenchmark();
+		//em.collectStatistics();
 	}
 }

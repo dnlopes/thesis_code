@@ -55,16 +55,23 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			connection = this.createReplicatorConnection(node);
 		}
 
+		if(connection == null)
+		{
+			LOG.warn("failed to create connection to replicator");
+			return false;
+		}
+
 		try
 		{
 			return connection.commitOperation(thriftOp);
 		} catch(TException e)
 		{
-			LOG.warn("communication problem between proxy and replicator", e);
+			LOG.warn("communication problem between proxy and replicator: {}", e.getMessage(), e);
 			return false;
 		} finally
 		{
-			this.replicatorConnectionPool.returnObject(connection);
+			if(connection != null)
+				this.replicatorConnectionPool.returnObject(connection);
 		}
 	}
 

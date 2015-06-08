@@ -30,6 +30,7 @@ public class MicroWorkload implements Workload, MicroConstants
 
 		}
 
+		return null;
 	}
 
 
@@ -41,11 +42,12 @@ public class MicroWorkload implements Workload, MicroConstants
 
 	private String generateCoordinatedOperation()
 	{
-
+		return null;
 	}
 
 	private String generateNonCoordinatedOperation()
 	{
+		return null;
 
 	}
 

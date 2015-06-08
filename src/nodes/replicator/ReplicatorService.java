@@ -28,7 +28,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		this.replicator = replicator;
 		this.network = network;
-		this.deliver = new NoOrderDeliver(this.replicator);
+		this.deliver = new CausalDeliver(this.replicator);
 	}
 
 	@Override
