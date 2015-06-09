@@ -48,6 +48,7 @@ BASE_DIR = '/local/' + user
 DEPLOY_DIR = BASE_DIR + '/deploy'
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
 GALERA_MYSQL_DIR = BASE_DIR + '/mysql-5.6-galera'
+CLUSTER_MYSQL_DIR = BASE_DIR + '/mysql-cluster'
 HOME_DIR = '/home/' + user
 LOGS_DIR = HOME_DIR + '/logs'
 BACKUPS_DIR = HOME_DIR + '/backups'
@@ -106,6 +107,7 @@ def parseConfigFile(configFile):
         dbHost = database.get('dbHost')
         database_nodes.append(dbHost)
         distinctNodesSet.add(dbHost)
+        database_map[dbHost] = dbId   
 
     for replicator in e.iter('replicator'):
         replicatorId = replicator.get('id')

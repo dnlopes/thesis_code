@@ -53,6 +53,43 @@ def startDatabasesGalera(isMaster):
     return '1'
 
 @parallel
+def startClusterDatabases():
+    
+    databasesNum = len(config.database_nodes)
+    logger.info('starting database at %s', env.host_string)
+    
+    if databasesNum == 3:
+        startCluster3Databases()
+    elif databasesNum == 5: 
+        startCluster5Databases()
+
+    time.sleep(30)
+    
+    if not isPortOpen(config.MYSQL_PORT):
+        return '0'
+    return '1'
+
+def startCluster3Databases():
+    with cd(config.CLUSTER_MYSQL_DIR), hide('running','output'):
+        run("bin/ndb_mgmd -f conf/config3.ini --configdir=/local/ubuntu/mysql-cluster/conf")
+        time.sleep(3)
+        run("bin/ndbd")
+        time.sleep(3)
+        sqlCommand = "bin/mysqld_safe --defaults-file=my3.cnf --open_files_limit=8192 --max-connections=1500"
+        command = 'nohup ' + sqlCommand + ' >& /dev/null < /dev/null &'  
+        run(command)
+
+def startCluster5Databases():
+    with cd(config.CLUSTER_MYSQL_DIR), hide('running','output'):
+        run("bin/ndb_mgmd -f conf/config5.ini --configdir=/local/ubuntu/mysql-cluster/conf")
+        time.sleep(3)
+        run("bin/ndbd")
+        time.sleep(3)
+        sqlCommand = "bin/mysqld_safe --defaults-file=my5.cnf --open_files_limit=8192 --max-connections=1500"
+        command = 'nohup ' + sqlCommand + ' >& /dev/null < /dev/null &'  
+        run(command)
+
+@parallel
 def startDatabases():
     command = 'nohup ' + config.MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'  
     logger.info('starting database at %s', env.host_string)
@@ -146,11 +183,18 @@ def downloadLogsTo(outputDir):
 @parallel
 def prepareTPCCDatabase():
 
+    dbNumber = len(config.database_nodes)
+
     mysqlPackage = ''
     if config.JDBC == 'crdt':
         mysqlPackage = 'mysql-5.6_ready.tar.gz'
     elif config.JDBC == 'galera':
         mysqlPackage = 'mysql-5.6-galera_ready.tar.gz'
+    elif config.JDBC == 'cluster':
+        if dbNumber == 3:
+            mysqlPackage = 'mysql-cluster3.tar.gz'
+        else:
+            mysqlPackage = 'mysql-cluster5.tar.gz'
     else:
         logger.error("unexpected driver: %s", config.JDBC)
         sys.exit()

@@ -34,12 +34,12 @@ TO_DOWNLOAD_COMMANDS = []
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
 #JDCBs=['crdt','galera']
-JDCBs=['galera','crdt']
-NUMBER_REPLICAS=[3,5]
+JDCBs=['cluster']
+NUMBER_REPLICAS=[3]
 NUMBER_USERS_LIST_1REPLICA=[1]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
-NUMBER_USERS_LIST_3REPLICA=[6,12,24,48,96,192,300,450,600]
+#NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
 NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
 #NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
 NUMBER_USERS_LIST_5REPLICA=[10,20,40,80,160,320,500,750,1000]
@@ -254,9 +254,11 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 	for attempt in range(4):
 		if config.JDBC == 'crdt':
 			success = runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-		else:
+		elif config.JDBC == 'galera':
 			success = runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
-		
+		elif config.JDBC == 'cluster':
+			success = runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)		
+
 		if success:
 			break
 		else:
@@ -324,6 +326,48 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 	return True
 
 def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+	
+	logger.info("starting database layer")
+	
+	success = startDatabaseLayer()
+	if success == True:		
+		logger.info("all databases instances are online") 
+	else:		
+		logger.error("database layer failed to start")
+		return False
+		
+	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
+
+	time.sleep(config.TPCC_TEST_TIME+20)
+	isRunning = True
+	attempts = 0
+	while isRunning:
+		if attempts >= 6:
+			logger.error("checked 6 times if clients were running. Something is probably wrong")
+			return False
+		logger.info('checking experiment status...')   
+		with hide('running', 'output'):
+			output = execute(fab.areClientsRunning, numberEmulators, hosts=config.emulators_nodes)
+			if utils.fabOutputContainsExpression(output, "True"):
+				isRunning = True
+				logger.info('experiment is still running!')				
+			else:
+				isRunning = False
+		if isRunning == True:
+			attempts += 1
+			time.sleep(10)
+		else:
+			break
+
+	logger.info('the experiment has finished!')
+	fab.killRunningProcesses()
+	downloadLogs(outputDir)
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)	
+	logger.info('logs can be found at %s', outputDir)
+
+	return True
+
+def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	
 	logger.info("starting database layer")
 	
@@ -627,6 +671,16 @@ def startDatabaseLayer():
 				return False							
 			
 		return True
+	
+	elif config.JDBC == 'cluster':
+		with hide('running','output'):
+			execute(fab.prepareTPCCDatabase, hosts=config.database_nodes)
+			output = execute(fab.startClusterDatabases, hosts=config.database_nodes)
+			for key, value in output.iteritems():
+				if value == '0':
+					logger.warn('database at %s failed to start', key)
+					return False
+			return True
 	else:
 		logger.error("unexpected driver: %s", config.JDBC)
 		sys.exit()
