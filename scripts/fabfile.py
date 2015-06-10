@@ -225,8 +225,14 @@ def stopMySQL():
     with settings(warn_only=True),hide('output'), cd(config.MYSQL_DIR):
         run(config.MYSQL_SHUTDOWN_COMMAND)
     with settings(warn_only=True),hide('output'), cd(config.GALERA_MYSQL_DIR):
-        run(config.MYSQL_SHUTDOWN_COMMAND)        
-
+        run(config.MYSQL_SHUTDOWN_COMMAND)
+    with settings(warn_only=True),hide('output'), cd(config.CLUSTER_MYSQL_DIR):
+        run(config.MYSQL_SHUTDOWN_COMMAND)  
+        
+    with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+        run("killall mysqld_safe ; killall mysqld ; killall ndbd ; killall ndb_mgmd")
+        time.sleep(10)
+            
 def isPortOpen(port):
     with settings(warn_only=True),hide('output'):
         output = run('netstat -tan | grep ' + port)
