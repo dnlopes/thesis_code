@@ -144,6 +144,7 @@ public class Load implements TpccConstants {
             itemRecord.add(i_data);
 
             itemLoader.load(itemRecord);
+			itemLoader.commit();
 
             if ((i_id % 100) == 0) {
                 System.out.printf(".");
@@ -395,6 +396,7 @@ public class Load implements TpccConstants {
             stockRecord.add(s_data);
 
             stockLoader.load(stockRecord);
+			stockLoader.commit();
 
             if (optionDebug)
                 System.out.printf("SID = %d, WID = %d, Quan = %d\n",
@@ -477,6 +479,7 @@ public class Load implements TpccConstants {
             districtRecord.add(d_next_o_id);
 
             districtLoader.load(districtRecord);
+			districtLoader.commit();
 
             if (optionDebug)
                 System.out.printf("DID = %d, WID = %d, Name = %s, Tax = %f\n",
@@ -627,6 +630,7 @@ public class Load implements TpccConstants {
                     customerRecord.add(c_data);
 
                     customerLoader.load(customerRecord);
+					customerLoader.commit();
 
                 } catch (Exception e) {
                     throw new RuntimeException("Customer insert error", e);
@@ -654,6 +658,7 @@ public class Load implements TpccConstants {
                     historyRecord.add(h_data);
 
                     historyLoader.load(historyRecord);
+					historyLoader.commit();
 
                 } catch (Exception e) {
                     throw new RuntimeException("Insert into History error", e);
@@ -759,6 +764,7 @@ public class Load implements TpccConstants {
                     orderRecord.add(1);
 
                     orderLoader.load(orderRecord);
+					orderLoader.commit();
 
 
                     /*EXEC SQL INSERT INTO
@@ -770,6 +776,7 @@ public class Load implements TpccConstants {
                     newOrderRecord.add(o_w_id);
 
                     newOrderLoader.load(newOrderRecord);
+					newOrderLoader.commit();
 
                 } else {
                     /*EXEC SQL INSERT INTO
@@ -788,6 +795,7 @@ public class Load implements TpccConstants {
                     orderRecord.add(1);
 
                     orderLoader.load(orderRecord);
+					orderLoader.commit();
 
                 }
 
@@ -826,6 +834,7 @@ public class Load implements TpccConstants {
                         orderLineRecord.add(ol_dist_info);
 
                         orderLineLoader.load(orderLineRecord);
+						orderLineLoader.commit();
 
                     } else {
                         /*EXEC SQL INSERT INTO
@@ -847,6 +856,7 @@ public class Load implements TpccConstants {
                         orderLineRecord.add(ol_dist_info);
 
                         orderLineLoader.load(orderLineRecord);
+						orderLineLoader.commit();
 
                     }
 
