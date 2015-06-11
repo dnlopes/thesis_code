@@ -123,7 +123,6 @@ public class Replicator extends AbstractNode
 			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
 
 		this.clockLock.lock();
-
 		this.clock = this.clock.maxClock(clock);
 		this.clockLock.unlock();
 

@@ -22,7 +22,8 @@ public class CausalDeliver implements Deliver
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
-	private static final int THREAD_WAKEUP_INTERVAL = 1;
+	private static final int THREAD_WAKEUP_INTERVAL = 200;
+	//private static final int THREAD_WAKEUP_INTERVAL = 1;
 
 	private final Map<Integer, Queue<ShadowOperation>> queues;
 	private final Replicator replicator;
@@ -37,7 +38,7 @@ public class CausalDeliver implements Deliver
 		DeliveryThread deliveryThread = new DeliveryThread();
 
 		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-		service.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.SECONDS);
+		service.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	private void setup()
@@ -108,24 +109,14 @@ public class CausalDeliver implements Deliver
 		@Override
 		public void run()
 		{
-			boolean hasDelivered = false;
-
-			while(hasDelivered)
+			for(Queue<ShadowOperation> opQueue : queues.values())
 			{
-				for(Queue<ShadowOperation> opQueue : queues.values())
-				{
-					ShadowOperation op = opQueue.peek();
+				ShadowOperation op = opQueue.poll();
 
-					if(op == null)
-						continue;
+				if(op == null)
+					continue;
 
-					if(canDeliver(op))
-					{
-						opQueue.poll();
-						replicator.deliverShadowOperation(op);
-						hasDelivered = true;
-					}
-				}
+				replicator.deliverShadowOperation(op);
 			}
 		}
 	}

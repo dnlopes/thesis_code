@@ -63,7 +63,7 @@ def startClusterDatabases():
     elif databasesNum == 5: 
         startCluster5Databases()
 
-    time.sleep(30)
+    time.sleep(50)
     
     if not isPortOpen(config.MYSQL_PORT):
         return '0'
@@ -75,7 +75,7 @@ def startCluster3Databases():
         time.sleep(3)
         run("bin/ndbd")
         time.sleep(3)
-        sqlCommand = "bin/mysqld_safe --defaults-file=my3.cnf --open_files_limit=8192 --max-connections=1500"
+        sqlCommand = "bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500"
         command = 'nohup ' + sqlCommand + ' >& /dev/null < /dev/null &'  
         run(command)
 
@@ -232,6 +232,8 @@ def stopMySQL():
     with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
         run("killall mysqld_safe ; killall mysqld ; killall ndbd ; killall ndb_mgmd")
         time.sleep(10)
+        run("killall mysqld_safe ; killall mysqld ; killall ndbd ; killall ndb_mgmd")
+        time.sleep(5)
             
 def isPortOpen(port):
     with settings(warn_only=True),hide('output'):
