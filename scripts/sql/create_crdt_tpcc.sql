@@ -45,8 +45,8 @@ CREATE TABLE customer (
     c_delivery_cnt smallint, 
     c_data varchar(500),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;
 
 
@@ -68,8 +68,8 @@ CREATE TABLE district (
     d_ytd decimal(12,2), 
     d_next_o_id int,
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 --
@@ -87,8 +87,8 @@ CREATE TABLE history (
     h_amount decimal(6,2), 
     h_data varchar(24),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 
@@ -104,8 +104,8 @@ CREATE TABLE item (
     i_price decimal(5,2), 
     i_data varchar(50),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 
@@ -119,8 +119,8 @@ CREATE TABLE new_orders (
     no_d_id tinyint not null,
     no_w_id smallint not null,
     _del bit default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 --
@@ -140,8 +140,8 @@ CREATE TABLE order_line (
     ol_amount decimal(6,2), 
     ol_dist_info char(24),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 
@@ -160,8 +160,8 @@ CREATE TABLE orders (
     o_ol_cnt tinyint, 
     o_all_local tinyint,
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 --
@@ -188,8 +188,8 @@ CREATE TABLE stock (
     s_remote_cnt smallint,
     s_data varchar(50),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 
@@ -209,8 +209,8 @@ CREATE TABLE warehouse (
     w_tax decimal(4,2), 
     w_ytd decimal(12,2),
     _del boolean default 0,
-    _cclock varchar(20),
-    _dclock varchar(20)
+    _cclock varchar(50),
+    _dclock varchar(50)
 ) ENGINE=InnoDB;;
 
 
