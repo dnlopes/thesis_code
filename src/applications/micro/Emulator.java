@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.props.DatabaseProperties;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,12 +91,12 @@ public class Emulator
 
 		RUNNING = false;
 		final long actualTestTime = System.currentTimeMillis() - startTime;
-		System.out.println("Benchmark ended!");
+		System.out.println("Experiment ended!");
 		System.out.println("Benchmark elapsed time: " + df.format(actualTestTime / 1000.0f));
 		return true;
 	}
 
-	public void collectStatistics()
+	public void printStatistics()
 	{
 		float writeLatency = 0;
 		float readLatency = 0;
@@ -109,8 +111,43 @@ public class Emulator
 			readCounter += client.getSuccessCounterRead();
 		}
 
-		float avgWriteLatency = writeLatency / writeCounter;
-		float avgReadLatency = readLatency / readCounter;
+		float avgWriteLatency, avgReadLatency;
+
+		if(writeCounter == 0)
+			avgWriteLatency = 0;
+		else
+			avgWriteLatency = writeLatency / writeCounter;
+
+		if(readCounter == 0)
+			avgReadLatency = 0;
+		else
+			avgReadLatency = readLatency / readCounter;
+
+		StringBuilder buffer = new StringBuilder();
+		boolean customJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
+
+		buffer.append("#writeRate,coordinationRate,avgWriteLatency,avgReadLatency,customJdbc\n");
+		buffer.append(this.workload.getWriteRate());
+		buffer.append(",");
+		buffer.append(this.workload.getCoordinatedRate());
+		buffer.append(",");
+		buffer.append(avgWriteLatency);
+		buffer.append(",");
+		buffer.append(avgReadLatency);
+		buffer.append(",");
+		buffer.append(String.valueOf(customJDBC));
+
+		PrintWriter out;
+		try
+		{
+			String fileName = this.getPrefix();
+			out = new PrintWriter(fileName);
+			out.write(buffer.toString());
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public String getPrefix()

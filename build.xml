@@ -200,6 +200,25 @@
 				<include name="micro_ddl.sql" />
 			</zipfileset>
 		</jar>
+		<jar destfile="${jars.dir}/micro-client.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="applications.micro.MicroBenchmark" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}" />
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+				<include name="tpcw_ddl.sql" />
+				<include name="tpcc_ddl.sql" />
+				<include name="micro_ddl.sql" />
+			</fileset>
+			<zipfileset dir="${resources.dir}" prefix="/resources/">
+				<include name="log4j.properties" />
+				<include name="tpcw_ddl.sql" />
+				<include name="tpcc_ddl.sql" />
+				<include name="micro_ddl.sql" />
+			</zipfileset>
+		</jar>
 	</target>
 	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<mkdir dir="${deploy.dir}/configs" />

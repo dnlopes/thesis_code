@@ -55,6 +55,8 @@ public class MicroBenchmark
 			System.exit(-1);
 		}
 
-		em.collectStatistics();
+		em.printStatistics();
+		LOG.info("Benchmark ended!");
+		System.exit(0);
 	}
 }

@@ -7,5 +7,6 @@ package applications.micro.workload;
 public interface Workload
 {
 	public String getNextOperation();
-	
+	public int getWriteRate();
+	public int getCoordinatedRate();
 }
