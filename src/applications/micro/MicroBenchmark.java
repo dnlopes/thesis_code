@@ -3,8 +3,11 @@ package applications.micro;
 
 import applications.micro.workload.MicroWorkload;
 import applications.micro.workload.Workload;
+import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.Configuration;
+import util.props.DatabaseProperties;
 
 
 /**
@@ -13,25 +16,45 @@ import org.slf4j.LoggerFactory;
 public class MicroBenchmark
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MicroBenchmark.class);
-	private static final int NUMBER_OF_TABLES = 4;
 
 	public static void main(String[] args)
 
 	{
-		if(args.length != 3)
+		if(args.length != 7)
 		{
-			LOG.error("usage: <numberClients> <testDuration> <writePercentage>");
+			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <writePercentage> " +
+					"<coordinatedPercentage> <customJDBC>");
 			System.exit(1);
 		}
-		int numberClients = Integer.parseInt(args[0]);
-		int testDuration = Integer.parseInt(args[1]);
-		int writePercentage = Integer.parseInt(args[2]);
 
-		//Workload workload = new MicroWorkload(writePercentage, NUMBER_OF_TABLES);
+		String configFile = args[0];
+		int proxyId = Integer.parseInt(args[1]);
+		int numberClients = Integer.parseInt(args[2]);
+		int testDuration = Integer.parseInt(args[3]);
+		int writeRate = Integer.parseInt(args[4]);
+		int coordiantedRate = Integer.parseInt(args[5]);
+		boolean customJDBC = Boolean.parseBoolean(args[6]);
 
-		//Emulator em = new Emulator(numberClients, testDuration, workload);
 
-		//em.startBenchmark();
-		//em.collectStatistics();
+		System.setProperty("configPath", configFile);
+		System.setProperty("proxyid", String.valueOf(proxyId));
+		System.setProperty("usersNum", String.valueOf(numberClients));
+		System.setProperty("customJDBC", String.valueOf(customJDBC));
+
+		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(1);
+		DatabaseProperties dbProperties = nodeConfig.getDbProps();
+
+		Workload workload = new MicroWorkload(writeRate, coordiantedRate);
+		Emulator em = new Emulator(1, numberClients, testDuration, workload, dbProperties);
+
+		boolean success = em.startBenchmark();
+
+		if(!success)
+		{
+			LOG.error("benchmark return error");
+			System.exit(-1);
+		}
+
+		em.collectStatistics();
 	}
 }

@@ -1,6 +1,7 @@
 package applications.micro;
 
 
+import applications.micro.workload.MicroConstants;
 import database.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,7 @@ import java.sql.*;
 import java.util.Random;
 
 
-public class MicroDatabase
+public class MicroDatabase implements MicroConstants
 {
 
 	static final Logger LOG = LoggerFactory.getLogger(MicroDatabase.class);
@@ -19,9 +20,7 @@ public class MicroDatabase
 	protected Statement stat;
 
 	final String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	Random randomGenerator;
-	private static final int RECORDS_NUM = 100;
-	private static final int TABLE_NUM = 3;
+	private Random randomGenerator;
 
 	public MicroDatabase(DatabaseProperties props) throws SQLException, ClassNotFoundException
 	{
@@ -94,7 +93,7 @@ public class MicroDatabase
 	private void createTables(boolean useForeignKeys) throws SQLException
 	{
 		int dumb = 0;
-		for(int i = 1; i <= TABLE_NUM; i++)
+		for(int i = 1; i <= MicroConstants.NUMBER_OF_TABLES; i++)
 		{
 			stat.execute("DROP TABLE IF EXISTS t" + i);
 			conn.commit();
@@ -147,17 +146,17 @@ public class MicroDatabase
 
 	private void insertIntoTables() throws SQLException
 	{
-		for(int i = 1; i <= TABLE_NUM; i++)
+		for(int i = 1; i <= MicroConstants.NUMBER_OF_TABLES; i++)
 		{
-			for(int j = 0; j < RECORDS_NUM; j++)
+			for(int j = 0; j < MicroConstants.RECORDS_PER_TABLE; j++)
 			{
 				int a = j;
-				int b = randomGenerator.nextInt(RECORDS_NUM) - 1;
+				int b = randomGenerator.nextInt(MicroConstants.RECORDS_PER_TABLE) - 1;
 				if(i == 1 || i == 2)
 					b = 0;
 
-				int c = randomGenerator.nextInt(RECORDS_NUM) - 1;
-				int d = randomGenerator.nextInt(RECORDS_NUM) - 1;
+				int c = randomGenerator.nextInt(MicroConstants.RECORDS_PER_TABLE) - 1;
+				int d = randomGenerator.nextInt(MicroConstants.RECORDS_PER_TABLE) - 1;
 				String e = getRandomString(5);
 
 				String statement = "insert into t" + i + " values (" + Integer.toString(a) + "," + Integer.toString(

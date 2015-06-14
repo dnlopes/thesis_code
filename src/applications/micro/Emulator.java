@@ -22,7 +22,7 @@ public class Emulator
 	private static final Logger LOG = LoggerFactory.getLogger(Emulator.class);
 
 	public static volatile boolean RUNNING;
-	private static int RAMPUP_TIME = 10;
+	private static int RAMPUP_TIME = 5;
 	private int numberOfClients;
 	private ExecutorService threadsService;
 	private List<ClientEmulator> clients;
@@ -33,7 +33,7 @@ public class Emulator
 
 	public Emulator(int id, int numberClients, int runtime, Workload workload, DatabaseProperties dbProps)
 	{
-		RUNNING = false;
+		RUNNING = true;
 		this.emulatorId = id;
 		this.numberOfClients = numberClients;
 		this.threadsService = Executors.newFixedThreadPool(this.numberOfClients);
@@ -70,7 +70,6 @@ public class Emulator
 			System.out.println("Ramp up time ended!");
 		}
 
-		RUNNING = true;
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
@@ -88,6 +87,7 @@ public class Emulator
 			}
 		}
 
+		RUNNING = false;
 		final long actualTestTime = System.currentTimeMillis() - startTime;
 		System.out.println("Benchmark ended!");
 		System.out.println("Benchmark elapsed time: " + df.format(actualTestTime / 1000.0f));
@@ -96,7 +96,21 @@ public class Emulator
 
 	public void collectStatistics()
 	{
+		float writeLatency = 0;
+		float readLatency = 0;
+		int writeCounter = 0;
+		int readCounter = 0;
 
+		for(ClientEmulator client : this.clients)
+		{
+			writeLatency += client.getTotalWriteLatency();
+			readLatency += client.getTotalReadLatency();
+			writeCounter += client.getSuccessCounterWrite();
+			readCounter += client.getSuccessCounterRead();
+		}
+
+		float avgWriteLatency = writeLatency / writeCounter;
+		float avgReadLatency = readLatency / readCounter;
 	}
 
 	public String getPrefix()
