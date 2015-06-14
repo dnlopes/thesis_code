@@ -159,7 +159,7 @@ public class OperationTransformer
 	}
 
 	/**
-	 * Generates a SQL statement that makes sure that the parnet row is re-inserted back.
+	 * Generates a SQL statement that makes sure that the parent row is re-inserted back.
 	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
 	 * that this statement was executed.
 	 *

@@ -23,7 +23,6 @@ public class CausalDeliver implements Deliver
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
-	private static final int THREAD_ITERATIONS_NUMBER = 100;
 	//private static final int THREAD_WAKEUP_INTERVAL = 1;
 
 	private final Map<Integer, Queue<ShadowOperation>> queues;
@@ -106,12 +105,10 @@ public class CausalDeliver implements Deliver
 
 	private class DeliveryThread implements Runnable
 	{
-
 		@Override
 		public void run()
 		{
 			boolean hasDelivered = false;
-			int iterations = 0;
 
 			do
 			{
@@ -125,10 +122,7 @@ public class CausalDeliver implements Deliver
 					replicator.deliverShadowOperation(op);
 					hasDelivered = true;
 				}
-
-				iterations++;
-
-			} while(hasDelivered && iterations < THREAD_ITERATIONS_NUMBER);
+			} while(hasDelivered);
 		}
 	}
 }

@@ -40,7 +40,7 @@ public class InsertChildOperation extends InsertOperation
 
 		for(ForeignKeyConstraint constraint : this.parentRows.keySet())
 		{
-			// add select query instead of real values for fields that are pointing to parent
+			// add select query instead of static values for fields that are pointing to parent
 			// we do this only in the case of DELETE WINS,
 			if(constraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.DELETEWINS)
 				for(ParentChildRelation relation : constraint.getFieldsRelations())
