@@ -24,6 +24,7 @@ public class Emulator
 	private static final Logger LOG = LoggerFactory.getLogger(Emulator.class);
 
 	public static volatile boolean RUNNING;
+	public static volatile boolean COUTING;
 	private static int RAMPUP_TIME = 5;
 	private int numberOfClients;
 	private ExecutorService threadsService;
@@ -36,6 +37,7 @@ public class Emulator
 	public Emulator(int id, int numberClients, int runtime, Workload workload, DatabaseProperties dbProps)
 	{
 		RUNNING = true;
+		COUTING = false;
 		this.emulatorId = id;
 		this.numberOfClients = numberClients;
 		this.threadsService = Executors.newFixedThreadPool(this.numberOfClients);
@@ -72,6 +74,7 @@ public class Emulator
 			System.out.println("Ramp up time ended!");
 		}
 
+		COUTING = true;
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
@@ -89,6 +92,7 @@ public class Emulator
 			}
 		}
 
+		COUTING = false;
 		RUNNING = false;
 		final long actualTestTime = System.currentTimeMillis() - startTime;
 		System.out.println("Experiment ended!");

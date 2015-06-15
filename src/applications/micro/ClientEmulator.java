@@ -72,7 +72,7 @@ public class ClientEmulator extends Thread
 			long endTime = System.nanoTime();
 
 			long latency = (endTime - beginTime) / 1000000;
-			if(success)
+			if(success && Emulator.COUTING)
 			{
 				if(op.contains("SELECT"))
 				{
