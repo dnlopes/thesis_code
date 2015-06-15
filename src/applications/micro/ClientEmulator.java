@@ -120,6 +120,21 @@ public class ClientEmulator extends Thread
 		}
 	}
 
+	public int getTotalOperations()
+	{
+		return this.successCounterRead + this.successCounterWrite;
+	}
+
+	public float getAverageLatency()
+	{
+		float avgLatency = 0;
+
+		avgLatency += this.getOperationsAverageReadLatency() * (100 - this.workload.getWriteRate())/100;
+		avgLatency += this.getOperationsAverageWriteLatency() * this.workload.getWriteRate()/100;
+
+		return avgLatency;
+	}
+
 	public int getAbortCounter()
 	{
 		return this.abortCounter;

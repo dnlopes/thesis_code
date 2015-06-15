@@ -102,49 +102,30 @@ public class Emulator
 
 	public void printStatistics()
 	{
-		float writeLatency = 0;
-		float readLatency = 0;
-		int writeCounter = 0;
-		int readCounter = 0;
 		int abortCounter = 0;
+		float avgLatency = 0;
+		int opsCounter = 0;
 
 		for(ClientEmulator client : this.clients)
 		{
-			writeLatency += client.getTotalWriteLatency();
-			readLatency += client.getTotalReadLatency();
-			writeCounter += client.getSuccessCounterWrite();
-			readCounter += client.getSuccessCounterRead();
+			avgLatency += client.getAverageLatency();
+			opsCounter += client.getTotalOperations();
 			abortCounter += client.getAbortCounter();
 		}
 
-		float avgWriteLatency, avgReadLatency, avgLatencyTotal;
-
-		if(writeCounter == 0)
-			avgWriteLatency = 0;
-		else
-			avgWriteLatency = writeLatency / writeCounter;
-
-		if(readCounter == 0)
-			avgReadLatency = 0;
-		else
-			avgReadLatency = readLatency / readCounter;
-
-		avgLatencyTotal = (writeLatency + readLatency) / (writeCounter + readCounter);
+		avgLatency = avgLatency / clients.size();
 
 		StringBuilder buffer = new StringBuilder();
 		boolean customJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
-		buffer.append("#writeRate,coordinationRate,avgWriteLatency,avgReadLatency,avgLatencyGlobal,aborts," +
-				"customJdbc\n");
+		buffer.append("#writeRate,coordinationRate,avgLatency,commits,aborts,customJdbc\n");
 		buffer.append(this.workload.getWriteRate());
 		buffer.append(",");
 		buffer.append(this.workload.getCoordinatedRate());
 		buffer.append(",");
-		buffer.append(avgWriteLatency);
+		buffer.append(avgLatency);
 		buffer.append(",");
-		buffer.append(avgReadLatency);
-		buffer.append(",");
-		buffer.append(avgLatencyTotal);
+		buffer.append(opsCounter);
 		buffer.append(",");
 		buffer.append(abortCounter);
 		buffer.append(",");
