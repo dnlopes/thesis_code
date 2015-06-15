@@ -40,7 +40,7 @@ public class ClientEmulator extends Thread
 	{
 		this.workload = workload;
 		this.sumReadLatency = 0;
-		this.sumWriteLatency= 0;
+		this.sumWriteLatency = 0;
 		this.successCounterRead = 0;
 		this.successCounterWrite = 0;
 		this.abortCounter = 0;
@@ -72,17 +72,19 @@ public class ClientEmulator extends Thread
 			long endTime = System.nanoTime();
 
 			long latency = (endTime - beginTime) / 1000000;
-			if(success && Emulator.COUTING)
+			if(success)
 			{
-				if(op.contains("SELECT"))
+				if(Emulator.COUTING)
 				{
-					this.sumReadLatency += latency;
-					this.successCounterRead++;
-				}
-				else
-				{
-					this.sumWriteLatency += latency;
-					this.successCounterWrite++;
+					if(op.contains("SELECT"))
+					{
+						this.sumReadLatency += latency;
+						this.successCounterRead++;
+					} else
+					{
+						this.sumWriteLatency += latency;
+						this.successCounterWrite++;
+					}
 				}
 			} else
 				this.abortCounter++;

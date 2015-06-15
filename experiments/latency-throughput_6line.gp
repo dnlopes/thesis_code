@@ -43,4 +43,4 @@ set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 5 ps 2
 
 set datafile separator ','
 
-plot data1 every ::1 using 2:3 with linespoints ls 5 title 'TBD 3-replica', data2 every ::1 using 2:3 with linespoints ls 6 title 'TBD 5-replica', data3 every ::1 using 2:3 with linespoints ls 3 title 'Galera Cluster 3-replica', data4 every ::1 using 2:3 with linespoints ls 4 title 'Galera Cluster 5-replica', data5 every ::1 using 2:3 with linespoints ls 1 title 'MySQL Cluster 3-replica', data6 every ::1 using 2:3 with linespoints ls 2 title 'MySQL Cluster 5-replica',
+plot data1 every ::1 using 2:3 with linespoints ls 5 title 'Middleware 3-replica', data2 every ::1 using 2:3 with linespoints ls 6 title 'Middleware 5-replica', data3 every ::1 using 2:3 with linespoints ls 3 title 'Galera Cluster 3-replica', data4 every ::1 using 2:3 with linespoints ls 4 title 'Galera Cluster 5-replica', data5 every ::1 using 2:3 with linespoints ls 1 title 'MySQL Cluster 3-replica', data6 every ::1 using 2:3 with linespoints ls 2 title 'MySQL Cluster 5-replica',
