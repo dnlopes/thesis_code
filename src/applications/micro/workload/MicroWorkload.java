@@ -50,8 +50,8 @@ public class MicroWorkload implements Workload,
 
 	private String generateCoordinatedOperation()
 	{
-		//int newValue = GeneratorUtils.randomNumber(5000, 100000);
-		int newValue = counter++;
+		int newValue = GeneratorUtils.randomNumber(5000, 10000000);
+		//int newValue = counter++;
 		int pkValue = this.selectRandomRecord();
 		return "UPDATE t1 set b = " + newValue + " WHERE a = " + pkValue;
 	}
