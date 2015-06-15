@@ -41,11 +41,11 @@ public class MicroBenchmark
 		System.setProperty("usersNum", String.valueOf(numberClients));
 		System.setProperty("customJDBC", String.valueOf(customJDBC));
 
-		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(1);
+		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 		DatabaseProperties dbProperties = nodeConfig.getDbProps();
 
 		Workload workload = new MicroWorkload(writeRate, coordiantedRate);
-		Emulator em = new Emulator(1, numberClients, testDuration, workload, dbProperties);
+		Emulator em = new Emulator(proxyId, numberClients, testDuration, workload, dbProperties);
 
 		boolean success = em.startBenchmark();
 
