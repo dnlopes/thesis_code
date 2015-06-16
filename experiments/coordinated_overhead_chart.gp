@@ -9,7 +9,7 @@ set datafile separator ','
 set yr [0:10]
 set ylabel "Latency (ms)"
 #set xrange [0:100000]
-set xlabel "Coordinated write rate"
+set xlabel "Write rate"
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16" 
 

@@ -9,7 +9,7 @@ set datafile separator ','
 set yr [0:10]
 set ylabel "Latency (ms)"
 #set xrange [0:100000]
-set xlabel "Coordinated write rate"
+set xlabel "Write Rate (%)"
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16" 
 
@@ -40,4 +40,4 @@ set style line 4 lc rgb '#dd181f' lt 1 lw 2 pt 4 ps 2
 set style line 5 lc rgb '#0060ad' lt 1 lw 2 pt 5 ps 2
 set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
-plot data1 using 3:xtic(1) title col lc rgb"blue", '' using 4:xtic(1) title col lc rgb"red", '' using 5:xtic(1) title col lc rgb"yellow"
+plot data1 using 2:xtic(1) title col lc rgb"#129430", '' using 3:xtic(1) title col lc rgb"#267ad4"
