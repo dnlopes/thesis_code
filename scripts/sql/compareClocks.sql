@@ -1,6 +1,7 @@
 DROP FUNCTION IF EXISTS compareClocks;
 DELIMITER //
-CREATE FUNCTION compareClocks(currentClock CHAR(100), newClock CHAR(100)) RETURNS int
+CREATE FUNCTION compareClocks(currentClock CHAR(100), newClock CHAR(100)) 
+RETURNS int DETERMINISTIC
 BEGIN
 DECLARE isConcurrent BOOL;
 DECLARE isLesser BOOL;
@@ -25,40 +26,37 @@ loopTag: WHILE (TRUE) DO
     IF(@currEntry > @newEntry) then
             SET @dumbFlag = TRUE;    
     	IF(@isLesser) then
-    		SET @isConcurrent = TRUE;
-    		LEAVE loopTag;
+    	   SET @isConcurrent = TRUE;
+    	   LEAVE loopTag;
     	END IF;
     	SET @isGreater = TRUE;
 
     ELSEIF(@currEntry < @newEntry) then
     	IF(@isGreater) then
-    		SET @isConcurrent = TRUE;
+    	   SET @isConcurrent = TRUE;
             IF(@dumbFlag = FALSE) then
                 SET @isGreater = TRUE;
             END IF;
-    		LEAVE loopTag;
-    	END IF;    
-    	SET @isLesser = TRUE;  
+    	   LEAVE loopTag;
+        END IF;    
+        SET @isLesser = TRUE;  
     END IF;
  
 	IF (LENGTH(currentClock) = 1) then
-		LEAVE loopTag;
-	END IF;
+        LEAVE loopTag;
+    END IF;
 
 	SET currentClock = SUBSTRING(currentClock, LOCATE('-', currentClock) + 1);
 	SET newClock = SUBSTRING(newClock, LOCATE('-', newClock) + 1);
 END WHILE;
     IF(@isConcurrent AND @dumbFlag = FALSE) then
-        SELECT 0 INTO @returnValue;
-/*      SELECT 'Clocks are concurrent' as 'Message';*/  
+        SELECT 0 INTO @returnValue;  
 	ELSEIF(@isLesser) then		
-		SELECT 1 INTO @returnValue;
-/*      SELECT 'Second clock is GREATER then second' as 'Message';*/
+        SELECT 1 INTO @returnValue;
     ELSE
         SELECT -1 INTO @returnValue;
-/*      SELECT 'Second clock is LESSER then second' as 'Message';*/
 	END IF;
-	RETURN @returnValue;	
+    RETURN @returnValue;	
 END //
 DELIMITER ;
 

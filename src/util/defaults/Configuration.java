@@ -14,7 +14,7 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

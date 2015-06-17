@@ -219,6 +219,15 @@
 				<include name="micro_ddl.sql" />
 			</zipfileset>
 		</jar>
+		<jar destfile="${jars.dir}/db-transform.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="main.DatabaseTransformerMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}">
+					<include name="mysql-connector-java-5.1.17-bin.jar"/>
+			</zipgroupfileset>
+		</jar>
 	</target>
 	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<mkdir dir="${deploy.dir}/configs" />

@@ -7,7 +7,7 @@ import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.Configuration;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 
 /**

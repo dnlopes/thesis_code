@@ -4,7 +4,7 @@ package applications.micro;
 import applications.micro.workload.MicroConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -3,7 +3,7 @@ package nodes.proxy;
 
 import nodes.NodeConfig;
 import nodes.Role;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 
 /**

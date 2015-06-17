@@ -1,7 +1,7 @@
 package nodes;
 
 
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 
 /**

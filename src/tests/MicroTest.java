@@ -3,7 +3,7 @@ package tests;
 
 import applications.micro.MicroDatabase;
 import database.jdbc.ConnectionFactory;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import java.io.IOException;
 import java.sql.*;

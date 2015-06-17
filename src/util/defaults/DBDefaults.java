@@ -14,4 +14,7 @@ public class DBDefaults
 	public static final String DATABASE_PROPERTIES_FILE = "database.properties";
 	public static final String CRDT_URL_PREFIX = "jdbc:crdt://";
 	public static final String DEFAULT_URL_PREFIX = "jdbc:mysql://";
+	public static final String DEFAULT_PASSWORD= "101010";
+	public static final String DEFAULT_USER = "sa";
+	public static final int DEFAULT_MYSQL_PORT = 3306;
 }

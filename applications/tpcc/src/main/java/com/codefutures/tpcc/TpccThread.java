@@ -17,7 +17,7 @@ import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import util.defaults.Configuration;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 
 public class TpccThread extends Thread

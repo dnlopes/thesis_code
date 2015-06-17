@@ -4,7 +4,7 @@ package applications.micro;
 import applications.micro.workload.Workload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

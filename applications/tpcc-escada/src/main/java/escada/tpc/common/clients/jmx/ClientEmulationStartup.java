@@ -23,11 +23,10 @@ import escada.tpc.common.resources.WorkloadResources;
 import escada.tpc.logger.PerformanceLogger;
 import escada.tpc.tpcc.database.populate.jmx.DatabasePopulate;
 import nodes.NodeConfig;
-import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

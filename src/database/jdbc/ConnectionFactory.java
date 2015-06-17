@@ -4,7 +4,7 @@ package database.jdbc;
 import nodes.NodeConfig;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
-import util.props.DatabaseProperties;
+import util.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
