@@ -255,7 +255,7 @@
 		<delete dir="${tpcc.dist.dir}" />
 		<delete dir="${tpcc_escada.dist.dir}" />
 	</target>
-	<target name="tpcc-dist" depends="tpcc-init, dist" description="Compile and ditribute TPC-C benchmarks">
+	<target name="tpcc-dist" depends="tpcc-init, deploy" description="Compile and ditribute TPC-C benchmarks">
 		<antcall target="tpcc-dist-codefuture" />
 		<!--<antcall target="tpcc-dist-escada" />-->
 	</target>
@@ -387,7 +387,7 @@
 			<fileset dir="${tpcw.dir}/images/" />
 		</copy>
 	</target>
-	<target name="tpcw-gendb" depends="dist, tpcw-dist, check-mysql" description="Generate TPC-W database">
+	<target name="tpcw-gendb" depends="deploy, tpcw-dist, check-mysql" description="Generate TPC-W database">
 		<java classname="populate.TPCW_Populate" fork="true">
 			<arg value="${TPCW_NUM_EBS}" />
 			<arg value="${TPCW_NUM_ITEMS}" />
