@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
 import runtime.RuntimeUtils;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
 import util.thrift.ReplicatorRPC;
 import util.thrift.ThriftOperation;
@@ -40,17 +40,17 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
-		ShadowOperation shadowOp = RuntimeUtils.decodeThriftOperation(thriftOp);
-		shadowOp.setReplicatorId(this.replicator.getConfig().getId());
-		shadowOp.setLogicalClock(newClock);
+		ShadowTransaction shadowTransaction = RuntimeUtils.decodeThriftOperation(thriftOp);
+		shadowTransaction.setReplicatorId(this.replicator.getConfig().getId());
+		shadowTransaction.setLogicalClock(newClock);
 
-		thriftOp.setClock(shadowOp.getClock().getClockValue());
-		thriftOp.setReplicatorId(shadowOp.getReplicatorId());
+		thriftOp.setClock(shadowTransaction.getClock().getClockValue());
+		thriftOp.setReplicatorId(shadowTransaction.getReplicatorId());
 
 		// just deliver the operation to own replicator and wait for commit decision.
 		// if it suceeds then async deliver the operation to other replicators
 		boolean localCommit;
-		localCommit = this.replicator.commitOperation(shadowOp);
+		localCommit = this.replicator.commitOperation(shadowTransaction);
 
 		if(localCommit)
 			network.sendOperationToRemote(thriftOp);
@@ -62,14 +62,14 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	public void commitOperationAsync(ThriftOperation thriftOp) throws TException
 	{
 		if(Configuration.TRACE_ENABLED)
-			LOG.trace("received op from other replicator");
+			LOG.trace("received txn from other replicator");
 
-		ShadowOperation shadowOp = RuntimeUtils.decodeThriftOperation(thriftOp);
+		ShadowTransaction shadowTransaction = RuntimeUtils.decodeThriftOperation(thriftOp);
 		LogicalClock remoteClock = new LogicalClock(thriftOp.getClock());
-		shadowOp.setLogicalClock(remoteClock);
-		shadowOp.setReplicatorId(thriftOp.getReplicatorId());
+		shadowTransaction.setLogicalClock(remoteClock);
+		shadowTransaction.setReplicatorId(thriftOp.getReplicatorId());
 
-		this.deliver.dispatchOperation(shadowOp);
+		this.deliver.dispatchOperation(shadowTransaction);
 	}
 
 

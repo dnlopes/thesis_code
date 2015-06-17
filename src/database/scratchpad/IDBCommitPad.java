@@ -1,7 +1,7 @@
 package database.scratchpad;
 
 
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 
 
 /**
@@ -12,9 +12,9 @@ public interface IDBCommitPad
 {
 
 	/**
-	 * Attemps to commit a shadow operation in main storage
+	 * Attemps to commit a shadow transaction in main storage
 	 * @param op
 	 * @return true if commit succeeds
 	 */
-	public boolean commitShadowOperation(ShadowOperation op);
+	public boolean commitShadowTransaction(ShadowTransaction op);
 }

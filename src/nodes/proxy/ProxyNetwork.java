@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import runtime.RuntimeUtils;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.ExitCode;
 import util.ObjectPool;
 import util.defaults.Configuration;
@@ -43,9 +43,9 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public boolean commitOperation(ShadowOperation shadowOp, NodeConfig node)
+	public boolean commitOperation(ShadowTransaction shadowTransaction, NodeConfig node)
 	{
-		ThriftOperation thriftOp = RuntimeUtils.encodeThriftOperation(shadowOp);
+		ThriftOperation thriftOp = RuntimeUtils.encodeThriftOperation(shadowTransaction);
 
 		ReplicatorRPC.Client connection = this.replicatorConnectionPool.borrowObject();
 

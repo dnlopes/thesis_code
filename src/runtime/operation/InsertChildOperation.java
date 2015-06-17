@@ -30,7 +30,7 @@ public class InsertChildOperation extends InsertOperation
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(

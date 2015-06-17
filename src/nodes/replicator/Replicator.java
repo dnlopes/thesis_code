@@ -13,7 +13,7 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.ObjectPool;
 import util.defaults.Configuration;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,13 +56,13 @@ public class Replicator extends AbstractNode
 	}
 
 	/**
-	 * Attempts to commit a shadow operation.
+	 * Attempts to commit a shadow transaction.
 	 *
-	 * @param shadowOperation
+	 * @param shadowTransaction
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public boolean commitOperation(ShadowOperation shadowOperation)
+	public boolean commitOperation(ShadowTransaction shadowTransaction)
 	{
 		IDBCommitPad pad = this.commitPadPool.borrowObject();
 
@@ -72,7 +72,7 @@ public class Replicator extends AbstractNode
 			pad = new DBCommitPad(this.config);
 		}
 
-		boolean commitDecision = pad.commitShadowOperation(shadowOperation);
+		boolean commitDecision = pad.commitShadowTransaction(shadowTransaction);
 
 		if(!commitDecision)
 			LOG.warn("something went very wrong. State will not converge because operation failed to commit");
@@ -130,10 +130,10 @@ public class Replicator extends AbstractNode
 			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
-	public void deliverShadowOperation(ShadowOperation shadowOp)
+	public void deliverShadowTransaction(ShadowTransaction shadowTransaction)
 	{
-		this.mergeWithRemoteClock(shadowOp.getClock());
-		this.commitOperation(shadowOp);
+		this.mergeWithRemoteClock(shadowTransaction.getClock());
+		this.commitOperation(shadowTransaction);
 	}
 
 	public LogicalClock getCurrentClock()

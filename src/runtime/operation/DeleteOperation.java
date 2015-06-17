@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by dnlopes on 13/05/15.
  */
-public class DeleteOperation extends AbstractOperation implements Operation
+public class DeleteOperation extends AbstractOperation implements ShadowOperation
 {
 
 	public DeleteOperation(int id, ExecutionPolicy policy, Row newRow)
@@ -20,7 +20,7 @@ public class DeleteOperation extends AbstractOperation implements Operation
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
 		StringBuilder buffer = new StringBuilder();
 

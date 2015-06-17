@@ -6,7 +6,7 @@ import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
@@ -40,7 +40,7 @@ public class DBCommitPad implements IDBCommitPad
 	}
 
 	@Override
-	public boolean commitShadowOperation(ShadowOperation op)
+	public boolean commitShadowTransaction(ShadowTransaction op)
 	{
 		TXN_COUNT++;
 
@@ -62,7 +62,7 @@ public class DBCommitPad implements IDBCommitPad
 		return false;
 	}
 
-	private boolean tryCommit(ShadowOperation op)
+	private boolean tryCommit(ShadowTransaction op)
 	{
 		Statement stat = null;
 		boolean success = false;
@@ -101,7 +101,7 @@ public class DBCommitPad implements IDBCommitPad
 		return success;
 	}
 
-	private String replacePlaceholders(ShadowOperation op, String statement)
+	private String replacePlaceholders(ShadowTransaction op, String statement)
 	{
 		String clockString = op.getClock().toString();
 		statement = statement.replaceAll(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);

@@ -17,7 +17,7 @@ import java.util.*;
 /**
  * Created by dnlopes on 12/05/15.
  */
-public class UpdateOperation extends AbstractOperation implements Operation
+public class UpdateOperation extends AbstractOperation implements ShadowOperation
 {
 
 	public UpdateOperation(int id, ExecutionPolicy policy, Row updatedRow)
@@ -26,7 +26,7 @@ public class UpdateOperation extends AbstractOperation implements Operation
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.updateFieldValue(

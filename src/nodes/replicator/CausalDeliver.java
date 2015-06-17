@@ -5,7 +5,7 @@ import nodes.Deliver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
 
 import java.util.*;
@@ -23,9 +23,8 @@ public class CausalDeliver implements Deliver
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
-	//private static final int THREAD_WAKEUP_INTERVAL = 1;
 
-	private final Map<Integer, Queue<ShadowOperation>> queues;
+	private final Map<Integer, Queue<ShadowTransaction>> queues;
 	private final Replicator replicator;
 
 	public CausalDeliver(Replicator replicator)
@@ -53,15 +52,15 @@ public class CausalDeliver implements Deliver
 	}
 
 	@Override
-	public void dispatchOperation(ShadowOperation op)
+	public void dispatchOperation(ShadowTransaction op)
 	{
 		if(this.canDeliver(op))
-			replicator.deliverShadowOperation(op);
+			replicator.deliverShadowTransaction(op);
 		else
 			this.addToQueue(op);
 	}
 
-	private void addToQueue(ShadowOperation op)
+	private void addToQueue(ShadowTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
 		if(Configuration.DEBUG_ENABLED)
@@ -69,13 +68,13 @@ public class CausalDeliver implements Deliver
 		this.queues.get(replicatorId).add(op);
 	}
 
-	private boolean canDeliver(ShadowOperation op)
+	private boolean canDeliver(ShadowTransaction op)
 	{
 		LogicalClock opClock = op.getClock();
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	private class LogicalClockComparator implements Comparator<ShadowOperation>
+	private class LogicalClockComparator implements Comparator<ShadowTransaction>
 	{
 
 		private final int index;
@@ -86,10 +85,10 @@ public class CausalDeliver implements Deliver
 		}
 
 		@Override
-		public int compare(ShadowOperation shadowOp1, ShadowOperation shadowOp2)
+		public int compare(ShadowTransaction shadowTransaction1, ShadowTransaction shadowTransaction2)
 		{
-			LogicalClock clock1 = shadowOp1.getClock();
-			LogicalClock clock2 = shadowOp2.getClock();
+			LogicalClock clock1 = shadowTransaction1.getClock();
+			LogicalClock clock2 = shadowTransaction2.getClock();
 			long entry1 = clock1.getEntry(this.index);
 			long entry2 = clock2.getEntry(this.index);
 
@@ -112,14 +111,14 @@ public class CausalDeliver implements Deliver
 
 			do
 			{
-				for(Queue<ShadowOperation> opQueue : queues.values())
+				for(Queue<ShadowTransaction> txnQueue : queues.values())
 				{
-					ShadowOperation op = opQueue.poll();
+					ShadowTransaction txn = txnQueue.poll();
 
-					if(op == null)
+					if(txn == null)
 						continue;
 
-					replicator.deliverShadowOperation(op);
+					replicator.deliverShadowTransaction(txn);
 					hasDelivered = true;
 				}
 			} while(hasDelivered);

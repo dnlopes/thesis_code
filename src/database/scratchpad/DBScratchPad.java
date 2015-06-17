@@ -104,16 +104,13 @@ public class DBScratchPad implements IDBScratchPad
 	@Override
 	public void commitTransaction(IProxyNetwork network) throws SQLException
 	{
-		if(this.activeTransaction.isReadOnly())
-			return;
-
-		else
+		// if read-only, then just return from this method
+		if(!this.activeTransaction.isReadOnly())
 		{
-			// contact coordinator here
-			// if coordinator allow, generate shadow op
+			// contact coordinator here to request values or validate invariants
 			this.prepareToCommit(network);
-			// something went wrong
-			// commit fails
+			this.activeTransaction.generateShadowTransaction();
+
 			if(!this.activeTransaction.isReadyToCommit())
 			{
 				if(Configuration.DEBUG_ENABLED)
@@ -121,7 +118,7 @@ public class DBScratchPad implements IDBScratchPad
 				throw new SQLException("txn not ready to commit. something went wrong");
 			}
 
-			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowOp(),
+			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowTransaction(),
 					this.proxyConfig.getReplicatorConfig());
 
 			if(!commitDecision)
@@ -283,7 +280,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 	}
 
-	private void prepareToCommit(IProxyNetwork network) throws SQLException
+	private boolean prepareToCommit(IProxyNetwork network) throws SQLException
 	{
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
@@ -296,7 +293,7 @@ public class DBScratchPad implements IDBScratchPad
 			req.setRequests(new ArrayList<RequestValue>());
 			req.setUniqueValues(new ArrayList<UniqueValue>());
 
-			for(Operation op : this.activeTransaction.getTxnOps())
+			for(ShadowOperation op : this.activeTransaction.getShadowOperations())
 				op.createRequestsToCoordinate(req);
 
 			//FIXME: this is horrible
@@ -318,7 +315,8 @@ public class DBScratchPad implements IDBScratchPad
 					this.activeTransaction.updatedWithRequestedValues(requestValues);
 			}
 
-			this.activeTransaction.generateShadowOperation();
+			return true;
+
 		} catch(TException e)
 		{
 			throw new SQLException(e.getMessage());
@@ -391,6 +389,7 @@ public class DBScratchPad implements IDBScratchPad
 
 	private class DBExecuter implements IExecuter
 	{
+
 		private final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 
 		private TableDefinition tableDefinition;
@@ -404,7 +403,7 @@ public class DBScratchPad implements IDBScratchPad
 		private FromItem fromItemTemp;
 		private PrimaryKey pk;
 		private List<SelectItem> selectAllItems;
-		private List<Operation> ops;
+		private List<ShadowOperation> ops;
 
 		private Set<PrimaryKeyValue> duplicatedRows;
 		private Set<PrimaryKeyValue> deletedRows;
@@ -1193,7 +1192,7 @@ public class DBScratchPad implements IDBScratchPad
 
 			int result = db.executeUpdateMainStorage(buffer.toString());
 
-			Operation op;
+			ShadowOperation op;
 
 			if(this.fkConstraints.size() > 0) // its a child row
 			{
@@ -1276,7 +1275,7 @@ public class DBScratchPad implements IDBScratchPad
 
 				db.executeUpdateMainStorage(delete);
 
-				Operation op;
+				ShadowOperation op;
 				if(this.databaseTable.isParentTable())
 				{
 					op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(),
@@ -1349,7 +1348,7 @@ public class DBScratchPad implements IDBScratchPad
 					buffer.append(",");
 			}
 
-			Operation op;
+			ShadowOperation op;
 			int affectedRows = 1;
 
 			// if is parent table, check if this op has side effects

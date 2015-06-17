@@ -2,8 +2,8 @@ package runtime;
 
 
 import database.util.FieldValue;
-import runtime.operation.Operation;
 import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.thrift.RequestValue;
 
 import java.util.ArrayList;
@@ -19,10 +19,10 @@ public class Transaction
 {
 	private int txnId;
 	private long latency;
-	private ShadowOperation shadowOp;
+	private ShadowTransaction shadowTransaction;
 	private boolean readyToCommit;
-	private List<Operation> txnOps;
-	private Map<Integer, Operation> txnOpsMap;
+	private List<ShadowOperation> shadowOperations;
+	private Map<Integer, ShadowOperation> txnOpsMap;
 	private int opsCounter;
 
 	public Transaction(int txnId)
@@ -30,15 +30,15 @@ public class Transaction
 		this.txnId = txnId;
 		this.latency = 0;
 		this.opsCounter = 0;
-		this.shadowOp = null;
+		this.shadowTransaction = null;
 		this.readyToCommit = false;
-		this.txnOps = new ArrayList<>();
+		this.shadowOperations = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
 	}
 
-	public void addOperation(Operation op)
+	public void addOperation(ShadowOperation op)
 	{
-		this.txnOps.add(op);
+		this.shadowOperations.add(op);
 		this.txnOpsMap.put(op.getOperationId(), op);
 	}
 
@@ -47,9 +47,9 @@ public class Transaction
 		return this.txnId;
 	}
 
-	public ShadowOperation getShadowOp()
+	public ShadowTransaction getShadowTransaction()
 	{
-		return this.shadowOp;
+		return this.shadowTransaction;
 	}
 
 	public long getLatency()
@@ -67,35 +67,35 @@ public class Transaction
 		return this.opsCounter++;
 	}
 
-	public List<Operation> getTxnOps()
+	public List<ShadowOperation> getShadowOperations()
 	{
-		return this.txnOps;
+		return this.shadowOperations;
 	}
 
 	public void updatedWithRequestedValues(List<RequestValue> reqValues)
 	{
 		for(RequestValue reqValue : reqValues)
 		{
-			Operation op = this.txnOpsMap.get(reqValue.getOpId());
+			ShadowOperation op = this.txnOpsMap.get(reqValue.getOpId());
 			String requestedValue = reqValue.getRequestedValue();
 			String fieldName = reqValue.getFieldName();
 			op.getRow().updateFieldValue(new FieldValue(op.getRow().getTable().getField(fieldName), requestedValue));
 		}
 	}
 
-	public void generateShadowOperation()
+	public void generateShadowTransaction()
 	{
 		List<String> shadowStatements = new ArrayList<>();
 
-		for(Operation op : this.txnOps)
-			op.generateOperationStatements(shadowStatements);
+		for(ShadowOperation shadowOp : this.shadowOperations)
+			shadowOp.generateStatements(shadowStatements);
 
-		this.shadowOp = new ShadowOperation(this.txnId, shadowStatements);
+		this.shadowTransaction = new ShadowTransaction(this.txnId, shadowStatements);
 		this.readyToCommit = true;
 	}
 
 	public boolean isReadOnly()
 	{
-		return this.txnOps.size() == 0;
+		return this.shadowOperations.size() == 0;
 	}
 }

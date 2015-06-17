@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Created by dnlopes on 11/05/15.
  */
-public class InsertOperation extends AbstractOperation implements Operation
+public class InsertOperation extends AbstractOperation implements ShadowOperation
 {
 
 	public InsertOperation(int id, ExecutionPolicy policy, Row newRow)
@@ -25,7 +25,7 @@ public class InsertOperation extends AbstractOperation implements Operation
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(

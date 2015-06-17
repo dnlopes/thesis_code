@@ -2,7 +2,7 @@ package runtime;
 
 import database.util.DataField;
 import database.util.DatabaseFunction;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 import util.thrift.ThriftOperation;
 
 import java.text.DateFormat;
@@ -15,19 +15,19 @@ import java.util.List;
 public class RuntimeUtils
 {
 
-	public static ThriftOperation encodeThriftOperation(ShadowOperation shadowOperation)
+	public static ThriftOperation encodeThriftOperation(ShadowTransaction shadowTransaction)
 	{
 		ThriftOperation thriftOperation = new ThriftOperation();
-		thriftOperation.setOperations(shadowOperation.getOperationList());
-		thriftOperation.setTxnId(shadowOperation.getTxnId());
+		thriftOperation.setOperations(shadowTransaction.getOperationList());
+		thriftOperation.setTxnId(shadowTransaction.getTxnId());
 
 		return thriftOperation;
 	}
 
-	public static ShadowOperation decodeThriftOperation(ThriftOperation thriftOperation)
+	public static ShadowTransaction decodeThriftOperation(ThriftOperation thriftOperation)
 	{
 		List<String> ops = thriftOperation.getOperations();
-		return new ShadowOperation(thriftOperation.getTxnId(), ops);
+		return new ShadowTransaction(thriftOperation.getTxnId(), ops);
 	}
 
 	public static void throwRunTimeException(String message, int exitCode)

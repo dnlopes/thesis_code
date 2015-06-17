@@ -115,13 +115,6 @@
 	</target>
 	<target name="clean" description="Clean WeakDB distribution">
 		<delete dir="${dist.dir}" />
-		<delete dir="${deploy.dir}/configs" />
-		<delete>
-			<fileset dir="${deploy.dir}" includes="**/*.jar"/>
-			<fileset dir="${deploy.dir}" includes="**/*.sql"/>
-			<fileset dir="${deploy.dir}" includes="**/*.properties"/>
-		</delete>
-
 	</target>
 	<target name="compile" depends="init" description="Compile WeakDB sources">
 		<touch>
@@ -131,6 +124,8 @@
 			   includeantruntime="false">
 			<classpath refid="weakdb.classpath" />
 		</javac>
+	</target>
+	<target name="dist" depends="compile" description="Generates WeakDB jars">
 		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="main.ReplicatorMain" />
@@ -225,11 +220,12 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<zipgroupfileset dir="${libs.dir}">
-					<include name="mysql-connector-java-5.1.17-bin.jar"/>
+				<include name="mysql-connector-java-5.1.17-bin.jar"/>
 			</zipgroupfileset>
 		</jar>
 	</target>
-	<target name="dist" depends="compile" description="Generates WeakDB jars">
+	<target name="deploy" depends="dist" description="Deploy WeakDB distribution">
+		<delete dir="${deploy.dir}" />
 		<mkdir dir="${deploy.dir}/configs" />
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">
@@ -261,7 +257,7 @@
 	</target>
 	<target name="tpcc-dist" depends="tpcc-init, dist" description="Compile and ditribute TPC-C benchmarks">
 		<antcall target="tpcc-dist-codefuture" />
-		<antcall target="tpcc-dist-escada" />
+		<!--<antcall target="tpcc-dist-escada" />-->
 	</target>
 
 	<target name="tpcc-dist-codefuture"  >

@@ -2,7 +2,7 @@ package nodes.replicator;
 
 
 import nodes.Deliver;
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 
 
 /**
@@ -19,8 +19,8 @@ public class NoOrderDeliver implements Deliver
 	}
 
 	@Override
-	public void dispatchOperation(ShadowOperation op)
+	public void dispatchOperation(ShadowTransaction op)
 	{
-		this.replicator.deliverShadowOperation(op);
+		this.replicator.deliverShadowTransaction(op);
 	}
 }

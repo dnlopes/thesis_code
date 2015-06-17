@@ -27,9 +27,9 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
-		super.generateOperationStatements(shadowStatements);
+		super.generateStatements(shadowStatements);
 
 
 		if(this.row.hasSideEffects())

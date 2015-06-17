@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by dnlopes on 13/05/15.
  */
-public abstract class AbstractOperation implements Operation
+public abstract class AbstractOperation implements ShadowOperation
 {
 
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractOperation.class);
@@ -54,7 +54,7 @@ public abstract class AbstractOperation implements Operation
 		return this.opType;
 	}
 
-	public abstract void generateOperationStatements(List<String> shadowStatements);
+	public abstract void generateStatements(List<String> shadowStatements);
 
 	@Override
 	public void createRequestsToCoordinate(CoordinatorRequest request)

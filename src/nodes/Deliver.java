@@ -1,7 +1,7 @@
 package nodes;
 
 
-import runtime.operation.ShadowOperation;
+import runtime.operation.ShadowTransaction;
 
 
 /**
@@ -10,5 +10,5 @@ import runtime.operation.ShadowOperation;
  */
 public interface Deliver
 {
-	public void dispatchOperation(ShadowOperation op);
+	public void dispatchOperation(ShadowTransaction op);
 }

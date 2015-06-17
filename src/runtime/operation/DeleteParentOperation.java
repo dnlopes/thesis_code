@@ -27,7 +27,7 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 	}
 
 	@Override
-	public void generateOperationStatements(List<String> shadowStatements)
+	public void generateStatements(List<String> shadowStatements)
 	{
 
 		//TODO
