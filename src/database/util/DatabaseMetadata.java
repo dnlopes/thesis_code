@@ -1,6 +1,7 @@
 package database.util;
 
 
+import database.util.table.DatabaseTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;

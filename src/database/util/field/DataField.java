@@ -1,4 +1,4 @@
-package database.util;
+package database.util.field;
 
 
 import java.sql.ResultSet;
@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import database.constraints.Constraint;
+import database.util.SemanticPolicy;
+import database.util.table.DatabaseTable;
 
 
 /**

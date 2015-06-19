@@ -2,7 +2,7 @@ package database.constraints.unique;
 
 
 import database.jdbc.ConnectionFactory;
-import database.util.DataField;
+import database.util.field.DataField;
 import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

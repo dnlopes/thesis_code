@@ -2,7 +2,6 @@ package nodes.replicator;
 
 
 import nodes.Deliver;
-import runtime.operation.ShadowTransaction;
 import util.thrift.ThriftShadowTransaction;
 
 

@@ -3,6 +3,8 @@ package database.constraints.check;
 
 import database.jdbc.ConnectionFactory;
 import database.util.*;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;

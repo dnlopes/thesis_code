@@ -1,8 +1,8 @@
 package database.util.field.hidden;
 
 
-import database.util.CrdtDataFieldType;
-import database.util.DataField;
+import database.util.field.CrdtDataFieldType;
+import database.util.field.DataField;
 import database.util.SemanticPolicy;
 
 import java.sql.ResultSet;

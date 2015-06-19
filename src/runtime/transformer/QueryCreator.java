@@ -1,10 +1,10 @@
-package runtime;
+package runtime.transformer;
 
 
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import database.util.Row;
 
 import java.util.Iterator;
@@ -12,7 +12,8 @@ import java.util.List;
 
 
 /**
- * Created by dnlopes on 16/05/15.
+ * @author dnlopes
+ *         This class implements helper methods that build handy SQL queries for use in runtime
  */
 public class QueryCreator
 {
@@ -24,7 +25,7 @@ public class QueryCreator
 	 * @param table
 	 * @param relations
 	 *
-	 * @return
+	 * @return a sql query
 	 */
 	public static String findChildFromTableQuery(Row parentRow, DatabaseTable table,
 												 List<ParentChildRelation> relations)
@@ -60,7 +61,7 @@ public class QueryCreator
 	 * @param childRow
 	 * @param constraint
 	 *
-	 * @return
+	 * @return a sql query
 	 */
 	public static String findParent(Row childRow, ForeignKeyConstraint constraint)
 	{
@@ -98,7 +99,7 @@ public class QueryCreator
 	 * @param parentRow
 	 * @param field
 	 *
-	 * @return
+	 * @return a sql query
 	 */
 	public static String selectFieldFromRow(Row parentRow, DataField field)
 	{

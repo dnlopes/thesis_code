@@ -11,13 +11,13 @@ import java.util.Vector;
 
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
-import database.util.DataField;
+import database.util.field.DataField;
 import database.util.DatabaseMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import database.util.DatabaseTable;
+import database.util.table.DatabaseTable;
 import util.defaults.Configuration;
 
 

@@ -2,8 +2,6 @@ package database.util.field;
 
 import java.sql.ResultSet;
 
-import database.util.CrdtDataFieldType;
-import database.util.DataField;
 import database.util.SemanticPolicy;
 import util.ExitCode;
 
@@ -34,7 +32,7 @@ public class NONCRDT_Data_Field extends DataField {
 	 * @see util.crdtlib.dbannotationtypes.dbutil.DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
 	 */
 	/**
-	 * @see database.util.DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
+	 * @see DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
 	 * @param rs
 	 * @param Value
 	 * @return
@@ -57,7 +55,7 @@ public class NONCRDT_Data_Field extends DataField {
 	 * @see crdts.basics.Data_Field#get_Crdt_Form(java.lang.String)
 	 */
 	/**
-	 * @see database.util.DataField#get_Crdt_Form(java.lang.String)
+	 * @see DataField#get_Crdt_Form(java.lang.String)
 	 * @param Value
 	 * @return
 	 */
@@ -80,7 +78,7 @@ public class NONCRDT_Data_Field extends DataField {
 	 * crdts.basics.Data_Field#get_Value_In_Correct_Format(java.lang.String)
 	 */
 	/**
-	 * @see database.util.DataField#get_Value_In_Correct_Format(java.lang.String)
+	 * @see DataField#get_Value_In_Correct_Format(java.lang.String)
 	 * @param Value
 	 * @return
 	 */

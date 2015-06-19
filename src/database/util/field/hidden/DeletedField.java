@@ -1,8 +1,8 @@
 package database.util.field.hidden;
 
 
-import database.util.CrdtDataFieldType;
-import database.util.DataField;
+import database.util.field.CrdtDataFieldType;
+import database.util.field.DataField;
 import database.util.SemanticPolicy;
 import util.defaults.DBDefaults;
 
@@ -31,7 +31,7 @@ public class DeletedField extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Crdt_Form(java.sql.ResultSet, String)
+	 * @see database.util.field.DataField#get_Crdt_Form(java.sql.ResultSet, String)
 	 */
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
@@ -45,7 +45,7 @@ public class DeletedField extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Crdt_Form(String)
+	 * @see database.util.field.DataField#get_Crdt_Form(String)
 	 */
 	@Override
 	public String get_Crdt_Form(String Value)
@@ -62,7 +62,7 @@ public class DeletedField extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Value_In_Correct_Format(String)
+	 * @see database.util.field.DataField#get_Value_In_Correct_Format(String)
 	 */
 	@Override
 	public String get_Value_In_Correct_Format(String Value)
@@ -76,7 +76,7 @@ public class DeletedField extends DataField
 	/**
 	 * @return
 	 *
-	 * @see database.util.DataField#getDefaultValue()
+	 * @see database.util.field.DataField#getDefaultValue()
 	 */
 	public String getDefaultValue()
 	{

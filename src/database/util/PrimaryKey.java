@@ -1,6 +1,8 @@
 package database.util;
 
 
+import database.util.field.DataField;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;

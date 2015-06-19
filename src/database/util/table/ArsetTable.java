@@ -6,9 +6,7 @@ import java.util.*;
 import database.util.ExecutionPolicy;
 import database.util.field.LWW_DELETEDFLAG;
 import database.util.field.LWW_LOGICALTIMESTAMP;
-import database.util.CrdtTableType;
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.field.DataField;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -206,7 +204,7 @@ public class ArsetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
+	 * @see DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
 	 */
 	public String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException
 	{
@@ -290,7 +288,7 @@ public class ArsetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update,
+	 * @see DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update,
 	 * java.lang.String)
 	 */
 	public String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
@@ -430,7 +428,7 @@ public class ArsetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
+	 * @see DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
 	 */
 	public String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException
 	{

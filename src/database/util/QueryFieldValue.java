@@ -1,6 +1,9 @@
 package database.util;
 
 
+import database.util.field.DataField;
+
+
 /**
  * Created by dnlopes on 17/05/15.
  */

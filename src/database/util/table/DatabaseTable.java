@@ -1,4 +1,4 @@
-package database.util;
+package database.util.table;
 
 
 import java.sql.ResultSet;
@@ -8,6 +8,9 @@ import java.util.Map.Entry;
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
+import database.util.field.DataField;
+import database.util.ExecutionPolicy;
+import database.util.PrimaryKey;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
@@ -29,6 +32,7 @@ import util.defaults.DBDefaults;
  */
 public abstract class DatabaseTable
 {
+
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseTable.class);
 
 	private ExecutionPolicy executionPolicy;
@@ -90,7 +94,6 @@ public abstract class DatabaseTable
 			if(entry.isPrimaryKey())
 			{
 				this.primaryKey.addField(entry);
-				//FIXME: soon deprecated?
 				this.addPrimaryKey(entry);
 			}
 

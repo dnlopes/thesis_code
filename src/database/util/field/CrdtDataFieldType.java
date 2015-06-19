@@ -1,7 +1,7 @@
 /*
  * This class defines a set of types of CRDT
  */
-package database.util;
+package database.util.field;
 
 /**
  * The Enum CrdtDataFieldType.

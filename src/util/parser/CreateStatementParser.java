@@ -18,6 +18,9 @@ import database.constraints.fk.ForeignKeyPolicy;
 import database.util.*;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.unique.UniqueConstraint;
+import database.util.field.CrdtDataFieldType;
+import database.util.field.DataField;
+import database.util.table.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +28,6 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 
-import database.util.table.AosetTable;
-import database.util.table.ArsetTable;
-import database.util.table.AusetTable;
-import database.util.table.READONLY_Table;
-import database.util.table.UosetTable;
 import util.defaults.Configuration;
 
 
@@ -448,10 +446,15 @@ public class CreateStatementParser
 						foundAutoIncrement = true;
 				}
 
-				// if we found a auto incremental field in the PK, then there is no point added the PK constraint
-				// the autoincrement field garantees the uniqueness of the key
+				// if we found a auto incremental field in the PK, then there is no point in adding the PK constraint
+				// itself because the auto_increment field guarantees the uniqueness of the key
 				if(foundAutoIncrement)
+				{
+					if (pKeys.length != 1)
+						RuntimeUtils.throwRunTimeException("found PK with an auto_increment field and with more then " +
+								"one field", ExitCode.INVALIDUSAGE);
 					continue;
+				}
 
 				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey);
 

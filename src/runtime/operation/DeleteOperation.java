@@ -3,7 +3,7 @@ package runtime.operation;
 
 import database.util.ExecutionPolicy;
 import database.util.Row;
-import runtime.OperationTransformer;
+import runtime.transformer.OperationTransformer;
 import util.thrift.ThriftShadowTransaction;
 
 /**

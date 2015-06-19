@@ -2,23 +2,7 @@ package util.parser;
 
 
 import database.util.*;
-import database.util.field.LWW_BOOLEAN;
-import database.util.field.LWW_DATETIME;
-import database.util.field.LWW_DOUBLE;
-import database.util.field.LWW_FLOAT;
-import database.util.field.LWW_INTEGER;
-import database.util.field.LWW_STRING;
-import database.util.field.NONCRDT_Data_Field;
-import database.util.field.NORMAL_BOOLEAN;
-import database.util.field.NORMAL_DATETIME;
-import database.util.field.NORMAL_DOUBLE;
-import database.util.field.NORMAL_FLOAT;
-import database.util.field.NORMAL_INTEGER;
-import database.util.field.NORMAL_STRING;
-import database.util.field.NUMDELTA_DATETIME;
-import database.util.field.NUMDELTA_DOUBLE;
-import database.util.field.NUMDELTA_FLOAT;
-import database.util.field.NUMDELTA_INTEGER;
+import database.util.field.*;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import runtime.RuntimeUtils;
@@ -209,7 +193,7 @@ public class DataFieldParser
 
 	public static String getFieldDataType(String attributeDef)
 	{
-		String dataType = DatabaseDictionary.getDataType(attributeDef);
+		String dataType = DatabaseCommon.getDataType(attributeDef);
 		if(dataType.equals(""))
 		{
 			throw_Wrong_Format_Exception(attributeDef);

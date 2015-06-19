@@ -1,8 +1,8 @@
 package runtime;
 
 
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class IdentifierFactory
 		}
 	}
 
-	public static void createIdGenerator(DataField field, NodeConfig config)
+	private static void createIdGenerator(DataField field, NodeConfig config)
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 
@@ -62,7 +62,7 @@ public class IdentifierFactory
 		return getNextId(field.getTableName(), field.getFieldName());
 	}
 
-	public static int getNextId(String tableName, String fieldName)
+	private static int getNextId(String tableName, String fieldName)
 	{
 		String key = tableName + "_" + fieldName;
 

@@ -1,7 +1,7 @@
 package database.constraints;
 
 
-import database.util.DataField;
+import database.util.field.DataField;
 
 import java.util.List;
 

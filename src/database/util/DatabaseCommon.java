@@ -4,15 +4,15 @@ package database.util;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.scratchpad.IDBScratchPad;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import org.apache.commons.dbutils.DbUtils;
-import runtime.QueryCreator;
+import runtime.transformer.QueryCreator;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DateFormat;
+import java.util.*;
 
 
 /**
@@ -21,6 +21,10 @@ import java.util.Map;
 public class DatabaseCommon
 {
 
+	final static String[] dataTypeList = {"INT", "FLOAT", "DOUBLE", "BOOL", "BOOLEAN", "DATE", "DATETIME",
+			"TIMESTAMP", "CHAR", "VARCHAR", "REAL", "INTEGER", "TEXT", "smallint", "decimal", "tinyint", "bigint",
+			"datetime",};
+
 	public static PrimaryKeyValue getPrimaryKeyValue(final ResultSet rs, DatabaseTable dbTable) throws SQLException
 	{
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(dbTable.getName());
@@ -28,20 +32,13 @@ public class DatabaseCommon
 
 		for(DataField field : pk.getPrimaryKeyFields().values())
 		{
-			try
-			{
-				String fieldValue = rs.getObject(field.getFieldName()).toString();
-				if(fieldValue == null)
-					//RuntimeUtils.throwRunTimeException("primary key cannot be null", ExitCode.ERRORNOTNULL);
-					throw new SQLException(("primary key cannot be null"));
+			String fieldValue = rs.getObject(field.getFieldName()).toString();
 
-				FieldValue fValue = new FieldValue(field, fieldValue);
-				pkValue.addFieldValue(fValue);
-			} catch(SQLException e)
-			{
-				int a = 0;
-			}
+			if(fieldValue == null)
+				throw new SQLException(("primary key cannot be null"));
 
+			FieldValue fValue = new FieldValue(field, fieldValue);
+			pkValue.addFieldValue(fValue);
 		}
 		return pkValue;
 	}
@@ -127,4 +124,39 @@ public class DatabaseCommon
 		return new Row(remoteTable, parentPk);
 	}
 
+	public static Date NOW()
+	{
+		return new Date();
+	}
+
+	public static String CURRENTTIMESTAMP(DateFormat dateFormat)
+	{
+		return dateFormat.format(NOW());
+	}
+
+	/**
+	 * Gets the _ data_ type.
+	 *
+	 * @param defStr
+	 * 		the def str
+	 *
+	 * @return the _ data_ type
+	 */
+	public static String getDataType(String defStr)
+	{
+		String[] subStrs = defStr.split(" ");
+		for(int i = 0; i < subStrs.length; i++)
+		{
+			String typeStr = subStrs[i];
+			int endIndex = subStrs[i].indexOf("(");
+			if(endIndex != -1)
+				typeStr = subStrs[i].substring(0, endIndex);
+			for(int j = 0; j < dataTypeList.length; j++)
+			{
+				if(typeStr.toUpperCase().equalsIgnoreCase(dataTypeList[j]))
+					return dataTypeList[j];
+			}
+		}
+		return "";
+	}
 }

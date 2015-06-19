@@ -1,9 +1,7 @@
 package runtime;
 
 
-import database.util.FieldValue;
 import runtime.operation.ShadowOperation;
-import util.thrift.RequestValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +14,9 @@ import java.util.Map;
  */
 public class Transaction
 {
+
 	private int txnId;
 	private long latency;
-	private boolean readyToCommit;
 	private List<ShadowOperation> shadowOperations;
 	private Map<Integer, ShadowOperation> txnOpsMap;
 	private int opsCounter;
@@ -28,7 +26,6 @@ public class Transaction
 		this.txnId = txnId;
 		this.latency = 0;
 		this.opsCounter = 0;
-		this.readyToCommit = false;
 		this.shadowOperations = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
 	}
@@ -49,11 +46,6 @@ public class Transaction
 		return this.latency;
 	}
 
-	public boolean isReadyToCommit()
-	{
-		return this.readyToCommit;
-	}
-
 	public int getNextOperationId()
 	{
 		return this.opsCounter++;
@@ -62,17 +54,6 @@ public class Transaction
 	public List<ShadowOperation> getShadowOperations()
 	{
 		return this.shadowOperations;
-	}
-
-	public void updatedWithRequestedValues(List<RequestValue> reqValues)
-	{
-		for(RequestValue reqValue : reqValues)
-		{
-			ShadowOperation op = this.txnOpsMap.get(reqValue.getOpId());
-			String requestedValue = reqValue.getRequestedValue();
-			String fieldName = reqValue.getFieldName();
-			op.getRow().updateFieldValue(new FieldValue(op.getRow().getTable().getField(fieldName), requestedValue));
-		}
 	}
 
 	public boolean isReadOnly()

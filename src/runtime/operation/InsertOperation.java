@@ -2,9 +2,9 @@ package runtime.operation;
 
 
 import database.constraints.Constraint;
-import database.constraints.check.CheckConstraint;
 import database.util.*;
-import runtime.OperationTransformer;
+import database.util.field.DataField;
+import runtime.transformer.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.defaults.Configuration;

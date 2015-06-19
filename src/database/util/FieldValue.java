@@ -1,6 +1,10 @@
 package database.util;
 
 
+import database.util.field.CrdtDataFieldType;
+import database.util.field.DataField;
+
+
 /**
  * Created by dnlopes on 11/05/15.
  */

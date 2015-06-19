@@ -2,8 +2,6 @@ package database.util.field;
 
 import java.sql.ResultSet;
 
-import database.util.CrdtDataFieldType;
-import database.util.DataField;
 import database.util.SemanticPolicy;
 
 
@@ -35,7 +33,7 @@ public class LWW_DATETIME extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
+	 * @see DataField#get_Crdt_Form(java.sql.ResultSet, java.lang.String)
 	 */
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
@@ -49,7 +47,7 @@ public class LWW_DATETIME extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Crdt_Form(java.lang.String)
+	 * @see DataField#get_Crdt_Form(java.lang.String)
 	 */
 	@Override
 	public String get_Crdt_Form(String Value)
@@ -66,7 +64,7 @@ public class LWW_DATETIME extends DataField
 	 *
 	 * @return
 	 *
-	 * @see database.util.DataField#get_Value_In_Correct_Format(java.lang.String)
+	 * @see DataField#get_Value_In_Correct_Format(java.lang.String)
 	 */
 	@Override
 	public String get_Value_In_Correct_Format(String Value)

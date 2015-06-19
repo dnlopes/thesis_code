@@ -1,4 +1,4 @@
-package database.util;
+package database.util.table;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -3,8 +3,8 @@ package database.constraints.fk;
 
 import database.constraints.AbstractConstraint;
 import database.constraints.ConstraintType;
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;

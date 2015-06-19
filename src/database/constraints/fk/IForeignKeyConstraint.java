@@ -2,8 +2,7 @@ package database.constraints.fk;
 
 
 import database.constraints.Constraint;
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.table.DatabaseTable;
 
 
 /**

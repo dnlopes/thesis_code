@@ -42,11 +42,6 @@ public abstract class AbstractOperation implements ShadowOperation
 		return this.id;
 	}
 
-	public ExecutionPolicy getTablePolicy()
-	{
-		return this.tablePolicy;
-	}
-
 	public OperationType getOperationType()
 	{
 		return this.opType;

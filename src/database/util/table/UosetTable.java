@@ -6,9 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import database.util.ExecutionPolicy;
-import database.util.CrdtTableType;
-import database.util.DataField;
-import database.util.DatabaseTable;
+import database.util.field.DataField;
 import util.debug.Debug;
 
 import net.sf.jsqlparser.JSQLParserException;
@@ -41,7 +39,7 @@ public class UosetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
+	 * @see DatabaseTable#transform_Insert(net.sf.jsqlparser.statement.insert.Insert, java.lang.String)
 	 */
 	public String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException
 	{
@@ -95,7 +93,7 @@ public class UosetTable extends DatabaseTable
 	/**
 	 * @return
 	 *
-	 * @see database.util.DatabaseTable#toString()
+	 * @see DatabaseTable#toString()
 	 */
 	public String toString()
 	{
@@ -117,7 +115,7 @@ public class UosetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update,
+	 * @see DatabaseTable#transform_Update(java.sql.ResultSet, net.sf.jsqlparser.statement.update.Update,
 	 * java.lang.String)
 	 */
 	@Override
@@ -142,7 +140,7 @@ public class UosetTable extends DatabaseTable
 	 * @return
 	 *
 	 * @throws JSQLParserException
-	 * @see database.util.DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
+	 * @see DatabaseTable#transform_Delete(net.sf.jsqlparser.statement.delete.Delete, java.lang.String)
 	 */
 	@Override
 	public String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException

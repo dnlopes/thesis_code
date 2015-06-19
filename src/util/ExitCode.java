@@ -110,7 +110,6 @@ public final class ExitCode
 	public static final int EXECUTOR_NOT_FOUND = 33;
 	public static final int AUTO_COMMIT_NOT_SUPPORTED = 33;
 	public static final int UNKNOWN_INVARIANT = 36;
-	public static final int UNKNOWN_PRIMITIVE_TYPET = 36;
 	public static final int MULTI_TABLE_UPDATE = 36;
 	public static final int UNEXPECTED_OP = 37;
 	public static final int XML_ERROR = 38;

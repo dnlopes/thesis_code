@@ -1,8 +1,8 @@
 package runtime;
 
 
-import database.util.DataField;
-import database.util.DatabaseFunction;
+import database.util.field.DataField;
+import database.util.DatabaseCommon;
 import runtime.operation.ShadowOperation;
 import util.thrift.ThriftShadowTransaction;
 
@@ -62,7 +62,7 @@ public class RuntimeUtils
 		case NORMALDATETIME:
 		case LWWDATETIME:
 		case NUMDELTADATETIME:
-			return "'" + DatabaseFunction.CURRENTTIMESTAMP(dateFormat) + "'";
+			return "'" + DatabaseCommon.CURRENTTIMESTAMP(dateFormat) + "'";
 		default:
 			System.err.println("cannot get default value for primitive type" + df.toString());
 			throw new RuntimeException("not such crdt type");

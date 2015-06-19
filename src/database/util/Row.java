@@ -2,6 +2,8 @@ package database.util;
 
 
 import database.constraints.Constraint;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 
 import java.util.*;
 

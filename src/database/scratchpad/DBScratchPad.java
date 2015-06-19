@@ -8,6 +8,8 @@ import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.jdbc.ConnectionFactory;
 import database.util.*;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
@@ -26,7 +28,7 @@ import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.OperationTransformer;
+import runtime.transformer.DeterministicQuery;
 import runtime.RuntimeUtils;
 import runtime.operation.*;
 import runtime.Transaction;
@@ -109,11 +111,12 @@ public class DBScratchPad implements IDBScratchPad
 			CoordinatorRequest request = this.generateCoordinationRequest();
 			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
 
-			if(request.getDeltaValues().size() > 0 || request.getRequests().size() > 0 || request.getUniqueValues().size() > 0)
+			if(request.getDeltaValues().size() > 0 || request.getRequests().size() > 0 || request.getUniqueValues()
+					.size() > 0)
 				shadowTransaction.setRequestToCoordinator(request);
 
-			boolean commitDecision = network.commitOperation(shadowTransaction,
-					this.proxyConfig.getReplicatorConfig());
+			boolean commitDecision = network.commitOperation(shadowTransaction, this.proxyConfig.getReplicatorConfig
+					());
 
 			if(!commitDecision)
 				throw new SQLException("commit on main storage failed");
@@ -196,7 +199,7 @@ public class DBScratchPad implements IDBScratchPad
 		String[] deterministicOps;
 		try
 		{
-			deterministicOps = OperationTransformer.makeToDeterministic(this.defaultConnection, this.parser,
+			deterministicOps = DeterministicQuery.makeToDeterministic(this.defaultConnection, this.parser,
 					originalOperation);
 		} catch(JSQLParserException e)
 		{

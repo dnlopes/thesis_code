@@ -18,13 +18,13 @@ public class UniqueConstraint extends AbstractConstraint
 	{
 		super(ConstraintType.UNIQUE);
 		this.isPrimaryKey = isPrimaryKey;
+		this.isAutoIncrement = false;
 	}
 
 	public boolean isPrimaryKey()
 	{
 		return this.isPrimaryKey;
 	}
-
 
 	public boolean isAutoIncrement()
 	{
