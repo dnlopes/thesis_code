@@ -29,11 +29,6 @@ public class DeleteOperation extends AbstractOperation implements ShadowOperatio
 		String clockClause = OperationTransformer.generateVisibilityUpdateFunctionClause(this.tablePolicy);
 		buffer.append(clockClause);
 
-		if(this.tablePolicy == ExecutionPolicy.DELETEWINS)
-			buffer.append(">=0");
-		else
-			buffer.append(">0");
-
 		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 	}
 

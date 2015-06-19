@@ -450,9 +450,9 @@ public class CreateStatementParser
 				// itself because the auto_increment field guarantees the uniqueness of the key
 				if(foundAutoIncrement)
 				{
-					if (pKeys.length != 1)
+					/*if (pKeys.length != 1)
 						RuntimeUtils.throwRunTimeException("found PK with an auto_increment field and with more then " +
-								"one field", ExitCode.INVALIDUSAGE);
+								"one field", ExitCode.INVALIDUSAGE);*/
 					continue;
 				}
 

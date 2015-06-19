@@ -62,7 +62,7 @@ public class IdentifierFactory
 		return getNextId(field.getTableName(), field.getFieldName());
 	}
 
-	private static int getNextId(String tableName, String fieldName)
+	public static int getNextId(String tableName, String fieldName)
 	{
 		String key = tableName + "_" + fieldName;
 

@@ -56,7 +56,7 @@ public class Replicator extends AbstractNode
 		}
 
 		this.setupPads();
-		this.gc = new GarbageCollector();
+		this.gc = new GarbageCollector(this.networkInterface);
 
 		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
 		service.scheduleAtFixedRate(this.gc, 0, GC_THREAD_WAKEUP_INTERVAL , TimeUnit.MILLISECONDS);

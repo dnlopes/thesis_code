@@ -1206,14 +1206,14 @@ public class DBScratchPad implements IDBScratchPad
 				this.generateNotInDeletedAndUpdatedClause(buffer);
 			}
 			buffer.append(") UNION (SELECT ");
-			buffer.append(this.databaseTable.getNormalFieldsSelection());
+			buffer.append(this.databaseTable.getPrimaryKeyString());
 			buffer.append(" FROM ");
 			buffer.append(this.tempTableName);
 			addWhere(buffer, deleteOp.getWhere());
 			buffer.append(")");
 			String query = buffer.toString();
 
-			int rowsDeleted = 1;
+			int rowsDeleted = 0;
 			ResultSet res = null;
 
 			try

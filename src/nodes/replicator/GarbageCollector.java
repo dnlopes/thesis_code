@@ -11,9 +11,9 @@ public class GarbageCollector implements Runnable
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
-	private ReplicatorNetwork network;
+	private IReplicatorNetwork  network;
 
-	public GarbageCollector(ReplicatorNetwork network)
+	public GarbageCollector(IReplicatorNetwork network)
 	{
 		this.network = network;
 	}

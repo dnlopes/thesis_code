@@ -132,6 +132,15 @@ public class OperationTransformer
 		else
 			buffer.append(">0");
 
+		buffer.append(" AND ");
+		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
+		buffer.append("(");
+		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+		buffer.append(",");
+		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		buffer.append(")");
+		buffer.append(">0");
+
 		return buffer.toString();
 	}
 
