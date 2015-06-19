@@ -88,21 +88,22 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 				FieldValue oldFieldValue = this.row.getFieldValue(currField.getFieldName());
 				FieldValue newFieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
 
+				String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getFormattedValue(),
+						oldFieldValue.getFormattedValue());
+				ApplyDelta applyDeltaRequest = new ApplyDelta();
+				applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
+				applyDeltaRequest.setDeltaValue(deltaValue);
+				applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
+
 				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getFormattedValue(),
 						oldFieldValue.getFormattedValue()))
 				{
-					String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getFormattedValue(),
-							oldFieldValue.getFormattedValue());
-					ApplyDelta applyDeltaRequest = new ApplyDelta();
-					applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
-					applyDeltaRequest.setDeltaValue(deltaValue);
-					applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
-					request.addToDeltaValues(applyDeltaRequest);
+					applyDeltaRequest.setMustCoordinate(true);
 					if(Configuration.TRACE_ENABLED)
 						LOG.trace("new delta check entry added");
 				}
-				break;
-			case FOREIGN_KEY:
+
+				request.addToDeltaValues(applyDeltaRequest);
 				break;
 			default:
 				RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);

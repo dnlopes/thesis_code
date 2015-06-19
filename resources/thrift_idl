@@ -5,6 +5,7 @@ struct ApplyDelta
     1: required string constraintId;
     2: required string deltaValue;
     3: required string rowId;
+    4: required bool mustCoordinate;
 }
 struct RequestValue
 {

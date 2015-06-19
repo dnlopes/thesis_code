@@ -358,7 +358,7 @@ public class DBScratchPad implements IDBScratchPad
 	private class DBExecuter implements IExecuter
 	{
 
-		private final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+		private static final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 
 		private TableDefinition tableDefinition;
 		private DatabaseTable databaseTable;

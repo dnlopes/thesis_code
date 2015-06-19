@@ -12,5 +12,5 @@ public interface IReplicatorNetwork
 {
 	public void sendOperationToRemote(ThriftShadowTransaction thriftOperation);
 	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
-
+	public void releaseResources();
 }

@@ -22,13 +22,17 @@ import java.util.Map;
 
 
 /**
- * Created by dnlopes on 21/03/15.
+ * @author dnlopes
+ *         This class provides methods for all Replicator communications.
+ *         All public methods should be thread-safe, because this class used by multiple threads to send events to
+ *         remote nodes
  */
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
 {
 
 	private static final int POOL_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
+
 	private Map<Integer, NodeConfig> replicatorsConfigs;
 	private ObjectPool<CoordinatorRPC.Client> coordinatorConnectionPool;
 	private final NodeConfig coordinatorConfig;
@@ -126,21 +130,10 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 	}
 
-	private ReplicatorRPC.Client createReplicatorConnection(NodeConfig config)
+	@Override
+	public void releaseResources()
 	{
-		TTransport newTransport = new TSocket(config.getHost(), config.getPort());
-		try
-		{
-			newTransport.open();
-		} catch(TTransportException e)
-		{
-			LOG.warn("error while creating connections for remote replicators: {}", e.getMessage());
-			newTransport.close();
-			return null;
-		}
-
-		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
-		return new ReplicatorRPC.Client(protocol);
+		//TODO
 	}
 
 	private CoordinatorRPC.Client createCoordinatorConnection()
@@ -159,4 +152,5 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 		return new CoordinatorRPC.Client(protocol);
 	}
+
 }
