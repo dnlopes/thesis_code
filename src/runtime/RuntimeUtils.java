@@ -1,12 +1,12 @@
 package runtime;
 
+
 import database.util.DataField;
 import database.util.DatabaseFunction;
-import runtime.operation.ShadowTransaction;
-import util.thrift.ThriftOperation;
+import runtime.operation.ShadowOperation;
+import util.thrift.ThriftShadowTransaction;
 
 import java.text.DateFormat;
-import java.util.List;
 
 
 /**
@@ -14,21 +14,6 @@ import java.util.List;
  */
 public class RuntimeUtils
 {
-
-	public static ThriftOperation encodeThriftOperation(ShadowTransaction shadowTransaction)
-	{
-		ThriftOperation thriftOperation = new ThriftOperation();
-		thriftOperation.setOperations(shadowTransaction.getOperationList());
-		thriftOperation.setTxnId(shadowTransaction.getTxnId());
-
-		return thriftOperation;
-	}
-
-	public static ShadowTransaction decodeThriftOperation(ThriftOperation thriftOperation)
-	{
-		List<String> ops = thriftOperation.getOperations();
-		return new ShadowTransaction(thriftOperation.getTxnId(), ops);
-	}
 
 	public static void throwRunTimeException(String message, int exitCode)
 	{
@@ -82,5 +67,16 @@ public class RuntimeUtils
 			System.err.println("cannot get default value for primitive type" + df.toString());
 			throw new RuntimeException("not such crdt type");
 		}
+	}
+
+	public static ThriftShadowTransaction encodeShadowTransaction(Transaction txn)
+	{
+		ThriftShadowTransaction thriftTxn = new ThriftShadowTransaction();
+		thriftTxn.setTxnId(txn.getTxnId());
+
+		for(ShadowOperation op : txn.getShadowOperations())
+			op.generateStatements(thriftTxn);
+
+		return thriftTxn;
 	}
 }

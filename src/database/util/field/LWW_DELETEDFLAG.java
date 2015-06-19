@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 
 
 /**
@@ -30,7 +31,7 @@ public class LWW_DELETEDFLAG extends DataField
 	 */
 	public LWW_DELETEDFLAG(String tN, String dT, boolean iPK, boolean iAIC, int position)
 	{
-		super(CrdtDataFieldType.LWWDELETEDFLAG, deleted_Flag_Name, tN, dT, iPK, iAIC, position);
+		super(CrdtDataFieldType.LWWDELETEDFLAG, deleted_Flag_Name, tN, dT, iPK, iAIC, position, SemanticPolicy.NOSEMANTIC);
 
 	}
 

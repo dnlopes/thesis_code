@@ -6,11 +6,11 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import runtime.RuntimeUtils;
-import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
-import util.thrift.ReplicatorRPC;
-import util.thrift.ThriftOperation;
+import util.thrift.*;
+
+import java.util.List;
+
 
 /**
  * Created by dnlopes on 20/03/15.
@@ -32,20 +32,22 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public boolean commitOperation(ThriftOperation thriftOp)
+	public boolean commitOperation(ThriftShadowTransaction shadowTransaction) throws TException
 	{
+		//if we must coordinate then do it here. this is a blocking call
+		if(shadowTransaction.getRequestToCoordinator() != null)
+			if(!this.coordinate(shadowTransaction))
+				return false;
+
+		shadowTransaction.setReplicatorId(this.replicator.getConfig().getId());
+
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
 
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
-		ShadowTransaction shadowTransaction = RuntimeUtils.decodeThriftOperation(thriftOp);
-		shadowTransaction.setReplicatorId(this.replicator.getConfig().getId());
-		shadowTransaction.setLogicalClock(newClock);
-
-		thriftOp.setClock(shadowTransaction.getClock().getClockValue());
-		thriftOp.setReplicatorId(shadowTransaction.getReplicatorId());
+		shadowTransaction.setClock(newClock.getClockValue());
 
 		// just deliver the operation to own replicator and wait for commit decision.
 		// if it suceeds then async deliver the operation to other replicators
@@ -53,25 +55,49 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		localCommit = this.replicator.commitOperation(shadowTransaction);
 
 		if(localCommit)
-			network.sendOperationToRemote(thriftOp);
+			network.sendOperationToRemote(shadowTransaction);
 
 		return localCommit;
 	}
 
 	@Override
-	public void commitOperationAsync(ThriftOperation thriftOp) throws TException
+	public void commitOperationAsync(ThriftShadowTransaction shadowTransaction) throws TException
 	{
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("received txn from other replicator");
 
-		ShadowTransaction shadowTransaction = RuntimeUtils.decodeThriftOperation(thriftOp);
-		LogicalClock remoteClock = new LogicalClock(thriftOp.getClock());
-		shadowTransaction.setLogicalClock(remoteClock);
-		shadowTransaction.setReplicatorId(thriftOp.getReplicatorId());
-
 		this.deliver.dispatchOperation(shadowTransaction);
 	}
 
+	private boolean coordinate(ThriftShadowTransaction shadowTransaction)
+	{
+		CoordinatorRequest request = shadowTransaction.getRequestToCoordinator();
+		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
+		if(!response.isSuccess())
+		{
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+			return false;
+		}
 
+		List<RequestValue> requestValues = response.getRequestedValues();
+
+		if(requestValues != null && requestValues.size() > 0)
+			this.updateShadowTransaction(shadowTransaction, requestValues);
+
+		return true;
+	}
+
+	private void updateShadowTransaction(ThriftShadowTransaction shadowTransaction, List<RequestValue> reqValues)
+	{
+		for(RequestValue reqValue : reqValues)
+		{
+			String newValue = reqValue.getRequestedValue();
+			int opId = reqValue.getOpId();
+
+			String op = shadowTransaction.getOperations().get(opId);
+			op = op.replace(reqValue.getTempSymbol(), newValue);
+		}
+	}
 }

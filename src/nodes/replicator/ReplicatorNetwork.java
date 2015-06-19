@@ -15,8 +15,7 @@ import org.slf4j.LoggerFactory;
 import util.ObjectPool;
 import util.defaults.Configuration;
 
-import util.thrift.ReplicatorRPC;
-import util.thrift.ThriftOperation;
+import util.thrift.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,84 +30,48 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private static final int POOL_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 	private Map<Integer, NodeConfig> replicatorsConfigs;
-	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> rpcsObjects;
+	private ObjectPool<CoordinatorRPC.Client> coordinatorConnectionPool;
+	private final NodeConfig coordinatorConfig;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
-		this.rpcsObjects = new HashMap<>();
+		this.coordinatorConnectionPool = new ObjectPool<>();
 
 		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 
-		//this.setup();
+		this.coordinatorConfig = Configuration.getInstance().getCoordinatorConfigWithIndex(1);
+		this.setup();
 	}
 
 	private void setup()
 	{
-		for(NodeConfig config : this.replicatorsConfigs.values())
-			this.createConnectionPoolForReplicator(config);
-	}
-
-	private void createConnectionPoolForReplicator(NodeConfig config)
-	{
 		if(Configuration.TRACE_ENABLED)
-			LOG.trace("creating connection pool to replicator {}", config.getId());
-
-		boolean isReady = false;
-		do
-		{
-			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
-			try
-			{
-				newTransport.open();
-				isReady = true;
-			} catch(TTransportException e)
-			{
-				if(Configuration.DEBUG_ENABLED)
-					LOG.debug("replicator {} still not ready for connections", config.getId());
-				try
-				{
-					Thread.sleep(500);
-				} catch(InterruptedException e1)
-				{
-					e1.printStackTrace();
-				}
-			} finally
-			{
-				newTransport.close();
-			}
-
-		} while(!isReady);
-
-		ObjectPool<ReplicatorRPC.Client> pool = new ObjectPool<>();
+			LOG.trace("creating connection pool to coordinator");
 
 		for(int i = 0; i < POOL_SIZE; i++)
 		{
-			ReplicatorRPC.Client rpcConnection = this.createReplicatorConnection(config);
+			CoordinatorRPC.Client rpcConnection = this.createCoordinatorConnection();
 
 			if(rpcConnection == null)
 			{
-				LOG.warn("failed to create connection for remote replicators: {}");
+				LOG.warn("failed to create connection for coordinator: {}");
 				continue;
 			}
 
-			pool.addObject(rpcConnection);
+			this.coordinatorConnectionPool.addObject(rpcConnection);
 		}
 
-		this.rpcsObjects.put(config.getId(), pool);
-
 		if(Configuration.DEBUG_ENABLED)
-			LOG.debug("created {} connections to replicator {}", pool.getPoolSize(), config.getId());
+			LOG.debug("created {} connections to coordinator", this.coordinatorConnectionPool.getPoolSize());
 	}
 
 	@Override
-	public void sendOperationToRemote(ThriftOperation thriftOperation)
+	public void sendOperationToRemote(ThriftShadowTransaction thriftOperation)
 	{
-		//for(NodeConfig config : this.replicatorsConfigs.values())
-		//	this.sendToRemote(thriftOperation, config);
 		for(NodeConfig config : this.replicatorsConfigs.values())
 		{
 			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
@@ -129,33 +92,37 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 	}
 
-	private void sendToRemote(ThriftOperation op, NodeConfig config)
+	@Override
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req)
 	{
-		if(!this.rpcsObjects.containsKey(config.getId()))
+		req.setRequestId(0);
+		CoordinatorResponse response = new CoordinatorResponse();
+		response.setSuccess(false);
+
+		CoordinatorRPC.Client connection = this.coordinatorConnectionPool.borrowObject();
+
+		if(connection == null)
 		{
-			LOG.warn("unkown replicator: {}", config.getId());
-			return;
+			LOG.warn("coordinator connection pool empty. Creating new connection...");
+			connection = this.createCoordinatorConnection();
 		}
 
-		ObjectPool<ReplicatorRPC.Client> pool = this.rpcsObjects.get(config.getId());
-
-		ReplicatorRPC.Client rpcConnection = pool.borrowObject();
-		if(rpcConnection == null)
+		if(connection == null)
 		{
-			LOG.warn("no rpc connection available for replicator {}", config.getId());
-			rpcConnection = this.createReplicatorConnection(config);
-			if(rpcConnection == null)
-			{
-				LOG.warn("could not create connection to replicator {}", config.getId());
-				return;
-			}
+			LOG.warn("failed to create coordinator connection");
+			return response;
 		}
+
 		try
 		{
-			rpcConnection.commitOperationAsync(op);
+			return connection.checkInvariants(req);
 		} catch(TException e)
 		{
-			LOG.warn("failed to send shadow operation to replicator {}: {}", config.getId(), e.getMessage());
+			return response;
+		} finally
+		{
+			if(connection != null)
+				this.coordinatorConnectionPool.returnObject(connection);
 		}
 	}
 
@@ -174,5 +141,22 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 		return new ReplicatorRPC.Client(protocol);
+	}
+
+	private CoordinatorRPC.Client createCoordinatorConnection()
+	{
+		TTransport newTransport = new TSocket(this.coordinatorConfig.getHost(), this.coordinatorConfig.getPort());
+		try
+		{
+			newTransport.open();
+		} catch(TTransportException e)
+		{
+			LOG.warn("error while creating connections to coordinator: {}", e.getMessage());
+			newTransport.close();
+			return null;
+		}
+
+		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+		return new CoordinatorRPC.Client(protocol);
 	}
 }

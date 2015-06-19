@@ -13,11 +13,10 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.ObjectPool;
 import util.defaults.Configuration;
-import runtime.operation.ShadowTransaction;
+import util.thrift.ThriftShadowTransaction;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 
 
 /**
@@ -62,7 +61,7 @@ public class Replicator extends AbstractNode
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public boolean commitOperation(ShadowTransaction shadowTransaction)
+	public boolean commitOperation(ThriftShadowTransaction shadowTransaction)
 	{
 		IDBCommitPad pad = this.commitPadPool.borrowObject();
 
@@ -87,20 +86,6 @@ public class Replicator extends AbstractNode
 		return this.networkInterface;
 	}
 
-	private void setupPads()
-	{
-		Configuration conf = Configuration.getInstance();
-
-		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
-		{
-			IDBCommitPad commitPad = new DBCommitPad(this.getConfig());
-			this.commitPadPool.addObject(commitPad);
-		}
-
-		if(Configuration.INFO_ENABLED)
-			LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
-	}
-
 	public LogicalClock getNextClock()
 	{
 		this.clockLock.lock();
@@ -117,7 +102,18 @@ public class Replicator extends AbstractNode
 		return newClock;
 	}
 
-	public void mergeWithRemoteClock(LogicalClock clock)
+	public void deliverShadowTransaction(ThriftShadowTransaction shadowTransaction)
+	{
+		this.mergeWithRemoteClock(new LogicalClock(shadowTransaction.getClock()));
+		this.commitOperation(shadowTransaction);
+	}
+
+	public LogicalClock getCurrentClock()
+	{
+		return this.clock;
+	}
+
+	private void mergeWithRemoteClock(LogicalClock clock)
 	{
 		if(Configuration.DEBUG_ENABLED)
 			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
@@ -130,15 +126,17 @@ public class Replicator extends AbstractNode
 			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
-	public void deliverShadowTransaction(ShadowTransaction shadowTransaction)
+	private void setupPads()
 	{
-		this.mergeWithRemoteClock(shadowTransaction.getClock());
-		this.commitOperation(shadowTransaction);
-	}
+		Configuration conf = Configuration.getInstance();
 
-	public LogicalClock getCurrentClock()
-	{
-		return this.clock;
-	}
+		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
+		{
+			IDBCommitPad commitPad = new DBCommitPad(this.getConfig());
+			this.commitPadPool.addObject(commitPad);
+		}
 
+		if(Configuration.INFO_ENABLED)
+			LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
+	}
 }

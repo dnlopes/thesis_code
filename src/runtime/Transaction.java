@@ -3,7 +3,6 @@ package runtime;
 
 import database.util.FieldValue;
 import runtime.operation.ShadowOperation;
-import runtime.operation.ShadowTransaction;
 import util.thrift.RequestValue;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class Transaction
 {
 	private int txnId;
 	private long latency;
-	private ShadowTransaction shadowTransaction;
 	private boolean readyToCommit;
 	private List<ShadowOperation> shadowOperations;
 	private Map<Integer, ShadowOperation> txnOpsMap;
@@ -30,7 +28,6 @@ public class Transaction
 		this.txnId = txnId;
 		this.latency = 0;
 		this.opsCounter = 0;
-		this.shadowTransaction = null;
 		this.readyToCommit = false;
 		this.shadowOperations = new ArrayList<>();
 		this.txnOpsMap = new HashMap<>();
@@ -45,11 +42,6 @@ public class Transaction
 	public int getTxnId()
 	{
 		return this.txnId;
-	}
-
-	public ShadowTransaction getShadowTransaction()
-	{
-		return this.shadowTransaction;
 	}
 
 	public long getLatency()
@@ -81,17 +73,6 @@ public class Transaction
 			String fieldName = reqValue.getFieldName();
 			op.getRow().updateFieldValue(new FieldValue(op.getRow().getTable().getField(fieldName), requestedValue));
 		}
-	}
-
-	public void generateShadowTransaction()
-	{
-		List<String> shadowStatements = new ArrayList<>();
-
-		for(ShadowOperation shadowOp : this.shadowOperations)
-			shadowOp.generateStatements(shadowStatements);
-
-		this.shadowTransaction = new ShadowTransaction(this.txnId, shadowStatements);
-		this.readyToCommit = true;
 	}
 
 	public boolean isReadOnly()

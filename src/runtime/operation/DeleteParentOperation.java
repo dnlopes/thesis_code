@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import util.thrift.ThriftShadowTransaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +28,7 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 	}
 
 	@Override
-	public void generateStatements(List<String> shadowStatements)
+	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 
 		//TODO

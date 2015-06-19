@@ -1,7 +1,7 @@
 package database.scratchpad;
 
 
-import runtime.operation.ShadowTransaction;
+import util.thrift.ThriftShadowTransaction;
 
 
 /**
@@ -16,5 +16,5 @@ public interface IDBCommitPad
 	 * @param op
 	 * @return true if commit succeeds
 	 */
-	public boolean commitShadowTransaction(ShadowTransaction op);
+	public boolean commitShadowTransaction(ThriftShadowTransaction op);
 }

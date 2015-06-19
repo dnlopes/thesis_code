@@ -6,6 +6,7 @@ import java.sql.SQLException;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 import util.ExitCode;
 
 // TODO: Auto-generated Javadoc
@@ -35,10 +36,9 @@ public class NUMDELTA_DOUBLE extends DataField
 	 * @param position
 	 * 		the position
 	 */
-	public NUMDELTA_DOUBLE(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
+	public NUMDELTA_DOUBLE(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position, SemanticPolicy policy)
 	{
-		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position);
-		// TODO Auto-generated constructor stub
+		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position, policy);
 	}
 
 	/**

@@ -24,7 +24,6 @@ import nodes.proxy.IProxyNetwork;
 import nodes.proxy.ProxyConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.OperationTransformer;
@@ -107,18 +106,13 @@ public class DBScratchPad implements IDBScratchPad
 		// if read-only, then just return from this method
 		if(!this.activeTransaction.isReadOnly())
 		{
-			// contact coordinator here to request values or validate invariants
-			this.prepareToCommit(network);
-			this.activeTransaction.generateShadowTransaction();
+			CoordinatorRequest request = this.generateCoordinationRequest();
+			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
 
-			if(!this.activeTransaction.isReadyToCommit())
-			{
-				if(Configuration.DEBUG_ENABLED)
-					LOG.debug("txn not ready to commit. something went wrong");
-				throw new SQLException("txn not ready to commit. something went wrong");
-			}
+			if(request.getDeltaValues().size() > 0 || request.getRequests().size() > 0 || request.getUniqueValues().size() > 0)
+				shadowTransaction.setRequestToCoordinator(request);
 
-			boolean commitDecision = network.commitOperation(this.activeTransaction.getShadowTransaction(),
+			boolean commitDecision = network.commitOperation(shadowTransaction,
 					this.proxyConfig.getReplicatorConfig());
 
 			if(!commitDecision)
@@ -280,49 +274,6 @@ public class DBScratchPad implements IDBScratchPad
 		}
 	}
 
-	private boolean prepareToCommit(IProxyNetwork network) throws SQLException
-	{
-		if(Configuration.TRACE_ENABLED)
-			LOG.trace("preparing to commit txn {}", this.activeTransaction.getTxnId());
-
-		try
-		{
-			CoordinatorRequest req = new CoordinatorRequest();
-
-			req.setDeltaValues(new ArrayList<ApplyDelta>());
-			req.setRequests(new ArrayList<RequestValue>());
-			req.setUniqueValues(new ArrayList<UniqueValue>());
-
-			for(ShadowOperation op : this.activeTransaction.getShadowOperations())
-				op.createRequestsToCoordinate(req);
-
-			//FIXME: this is horrible
-			if(req.getDeltaValues().size() > 0 || req.getRequests().size() > 0 || req.getUniqueValues().size() > 0)
-			{
-				//if we must coordinate then do it here. this is a blocking call
-				CoordinatorResponse response = network.sendRequestToCoordinator(req,
-						proxyConfig.getCoordinatorConfig());
-				if(!response.isSuccess())
-				{
-					if(Configuration.TRACE_ENABLED)
-						LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
-					throw new SQLException(response.getErrorMessage());
-				}
-
-				List<RequestValue> requestValues = response.getRequestedValues();
-
-				if(requestValues != null)
-					this.activeTransaction.updatedWithRequestedValues(requestValues);
-			}
-
-			return true;
-
-		} catch(TException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
 	private int executeUpdate(String[] updatesOps) throws SQLException
 	{
 		int result = 0;
@@ -385,6 +336,20 @@ public class DBScratchPad implements IDBScratchPad
 
 		this.executeBatch();
 		this.batchEmpty = true;
+	}
+
+	private CoordinatorRequest generateCoordinationRequest()
+	{
+		CoordinatorRequest req = new CoordinatorRequest();
+
+		req.setDeltaValues(new ArrayList<ApplyDelta>());
+		req.setRequests(new ArrayList<RequestValue>());
+		req.setUniqueValues(new ArrayList<UniqueValue>());
+
+		for(ShadowOperation op : this.activeTransaction.getShadowOperations())
+			op.createRequestsToCoordinate(req);
+
+		return req;
 	}
 
 	private class DBExecuter implements IExecuter
@@ -1337,7 +1302,8 @@ public class DBScratchPad implements IDBScratchPad
 
 				for(Constraint c : field.getInvariants())
 				{
-					if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE)
+					if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType() ==
+							ConstraintType.AUTO_INCREMENT)
 						updatedRow.addConstraintToverify(c);
 				}
 

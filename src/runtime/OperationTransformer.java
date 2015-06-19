@@ -8,6 +8,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -103,8 +104,8 @@ public class OperationTransformer
 
 		if(buffer.charAt(buffer.length() - 1) == ',')
 			buffer.setLength(buffer.length() - 1);
-		return buffer.toString();
 
+		return buffer.toString();
 	}
 
 	public static String generateDeleteStatement(Row row)
@@ -259,7 +260,7 @@ public class OperationTransformer
 		// contains select, do the select first
 		// contains delete from where (not specify by full primary key)
 		// fill in default value and IDs for insert
-		net.sf.jsqlparser.statement.Statement sqlStmt = parser.parse(new StringReader(sqlQuery));
+		Statement sqlStmt = parser.parse(new StringReader(sqlQuery));
 		if(sqlStmt instanceof Insert)
 		{
 			Insert insertStmt = (Insert) sqlStmt;
@@ -271,9 +272,8 @@ public class OperationTransformer
 			{
 				colList.add(colIt.next().toString());
 			}
-			//replace selection with their results
-			replaceSelectionForInsert(con, parser, insertStmt, valList);
-			//call function to replace and fill in the missing fields
+
+			replaceSelectionForInsert(con, parser, insertStmt, valList, colList);
 			fillInMissingValue(tableName, colList, valList);
 
 			if(colList.size() != valList.size())
@@ -350,26 +350,16 @@ public class OperationTransformer
 
 		Set<String> missFields = findMissingDataFields(tableName, colList, valueList);
 
-		//		DatabaseTable dbT = annotatedTableSchema.get(tableName);
-		DatabaseTable dbT = DB_METADATA.getTable(tableName);
+		DatabaseTable databaseTable = DB_METADATA.getTable(tableName);
 
 		for(int i = 0; i < valueList.size(); i++)
 		{
-			DataField dF = null;
-			if(colList != null && colList.size() > 0)
-			{
-				dF = dbT.getField(colList.get(i));
-			} else
-			{
-				dF = dbT.getField(i);
-			}
 			String expStr = valueList.get(i).trim();
 			if(expStr.equalsIgnoreCase("NOW()") || expStr.equalsIgnoreCase("NOW") || expStr.equalsIgnoreCase(
 					"CURRENT_TIMESTAMP") || expStr.equalsIgnoreCase("CURRENT_TIMESTAMP()") || expStr.equalsIgnoreCase(
 					"CURRENT_DATE"))
-			{
+
 				valueList.set(i, "'" + DatabaseFunction.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
-			}
 		}
 
 		// fill in the missing tuples
@@ -378,42 +368,32 @@ public class OperationTransformer
 			for(String missingDfName : missFields)
 			{
 				colList.add(missingDfName);
-				DataField dF = dbT.getField(missingDfName);
-				if(dF.isPrimaryKey())
+				DataField dataField = databaseTable.getField(missingDfName);
+
+				if(dataField.isPrimaryKey() || dataField.isForeignKey())
 				{
-					if(dF.isForeignKey())
-					{
-						try
-						{
-							throw new RuntimeException("Foreign primary key must be specified " + missingDfName + "!");
-						} catch(RuntimeException e)
-						{
-							e.printStackTrace();
-							System.exit(ExitCode.FOREIGNPRIMARYKEYMISSING);
-						}
-					} else
-					{
-						/*valueList.add(Integer.toString(iDFactory.getNextId(
-								tableName, dF.getDataField())));*/
-						throw new RuntimeException("The primary keys' values should not be missing");
-					}
+					RuntimeUtils.throwRunTimeException("foreign key or primary key is missing from sql " + "query",
+							ExitCode.FOREIGNPRIMARYKEYMISSING);
 				} else
 				{
-					if(dF.isAutoIncrement())
+					if(dataField.isAutoIncrement())
 					{
-						int nextId = IdentifierFactory.getNextId(dF);
+						int nextId = IdentifierFactory.getNextId(dataField);
 						valueList.add(String.valueOf(nextId));
-					} else if(dF.getDefaultValue() == null)
+					} else if(dataField.getDefaultValue() == null)
 					{
-						valueList.add(RuntimeUtils.getDefaultValueForDataField(DATE_FORMAT, dF));
+						RuntimeUtils.throwRunTimeException(
+								"could not find default value for this field and you did " + "not include it in the " +
+										"sql query",
+								ExitCode.ERRORTRANSFORM);
 					} else
 					{
-						if(dF.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
+						if(dataField.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
 						{
 							valueList.add("'" + DatabaseFunction.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
 						} else
 						{
-							valueList.add(dF.getDefaultValue());
+							valueList.add(dataField.getDefaultValue());
 						}
 					}
 				}
@@ -512,7 +492,7 @@ public class OperationTransformer
 	 * @return the string[]
 	 */
 	private static String[] fillInMissingPrimaryKeysForUpdate(Connection con, Update updateStmt, List<String> colList,
-													   List<String> valList)
+															  List<String> valList)
 	{
 		String[] newUpdates = null;
 
@@ -557,8 +537,7 @@ public class OperationTransformer
 		String[] newDeletes = null;
 		if(isPrimaryKeyMissingFromWhereClause(delStmt.getTable().getName(), delStmt.getWhere()))
 		{
-			String primaryKeySelectStr = getPrimaryKeySelectionQuery(delStmt.getTable().getName(),
-					delStmt.getWhere());
+			String primaryKeySelectStr = getPrimaryKeySelectionQuery(delStmt.getTable().getName(), delStmt.getWhere());
 			//executeUpdate the primaryKeySelectStr
 			try
 			{
@@ -596,9 +575,11 @@ public class OperationTransformer
 	 * 		the jSQL parser exception
 	 */
 	private static void replaceSelectionForInsert(Connection con, CCJSqlParserManager parser, Insert insertStmt,
-										   List<String> valList) throws JSQLParserException
+												  List<String> valList, List<String> colsList)
+			throws JSQLParserException
 	{
 		Iterator valueIt = ((ExpressionList) insertStmt.getItemsList()).getExpressions().iterator();
+		int counter = 0;
 		while(valueIt.hasNext())
 		{
 			String valStr = valueIt.next().toString().trim();
@@ -621,10 +602,8 @@ public class OperationTransformer
 					if(rs.next())
 					{
 						for(int i = 0; i < selectItemCount; i++)
-						{
-							//Debug.println("we got something from the subselection : " + rs.getString(i+1));
 							valList.add(rs.getString(i + 1));
-						}
+
 					} else
 					{
 						throw new RuntimeException("Select must return a value!");
@@ -638,6 +617,7 @@ public class OperationTransformer
 			{
 				valList.add(valStr);
 			}
+			counter++;
 		}
 	}
 
@@ -653,7 +633,7 @@ public class OperationTransformer
 	 * 		the jSQL parser exception
 	 */
 	private static void replaceSelectionForUpdate(Connection con, CCJSqlParserManager parser, Update upStmt,
-										   List<String> valList) throws JSQLParserException
+												  List<String> valList) throws JSQLParserException
 	{
 		Iterator valueIt = upStmt.getExpressions().iterator();
 		int colIndex = 0;
@@ -762,7 +742,8 @@ public class OperationTransformer
 	 *
 	 * @return the string
 	 */
-	private static String assembleUpdate(String tableName, List<String> colList, List<String> valList, String whereClauseStr)
+	private static String assembleUpdate(String tableName, List<String> colList, List<String> valList,
+										 String whereClauseStr)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("update ");
@@ -770,7 +751,8 @@ public class OperationTransformer
 		for(int i = 0; i < colList.size(); i++)
 		{
 			buffer.append(colList.get(i) + " = ");
-			buffer.append(OperationTransformer.get_Value_In_Correct_Format(tableName, colList.get(i), valList.get(i)) + ",");
+			buffer.append(
+					OperationTransformer.get_Value_In_Correct_Format(tableName, colList.get(i), valList.get(i)) + ",");
 		}
 		buffer.deleteCharAt(buffer.lastIndexOf(","));
 		buffer.append(" where " + whereClauseStr + ";"); // with the ";"

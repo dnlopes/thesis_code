@@ -53,8 +53,8 @@ public class UniqueConstraintEnforcer
 
 		try
 		{
-			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getDbProps(), Configuration
-					.getInstance().getDatabaseName());
+			Connection tempConnection = ConnectionFactory.getDefaultConnection(config.getDbProps(),
+					Configuration.getInstance().getDatabaseName());
 			Statement stmt = tempConnection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 
@@ -95,12 +95,22 @@ public class UniqueConstraintEnforcer
 
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("{} values already in use for constraint {}", this.currentValues.size(),
-				this.constraint.getConstraintIdentifier());
+					this.constraint.getConstraintIdentifier());
 	}
 
 	public boolean reservValue(String newValue)
 	{
 		return this.currentValues.add(newValue);
+	}
+
+	public void releaseValue(String value)
+	{
+		this.currentValues.remove(value);
+	}
+
+	public String getTableName()
+	{
+		return this.tableName;
 	}
 
 	private String getQueryClause()
@@ -117,10 +127,5 @@ public class UniqueConstraintEnforcer
 		}
 
 		return buffer.toString();
-	}
-
-	public String getTableName()
-	{
-		return this.tableName;
 	}
 }

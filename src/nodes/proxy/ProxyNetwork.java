@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import runtime.RuntimeUtils;
-import runtime.operation.ShadowTransaction;
 import util.ExitCode;
 import util.ObjectPool;
 import util.defaults.Configuration;
@@ -29,23 +28,20 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	private final static int POOL_SIZE = 100;
 
 	private final ObjectPool<ReplicatorRPC.Client> replicatorConnectionPool;
-	private final ObjectPool<CoordinatorRPC.Client> coordinatorConnectionPool;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 
 	public ProxyNetwork(ProxyConfig node)
 	{
 		super(node);
-		this.coordinatorConnectionPool = new ObjectPool<>();
 		this.replicatorConnectionPool = new ObjectPool<>();
 
 		this.setup();
 	}
 
 	@Override
-	public boolean commitOperation(ShadowTransaction shadowTransaction, NodeConfig node)
+	public boolean commitOperation(ThriftShadowTransaction shadowTransaction, NodeConfig node)
 	{
-		ThriftOperation thriftOp = RuntimeUtils.encodeThriftOperation(shadowTransaction);
 
 		ReplicatorRPC.Client connection = this.replicatorConnectionPool.borrowObject();
 
@@ -63,7 +59,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 		try
 		{
-			return connection.commitOperation(thriftOp);
+			return connection.commitOperation(shadowTransaction);
 		} catch(TException e)
 		{
 			LOG.warn("communication problem between proxy and replicator: {}", e.getMessage(), e);
@@ -73,48 +69,6 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			if(connection != null)
 				this.replicatorConnectionPool.returnObject(connection);
 		}
-	}
-
-	@Override
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req, NodeConfig node)
-	{
-		req.setRequestId(0);
-		CoordinatorResponse response = new CoordinatorResponse();
-		response.setSuccess(false);
-
-		CoordinatorRPC.Client connection = this.coordinatorConnectionPool.borrowObject();
-
-		if(connection == null)
-		{
-			LOG.warn("coordinator connection pool empty. Creating new connection...");
-			connection = this.createCoordinatorConnection(node);
-		}
-
-		try
-		{
-			return connection.checkInvariants(req);
-		} catch(TException e)
-		{
-			return response;
-		} finally
-		{
-			this.coordinatorConnectionPool.returnObject(connection);
-		}
-	}
-
-	private CoordinatorRPC.Client createCoordinatorConnection(NodeConfig config)
-	{
-		TTransport newTransport = new TSocket(config.getHost(), config.getPort());
-		try
-		{
-			newTransport.open();
-		} catch(TTransportException e)
-		{
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
-		}
-
-		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
-		return new CoordinatorRPC.Client(protocol);
 	}
 
 	private ReplicatorRPC.Client createReplicatorConnection(NodeConfig config)
@@ -137,13 +91,10 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("setting up client connections");
 		ProxyConfig proxyConfig = (ProxyConfig) this.me;
-		NodeConfig coordConfig = proxyConfig.getCoordinatorConfig();
 		NodeConfig replicatorConfig = proxyConfig.getReplicatorConfig();
 
 		for(int i = 0; i < POOL_SIZE; i++)
 		{
-			CoordinatorRPC.Client coordinatorConnection = this.createCoordinatorConnection(coordConfig);
-			this.coordinatorConnectionPool.addObject(coordinatorConnection);
 			ReplicatorRPC.Client replicatorConnection = this.createReplicatorConnection(replicatorConfig);
 			this.replicatorConnectionPool.addObject(replicatorConnection);
 		}

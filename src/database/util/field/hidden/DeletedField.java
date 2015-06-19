@@ -3,6 +3,7 @@ package database.util.field.hidden;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 import util.defaults.DBDefaults;
 
 import java.sql.ResultSet;
@@ -21,7 +22,7 @@ public class DeletedField extends DataField
 	public DeletedField(String tableName, int position)
 	{
 		super(CrdtDataFieldType.LWWDELETEDFLAG, FIELD_NAME, tableName, FIELD_TYPE, false, false,
-				position);
+				position, SemanticPolicy.NOSEMANTIC);
 	}
 
 	/**

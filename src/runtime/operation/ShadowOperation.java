@@ -4,8 +4,10 @@ package runtime.operation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
 import util.thrift.CoordinatorRequest;
+import util.thrift.ThriftShadowTransaction;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -14,7 +16,7 @@ import java.util.List;
 public interface ShadowOperation
 {
 	public Row getRow();
-	public void generateStatements(List<String> shadowStatements);
+	public void generateStatements(ThriftShadowTransaction shadowTransaction);
 	public ExecutionPolicy getTablePolicy();
 	public OperationType getOperationType();
 	public void createRequestsToCoordinate(CoordinatorRequest request);

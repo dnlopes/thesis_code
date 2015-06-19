@@ -5,22 +5,19 @@ import database.util.ExecutionPolicy;
 import database.util.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.DBDefaults;
 import util.thrift.CoordinatorRequest;
-
-import java.util.List;
-
+import util.thrift.ThriftShadowTransaction;
 
 /**
  * Created by dnlopes on 13/05/15.
  */
 public abstract class AbstractOperation implements ShadowOperation
 {
+	protected static final String SYMBOL_KEY = "SYM_";
 
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractOperation.class);
-	protected static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 
-
+	protected boolean isFinal;
 	protected final ExecutionPolicy tablePolicy;
 	protected final OperationType opType;
 	protected final int id;
@@ -32,6 +29,7 @@ public abstract class AbstractOperation implements ShadowOperation
 		this.tablePolicy = tablePolicy;
 		this.opType = opType;
 		this.row = row;
+		this.isFinal = true;
 	}
 
 	public Row getRow()
@@ -54,12 +52,17 @@ public abstract class AbstractOperation implements ShadowOperation
 		return this.opType;
 	}
 
-	public abstract void generateStatements(List<String> shadowStatements);
+	public abstract void generateStatements(ThriftShadowTransaction shadowTransaction);
 
 	@Override
 	public void createRequestsToCoordinate(CoordinatorRequest request)
 	{
 		// do nothing
 		// if one wants to coordinate, then override this method
+	}
+
+	public boolean isFinal()
+	{
+		return this.isFinal;
 	}
 }

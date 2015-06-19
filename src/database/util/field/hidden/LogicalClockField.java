@@ -3,6 +3,7 @@ package database.util.field.hidden;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 
 import java.sql.ResultSet;
 
@@ -15,7 +16,7 @@ public class LogicalClockField extends DataField
 	public LogicalClockField(String tableName, int position, String fieldName)
 	{
 		super(CrdtDataFieldType.LWWLOGICALTIMESTAMP, fieldName, tableName, FIELD_TYPE, false, false,
-				position);
+				position, SemanticPolicy.NOSEMANTIC);
 	}
 
 	@Override

@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import util.thrift.ThriftShadowTransaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +28,9 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	}
 
 	@Override
-	public void generateStatements(List<String> shadowStatements)
+	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
-		super.generateStatements(shadowStatements);
-
+		super.generateStatements(shadowTransaction);
 
 		if(this.row.hasSideEffects())
 		{
@@ -41,9 +41,7 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 				buffer.append("UPDATE ");
 				buffer.append(entry.getKey().getChildTable().getName());
 				buffer.append(" SET ");
-
-
-
+			//TODO
 			}
 		}
 	}

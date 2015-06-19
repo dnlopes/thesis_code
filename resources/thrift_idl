@@ -12,6 +12,7 @@ struct RequestValue
     2: required i32 opId;
     3: required string fieldName;
     4: string requestedValue;
+    5: string tempSymbol;
 }
 
 struct UniqueValue
@@ -33,19 +34,27 @@ struct CoordinatorRequest
     2: list<RequestValue> requests;
     3: list<UniqueValue> uniqueValues;
     4: list<ApplyDelta> deltaValues;
-
 }
 
 struct ThriftOperation {
- 1: required i32 txnId;
- 2: required list<string> operations;
- 3: string clock
- 4: required i32 replicatorId;
+    1: required i32 txnId;
+    2: required map<i32, string> operations;
+    3: string clock
+    4: required i32 replicatorId;
+}
+
+struct ThriftShadowTransaction {
+    1: required i32 txnId;
+    2: required map<i32,string> operations;
+    3: CoordinatorRequest requestToCoordinator;
+    4: map<i32,string> tempOperations;
+    5: string clock
+    6: i32 replicatorId;
 }
 
 service ReplicatorRPC {
- bool commitOperation(1:ThriftOperation op);
- oneway void commitOperationAsync(1:ThriftOperation op);
+ bool commitOperation(1:ThriftShadowTransaction op);
+ oneway void commitOperationAsync(1:ThriftShadowTransaction op);
 }
 
 

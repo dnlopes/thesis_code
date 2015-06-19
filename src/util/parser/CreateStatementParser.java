@@ -162,8 +162,7 @@ public class CreateStatementParser
 		if(startIndex == -1)
 			return ""; // there is no annotation
 		int endIndex = titleStr.indexOf(" ", startIndex);
-		String annotationStr = titleStr.substring(startIndex + 1, endIndex);
-		return annotationStr;
+		return titleStr.substring(startIndex + 1, endIndex);
 	}
 
 	private static ExecutionPolicy getForeignKeyExecutionPolicy(String titleStr)
@@ -413,7 +412,8 @@ public class CreateStatementParser
 	 * @param constraintStrs
 	 * 		the constraint strs
 	 */
-	public static void setFieldsConstraints(DatabaseMetadata metadata, LinkedHashMap<String, DataField> fieldsMap, Vector<String> constraintStrs)
+	public static void setFieldsConstraints(DatabaseMetadata metadata, LinkedHashMap<String, DataField> fieldsMap,
+											Vector<String> constraintStrs)
 	{
 		for(int i = 0; i < constraintStrs.size(); i++)
 		{
@@ -450,7 +450,7 @@ public class CreateStatementParser
 
 				// if we found a auto incremental field in the PK, then there is no point added the PK constraint
 				// the autoincrement field garantees the uniqueness of the key
-				if (foundAutoIncrement)
+				if(foundAutoIncrement)
 					continue;
 
 				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey);
@@ -471,7 +471,7 @@ public class CreateStatementParser
 			{
 				ExecutionPolicy executionPolicy = getForeignKeyExecutionPolicy(constraint);
 
-				//TODO: here use the default behaviour of MySQL
+				//@info: here use the default behaviour of MySQL
 				ForeignKeyAction updatePolicy = ForeignKeyAction.RESTRICT;
 				ForeignKeyAction deletePolicy = ForeignKeyAction.RESTRICT;
 
@@ -670,8 +670,8 @@ public class CreateStatementParser
 	 *
 	 * @return the _ data_ field_ hash map
 	 */
-	public static LinkedHashMap<String, DataField> createFields(DatabaseMetadata metadata, String tableName, String
-			bodyStr)
+	public static LinkedHashMap<String, DataField> createFields(DatabaseMetadata metadata, String tableName,
+																String bodyStr)
 	{
 		String[] declarations = getDeclarationsStrs(bodyStr);
 		Vector<String> attrStrs = getAttributesStrs(declarations);

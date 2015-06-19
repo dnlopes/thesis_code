@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 
 // TODO: Auto-generated Javadoc
 
@@ -25,9 +26,9 @@ public class LWW_FLOAT extends DataField
 	 * @param iAIC     the i aic
 	 * @param position the position
 	 */
-	public LWW_FLOAT(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
+	public LWW_FLOAT(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position, SemanticPolicy policy)
 	{
-		super(CrdtDataFieldType.LWWFLOAT, dFN, tN, dT, iPK, iAIC, position);
+		super(CrdtDataFieldType.LWWFLOAT, dFN, tN, dT, iPK, iAIC, position, policy);
 	}
 
 	/* (non-Javadoc)

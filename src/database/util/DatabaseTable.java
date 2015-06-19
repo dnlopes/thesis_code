@@ -11,6 +11,8 @@ import database.constraints.unique.AutoIncrementConstraint;
 import database.util.field.hidden.DeletedField;
 import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -18,6 +20,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 
 
@@ -26,6 +29,7 @@ import util.defaults.DBDefaults;
  */
 public abstract class DatabaseTable
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseTable.class);
 
 	private ExecutionPolicy executionPolicy;
 	private boolean isParentTable;
@@ -358,7 +362,8 @@ public abstract class DatabaseTable
 	{
 		if(getFieldCount() == colList.size() || getFieldCount() == valueList.size())
 		{
-			Debug.println("This query doesn't miss any data field!");
+			if(Configuration.TRACE_ENABLED)
+				LOG.trace("no missing fields");
 			return null;
 		}
 		if(colList.size() > 0)
@@ -368,6 +373,7 @@ public abstract class DatabaseTable
 			Set<String> colSet = new HashSet<>(colList);
 			int i = 0;
 			Iterator<Entry<Integer, DataField>> it = sortedFieldsMap.entrySet().iterator();
+
 			while(it.hasNext() && i < getFieldCount())
 			{
 				Entry<Integer, DataField> en = it.next();
@@ -377,6 +383,7 @@ public abstract class DatabaseTable
 				}
 				i++;
 			}
+
 			Debug.println("We identify the missing data fields " + dfNameSet.toString());
 			return dfNameSet;
 		} else

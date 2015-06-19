@@ -5,8 +5,8 @@ import nodes.Deliver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
+import util.thrift.ThriftShadowTransaction;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -24,7 +24,7 @@ public class CausalDeliver implements Deliver
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
 
-	private final Map<Integer, Queue<ShadowTransaction>> queues;
+	private final Map<Integer, Queue<ThriftShadowTransaction>> queues;
 	private final Replicator replicator;
 
 	public CausalDeliver(Replicator replicator)
@@ -52,7 +52,7 @@ public class CausalDeliver implements Deliver
 	}
 
 	@Override
-	public void dispatchOperation(ShadowTransaction op)
+	public void dispatchOperation(ThriftShadowTransaction op)
 	{
 		if(this.canDeliver(op))
 			replicator.deliverShadowTransaction(op);
@@ -60,21 +60,21 @@ public class CausalDeliver implements Deliver
 			this.addToQueue(op);
 	}
 
-	private void addToQueue(ShadowTransaction op)
+	private void addToQueue(ThriftShadowTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
 		if(Configuration.DEBUG_ENABLED)
-			LOG.debug("adding op with clock {} to queue", op.getClock().getClockValue());
+			LOG.debug("adding op with clock {} to queue", op.getClock());
 		this.queues.get(replicatorId).add(op);
 	}
 
-	private boolean canDeliver(ShadowTransaction op)
+	private boolean canDeliver(ThriftShadowTransaction op)
 	{
-		LogicalClock opClock = op.getClock();
+		LogicalClock opClock = new LogicalClock(op.getClock());
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	private class LogicalClockComparator implements Comparator<ShadowTransaction>
+	private class LogicalClockComparator implements Comparator<ThriftShadowTransaction>
 	{
 
 		private final int index;
@@ -85,10 +85,10 @@ public class CausalDeliver implements Deliver
 		}
 
 		@Override
-		public int compare(ShadowTransaction shadowTransaction1, ShadowTransaction shadowTransaction2)
+		public int compare(ThriftShadowTransaction shadowTransaction1, ThriftShadowTransaction shadowTransaction2)
 		{
-			LogicalClock clock1 = shadowTransaction1.getClock();
-			LogicalClock clock2 = shadowTransaction2.getClock();
+			LogicalClock clock1 = new LogicalClock(shadowTransaction1.getClock());
+			LogicalClock clock2 = new LogicalClock(shadowTransaction2.getClock());
 			long entry1 = clock1.getEntry(this.index);
 			long entry2 = clock2.getEntry(this.index);
 
@@ -104,6 +104,7 @@ public class CausalDeliver implements Deliver
 
 	private class DeliveryThread implements Runnable
 	{
+
 		@Override
 		public void run()
 		{
@@ -111,9 +112,9 @@ public class CausalDeliver implements Deliver
 
 			do
 			{
-				for(Queue<ShadowTransaction> txnQueue : queues.values())
+				for(Queue<ThriftShadowTransaction> txnQueue : queues.values())
 				{
-					ShadowTransaction txn = txnQueue.poll();
+					ThriftShadowTransaction txn = txnQueue.poll();
 
 					if(txn == null)
 						continue;

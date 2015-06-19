@@ -3,6 +3,7 @@ package nodes.replicator;
 
 import nodes.Deliver;
 import runtime.operation.ShadowTransaction;
+import util.thrift.ThriftShadowTransaction;
 
 
 /**
@@ -19,7 +20,7 @@ public class NoOrderDeliver implements Deliver
 	}
 
 	@Override
-	public void dispatchOperation(ShadowTransaction op)
+	public void dispatchOperation(ThriftShadowTransaction op)
 	{
 		this.replicator.deliverShadowTransaction(op);
 	}

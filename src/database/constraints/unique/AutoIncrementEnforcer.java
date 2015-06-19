@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -24,7 +25,7 @@ public class AutoIncrementEnforcer
 
 	static final Logger LOG = LoggerFactory.getLogger(AutoIncrementEnforcer.class);
 
-	private int currentId;
+	private AtomicInteger currentId;
 	private DataField field;
 	private AutoIncrementConstraint constraint;
 
@@ -55,7 +56,7 @@ public class AutoIncrementEnforcer
 
 			if(rs.next())
 			{
-				this.currentId = rs.getInt(this.field.getFieldName());
+				this.currentId = new AtomicInteger(rs.getInt(this.field.getFieldName()));
 				rs.close();
 				stmt.close();
 				tempConnection.close();
@@ -78,9 +79,9 @@ public class AutoIncrementEnforcer
 			LOG.trace("current id for field {} is {}", this.field.getFieldName(), this.currentId);
 	}
 
-	public synchronized int getNextId()
+	public int getNextId()
 	{
-		return ++currentId;
+		return this.currentId.incrementAndGet();
 	}
 }
 

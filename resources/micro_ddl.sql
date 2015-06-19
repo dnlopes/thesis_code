@@ -1,11 +1,10 @@
 @ARSETTABLE @UPDATEWINS CREATE TABLE t1 (
-@LWWINTEGER a int(10) unsigned NOT NULL,
-@LWWINTEGER b int(10) unsigned,
-@LWWINTEGER c int(10) unsigned,
+@LWWINTEGER @SEMANTIC a int(10) unsigned NOT NULL,
+@LWWINTEGER b int(10) unsigned AUTO_INCREMENT,
+@LWWINTEGER @NOSEMANTIC c int(10) unsigned,
 @LWWINTEGER d int(10) unsigned,
 @LWWSTRING e varchar(50),
-PRIMARY KEY  (a),
-UNIQUE (b)
+PRIMARY KEY (a)
 ) ENGINE=INNODB;
 
 @ARSETTABLE @UPDATEWINS CREATE TABLE t2 (
@@ -14,6 +13,6 @@ UNIQUE (b)
 @LWWINTEGER c int(10) unsigned,
 @LWWINTEGER d int(10) unsigned,
 @LWWSTRING e varchar(50),
-PRIMARY KEY  (a),
+PRIMARY KEY (a),
 UNIQUE (b)
 ) ENGINE=INNODB;

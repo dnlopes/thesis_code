@@ -10,8 +10,9 @@ import database.util.Row;
 import runtime.OperationTransformer;
 import runtime.QueryCreator;
 import util.defaults.DBDefaults;
+import util.thrift.RequestValue;
+import util.thrift.ThriftShadowTransaction;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -30,7 +31,7 @@ public class InsertChildOperation extends InsertOperation
 	}
 
 	@Override
-	public void generateStatements(List<String> shadowStatements)
+	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
@@ -61,13 +62,23 @@ public class InsertChildOperation extends InsertOperation
 				buffer.setLength(0);
 				String update = OperationTransformer.generateInsertBackParentRow(parent);
 				buffer.append(update);
-				shadowStatements.add(update);
+				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
 			}
 		}
 
 		String insertOrUpdateStatement = OperationTransformer.generateInsertStatement(this.row);
 		buffer.setLength(0);
 		buffer.append(insertOrUpdateStatement);
-		shadowStatements.add(buffer.toString());
+
+		String op = buffer.toString();
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+
+		if(!this.isFinal)
+		{
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+
+			for(RequestValue rValue : this.requestValues)
+				rValue.setOpId(shadowTransaction.getOperationsSize());
+		}
 	}
 }

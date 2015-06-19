@@ -1,10 +1,11 @@
 package database.util.field;
 
+
 import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
-
+import database.util.SemanticPolicy;
 
 
 /**
@@ -16,17 +17,25 @@ public class NORMAL_STRING extends DataField
 	/**
 	 * Instantiates a new lww string.
 	 *
-	 * @param dFN      the d fn
-	 * @param tN       the t n
-	 * @param dT       the d t
-	 * @param iPK      the i pk
-	 * @param iFK      the i fk
-	 * @param iAIC     the i aic
-	 * @param position the position
+	 * @param dFN
+	 * 		the d fn
+	 * @param tN
+	 * 		the t n
+	 * @param dT
+	 * 		the d t
+	 * @param iPK
+	 * 		the i pk
+	 * @param iFK
+	 * 		the i fk
+	 * @param iAIC
+	 * 		the i aic
+	 * @param position
+	 * 		the position
 	 */
-	public NORMAL_STRING(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
+	public NORMAL_STRING(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position,
+						 SemanticPolicy policy)
 	{
-		super(CrdtDataFieldType.NORMALSTRING, dFN, tN, dT, iPK, iAIC, position);
+		super(CrdtDataFieldType.NORMALSTRING, dFN, tN, dT, iPK, iAIC, position, policy);
 	}
 
 	/* (non-Javadoc)

@@ -26,7 +26,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	}
 
 	@Override
-	public void generateStatements(List<String> shadowStatements)
+	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.updateFieldValue(
@@ -43,7 +43,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(this.tablePolicy);
 		buffer.append(compareClockClause);
 
-		shadowStatements.add(buffer.toString());
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 	}
 
 	@Override
@@ -55,6 +55,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 			{
 			case AUTO_INCREMENT:
 				// we do not consider updates at auto incremented fields
+				RuntimeUtils.throwRunTimeException("update on AUTO INCREMENT field not valid", ExitCode.INVALIDUSAGE);
 				break;
 			case UNIQUE:
 				StringBuilder buffer = new StringBuilder();

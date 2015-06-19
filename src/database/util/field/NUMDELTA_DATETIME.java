@@ -5,8 +5,7 @@ import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
-
-
+import database.util.SemanticPolicy;
 
 
 /**
@@ -33,9 +32,9 @@ public class NUMDELTA_DATETIME extends DataField
 	 * @param position
 	 * 		the position
 	 */
-	public NUMDELTA_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
+	public NUMDELTA_DATETIME(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position, SemanticPolicy policy)
 	{
-		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position);
+		super(CrdtDataFieldType.NUMDELTADOUBLE, dFN, tN, dT, iPK, iAIC, position, policy);
 
 	}
 

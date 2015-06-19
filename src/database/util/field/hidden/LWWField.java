@@ -3,6 +3,7 @@ package database.util.field.hidden;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.ResultSet;
@@ -17,7 +18,7 @@ public class LWWField extends DataField
 
 	public LWWField(String tableName, int position)
 	{
-		super(CrdtDataFieldType.LWWINTEGER, FIELD_NAME, tableName, FIELD_TYPE, false, false, position);
+		super(CrdtDataFieldType.LWWINTEGER, FIELD_NAME, tableName, FIELD_TYPE, false, false, position, SemanticPolicy.NOSEMANTIC);
 	}
 
 	@Override

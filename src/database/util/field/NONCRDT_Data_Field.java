@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 import util.ExitCode;
 
 // TODO: Auto-generated Javadoc
@@ -23,9 +24,10 @@ public class NONCRDT_Data_Field extends DataField {
 	 * @param iAIC the i aic
 	 * @param position the position
 	 */
-	public NONCRDT_Data_Field(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position) {
+	public NONCRDT_Data_Field(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position,
+							  SemanticPolicy policy) {
 		super(CrdtDataFieldType.NONCRDTFIELD, dFN, tN, dT, iPK, iAIC,
-				position);
+				position, policy);
 	}
 
 	/* (non-Javadoc)

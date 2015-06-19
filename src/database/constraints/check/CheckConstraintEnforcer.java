@@ -83,8 +83,15 @@ public class CheckConstraintEnforcer
 
 	public boolean applyDelta(String id, String delta)
 	{
-		double currentValue = this.currentValues.get(id);
-		double finalValue = currentValue + Double.parseDouble(delta);
+		double currentValue, finalValue;
+
+		if(!this.currentValues.containsKey(id))
+			finalValue = Double.parseDouble(delta);
+		else
+		{
+			currentValue = this.currentValues.get(id);
+			finalValue = currentValue + Double.parseDouble(delta);
+		}
 
 		if(this.checkConstraint.isValidValue(String.valueOf(finalValue)))
 		{

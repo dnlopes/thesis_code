@@ -18,7 +18,9 @@
 
 package runtime.operation;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import runtime.LogicalClock;
 
@@ -28,7 +30,7 @@ import runtime.LogicalClock;
  */
 public class ShadowTransaction
 {
-
+	private Map<Integer, String> tempOps;
 	private List<String> operationList;
 	private int txnId;
 	private LogicalClock clock;
@@ -38,6 +40,7 @@ public class ShadowTransaction
 	{
 		this.txnId = txnId;
 		this.operationList = operations;
+		this.tempOps = new HashMap<>();
 	}
 
 	public List<String> getOperationList()

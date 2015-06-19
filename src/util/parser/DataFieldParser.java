@@ -1,5 +1,7 @@
 package util.parser;
 
+
+import database.util.*;
 import database.util.field.LWW_BOOLEAN;
 import database.util.field.LWW_DATETIME;
 import database.util.field.LWW_DOUBLE;
@@ -17,9 +19,9 @@ import database.util.field.NUMDELTA_DATETIME;
 import database.util.field.NUMDELTA_DOUBLE;
 import database.util.field.NUMDELTA_FLOAT;
 import database.util.field.NUMDELTA_INTEGER;
-import database.util.CrdtDataFieldType;
-import database.util.DataField;
-import database.util.DatabaseDictionary;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 
 
@@ -29,23 +31,18 @@ import util.ExitCode;
 public class DataFieldParser
 {
 
-	/**
-	 * Create_ data_ field_ instance.
-	 *
-	 * @param tableName    the table name
-	 * @param attributeDef the attribute def
-	 * @param position     the position
-	 *
-	 * @return the data field
-	 */
 	public static DataField createField(String tableName, String attributeDef, int position)
 	{
-		attributeDef = attributeDef.trim();// remove the empty space at the
-		// beginning and the end
+		attributeDef = attributeDef.trim();
 
-		CrdtDataFieldType crdtType = getFieldType(attributeDef);
-		String fieldName = getFieldName(attributeDef);
-		String dataType = getFieldDataType(attributeDef);
+		String[] splitted = splitAnnotationsFromField(attributeDef);
+		String annotations = splitted[0];
+		String fieldDefinition = splitted[1];
+
+		CrdtDataFieldType crdtType = getFieldCRDTType(annotations);
+		SemanticPolicy semanticPolicy = getSemanticPolicy(annotations);
+		String fieldName = getFieldName(fieldDefinition);
+		String dataType = getFieldDataType(fieldDefinition);
 		boolean isPrimaryKey = isPrimaryKey(attributeDef);
 		boolean isAutoIncremantal = isAutoIncremental(attributeDef);
 
@@ -53,165 +50,163 @@ public class DataFieldParser
 		switch(crdtType)
 		{
 		case NONCRDTFIELD:
-			field = new NONCRDT_Data_Field(fieldName, tableName, dataType, isPrimaryKey,
-					isAutoIncremantal, position);
+			field = new NONCRDT_Data_Field(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWINTEGER:
-			field = new LWW_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWFLOAT:
-			field = new LWW_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWDOUBLE:
-			field = new LWW_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWSTRING:
-			field = new LWW_STRING(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_STRING(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWDATETIME:
-			field = new LWW_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case LWWBOOLEAN:
-			field = new LWW_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new LWW_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NUMDELTAINTEGER:
-			field = new NUMDELTA_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NUMDELTA_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NUMDELTAFLOAT:
-			field = new NUMDELTA_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NUMDELTA_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NUMDELTADOUBLE:
-			field = new NUMDELTA_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NUMDELTA_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NUMDELTADATETIME:
-			field = new NUMDELTA_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NUMDELTA_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALINTEGER:
-			field = new NORMAL_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_INTEGER(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALFLOAT:
-			field = new NORMAL_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_FLOAT(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALDOUBLE:
-			field = new NORMAL_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_DOUBLE(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALSTRING:
-			field = new NORMAL_STRING(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_STRING(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALDATETIME:
-			field = new NORMAL_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_DATETIME(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 			break;
 		case NORMALBOOLEAN:
-			field = new NORMAL_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal,
-					position);
+			field = new NORMAL_BOOLEAN(fieldName, tableName, dataType, isPrimaryKey, isAutoIncremantal, position,
+					semanticPolicy);
 		default:
-			try
-			{
-				throw new RuntimeException("Unknown CRDT data types!" + crdtType);
-			} catch(RuntimeException e)
-			{
-				e.printStackTrace();
-				System.exit(ExitCode.UNKNOWNDATAFIELDANNOTYPE);
-			}
+			RuntimeUtils.throwRunTimeException("unknown CRDT data type:" + crdtType, ExitCode.SCHEMANOCRDTTABLE);
 		}
-		setDefaultValue(field, attributeDef);
+
+		setDefaultValue(field, fieldDefinition);
 		return field;
 	}
 
-
-	/**
-	 * Gets the _ annotation_ type.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return the _ annotation_ type
-	 */
-	public static String getAnnotationType(String attributeDef)
+	private static CrdtDataFieldType getFieldCRDTType(String annotations)
 	{
+		int numberOfAnnotations = StringUtils.countMatches(annotations, "@");
 
-		int startIndex = attributeDef.indexOf("@");
-		if(startIndex == - 1)
-			return "";
-		int endIndex = attributeDef.indexOf(" ");
-		if(endIndex <= startIndex)
-		{
-			throw_Wrong_Format_Exception(attributeDef);
-		}
-
-		return attributeDef.substring(startIndex + 1, endIndex);
-	}
-
-	/**
-	 * Checks if is _ annotated.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return true, if is _ annotated
-	 */
-	private static boolean isAnnotated(String attributeDef)
-	{
-		int startIndex = attributeDef.indexOf("@");
-		if(startIndex == - 1)
-			return false;
-		return true;
-	}
-
-	/**
-	 * Gets the _ data_ field_ type.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return the _ data_ field_ type
-	 */
-	public static CrdtDataFieldType getFieldType(String attributeDef)
-	{
-		String annotationStr = DataFieldParser.getAnnotationType(attributeDef);
-		if(annotationStr.equals(""))
-		{
+		if(numberOfAnnotations == 0) // no annotations, use default
 			return CrdtDataFieldType.NONCRDTFIELD;
-		}
-		return CrdtDataFieldType.valueOf(annotationStr);
-	}
-
-	/**
-	 * Gets the _ data_ field_ name.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return the _ data_ field_ name
-	 */
-	public static String getFieldName(String attributeDef)
-	{
-		String[] subStrs = attributeDef.split("\\s");
-		if(isAnnotated(attributeDef))
+		else if(numberOfAnnotations == 1)
 		{
-			return subStrs[1].replaceAll("`", "");
+			String annotation = StringUtils.substring(annotations, 1);
+			if(EnumUtils.isValidEnum(CrdtDataFieldType.class, annotation))
+				return CrdtDataFieldType.valueOf(StringUtils.substring(annotations, 1));
+			else
+				return CrdtDataFieldType.NONCRDTFIELD;
+		} else
+		{
+			String[] splittedAnnotations = StringUtils.split(annotations, " ");
+			if(EnumUtils.isValidEnum(CrdtDataFieldType.class, StringUtils.substring(splittedAnnotations[0], 1)))
+				return CrdtDataFieldType.valueOf(StringUtils.substring(splittedAnnotations[0], 1));
+			else if(EnumUtils.isValidEnum(CrdtDataFieldType.class, StringUtils.substring(splittedAnnotations[1], 1)))
+				return CrdtDataFieldType.valueOf(StringUtils.substring(splittedAnnotations[1], 1));
+			else
+				RuntimeUtils.throwRunTimeException("unexpected annotation for CrdtDataFieldType",
+						ExitCode.INVALIDUSAGE);
 		}
-		return subStrs[0].replaceAll("`", "");
+
+		return null;
 	}
 
-	/**
-	 * Gets the _ data_ type.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return the _ data_ type
-	 */
+	private static SemanticPolicy getSemanticPolicy(String annotations)
+	{
+		int numberOfAnnotations = StringUtils.countMatches(annotations, "@");
+
+		if(numberOfAnnotations == 0) // no annotations, use default
+			return SemanticPolicy.SEMANTIC;
+		else if(numberOfAnnotations == 1)
+		{
+			String annotation = StringUtils.substring(annotations, 1);
+			if(EnumUtils.isValidEnum(SemanticPolicy.class, annotation))
+				return SemanticPolicy.valueOf(StringUtils.substring(annotations, 1));
+			else
+				return SemanticPolicy.SEMANTIC;
+		} else
+		{
+			String[] splittedAnnotations = StringUtils.split(annotations, " ");
+			if(EnumUtils.isValidEnum(SemanticPolicy.class, StringUtils.substring(splittedAnnotations[0], 1)))
+				return SemanticPolicy.valueOf(StringUtils.substring(splittedAnnotations[0], 1));
+			else if(EnumUtils.isValidEnum(SemanticPolicy.class, StringUtils.substring(splittedAnnotations[1], 1)))
+				return SemanticPolicy.valueOf(StringUtils.substring(splittedAnnotations[1], 1));
+			else
+				RuntimeUtils.throwRunTimeException("unexpected annotation for SemanticPolicy", ExitCode.INVALIDUSAGE);
+		}
+
+		return null;
+	}
+
+	private static String[] splitAnnotationsFromField(String fieldDefinition)
+	{
+		int numberOfAnnotations = StringUtils.countMatches(fieldDefinition, "@");
+		int whiteSpaceIndex = 0;
+
+		if(numberOfAnnotations == 0)
+			return new String[]{"", fieldDefinition.trim()};
+		else if(numberOfAnnotations == 1)
+			whiteSpaceIndex = StringUtils.ordinalIndexOf(fieldDefinition, " ", 1);
+		else if(numberOfAnnotations == 2)
+			whiteSpaceIndex = StringUtils.ordinalIndexOf(fieldDefinition, " ", 2);
+		else
+			RuntimeUtils.throwRunTimeException("unexpected number of annotations", ExitCode.SCHEMANOCRDTTABLE);
+
+		String annotations = StringUtils.left(fieldDefinition, whiteSpaceIndex).trim();
+		String fieldData = StringUtils.right(fieldDefinition, fieldDefinition.length() - whiteSpaceIndex).trim();
+
+		return new String[]{annotations, fieldData};
+	}
+
+	private static String getFieldName(String fieldDefinition)
+	{
+		fieldDefinition = fieldDefinition.trim();
+
+		int whiteSpaceIndex = StringUtils.indexOf(fieldDefinition, " ");
+		return StringUtils.left(fieldDefinition, whiteSpaceIndex);
+	}
+
 	public static String getFieldDataType(String attributeDef)
 	{
 		String dataType = DatabaseDictionary.getDataType(attributeDef);
@@ -222,57 +217,34 @@ public class DataFieldParser
 		return dataType;
 	}
 
-	/**
-	 * Checks if is _ primary_ key.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return true, if is _ primary_ key
-	 */
 	public static boolean isPrimaryKey(String attributeDef)
 	{
 		return attributeDef.toUpperCase().contains("PRIMARY KEY");
 	}
 
-	/**
-	 * Checks if is _ auto incremental.
-	 *
-	 * @param attributeDef the attribute def
-	 *
-	 * @return true, if is _ auto incremental
-	 */
 	public static boolean isAutoIncremental(String attributeDef)
 	{
 		return attributeDef.toUpperCase().contains("AUTO_INCREMENT");
 	}
 
-	/**
-	 * Set_ default_ value.
-	 *
-	 * @param field        the d f
-	 * @param attributeDef the attribute def
-	 */
 	public static void setDefaultValue(DataField field, String attributeDef)
 	{
-
 		if(attributeDef.toUpperCase().contains("DEFAULT"))
 		{
-			int startIndex = attributeDef.toUpperCase().indexOf("DEFAULT");
+			RuntimeUtils.throwRunTimeException("default value capture logic not yet implemented",
+					ExitCode.MISSING_IMPLEMENTATION);
+
+			/*int startIndex = attributeDef.toUpperCase().indexOf("DEFAULT");
 			String defaultValue = attributeDef.substring(startIndex + 8);
 			defaultValue.replaceAll("'", "");
-			field.setDefaultValue(defaultValue);
+			field.setDefaultValue(defaultValue);*/
 		}
-		if(attributeDef.toUpperCase().contains("NULL") && ! attributeDef.toUpperCase().contains("NOT NULL"))
-		{
+
+		if(attributeDef.toUpperCase().contains("NULL") && !attributeDef.toUpperCase().contains("NOT NULL"))
 			field.setDefaultValue("NULL");
-		}
+
 	}
 
-	/**
-	 * Throw_ wrong_ format_ exception.
-	 *
-	 * @param schemaStr the schema str
-	 */
 	private static void throw_Wrong_Format_Exception(String schemaStr)
 	{
 		try
@@ -284,4 +256,5 @@ public class DataFieldParser
 			System.exit(ExitCode.WRONGCREATTABLEFORMAT);
 		}
 	}
+
 }

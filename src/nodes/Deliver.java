@@ -1,7 +1,7 @@
 package nodes;
 
 
-import runtime.operation.ShadowTransaction;
+import util.thrift.ThriftShadowTransaction;
 
 
 /**
@@ -10,5 +10,5 @@ import runtime.operation.ShadowTransaction;
  */
 public interface Deliver
 {
-	public void dispatchOperation(ShadowTransaction op);
+	public void dispatchOperation(ThriftShadowTransaction op);
 }

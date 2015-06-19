@@ -6,9 +6,9 @@ import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.operation.ShadowTransaction;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
+import util.thrift.ThriftShadowTransaction;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -40,7 +40,7 @@ public class DBCommitPad implements IDBCommitPad
 	}
 
 	@Override
-	public boolean commitShadowTransaction(ShadowTransaction op)
+	public boolean commitShadowTransaction(ThriftShadowTransaction op)
 	{
 		TXN_COUNT++;
 
@@ -62,14 +62,14 @@ public class DBCommitPad implements IDBCommitPad
 		return false;
 	}
 
-	private boolean tryCommit(ShadowTransaction op)
+	private boolean tryCommit(ThriftShadowTransaction op)
 	{
 		Statement stat = null;
 		boolean success = false;
 		try
 		{
 			stat = this.connection.createStatement();
-			for(String statement : op.getOperationList())
+			for(String statement : op.getOperations().values())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
 				if(Configuration.TRACE_ENABLED)
@@ -101,9 +101,9 @@ public class DBCommitPad implements IDBCommitPad
 		return success;
 	}
 
-	private String replacePlaceholders(ShadowTransaction op, String statement)
+	private String replacePlaceholders(ThriftShadowTransaction op, String statement)
 	{
-		String clockString = op.getClock().toString();
+		String clockString = op.getClock();
 		statement = statement.replaceAll(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
 		return statement;
 	}

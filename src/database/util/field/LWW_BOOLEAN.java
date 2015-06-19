@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 
 import database.util.CrdtDataFieldType;
 import database.util.DataField;
+import database.util.SemanticPolicy;
 
 
 /**
@@ -23,9 +24,9 @@ public class LWW_BOOLEAN extends DataField
 	 * @param iAIC     the i aic
 	 * @param position the position
 	 */
-	public LWW_BOOLEAN(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position)
+	public LWW_BOOLEAN(String dFN, String tN, String dT, boolean iPK, boolean iAIC, int position, SemanticPolicy policy)
 	{
-		super(CrdtDataFieldType.LWWBOOLEAN, dFN, tN, dT, iPK, iAIC, position);
+		super(CrdtDataFieldType.LWWBOOLEAN, dFN, tN, dT, iPK, iAIC, position, policy);
 	}
 
 	/**

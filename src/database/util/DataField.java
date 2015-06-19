@@ -20,6 +20,7 @@ public abstract class DataField
 	private Set<DataField> childFields;
 	private Set<DataField> parentsFields;
 	private CrdtDataFieldType crdtDataType;
+	private SemanticPolicy semantic;
 	private String fieldName;
 	private String tableName;
 	private String dataType;
@@ -32,7 +33,7 @@ public abstract class DataField
 	private DatabaseTable dbTable;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
-						boolean isPrimaryKey, boolean isAutoIncremental, int pos)
+						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
 	{
 
 		this.invariants = new LinkedList<>();
@@ -49,6 +50,7 @@ public abstract class DataField
 		this.isPrimaryKey = isPrimaryKey;
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
+		this.semantic = semanticPolicy;
 	}
 
 	public abstract String get_Crdt_Form(ResultSet rs, String Value);

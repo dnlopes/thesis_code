@@ -4,9 +4,7 @@ package runtime.operation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
 import runtime.OperationTransformer;
-
-import java.util.List;
-
+import util.thrift.ThriftShadowTransaction;
 
 /**
  * Created by dnlopes on 13/05/15.
@@ -14,13 +12,13 @@ import java.util.List;
 public class DeleteOperation extends AbstractOperation implements ShadowOperation
 {
 
-	public DeleteOperation(int id, ExecutionPolicy policy, Row newRow)
+	public DeleteOperation(int id, ExecutionPolicy policy, Row row)
 	{
-		super(id, policy, OperationType.DELETE, newRow);
+		super(id, policy, OperationType.DELETE, row);
 	}
 
 	@Override
-	public void generateStatements(List<String> shadowStatements)
+	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		StringBuilder buffer = new StringBuilder();
 
@@ -36,7 +34,7 @@ public class DeleteOperation extends AbstractOperation implements ShadowOperatio
 		else
 			buffer.append(">0");
 
-		shadowStatements.add(buffer.toString());
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 	}
 
 }
