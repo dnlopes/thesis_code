@@ -20,8 +20,9 @@ IF(currentClock IS NULL) then
 END IF;
 
 loopTag: WHILE (TRUE) DO
-    SET @currEntry = CONVERT ( LEFT(currentClock, 1), SIGNED);
-    SET @newEntry = CONVERT ( LEFT(newClock, 1), SIGNED);
+
+    SET @currEntry = CONVERT (SUBSTRING(currentClock, LOCATE('-', currentClock) + 1), SIGNED);
+    SET @newEntry = CONVERT (SUBSTRING(newClock, LOCATE('-', newClock) + 1), SIGNED);
 
     IF(@currEntry > @newEntry) then
             SET @dumbFlag = TRUE;    
@@ -59,6 +60,11 @@ END WHILE;
     RETURN @returnValue;	
 END //
 DELIMITER ;
+
+
+    -- SET @currEntry = CONVERT ( LEFT(currentClock, 1), SIGNED);
+    -- SET @newEntry = CONVERT ( LEFT(newClock, 1), SIGNED);
+
 
 -- select compareClocks('2-1', '1-0');
 -- select * from t1 where (select testFunc('2-0-1', '1-0-0') = 1) limit 5;

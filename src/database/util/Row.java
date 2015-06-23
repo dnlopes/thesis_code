@@ -14,8 +14,8 @@ import java.util.*;
 public class Row
 {
 
-	private DatabaseTable table;
-	private PrimaryKeyValue pkValue;
+	private final DatabaseTable table;
+	private final PrimaryKeyValue pkValue;
 	private Map<String, FieldValue> fieldValues;
 	private Map<String, FieldValue> newFieldValues;
 	private boolean hasSideEffects;

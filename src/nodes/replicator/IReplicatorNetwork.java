@@ -6,7 +6,10 @@ import util.thrift.ThriftShadowTransaction;
 
 
 /**
- * Created by dnlopes on 21/03/15.
+ * @author dnlopes
+ *         This interface defines methods for all Replicator communications.
+ *         All methods should be thread-safe, because this class is used by multiple threads to send events to
+ *         remote nodes
  */
 public interface IReplicatorNetwork
 {

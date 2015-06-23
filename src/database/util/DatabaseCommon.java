@@ -159,4 +159,26 @@ public class DatabaseCommon
 		}
 		return "";
 	}
+
+	/**
+	 * Fill the row values with the values of the current entry of the ResultSet
+	 * @param row
+	 * @param rs
+	 * @throws SQLException
+	 */
+	public static void fillNormalFields(Row row, final ResultSet rs) throws SQLException
+	{
+		for(DataField field : row.getTable().getFieldsList())
+		{
+			if (field.isHiddenField())
+				continue;
+
+			String fieldValue = rs.getObject(field.getFieldName()).toString();
+
+			if(fieldValue == null)
+				throw new SQLException(("field value should not be null"));
+
+			row.addFieldValue(new FieldValue(field, fieldValue));
+		}
+	}
 }

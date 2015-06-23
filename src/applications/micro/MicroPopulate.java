@@ -59,9 +59,9 @@ public class MicroPopulate implements MicroConstants
 
 	public void setupDatabase()
 	{
-		//this.createDB();
+		this.createDB();
 		this.createTables();
-		//this.createClockFunction();
+		this.createClockFunction();
 		this.populateDatabase();
 	}
 
@@ -156,29 +156,29 @@ public class MicroPopulate implements MicroConstants
 			stat = this.connection.createStatement();
 			stat.execute("use micro;");
 
-			for(int i = 1; i <= MicroConstants.NUMBER_OF_TABLES; i++)
-			{
-				stat.execute("DROP TABLE IF EXISTS t" + i);
+			String table1 = "CREATE TABLE t1 (a int(10) unsigned NOT NULL, b int(10), c int" + "(10) unsigned, d int" +
+					"(10) unsigned, e varchar(50)) ENGINE=INNODB";
+			String table2 = "CREATE TABLE t2 (a int(10) unsigned NOT NULL, b int(10) NOT NULL, c int" + "(10) " +
+					"unsigned, d int(10) unsigned, e varchar(50)) ENGINE=INNODB";
 
-				this.connection.commit();
-
-				String statement = "CREATE TABLE t" + i + " (" +
-						"a int(10) NOT NULL, " +
-						"b int(10), " +
-						"c int(10), " +
-						"d int(10), " +
-						"e varchar(50) NOT NULL, " +
-						"_del BOOLEAN NOT NULL DEFAULT 0, " +
-						"_cclock varchar(50), " +
-						"_dclock varchar(50), " +
-						"PRIMARY KEY(a)," +
-						"UNIQUE (b)" +
-						");";
-
-				stat.execute(statement);
-				this.connection.commit();
-			}
+			stat.execute("DROP TABLE IF EXISTS t1");
+			stat.execute("DROP TABLE IF EXISTS t2");
 			this.connection.commit();
+			stat.execute(table1);
+			this.connection.commit();
+			stat.execute(table2);
+			this.connection.commit();
+
+			stat.execute("ALTER TABLE t1 ADD CONSTRAINT pk_t1 PRIMARY KEY (a)");
+			stat.execute("ALTER TABLE t2 ADD CONSTRAINT pk_t2 PRIMARY KEY (a)");
+			this.connection.commit();
+
+			stat.execute("CREATE INDEX ix_t2_b ON t2 (b)");
+			this.connection.commit();
+
+			stat.execute("ALTER TABLE t2 ADD CONSTRAINT fkey_t2 FOREIGN KEY(a) REFERENCES t1(a) ON DELETE CASCADE");
+			this.connection.commit();
+
 		} catch(SQLException e)
 		{
 			LOG.error("failed to create database tables: {}", e.getMessage(), e);
@@ -193,25 +193,41 @@ public class MicroPopulate implements MicroConstants
 		{
 			stat = this.connection.createStatement();
 
-			String proc = "DROP FUNCTION IF EXISTS compareClocks; DELIMITER // CREATE FUNCTION compareClocks" +
-					"(currentClock CHAR(100), newClock CHAR(100)) RETURNS int BEGIN DECLARE isConcurrent BOOL; DECLARE" +
-					" isLesser BOOL; DECLARE dumbFlag BOOL; DECLARE isGreater BOOL; DECLARE cycleCond BOOL; DECLARE " +
-					"returnValue INT; SET @dumbFlag = FALSE; SET @returnValue = 0; SET @isConcurrent = FALSE; SET " +
+			String function = "CREATE FUNCTION compareClocks" +
+					"(currentClock CHAR(100), newClock CHAR(100)) RETURNS int DETERMINISTIC BEGIN DECLARE " +
+					"isConcurrent" +
+					" " +
+					"BOOL; DECLARE isLesser BOOL; DECLARE dumbFlag BOOL; DECLARE isGreater BOOL; DECLARE cycleCond " +
+					"BOOL;" +
+					" " +
+					"DECLARE returnValue INT; SET @dumbFlag = FALSE; SET @returnValue = 0; SET @isConcurrent = " +
+					"FALSE;" +
+					" " +
+					"SET" +
+					" " +
 					"@isLesser = FALSE; SET @isGreater = FALSE; IF(currentClock IS NULL) then RETURN 1; END IF; " +
-					"loopTag: WHILE (TRUE) DO SET @currEntry = CONVERT ( LEFT(currentClock, 1), SIGNED); SET @newEntry" +
-					" = CONVERT ( LEFT(newClock, 1), SIGNED); IF(@currEntry > @newEntry) then SET @dumbFlag = TRUE; IF" +
-					"(@isLesser) then SET @isConcurrent = TRUE; LEAVE loopTag; END IF; SET @isGreater = TRUE; ELSEIF" +
-					"(@currEntry < @newEntry) then IF(@isGreater) then SET @isConcurrent = TRUE; IF(@dumbFlag = FALSE)" +
-					" then SET @isGreater = TRUE; END IF; LEAVE loopTag; END IF; SET @isLesser = TRUE; END IF; IF " +
-					"(LENGTH(currentClock) = 1) then LEAVE loopTag; END IF; SET currentClock = SUBSTRING(currentClock," +
-					" LOCATE('-', currentClock) + 1); SET newClock = SUBSTRING(newClock, LOCATE('-', newClock) + 1); " +
-					"END WHILE; IF(@isConcurrent AND @dumbFlag = FALSE) then SELECT 0 INTO @returnValue; /* SELECT " +
-					"'Clocks are concurrent' as 'Message';*/ ELSEIF(@isLesser) then SELECT 1 INTO @returnValue; /* " +
-					"SELECT 'Second clock is GREATER then second' as 'Message';*/ ELSE SELECT -1 INTO @returnValue; /*" +
-					" SELECT 'Second clock is LESSER then second' as 'Message';*/ END IF; RETURN @returnValue; END // " +
-					"DELIMITER ; ";
+					"loopTag:" +
+					" " +
+					"WHILE (TRUE) DO SET @currEntry = CONVERT (SUBSTRING(currentClock, LOCATE('-', currentClock) + 1)" +
+					"," +
+					" SIGNED); SET @newEntry = CONVERT (SUBSTRING(newClock, LOCATE('-', newClock) + 1), SIGNED); IF" +
+					"(@currEntry > @newEntry) then SET @dumbFlag = TRUE; IF(@isLesser)" +
+					" " +
+					"then" +
+					" " +
+					"SET @isConcurrent = TRUE; LEAVE loopTag; END IF; SET @isGreater = TRUE; ELSEIF(@currEntry < " +
+					"@newEntry) then IF(@isGreater) then SET @isConcurrent = TRUE; IF(@dumbFlag = FALSE) then SET " +
+					"@isGreater = TRUE; END IF; LEAVE loopTag; END IF; SET @isLesser = TRUE; END IF; IF (LENGTH" +
+					"(currentClock) = 1) then LEAVE loopTag; END IF; SET currentClock = SUBSTRING(currentClock, " +
+					"LOCATE" +
+					"('-', currentClock) + 1); SET newClock = SUBSTRING(newClock, LOCATE('-', newClock) + 1); END " +
+					"WHILE;" +
+					" " +
+					"IF(@isConcurrent AND @dumbFlag = FALSE) then SELECT 0 INTO @returnValue; ELSEIF(@isLesser) then" +
+					" " +
+					"SELECT 1 INTO @returnValue; ELSE SELECT -1 INTO @returnValue; END IF; RETURN @returnValue; END";
 
-			stat.execute(proc);
+			stat.execute(function);
 			this.connection.commit();
 
 		} catch(SQLException e)

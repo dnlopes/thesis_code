@@ -7,6 +7,7 @@ import runtime.operation.ShadowOperation;
 import util.thrift.ThriftShadowTransaction;
 
 import java.text.DateFormat;
+import java.util.HashMap;
 
 
 /**
@@ -72,6 +73,8 @@ public class RuntimeUtils
 	public static ThriftShadowTransaction encodeShadowTransaction(Transaction txn)
 	{
 		ThriftShadowTransaction thriftTxn = new ThriftShadowTransaction();
+		thriftTxn.setOperations(new HashMap<Integer, String>());
+		thriftTxn.setTempOperations(new HashMap<Integer, String>());
 		thriftTxn.setTxnId(txn.getTxnId());
 
 		for(ShadowOperation op : txn.getShadowOperations())

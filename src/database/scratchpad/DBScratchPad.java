@@ -1196,7 +1196,7 @@ public class DBScratchPad implements IDBScratchPad
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT ");
-			buffer.append(this.pk.getQueryClause());
+			buffer.append(this.databaseTable.getNormalFieldsSelection());
 			buffer.append(" FROM ");
 			buffer.append(deleteOp.getTable().toString());
 			addWhere(buffer, deleteOp.getWhere());
@@ -1206,7 +1206,7 @@ public class DBScratchPad implements IDBScratchPad
 				this.generateNotInDeletedAndUpdatedClause(buffer);
 			}
 			buffer.append(") UNION (SELECT ");
-			buffer.append(this.databaseTable.getPrimaryKeyString());
+			buffer.append(this.databaseTable.getNormalFieldsSelection());
 			buffer.append(" FROM ");
 			buffer.append(this.tempTableName);
 			addWhere(buffer, deleteOp.getWhere());
@@ -1229,6 +1229,7 @@ public class DBScratchPad implements IDBScratchPad
 					rowsDeleted++;
 					PrimaryKeyValue rowPkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable);
 					rowToDelete = new Row(this.databaseTable, rowPkValue);
+					DatabaseCommon.fillNormalFields(rowToDelete, res);
 
 					this.recordedPkValues.remove(rowToDelete.getPrimaryKeyValue().getValue());
 					this.duplicatedRows.remove(rowToDelete.getPrimaryKeyValue());
@@ -1284,10 +1285,12 @@ public class DBScratchPad implements IDBScratchPad
 				String newValue = expIt.next().toString();
 				DataField field = this.fields.get(columnName);
 
-				//FIXME: currently, we do not allow primary keys, immutable fields and fields that are
-				//FIXME: parent for some other field
-				if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
-					RuntimeUtils.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
+				if(field.isHiddenField())
+					continue;
+
+				//FIXME: currently, we do not allow updates on primary keys or immutable fields
+				if(field.isImmutableField() || field.isPrimaryKey())
+					RuntimeUtils.throwRunTimeException("trying to modify a primary key or an immutable field",
 							ExitCode.UNEXPECTED_OP);
 
 				if(newValue == null)
@@ -1323,14 +1326,19 @@ public class DBScratchPad implements IDBScratchPad
 			// if is parent table, check if this op has side effects
 			if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
 			{
-				RuntimeUtils.throwRunTimeException("trying to modify a primary key, immutable or a parent field",
-						ExitCode.UNEXPECTED_OP);
 				op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), updatedRow);
 				this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
 				affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
 
-			} else // if a parent row update has no side effects its the same as update neutral row
+			} else if(this.fkConstraints.size() > 0) // its a child row
+			{
+				Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(updatedRow,
+						this.fkConstraints, db);
+				op = new UpdateChildOperation(db.getActiveTransaction().getNextOperationId(),
+						this.databaseTable.getExecutionPolicy(), updatedRow, parentsByConstraint);
+			}
+			else
 				op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), updatedRow);
 

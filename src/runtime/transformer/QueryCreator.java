@@ -6,6 +6,7 @@ import database.constraints.fk.ParentChildRelation;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.Row;
+import util.DatabaseTransformer;
 
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,35 @@ public class QueryCreator
 
 		return buffer.toString();
 	}
+
+
+	public static String createFindChildNestedQuery(Row parentRow, DatabaseTable table,
+													List<ParentChildRelation> relations)
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		buffer.append("SELECT ");
+		buffer.append(table.getPrimaryKeyString());
+		buffer.append(" FROM ");
+		buffer.append(table.getName());
+		buffer.append(" WHERE ");
+
+		Iterator<ParentChildRelation> relationsIt = relations.iterator();
+
+		while(relationsIt.hasNext())
+		{
+			ParentChildRelation relation = relationsIt.next();
+			buffer.append(relation.getChild().getFieldName());
+			buffer.append("=");
+			buffer.append(parentRow.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
+
+			if(relationsIt.hasNext())
+				buffer.append(" AND ");
+		}
+
+		return buffer.toString();
+	}
+
 
 	/**
 	 * Generates a SQL query to find the matching parent row for the given child row, that is associated with the

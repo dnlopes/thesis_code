@@ -2,7 +2,6 @@ package runtime.transformer;
 
 
 import database.constraints.fk.ForeignKeyConstraint;
-import database.constraints.fk.ParentChildRelation;
 import database.util.field.DataField;
 import database.util.ExecutionPolicy;
 import database.util.FieldValue;
@@ -10,6 +9,7 @@ import database.util.Row;
 import util.defaults.DBDefaults;
 
 import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -22,6 +22,7 @@ public class OperationTransformer
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
 	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+	private static final String SET_DELETED_CLOCK_NULL = DBDefaults.DELETED_CLOCK_COLUMN+ "=NULL";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
 
@@ -99,20 +100,15 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	public static String generateContentUpdateFunctionClause(ExecutionPolicy policy)
+	public static String generateContentUpdateFunctionClause()
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
 		buffer.append("(");
-		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
 		buffer.append(",");
 		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
-
-		if(policy == ExecutionPolicy.DELETEWINS)
-			buffer.append(">0");
-		else
-			buffer.append(">=0");
+		buffer.append(") >= 0");
 
 		return buffer.toString();
 	}
@@ -132,6 +128,8 @@ public class OperationTransformer
 		else
 			buffer.append(">0");
 
+		//@info, this piece of code prevents state divergence in the case where 2 replicas concurrently deletes the
+		// same tuple. Without this code, the value of '_dclock' would not converge
 		buffer.append(" AND ");
 		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
 		buffer.append("(");
@@ -161,9 +159,9 @@ public class OperationTransformer
 		buffer.append(" SET ");
 		buffer.append(SET_NOT_DELETED_EXPRESSION);
 
+		/*
 		// make sure the old field values that belong to the foreign key in the parent have the correct value in case
 		// some delete set null as occured
-
 		for(FieldValue fValue : parentRow.getFieldValues())
 		{
 			DataField field = fValue.getDataField();
@@ -175,7 +173,7 @@ public class OperationTransformer
 				buffer.append("=");
 				buffer.append(fValue.getFormattedValue());
 			}
-		}
+		}   */
 
 		buffer.append(" WHERE ");
 		buffer.append(parentRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
@@ -183,55 +181,86 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	public static String generateSetRowVisibleStatement(Row row)
+	public static String generateDeleteChilds(ForeignKeyConstraint fkConstraint, List<Row> childs)
 	{
 		StringBuilder buffer = new StringBuilder();
+
+		buffer.append("UPDATE ");
+		buffer.append(fkConstraint.getChildTable().getName());
+		buffer.append(" SET ");
+		buffer.append(SET_DELETED_EXPRESSION);
+		buffer.append(",");
+		buffer.append(SET_DELETED_CLOCK_EXPRESION);
+		buffer.append(" WHERE ");
+		buffer.append(fkConstraint.getChildTable().getPrimaryKey().getQueryClause());
+		buffer.append(" IN (");
+
+		Iterator<Row> childsIterator = childs.iterator();
+
+		while(childsIterator.hasNext())
+		{
+			buffer.append("(");
+			buffer.append(childsIterator.next().getPrimaryKeyValue().getValue());
+			buffer.append(")");
+			if(childsIterator.hasNext())
+				buffer.append(",");
+		}
+
+		buffer.append(")");
+
+		return buffer.toString();
+	}
+
+	public static String generateDeleteConcurrentChilds(Row parentRow, ForeignKeyConstraint fkConstraint)
+	{
+
+		String subQuery = QueryCreator.createFindChildNestedQuery(parentRow, fkConstraint
+				.getChildTable(), fkConstraint.getFieldsRelations());
+
+		StringBuilder buffer = new StringBuilder();
+
+		buffer.append("UPDATE ");
+		buffer.append(fkConstraint.getChildTable().getName());
+		buffer.append(" SET ");
+		buffer.append(SET_DELETED_EXPRESSION);
+		buffer.append(",");
+		buffer.append(SET_DELETED_CLOCK_EXPRESION);
+		buffer.append(" WHERE ");
+		buffer.append(fkConstraint.getChildTable().getPrimaryKey().getQueryClause());
+		buffer.append(" = (");
+		buffer.append(subQuery);
+		buffer.append(")");
+
+		return buffer.toString();
+	}
+
+	public static String generateSetVisible(Row row)
+	{
+		StringBuilder buffer = new StringBuilder();
+
 		buffer.append("UPDATE ");
 		buffer.append(row.getTable().getName());
 		buffer.append(" SET ");
 		buffer.append(SET_NOT_DELETED_EXPRESSION);
 		buffer.append(",");
-		buffer.append(SET_DELETED_CLOCK_EXPRESION);
+		buffer.append(SET_DELETED_CLOCK_NULL);
 		buffer.append(" WHERE ");
 		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		return buffer.toString();
 	}
 
-	public String generateDeleteCascade(Row parentRow, ForeignKeyConstraint fkConstraint)
+	/**
+	 * Generates a SQL statement that update the foreign key fields in childs row according to the parent
+	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
+	 * that this statement was executed.
+	 *
+	 * @param parentRow
+	 *
+	 * @return
+	 */
+	public static String generateUpdateChildFields()
 	{
-		StringBuilder buffer = new StringBuilder();
-		//TODO: to complete and review
-
-		if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.DELETEWINS)
-		{
-			buffer.append("UPDATE ");
-			buffer.append(fkConstraint.getChildTable().getName());
-			buffer.append(" SET ");
-			buffer.append(SET_DELETED_CLOCK_EXPRESION);
-
-			Iterator<ParentChildRelation> relationsIt = fkConstraint.getFieldsRelations().iterator();
-
-			while(relationsIt.hasNext())
-			{
-				ParentChildRelation relation = relationsIt.next();
-				buffer.append(relation.getChild().getFieldName());
-				buffer.append("=");
-				buffer.append(parentRow.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-
-				if(relationsIt.hasNext())
-					buffer.append(" AND ");
-			}
-
-			//delete all childs from state
-			// this op depends on the local state, which is intended because in a DELETE WINS semantic, every
-			// concurrent child should be erased.
-		} else
-		{
-
-		}
-
-		return buffer.toString();
+		return null;
 	}
-
 }

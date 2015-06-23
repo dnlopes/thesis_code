@@ -79,7 +79,7 @@ public abstract class DatabaseTable
 		this.isParentTable = false;
 
 		if(tableType != CrdtTableType.NONCRDTTABLE)
-			this.addHiddenFields(name, tableType);
+			this.addHiddenFields();
 
 		for(DataField entry : this.fieldsMap.values())
 		{
@@ -543,19 +543,19 @@ public abstract class DatabaseTable
 		return pkStrBuilder.toString();
 	}
 
-	private void addHiddenFields(String tableName, CrdtTableType tableType)
+	private void addHiddenFields()
 	{
-		DataField deletedField = new DeletedField(tableName, fieldsMap.size());
+		DataField deletedField = new DeletedField(this.name, fieldsMap.size());
 		this.fieldsMap.put(deletedField.getFieldName(), deletedField);
 		this.deletedField = deletedField;
 		this.deletedField.setDefaultValue("1");
 		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 
-		DataField contentClock = new LogicalClockField(tableName, fieldsMap.size(), DBDefaults.CONTENT_CLOCK_COLUMN);
+		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(), DBDefaults.CONTENT_CLOCK_COLUMN);
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
 		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
-		DataField deletedClock = new LogicalClockField(tableName, fieldsMap.size(), DBDefaults.DELETED_CLOCK_COLUMN);
+		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(), DBDefaults.DELETED_CLOCK_COLUMN);
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
 		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
 

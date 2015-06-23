@@ -14,7 +14,7 @@ import java.sql.Statement;
  */
 public class SQLTester
 {
-	private final static String DB_HOST = "172.16.24.222";
+	private final static String DB_HOST = "172.16.24.223";
 
 	public static void main(String[] args) throws SQLException, ClassNotFoundException
 	{
@@ -29,7 +29,19 @@ public class SQLTester
 		Connection conn = ConnectionFactory.getCRDTConnection(props, "micro");
 		Statement stat = conn.createStatement();
 
-		stat.executeUpdate("DELETE FROM t1 where a=1");
+
+		// delete parent
+		//stat.executeUpdate("DELETE FROM t1 where a=5");
+
+		// insert child
+		//stat.executeUpdate("INSERT INTO t2 (a,b,c,d,e) VALUES (122341,500,10,10,'CENAS')");
+
+		// simple update
+		stat.executeUpdate("UPDATE t2 set e='COCO' where a=500");
+
+		// update parent
+		//stat.executeUpdate("UPDATE t1 set b='15000' where a=500");
+
 		conn.commit();
 	}
 }

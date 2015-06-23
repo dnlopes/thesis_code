@@ -21,12 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-/**
- * @author dnlopes
- *         This class provides methods for all Replicator communications.
- *         All public methods should be thread-safe, because this class used by multiple threads to send events to
- *         remote nodes
- */
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
 {
 
