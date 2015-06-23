@@ -4,6 +4,7 @@ package runtime.operation;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import util.thrift.RequestValue;
 import util.thrift.ThriftShadowTransaction;
 
 import java.util.HashMap;
@@ -34,7 +35,6 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 
 		if(this.row.hasSideEffects())
 		{
-
 			for(Map.Entry<ForeignKeyConstraint, List<Row>> entry : this.childsByConstraint.entrySet())
 			{
 				StringBuilder buffer = new StringBuilder();
@@ -44,6 +44,15 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 			//TODO
 			}
 		}
+
+		                /*
+		if(!this.isFinal)
+		{
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+
+			for(RequestValue rValue : this.requestValues)
+				rValue.setOpId(shadowTransaction.getOperations().size());
+		}       */
 	}
 
 	@Override

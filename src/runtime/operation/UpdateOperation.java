@@ -20,6 +20,7 @@ import java.util.*;
  */
 public class UpdateOperation extends AbstractOperation implements ShadowOperation
 {
+	protected List<RequestValue> requestValues;
 
 	public UpdateOperation(int id, ExecutionPolicy policy, Row updatedRow)
 	{
@@ -29,9 +30,9 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
-		this.row.updateFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.updateFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+
 		this.row.mergeUpdates();
 
 		StringBuilder buffer = new StringBuilder();
@@ -41,10 +42,27 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		buffer.append(" WHERE ");
 		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(this.tablePolicy);
+		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause();
 		buffer.append(compareClockClause);
 
-		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+		String op = buffer.toString();
+
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+
+		if(!this.isFinal)
+		{
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+
+			for(RequestValue rValue : this.requestValues)
+				rValue.setOpId(shadowTransaction.getOperations().size());
+		}
+
+		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
+		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
+		{
+			String visibleOp = OperationTransformer.generateSetVisible(this.row);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);
+		}
 	}
 
 	@Override
