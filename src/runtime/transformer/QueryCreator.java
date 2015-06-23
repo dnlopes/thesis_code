@@ -56,8 +56,7 @@ public class QueryCreator
 	}
 
 
-	public static String createFindChildNestedQuery(Row parentRow, DatabaseTable table,
-													List<ParentChildRelation> relations)
+	public static String createFindChildQuery(Row parentRow, DatabaseTable table, List<ParentChildRelation> relations)
 	{
 		StringBuilder buffer = new StringBuilder();
 

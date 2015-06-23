@@ -1,13 +1,17 @@
 package runtime.operation;
 
 
+import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
-import util.thrift.RequestValue;
+import runtime.transformer.QueryCreator;
+import util.defaults.DBDefaults;
 import util.thrift.ThriftShadowTransaction;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,28 +35,68 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
-		super.generateStatements(shadowTransaction);
-
 		if(this.row.hasSideEffects())
 		{
-			for(Map.Entry<ForeignKeyConstraint, List<Row>> entry : this.childsByConstraint.entrySet())
+			for(ForeignKeyConstraint fkConstraint : this.childsByConstraint.keySet())
 			{
 				StringBuilder buffer = new StringBuilder();
 				buffer.append("UPDATE ");
-				buffer.append(entry.getKey().getChildTable().getName());
+				buffer.append(fkConstraint.getChildTable().getName());
 				buffer.append(" SET ");
-			//TODO
+
+				Iterator<ParentChildRelation> relationsIt = fkConstraint.getFieldsRelations().iterator();
+
+				while(relationsIt.hasNext())
+				{
+					ParentChildRelation relation = relationsIt.next();
+					buffer.append(relation.getChild().getFieldName());
+					buffer.append("=");
+
+					if(fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
+						buffer.append("NULL");
+
+					else
+					{
+						if(this.row.containsNewField(relation.getParent().getFieldName()))
+							buffer.append(this.row.getUpdateFieldValue(
+									relation.getParent().getFieldName()).getFormattedValue());
+						else
+							buffer.append(
+									this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
+					}
+
+					if(relationsIt.hasNext())
+						buffer.append(",");
+				}
+
+				relationsIt = fkConstraint.getFieldsRelations().iterator();
+				buffer.append(" WHERE ");
+				while(relationsIt.hasNext())
+				{
+					ParentChildRelation relation = relationsIt.next();
+					buffer.append(relation.getChild().getFieldName());
+					buffer.append("=");
+					buffer.append(this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
+					buffer.append(" AND ");
+				}
+
+				String selectParentClock = QueryCreator.selectFieldFromRow(this.row,
+						this.row.getTable().getField(DBDefaults.CONTENT_CLOCK_COLUMN));
+
+				buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
+				buffer.append("((");
+				buffer.append(selectParentClock);
+				buffer.append("),");
+				buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+				buffer.append(")");
+				buffer.append(" >= 0");
+
+				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 			}
 		}
 
-		                /*
-		if(!this.isFinal)
-		{
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+		super.generateStatements(shadowTransaction);
 
-			for(RequestValue rValue : this.requestValues)
-				rValue.setOpId(shadowTransaction.getOperations().size());
-		}       */
 	}
 
 	@Override

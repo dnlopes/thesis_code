@@ -42,7 +42,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		buffer.append(" WHERE ");
 		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause();
+		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(true);
 		buffer.append(compareClockClause);
 
 		String op = buffer.toString();

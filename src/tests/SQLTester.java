@@ -14,7 +14,7 @@ import java.sql.Statement;
  */
 public class SQLTester
 {
-	private final static String DB_HOST = "172.16.24.223";
+	private final static String DB_HOST = "172.16.24.224";
 
 	public static void main(String[] args) throws SQLException, ClassNotFoundException
 	{
@@ -37,10 +37,10 @@ public class SQLTester
 		//stat.executeUpdate("INSERT INTO t2 (a,b,c,d,e) VALUES (122341,500,10,10,'CENAS')");
 
 		// simple update
-		stat.executeUpdate("UPDATE t2 set e='COCO' where a=500");
+		//stat.executeUpdate("UPDATE t2 set e='COCO' where a=500");
 
 		// update parent
-		//stat.executeUpdate("UPDATE t1 set b='15000' where a=500");
+		stat.executeUpdate("UPDATE t1 set b='66666' where a=100");
 
 		conn.commit();
 	}

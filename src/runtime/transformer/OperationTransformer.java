@@ -2,7 +2,6 @@ package runtime.transformer;
 
 
 import database.constraints.fk.ForeignKeyConstraint;
-import database.util.field.DataField;
 import database.util.ExecutionPolicy;
 import database.util.FieldValue;
 import database.util.Row;
@@ -100,7 +99,7 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	public static String generateContentUpdateFunctionClause()
+	public static String generateContentUpdateFunctionClause(boolean equal)
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
@@ -108,7 +107,30 @@ public class OperationTransformer
 		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
 		buffer.append(",");
 		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(") >= 0");
+		buffer.append(")");
+
+		if(equal)
+			buffer.append(" >= 0");
+		else
+			buffer.append(" > 0");
+
+		return buffer.toString();
+	}
+
+	public static String generateContentUpdateFunctionClause(boolean equal, String firstClock, String secondClock)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
+		buffer.append("(");
+		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+		buffer.append(",");
+		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+		buffer.append(")");
+
+		if(equal)
+			buffer.append(" >= 0");
+		else
+			buffer.append(" > 0");
 
 		return buffer.toString();
 	}
@@ -214,8 +236,8 @@ public class OperationTransformer
 	public static String generateDeleteConcurrentChilds(Row parentRow, ForeignKeyConstraint fkConstraint)
 	{
 
-		String subQuery = QueryCreator.createFindChildNestedQuery(parentRow, fkConstraint
-				.getChildTable(), fkConstraint.getFieldsRelations());
+		String subQuery = QueryCreator.createFindChildQuery(parentRow, fkConstraint.getChildTable(),
+				fkConstraint.getFieldsRelations());
 
 		StringBuilder buffer = new StringBuilder();
 
@@ -259,7 +281,7 @@ public class OperationTransformer
 	 *
 	 * @return
 	 */
-	public static String generateUpdateChildFields()
+	public static String generateUpdateChildForeignKeyFields()
 	{
 		return null;
 	}

@@ -21,8 +21,17 @@ END IF;
 
 loopTag: WHILE (TRUE) DO
 
-    SET @currEntry = CONVERT (SUBSTRING(currentClock, LOCATE('-', currentClock) + 1), SIGNED);
-    SET @newEntry = CONVERT (SUBSTRING(newClock, LOCATE('-', newClock) + 1), SIGNED);
+    SET @index = LOCATE('-', currentClock);
+
+    IF(@index = 0) then
+        SET @currEntry = CONVERT (currentClock, SIGNED);
+        SET @newEntry = CONVERT (newClock, SIGNED);
+    ELSE
+        SET @index = LOCATE('-', currentClock);
+        SET @index2 = LOCATE('-', newClock);
+        SET @currEntry = CONVERT (LEFT(currentClock, @index-1), SIGNED);
+        SET @newEntry = CONVERT (LEFT(newClock, @index2-1), SIGNED);
+    END IF;
 
     IF(@currEntry > @newEntry) then
             SET @dumbFlag = TRUE;    
@@ -43,7 +52,7 @@ loopTag: WHILE (TRUE) DO
         SET @isLesser = TRUE;  
     END IF;
  
-	IF (LENGTH(currentClock) = 1) then
+	IF (LOCATE('-', currentClock) = 0) then
         LEAVE loopTag;
     END IF;
 

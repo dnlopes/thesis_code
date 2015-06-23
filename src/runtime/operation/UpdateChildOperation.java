@@ -74,7 +74,7 @@ public class UpdateChildOperation extends UpdateOperation
 		buffer.append(" WHERE ");
 		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause();
+		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(false);
 		buffer.append(compareClockClause);
 
 		String op = buffer.toString();
