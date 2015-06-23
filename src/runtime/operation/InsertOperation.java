@@ -34,8 +34,6 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
-		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
@@ -72,6 +70,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				requestValue.setConstraintId(c.getConstraintIdentifier());
 				requestValue.setFieldName(fieldValue.getDataField().getFieldName());
 				request.addToRequests(requestValue);
+				requestValue.setTempSymbol(symbol);
 				this.requestValues.add(requestValue);
 				this.row.updateFieldValue(new FieldValue(fieldValue.getDataField(), symbol));
 				this.isFinal = false;

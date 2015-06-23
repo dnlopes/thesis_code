@@ -33,23 +33,23 @@ public class InsertChildOperation extends InsertOperation
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
-		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
-		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		for(ForeignKeyConstraint constraint : this.parentRows.keySet())
 		{
-			// add select query instead of static values for fields that are pointing to parent
-			// we do this only in the case of DELETE WINS,
-			if(constraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.DELETEWINS)
-				for(ParentChildRelation relation : constraint.getFieldsRelations())
-				{
-					String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
-							relation.getParent());
-					this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
-				}
+			//@info: we use select query instead of static values for fields that are pointing to parent
+			// this way we make sure we never break the foreign key invariant
+			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
+			for(ParentChildRelation relation : constraint.getFieldsRelations())
+			{
+				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent());
+				String delFieldQuery = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
+						constraint.getParentTable().getField(DBDefaults.DELETED_COLUMN));
+				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
+				this.row.updateFieldValue(
+						new QueryFieldValue(constraint.getChildTable().getDeletedField(), delFieldQuery));
+			}
 		}
 
 		this.row.mergeUpdates();
