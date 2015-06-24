@@ -163,28 +163,6 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	/**
-	 * Generates a SQL statement that makes sure that the parent row is re-inserted back.
-	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
-	 * that this statement was executed.
-	 *
-	 * @param parentRow
-	 *
-	 * @return
-	 */
-	public static String generateInsertBackParentRow(Row parentRow)
-	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("UPDATE ");
-		buffer.append(parentRow.getTable().getName());
-		buffer.append(" SET ");
-		buffer.append(SET_NOT_DELETED_EXPRESSION);
-		buffer.append(" WHERE ");
-		buffer.append(parentRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
-
-		return buffer.toString();
-	}
-
 	public static String generateDeleteChilds(ForeignKeyConstraint fkConstraint, List<Row> childs)
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -238,6 +216,15 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
+	/**
+	 * Generates a SQL statement that sets the visibility flag to TRUE
+	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
+	 * that this statement was executed.
+	 *
+	 * @param row
+	 *
+	 * @return
+	 */
 	public static String generateSetVisible(Row row)
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -245,8 +232,7 @@ public class OperationTransformer
 		buffer.append("UPDATE ");
 		buffer.append(row.getTable().getName());
 		buffer.append(" SET ");
-		buffer.append(DBDefaults.DELETED_COLUMN);
-		buffer.append("=0");
+		buffer.append(SET_NOT_DELETED_EXPRESSION);
 		buffer.append(" WHERE ");
 		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 

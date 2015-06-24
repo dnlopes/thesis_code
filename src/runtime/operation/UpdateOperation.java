@@ -20,6 +20,7 @@ import java.util.*;
  */
 public class UpdateOperation extends AbstractOperation implements ShadowOperation
 {
+
 	protected List<RequestValue> requestValues;
 
 	public UpdateOperation(int id, ExecutionPolicy policy, Row updatedRow)
@@ -68,7 +69,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 			buffer.append("(");
 			buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
 			buffer.append(",");
-			buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
 			buffer.append(")=1");
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);
 		}

@@ -1,6 +1,7 @@
 package runtime.operation;
 
 
+import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
@@ -44,8 +45,13 @@ public class UpdateChildOperation extends UpdateOperation
 			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
 			for(ParentChildRelation relation : constraint.getFieldsRelations())
 			{
+				boolean filterDeletedParent = false;
+
+				if(constraint.getPolicy().getDeleteAction() == ForeignKeyAction.SET_NULL)
+					filterDeletedParent = true;
+
 				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),
-						true);
+						filterDeletedParent);
 				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
 			}
 		}
@@ -55,17 +61,21 @@ public class UpdateChildOperation extends UpdateOperation
 		StringBuilder buffer = new StringBuilder();
 
 		// insert parents back in case they were deleted concurrently
-		if(this.row.getTable().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+		for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
 		{
-			for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
+			if(entry.getKey().getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 			{
-				if(entry.getKey().getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
-				{
-					buffer.setLength(0);
-					String update = OperationTransformer.generateInsertBackParentRow(entry.getValue());
-					buffer.append(update);
-					shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
-				}
+				buffer.setLength(0);
+				String update = OperationTransformer.generateSetVisible(entry.getValue());
+				buffer.append(update);
+				buffer.append(" AND ");
+				buffer.append(DBDefaults.CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION);
+				buffer.append("(");
+				buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+				buffer.append(",");
+				buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+				buffer.append(")=1");
+				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
 			}
 		}
 
@@ -92,12 +102,16 @@ public class UpdateChildOperation extends UpdateOperation
 		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
-			/*String delFieldQuery = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
-			//		constraint.getParentTable().getField(DBDefaults.DELETED_COLUMN));
-			//this.row.updateFieldValue(
-			//		new QueryFieldValue(constraint.getChildTable().getDeletedField(), delFieldQuery));
-			String visibleOp = OperationTransformer.generateSetVisible(this.row,);
-			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);    */
+			// now set the tuple visibility iff all parents are visible as well
+			String parentsCounterQuery = QueryCreator.countParentsVisible(this.parentRows);
+			buffer.setLength(0);
+			String visibleOp = OperationTransformer.generateSetVisible(this.row);
+			buffer.append(visibleOp);
+			buffer.append(" AND ");
+			buffer.append(this.parentRows.size());
+			buffer.append("=(");
+			buffer.append(parentsCounterQuery);
+			buffer.append(")");
 		}
 
 	}

@@ -1,6 +1,7 @@
 package runtime.operation;
 
 
+import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
@@ -45,8 +46,13 @@ public class InsertChildOperation extends InsertOperation
 			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
 			for(ParentChildRelation relation : constraint.getFieldsRelations())
 			{
+				boolean filterDeletedParent = false;
+
+				if(constraint.getPolicy().getDeleteAction() == ForeignKeyAction.SET_NULL)
+					filterDeletedParent = true;
+
 				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),
-						true);
+						filterDeletedParent);
 				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
 			}
 		}
@@ -60,8 +66,15 @@ public class InsertChildOperation extends InsertOperation
 			if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 			{
 				buffer.setLength(0);
-				String update = OperationTransformer.generateInsertBackParentRow(entry.getValue());
+				String update = OperationTransformer.generateSetVisible(entry.getValue());
 				buffer.append(update);
+				buffer.append(" AND ");
+				buffer.append(DBDefaults.CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION);
+				buffer.append("(");
+				buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+				buffer.append(",");
+				buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+				buffer.append(")=1");
 				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
 			}
 		}
