@@ -35,64 +35,62 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
-		if(this.row.hasSideEffects())
+		//@info: for now we always update the childs, because some concurrent update may "revert" the changes to the
+		// childs
+		for(ForeignKeyConstraint fkConstraint : this.childsByConstraint.keySet())
 		{
-			for(ForeignKeyConstraint fkConstraint : this.childsByConstraint.keySet())
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("UPDATE ");
+			buffer.append(fkConstraint.getChildTable().getName());
+			buffer.append(" SET ");
+
+			Iterator<ParentChildRelation> relationsIt = fkConstraint.getFieldsRelations().iterator();
+
+			while(relationsIt.hasNext())
 			{
-				StringBuilder buffer = new StringBuilder();
-				buffer.append("UPDATE ");
-				buffer.append(fkConstraint.getChildTable().getName());
-				buffer.append(" SET ");
+				ParentChildRelation relation = relationsIt.next();
+				buffer.append(relation.getChild().getFieldName());
+				buffer.append("=");
 
-				Iterator<ParentChildRelation> relationsIt = fkConstraint.getFieldsRelations().iterator();
+				if(fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
+					buffer.append("NULL");
 
-				while(relationsIt.hasNext())
+				else
 				{
-					ParentChildRelation relation = relationsIt.next();
-					buffer.append(relation.getChild().getFieldName());
-					buffer.append("=");
-
-					if(fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
-						buffer.append("NULL");
-
+					if(this.row.containsNewField(relation.getParent().getFieldName()))
+						buffer.append(
+								this.row.getUpdateFieldValue(relation.getParent().getFieldName()).getFormattedValue());
 					else
-					{
-						if(this.row.containsNewField(relation.getParent().getFieldName()))
-							buffer.append(this.row.getUpdateFieldValue(
-									relation.getParent().getFieldName()).getFormattedValue());
-						else
-							buffer.append(
-									this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-					}
-
-					if(relationsIt.hasNext())
-						buffer.append(",");
+						buffer.append(this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
 				}
 
-				relationsIt = fkConstraint.getFieldsRelations().iterator();
-				buffer.append(" WHERE ");
-				while(relationsIt.hasNext())
-				{
-					ParentChildRelation relation = relationsIt.next();
-					buffer.append(relation.getChild().getFieldName());
-					buffer.append("=");
-					buffer.append(this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-					buffer.append(" AND ");
-				}
-
-				String selectParentClock = QueryCreator.selectFieldFromRow(this.row,
-						this.row.getTable().getField(DBDefaults.CONTENT_CLOCK_COLUMN), false);
-
-				buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
-				buffer.append("((");
-				buffer.append(selectParentClock);
-				buffer.append("),");
-				buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-				buffer.append(")");
-				buffer.append(" >= 0");
-
-				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+				if(relationsIt.hasNext())
+					buffer.append(",");
 			}
+
+			relationsIt = fkConstraint.getFieldsRelations().iterator();
+			buffer.append(" WHERE ");
+
+			while(relationsIt.hasNext())
+			{
+				ParentChildRelation relation = relationsIt.next();
+				buffer.append(relation.getChild().getFieldName());
+				buffer.append("=");
+				buffer.append(this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
+				buffer.append(" AND ");
+			}
+
+			String selectParentClock = QueryCreator.selectFieldFromRow(this.row,
+					this.row.getTable().getField(DBDefaults.CONTENT_CLOCK_COLUMN), false);
+
+			buffer.append(DBDefaults.CLOCK_IS_GREATER_FUNCTION);
+			buffer.append("((");
+			buffer.append(selectParentClock);
+			buffer.append("),");
+			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
+			buffer.append(")=1");
+
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 		}
 
 		super.generateStatements(shadowTransaction);

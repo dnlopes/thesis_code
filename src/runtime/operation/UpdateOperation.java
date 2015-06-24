@@ -71,7 +71,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 			buffer.append(",");
 			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
 			buffer.append(")=1");
-			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
 		}
 	}
 
