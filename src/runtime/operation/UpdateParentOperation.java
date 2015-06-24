@@ -81,7 +81,7 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 				}
 
 				String selectParentClock = QueryCreator.selectFieldFromRow(this.row,
-						this.row.getTable().getField(DBDefaults.CONTENT_CLOCK_COLUMN));
+						this.row.getTable().getField(DBDefaults.CONTENT_CLOCK_COLUMN), false);
 
 				buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
 				buffer.append("((");
@@ -96,7 +96,6 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 		}
 
 		super.generateStatements(shadowTransaction);
-
 	}
 
 	@Override

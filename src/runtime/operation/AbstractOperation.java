@@ -14,7 +14,6 @@ import util.thrift.ThriftShadowTransaction;
 public abstract class AbstractOperation implements ShadowOperation
 {
 	protected static final String SYMBOL_KEY = "SYM_";
-
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractOperation.class);
 
 	protected boolean isFinal;

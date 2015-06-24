@@ -24,6 +24,7 @@ public class InsertChildOperation extends InsertOperation
 
 	private Map<ForeignKeyConstraint, Row> parentRows;
 
+
 	public InsertChildOperation(int id, ExecutionPolicy policy, Map<ForeignKeyConstraint, Row> parents, Row newRow)
 	{
 		super(id, policy, newRow);
@@ -33,6 +34,7 @@ public class InsertChildOperation extends InsertOperation
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
@@ -43,24 +45,22 @@ public class InsertChildOperation extends InsertOperation
 			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
 			for(ParentChildRelation relation : constraint.getFieldsRelations())
 			{
-				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent());
-				String delFieldQuery = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
-						constraint.getParentTable().getField(DBDefaults.DELETED_COLUMN));
+				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),
+						true);
 				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
-				this.row.updateFieldValue(
-						new QueryFieldValue(constraint.getChildTable().getDeletedField(), delFieldQuery));
 			}
 		}
 
 		this.row.mergeUpdates();
 		StringBuilder buffer = new StringBuilder();
 
-		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
+		for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
 		{
-			for(Row parent : this.parentRows.values())
+			ForeignKeyConstraint fkConstraint = entry.getKey();
+			if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 			{
 				buffer.setLength(0);
-				String update = OperationTransformer.generateInsertBackParentRow(parent);
+				String update = OperationTransformer.generateInsertBackParentRow(entry.getValue());
 				buffer.append(update);
 				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
 			}
@@ -72,6 +72,17 @@ public class InsertChildOperation extends InsertOperation
 
 		String op = buffer.toString();
 		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+
+		// now set the tuple visibility
+		String parentsCounterQuery = QueryCreator.countParentsVisible(this.parentRows);
+		buffer.setLength(0);
+		String visibleOp = OperationTransformer.generateSetVisible(this.row);
+		buffer.append(visibleOp);
+		buffer.append(" AND ");
+		buffer.append(this.parentRows.size());
+		buffer.append("=(");
+		buffer.append(parentsCounterQuery);
+		buffer.append(")");
 
 		if(!this.isFinal)
 		{

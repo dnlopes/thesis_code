@@ -22,6 +22,7 @@ import java.util.Map;
 public class UpdateChildOperation extends UpdateOperation
 {
 
+	//@TODO: we must implement the logic where the child tuple "changes" parent
 	private Map<ForeignKeyConstraint, Row> parentRows;
 	
 	public UpdateChildOperation(int id, ExecutionPolicy policy, Row updatedRow, Map<ForeignKeyConstraint, Row> parents)
@@ -43,12 +44,9 @@ public class UpdateChildOperation extends UpdateOperation
 			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
 			for(ParentChildRelation relation : constraint.getFieldsRelations())
 			{
-				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent());
-				String delFieldQuery = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
-						constraint.getParentTable().getField(DBDefaults.DELETED_COLUMN));
+				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),
+						true);
 				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
-				this.row.updateFieldValue(
-						new QueryFieldValue(constraint.getChildTable().getDeletedField(), delFieldQuery));
 			}
 		}
 
@@ -57,14 +55,17 @@ public class UpdateChildOperation extends UpdateOperation
 		StringBuilder buffer = new StringBuilder();
 
 		// insert parents back in case they were deleted concurrently
-		for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
+		if(this.row.getTable().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 		{
-			if(entry.getKey().getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+			for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
 			{
-				buffer.setLength(0);
-				String update = OperationTransformer.generateInsertBackParentRow(entry.getValue());
-				buffer.append(update);
-				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
+				if(entry.getKey().getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+				{
+					buffer.setLength(0);
+					String update = OperationTransformer.generateInsertBackParentRow(entry.getValue());
+					buffer.append(update);
+					shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
+				}
 			}
 		}
 
@@ -74,7 +75,7 @@ public class UpdateChildOperation extends UpdateOperation
 		buffer.append(" WHERE ");
 		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(false);
+		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(true);
 		buffer.append(compareClockClause);
 
 		String op = buffer.toString();
@@ -91,8 +92,12 @@ public class UpdateChildOperation extends UpdateOperation
 		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
-			String visibleOp = OperationTransformer.generateSetVisible(this.row);
-			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);
+			/*String delFieldQuery = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint),
+			//		constraint.getParentTable().getField(DBDefaults.DELETED_COLUMN));
+			//this.row.updateFieldValue(
+			//		new QueryFieldValue(constraint.getChildTable().getDeletedField(), delFieldQuery));
+			String visibleOp = OperationTransformer.generateSetVisible(this.row,);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);    */
 		}
 
 	}

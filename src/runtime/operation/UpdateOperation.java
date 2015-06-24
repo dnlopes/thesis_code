@@ -60,7 +60,16 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
+			buffer.setLength(0);
 			String visibleOp = OperationTransformer.generateSetVisible(this.row);
+			buffer.append(visibleOp);
+			buffer.append(" AND ");
+			buffer.append(DBDefaults.CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION);
+			buffer.append("(");
+			buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
+			buffer.append(",");
+			buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
+			buffer.append(")=1");
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), visibleOp);
 		}
 	}

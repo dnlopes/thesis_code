@@ -21,7 +21,7 @@ public class OperationTransformer
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
 	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
-	private static final String SET_DELETED_CLOCK_NULL = DBDefaults.DELETED_CLOCK_COLUMN+ "=NULL";
+	private static final String SET_DELETED_CLOCK_NULL = DBDefaults.DELETED_CLOCK_COLUMN + "=NULL";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
 
@@ -70,6 +70,10 @@ public class OperationTransformer
 		{
 			FieldValue fValue = fieldsValuesIt.next();
 
+			//@info dont update primary keys because they are immutable
+			if(fValue.getDataField().isPrimaryKey())
+				continue;
+
 			buffer.append(fValue.getDataField().getFieldName());
 			buffer.append("=");
 			buffer.append(fValue.getFormattedValue());
@@ -102,17 +106,12 @@ public class OperationTransformer
 	public static String generateContentUpdateFunctionClause(boolean equal)
 	{
 		StringBuilder buffer = new StringBuilder();
-		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
+		buffer.append(DBDefaults.CLOCK_IS_GREATER_FUNCTION);
 		buffer.append("(");
 		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
 		buffer.append(",");
 		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
-
-		if(equal)
-			buffer.append(" >= 0");
-		else
-			buffer.append(" > 0");
+		buffer.append(")=1");
 
 		return buffer.toString();
 	}
@@ -180,23 +179,6 @@ public class OperationTransformer
 		buffer.append(parentRow.getTable().getName());
 		buffer.append(" SET ");
 		buffer.append(SET_NOT_DELETED_EXPRESSION);
-
-		/*
-		// make sure the old field values that belong to the foreign key in the parent have the correct value in case
-		// some delete set null as occured
-		for(FieldValue fValue : parentRow.getFieldValues())
-		{
-			DataField field = fValue.getDataField();
-
-			if(field.hasChilds())
-			{
-				buffer.append(",");
-				buffer.append(field.getFieldName());
-				buffer.append("=");
-				buffer.append(fValue.getFormattedValue());
-			}
-		}   */
-
 		buffer.append(" WHERE ");
 		buffer.append(parentRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
@@ -263,9 +245,8 @@ public class OperationTransformer
 		buffer.append("UPDATE ");
 		buffer.append(row.getTable().getName());
 		buffer.append(" SET ");
-		buffer.append(SET_NOT_DELETED_EXPRESSION);
-		buffer.append(",");
-		buffer.append(SET_DELETED_CLOCK_NULL);
+		buffer.append(DBDefaults.DELETED_COLUMN);
+		buffer.append("=0");
 		buffer.append(" WHERE ");
 		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
