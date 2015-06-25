@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IdentifierFactory;
@@ -50,7 +51,7 @@ public class DeterministicQuery
 
 	// intercepts update operation and make it deterministic
 	public static String[] makeToDeterministic(Connection con, CCJSqlParserManager parser, String sqlQuery)
-			throws JSQLParserException
+			throws JSQLParserException, SQLException
 	{
 		String[] deterQueries = null;
 
@@ -60,26 +61,26 @@ public class DeterministicQuery
 		// contains delete from where (not specify by full primary key)
 		// fill in default value and IDs for insert
 		Statement sqlStmt = parser.parse(new StringReader(sqlQuery));
+
 		if(sqlStmt instanceof Insert)
 		{
 			Insert insertStmt = (Insert) sqlStmt;
 			String tableName = insertStmt.getTable().getName();
+
 			List<String> colList = new ArrayList<>();
 			List<String> valList = new ArrayList<>();
 			Iterator colIt = insertStmt.getColumns().iterator();
+
 			while(colIt.hasNext())
 			{
 				colList.add(colIt.next().toString());
 			}
 
-			replaceSelectionForInsert(con, parser, insertStmt, valList, colList);
+			replaceSelectionForInsert(con, parser, insertStmt, valList, colList, tableName);
 			fillInMissingValue(tableName, colList, valList);
 
 			if(colList.size() != valList.size())
-			{
-				LOG.error("cols and vals size must match before appending scratchpad values");
-				RuntimeUtils.throwRunTimeException("cols and vals size dont match", ExitCode.ERRORTRANSFORM);
-			}
+				RuntimeUtils.throwRunTimeException("columns and values size dont match", ExitCode.ERRORTRANSFORM);
 
 			deterQueries = new String[1];
 			deterQueries[0] = assembleInsert(tableName, colList, valList);
@@ -102,9 +103,9 @@ public class DeterministicQuery
 			replaceSelectionForUpdate(con, parser, updateStmt, valList);
 			//replace database functions like now or current time stamp
 
-			//FIXME: we changed this next line of code because of the new version of sql parser
+			//@info: we changed this next line of code because of the new version of sql parser
 			//replaceValueForDatabaseFunctions(updateStmt.getTable().getName(), valList);
-			replaceValueForDatabaseFunctions(updateStmt.getTables().get(0).getName(), valList);
+			replaceValueForDatabaseFunctions(valList);
 			//where clause figure out whether this is specify by primary key or not, if yes, go ahead,
 			//it not, please first query
 			deterQueries = fillInMissingPrimaryKeysForUpdate(con, updateStmt, colList, valList);
@@ -145,6 +146,7 @@ public class DeterministicQuery
 	 * 		the value list
 	 */
 	private static void fillInMissingValue(String tableName, List<String> colList, List<String> valueList)
+			throws SQLException
 	{
 
 		Set<String> missFields = findMissingDataFields(tableName, colList, valueList);
@@ -169,40 +171,31 @@ public class DeterministicQuery
 				colList.add(missingDfName);
 				DataField dataField = databaseTable.getField(missingDfName);
 
-				if(dataField.isPrimaryKey() || dataField.isForeignKey())
+				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
+					RuntimeUtils.throwRunTimeException("non-semantic columns must be assigned earlier", ExitCode.ERRORTRANSFORM);
+
+				if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && !dataField.isAutoIncrement())
+					throw new SQLException("missing a non-auto_increment column value that has semantic");
+
+				if(dataField.isForeignKey())
+					throw new SQLException("foreign key is missing from sql query");
+
+				else
 				{
-					RuntimeUtils.throwRunTimeException("foreign key or primary key is missing from sql " + "query",
-							ExitCode.FOREIGNPRIMARYKEYMISSING);
-				} else
-				{
+					// if is auto_increment, assign a unique ID
+					// does not matter if it has semantic or not, because the generated id will be globally unique
 					if(dataField.isAutoIncrement())
-					{
-						int nextId = IdentifierFactory.getNextId(dataField);
-						valueList.add(String.valueOf(nextId));
-					} else if(dataField.getDefaultValue() == null)
-					{
-						RuntimeUtils.throwRunTimeException(
-								"could not find default value for this field and you did " + "not include it in the " +
-										"sql query", ExitCode.ERRORTRANSFORM);
-					} else
-					{
-						if(dataField.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
-						{
-							valueList.add("'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
-						} else
-						{
-							valueList.add(dataField.getDefaultValue());
-						}
-					}
+						valueList.add(String.valueOf(IdentifierFactory.getNextId(dataField)));
+					else if(dataField.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
+						valueList.add("'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
+					else if(dataField.getDefaultValue() != null)
+						valueList.add(dataField.getDefaultValue());
+					else
+						RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
 				}
 			}
 		}
 	}
-
-	/*
-	 * The following function is used to replace NOW or CURRENT_TIMESTAMP
-	 * functions in an update
-	 */
 
 	/**
 	 * Replace value for database functions.
@@ -212,7 +205,7 @@ public class DeterministicQuery
 	 * @param valueList
 	 * 		the value list
 	 */
-	private static void replaceValueForDatabaseFunctions(String tableName, List<String> valueList)
+	private static void replaceValueForDatabaseFunctions(List<String> valueList)
 	{
 		for(int i = 0; i < valueList.size(); i++)
 		{
@@ -373,47 +366,78 @@ public class DeterministicQuery
 	 * 		the jSQL parser exception
 	 */
 	private static void replaceSelectionForInsert(Connection con, CCJSqlParserManager parser, Insert insertStmt,
-												  List<String> valList, List<String> colsList)
-			throws JSQLParserException
+												  List<String> valList, List<String> colsList, String tableName)
+			throws JSQLParserException, SQLException
 	{
 		Iterator valueIt = ((ExpressionList) insertStmt.getItemsList()).getExpressions().iterator();
+		DatabaseTable table = DB_METADATA.getTable(tableName);
+
 		int counter = 0;
+
 		while(valueIt.hasNext())
 		{
-			String valStr = valueIt.next().toString().trim();
-			if(valStr.contains("SELECT") || valStr.contains("select"))
+			String value = valueIt.next().toString().trim();
+
+			if(value.contains("SELECT") || value.contains("select"))
 			{
 				//executeUpdate the selection
 				//remove two brackets
-				if(valStr.indexOf("(") == 0 && valStr.lastIndexOf(")") == valStr.length() - 1)
+				if(value.indexOf("(") == 0 && value.lastIndexOf(")") == value.length() - 1)
 				{
-					valStr = valStr.substring(1, valStr.length() - 1);
+					value = value.substring(1, value.length() - 1);
 				}
 				PlainSelect plainSelect = ((PlainSelect) ((Select) parser.parse(
-						new StringReader(valStr))).getSelectBody());
+						new StringReader(value))).getSelectBody());
 				int selectItemCount = plainSelect.getSelectItems().size();
 				PreparedStatement sPst;
+				ResultSet rs = null;
 				try
 				{
-					sPst = con.prepareStatement(valStr);
-					ResultSet rs = sPst.executeQuery();
+					sPst = con.prepareStatement(value);
+					rs = sPst.executeQuery();
 					if(rs.next())
 					{
 						for(int i = 0; i < selectItemCount; i++)
 							valList.add(rs.getString(i + 1));
 
 					} else
-					{
-						throw new RuntimeException("Select must return a value!");
-					}
-					rs.close();
-				} catch(SQLException e1)
+						throw new SQLException("nested SELECT in sql query must return a value");
+
+				} finally
 				{
-					e1.printStackTrace();
+					DbUtils.closeQuietly(rs);
 				}
 			} else
 			{
-				valList.add(valStr);
+				DataField dataField = table.getField(colsList.get(counter));
+
+				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
+				{
+					if(dataField.isStringField())
+						valList.add(IdentifierFactory.appendReplicaPrefix(value));
+					else if(dataField.isNumberField())
+					{
+						// does not matter if it has semantic or not, because the generated id will be globally unique
+						// and if it has semantic, we exchange this temporary id for a definitive one in the
+						// coordinator
+						int nextId = IdentifierFactory.getNextId(dataField);
+						valList.add(String.valueOf(nextId));
+					} else
+						RuntimeUtils.throwRunTimeException(
+								"columns with no semantic value must be either an integer" + " or a string",
+								ExitCode.INVALIDUSAGE);
+				} else // have SEMANTIC
+				{
+					if(dataField.isAutoIncrement())
+					{
+						// does not matter if it has semantic or not, because the generated id will be globally unique
+						// and if it has semantic, we exchange this temporary id for a definitive one in the
+						// coordinator
+						int nextId = IdentifierFactory.getNextId(dataField);
+						valList.add(String.valueOf(nextId));
+					} else
+						valList.add(value);
+				}
 			}
 			counter++;
 		}
@@ -518,7 +542,6 @@ public class DeterministicQuery
 			}
 		}
 		buffer.replace(buffer.length() - 1, buffer.length() + 1, ");");
-		//Debug.println("Newly generated insertion is " + buffer.toString());
 		return buffer.toString();
 	}
 

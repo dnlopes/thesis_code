@@ -11,12 +11,13 @@ import database.constraints.ConstraintType;
 public class UniqueConstraint extends AbstractConstraint
 {
 
-	private boolean isPrimaryKey;
-	private boolean isAutoIncrement;
+	private final boolean isPrimaryKey;
+	private final boolean isAutoIncrement;
 
-	public UniqueConstraint(boolean isPrimaryKey)
+	public UniqueConstraint(boolean isPrimaryKey, boolean requiresCoordination)
 	{
-		super(ConstraintType.UNIQUE);
+		super(ConstraintType.UNIQUE, requiresCoordination);
+
 		this.isPrimaryKey = isPrimaryKey;
 		this.isAutoIncrement = false;
 	}

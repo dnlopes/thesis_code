@@ -209,4 +209,13 @@ public abstract class DataField
 		return false;
 	}
 
+	public SemanticPolicy getSemantic()
+	{
+		return this.semantic;
+	}
+
+	public boolean isNumberField()
+	{
+		return false;
+	}
 }

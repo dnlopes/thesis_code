@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
+import database.util.SemanticPolicy;
 import database.util.field.DataField;
 import database.util.ExecutionPolicy;
 import database.util.PrimaryKey;
@@ -97,7 +98,7 @@ public abstract class DatabaseTable
 				this.addPrimaryKey(entry);
 			}
 
-			if(entry.isAutoIncrement())
+			if(entry.isAutoIncrement() && (entry.getSemantic() == SemanticPolicy.SEMANTIC))
 			{
 				Constraint autoIncrementConstraint = new AutoIncrementConstraint();
 				autoIncrementConstraint.setTableName(this.name);

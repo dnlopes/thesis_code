@@ -1,9 +1,9 @@
 @ARSETTABLE @UPDATEWINS CREATE TABLE t1 (
-@LWWINTEGER @SEMANTIC a int(10) unsigned NOT NULL,
+@LWWINTEGER @NOSEMANTIC a int(10) unsigned NOT NULL,
 @LWWINTEGER b int(10) unsigned,
-@LWWINTEGER @NOSEMANTIC c int(10) unsigned,
+@LWWINTEGER c int(10) unsigned,
 @LWWINTEGER d int(10) unsigned,
-@LWWSTRING e varchar(50),
+@LWWSTRING @NOSEMANTIC e varchar(50),
 PRIMARY KEY (a)
 ) ENGINE=INNODB;
 

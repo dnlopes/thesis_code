@@ -96,4 +96,10 @@ public class NORMAL_INTEGER extends DataField
 
 		return Value;
 	}
+
+	@Override
+	public boolean isNumberField()
+	{
+		return true;
+	}
 }

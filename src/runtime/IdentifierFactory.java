@@ -4,6 +4,7 @@ package runtime;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import nodes.NodeConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -22,6 +23,7 @@ public class IdentifierFactory
 
 	private static final Logger LOG = LoggerFactory.getLogger(IdentifierFactory.class);
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
+	private static final String REPLICA_PREFIX = System.getProperty("proxyid") + ":";
 
 	public static void createGenerators(NodeConfig config)
 	{
@@ -33,7 +35,7 @@ public class IdentifierFactory
 
 			for(DataField field : fields)
 			{
-				if(field.isAutoIncrement())
+				if(field.isNumberField())
 					createIdGenerator(field, config);
 			}
 		}
@@ -54,7 +56,7 @@ public class IdentifierFactory
 		ID_GENERATORS_MAP.put(key, newGenerator);
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
-				newGenerator.getCurrentValue());
+					newGenerator.getCurrentValue());
 	}
 
 	public static int getNextId(DataField field)
@@ -75,4 +77,13 @@ public class IdentifierFactory
 		return id;
 	}
 
+	public static String appendReplicaPrefix(String value)
+	{
+		StringBuilder buffer = new StringBuilder("'");
+		buffer.append(REPLICA_PREFIX);
+		buffer.append(StringUtils.substring(value, 1, value.length()-1));
+		buffer.append("'");
+
+		return buffer.toString();
+	}
 }

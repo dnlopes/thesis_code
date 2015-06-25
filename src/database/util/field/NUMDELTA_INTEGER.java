@@ -149,4 +149,10 @@ public class NUMDELTA_INTEGER extends DataField
 		return Value;
 	}
 
+	@Override
+	public boolean isNumberField()
+	{
+		return true;
+	}
+
 }

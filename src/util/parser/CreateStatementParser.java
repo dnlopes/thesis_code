@@ -431,7 +431,8 @@ public class CreateStatementParser
 				keyStr = keyStr.replaceAll("`", "");
 				String[] pKeys = keyStr.split(",");
 
-				boolean foundAutoIncrement = false;
+				boolean requiresCoordination = true;
+
 				for(int k = 0; k < pKeys.length; k++)
 				{
 					if(!fieldsMap.containsKey(pKeys[k]))
@@ -440,23 +441,12 @@ public class CreateStatementParser
 					DataField field = fieldsMap.get(pKeys[k]);
 					if(isPrimaryKey)
 						field.setPrimaryKey();
-					// lets not add this constraint, its reduntant because it contains an auto increment field, which
-					// is by itself an unique value
-					if(field.isAutoIncrement())
-						foundAutoIncrement = true;
+
+					if(field.getSemantic() == SemanticPolicy.NOSEMANTIC)
+						requiresCoordination = false;
 				}
 
-				// if we found a auto incremental field in the PK, then there is no point in adding the PK constraint
-				// itself because the auto_increment field guarantees the uniqueness of the key
-				if(foundAutoIncrement)
-				{
-					/*if (pKeys.length != 1)
-						RuntimeUtils.throwRunTimeException("found PK with an auto_increment field and with more then " +
-								"one field", ExitCode.INVALIDUSAGE);*/
-					continue;
-				}
-
-				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey);
+				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey, requiresCoordination);
 
 				for(int j = 0; j < pKeys.length; j++)
 				{

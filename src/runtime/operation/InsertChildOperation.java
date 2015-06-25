@@ -48,7 +48,7 @@ public class InsertChildOperation extends InsertOperation
 			{
 				boolean filterDeletedParent = false;
 
-				if(constraint.getPolicy().getDeleteAction() == ForeignKeyAction.SET_NULL)
+				if(constraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
 					filterDeletedParent = true;
 
 				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),

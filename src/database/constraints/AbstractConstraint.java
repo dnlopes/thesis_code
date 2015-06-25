@@ -20,12 +20,14 @@ public abstract class AbstractConstraint implements Constraint
 	protected ConstraintType constraintType;
 	private String constraintIdentifier;
 	private String tableName;
+	private final boolean requiresCoordination;
 
-	public AbstractConstraint(ConstraintType type)
+	public AbstractConstraint(ConstraintType type, boolean requiresCoordination)
 	{
 		this.constraintType = type;
 		this.fields = new ArrayList<>();
 		this.fieldsMap = new HashMap<>();
+		this.requiresCoordination = requiresCoordination;
 	}
 
 	@Override
@@ -86,5 +88,11 @@ public abstract class AbstractConstraint implements Constraint
 	public boolean constainsField(DataField field)
 	{
 		return this.fieldsMap.containsKey(field.getFieldName());
+	}
+
+	@Override
+	public boolean requiresCoordination()
+	{
+		return this.requiresCoordination;
 	}
 }

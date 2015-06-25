@@ -61,6 +61,9 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 
 		for(Constraint c : this.row.getContraintsToCheck())
 		{
+			if (!c.requiresCoordination())
+				continue;
+
 			switch(c.getType())
 			{
 			case AUTO_INCREMENT:

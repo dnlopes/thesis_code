@@ -97,4 +97,10 @@ public class NORMAL_FLOAT extends DataField
 		// TODO Auto-generated method stub
 		return Value;
 	}
+
+	@Override
+	public boolean isNumberField()
+	{
+		return true;
+	}
 }

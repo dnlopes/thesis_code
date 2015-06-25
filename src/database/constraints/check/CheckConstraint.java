@@ -24,7 +24,7 @@ public class CheckConstraint extends AbstractConstraint
 
 	public CheckConstraint(CheckConstraintType type, String threshold, int fieldType, boolean equalFlag)
 	{
-		super(ConstraintType.CHECK);
+		super(ConstraintType.CHECK, true);
 
 		this.fieldType = fieldType;
 		this.conditionType = type;

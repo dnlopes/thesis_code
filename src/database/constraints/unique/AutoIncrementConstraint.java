@@ -13,6 +13,6 @@ public class AutoIncrementConstraint extends AbstractConstraint
 
 	public AutoIncrementConstraint()
 	{
-		super(ConstraintType.AUTO_INCREMENT);
+		super(ConstraintType.AUTO_INCREMENT, true);
 	}
 }

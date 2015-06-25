@@ -28,9 +28,9 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 
 	public ForeignKeyConstraint(ForeignKeyPolicy policy)
 	{
-		super(ConstraintType.FOREIGN_KEY);
+		super(ConstraintType.FOREIGN_KEY, false);
 		this.policy = policy;
-		this.parentFieldsNames= new ArrayList<>();
+		this.parentFieldsNames = new ArrayList<>();
 		this.parentFields = new ArrayList<>();
 		this.relationsList = new ArrayList<>();
 		this.relationsMap = new HashMap<>();
@@ -92,4 +92,5 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 	{
 		return this.childTable;
 	}
+
 }

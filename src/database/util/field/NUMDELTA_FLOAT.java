@@ -152,4 +152,10 @@ public class NUMDELTA_FLOAT extends DataField
 		return Value;
 	}
 
+	@Override
+	public boolean isNumberField()
+	{
+		return true;
+	}
+
 }

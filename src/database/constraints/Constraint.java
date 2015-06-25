@@ -28,4 +28,6 @@ public interface Constraint
 
 	public boolean constainsField(DataField field);
 
+	public boolean requiresCoordination();
+
 }
