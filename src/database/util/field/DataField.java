@@ -33,6 +33,7 @@ public abstract class DataField
 	private boolean isAllowedNULL;
 	private int position;
 	private DatabaseTable dbTable;
+	private boolean isUnique;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
@@ -44,6 +45,7 @@ public abstract class DataField
 
 		this.defaultValue = null;
 		this.isAllowedNULL = false;
+		this.isUnique = false;
 		this.position = -1;
 		this.crdtDataType = fieldTag;
 		this.fieldName = name;
@@ -53,6 +55,9 @@ public abstract class DataField
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
 		this.semantic = semanticPolicy;
+
+		if(this.isAutoIncremental)
+			this.isUnique = true;
 	}
 
 	public abstract String get_Crdt_Form(ResultSet rs, String Value);
@@ -204,6 +209,11 @@ public abstract class DataField
 		return status;
 	}
 
+	public void setIsUnique()
+	{
+		this.isUnique = true;
+	}
+
 	public boolean isDateField()
 	{
 		return false;
@@ -217,5 +227,10 @@ public abstract class DataField
 	public boolean isNumberField()
 	{
 		return false;
+	}
+
+	public boolean isUnique()
+	{
+		return this.isUnique;
 	}
 }

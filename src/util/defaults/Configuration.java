@@ -295,11 +295,6 @@ public final class Configuration
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public DatabaseProperties getDatabaseProperties(int index)
-	{
-		return this.databases.get(index);
-	}
-
 	public NodeConfig getReplicatorConfigWithIndex(int index)
 	{
 		return this.replicators.get(index);

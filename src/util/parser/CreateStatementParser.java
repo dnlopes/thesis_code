@@ -439,6 +439,7 @@ public class CreateStatementParser
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[k]);
 
 					DataField field = fieldsMap.get(pKeys[k]);
+					field.setIsUnique();
 					if(isPrimaryKey)
 						field.setPrimaryKey();
 

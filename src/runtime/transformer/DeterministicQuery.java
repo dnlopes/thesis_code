@@ -172,7 +172,8 @@ public class DeterministicQuery
 				DataField dataField = databaseTable.getField(missingDfName);
 
 				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
-					RuntimeUtils.throwRunTimeException("non-semantic columns must be assigned earlier", ExitCode.ERRORTRANSFORM);
+					RuntimeUtils.throwRunTimeException("non-semantic columns must be assigned earlier",
+							ExitCode.ERRORTRANSFORM);
 
 				if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && !dataField.isAutoIncrement())
 					throw new SQLException("missing a non-auto_increment column value that has semantic");
@@ -411,33 +412,35 @@ public class DeterministicQuery
 			{
 				DataField dataField = table.getField(colsList.get(counter));
 
-				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
+				if(dataField.isUnique())
 				{
-					if(dataField.isStringField())
-						valList.add(IdentifierFactory.appendReplicaPrefix(value));
-					else if(dataField.isNumberField())
+					// we cannot touch the value, it must be coordinated later on commit time
+					if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
+						if(dataField.isAutoIncrement())
+						{
+							int nextId = IdentifierFactory.getNextId(dataField);
+							valList.add(String.valueOf(nextId));
+						} else
+							valList.add(value);
+					else
 					{
-						// does not matter if it has semantic or not, because the generated id will be globally unique
-						// and if it has semantic, we exchange this temporary id for a definitive one in the
-						// coordinator
-						int nextId = IdentifierFactory.getNextId(dataField);
-						valList.add(String.valueOf(nextId));
-					} else
-						RuntimeUtils.throwRunTimeException(
-								"columns with no semantic value must be either an integer" + " or a string",
-								ExitCode.INVALIDUSAGE);
-				} else // have SEMANTIC
-				{
-					if(dataField.isAutoIncrement())
-					{
-						// does not matter if it has semantic or not, because the generated id will be globally unique
-						// and if it has semantic, we exchange this temporary id for a definitive one in the
-						// coordinator
-						int nextId = IdentifierFactory.getNextId(dataField);
-						valList.add(String.valueOf(nextId));
-					} else
-						valList.add(value);
-				}
+						if(dataField.isStringField())
+							valList.add(IdentifierFactory.appendReplicaPrefix(value));
+						else if(dataField.isNumberField())
+						{
+							// does not matter if it has semantic or not, because the generated id will be globally
+							// unique
+							// and if it has semantic, we exchange this temporary id for a definitive one in the
+							// coordinator
+							int nextId = IdentifierFactory.getNextId(dataField);
+							valList.add(String.valueOf(nextId));
+						} else
+							RuntimeUtils.throwRunTimeException(
+									"columns with no semantic value must be either an integer" + " or a string",
+									ExitCode.INVALIDUSAGE);
+					}
+				} else // we can use this value happily without worries
+					valList.add(value);
 			}
 			counter++;
 		}
