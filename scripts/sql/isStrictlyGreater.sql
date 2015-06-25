@@ -1,8 +1,8 @@
 -- This function is used to decide wether an update should be installed or not
 -- Returns TRUE if newClock > currentClock in a deterministic way
-DROP FUNCTION IF EXISTS clockIsGreater;
+DROP FUNCTION IF EXISTS isStrictlyGreater;
 DELIMITER //
-CREATE FUNCTION clockIsGreater(currentClock CHAR(100), newClock CHAR(100)) 
+CREATE FUNCTION isStrictlyGreater(currentClock CHAR(100), newClock CHAR(100)) 
 RETURNS BOOL DETERMINISTIC
 BEGIN
 DECLARE isConcurrent BOOL;
@@ -61,8 +61,8 @@ loopTag: WHILE (TRUE) DO
 	SET currentClock = SUBSTRING(currentClock, LOCATE('-', currentClock) + 1);
 	SET newClock = SUBSTRING(newClock, LOCATE('-', newClock) + 1);
 END WHILE;
-    IF(@isConcurrent AND @dumbFlag = FALSE) then
-        SELECT TRUE INTO @returnValue;  
+    IF(@isConcurrent) then
+        SELECT FALSE INTO @returnValue;  
 	ELSEIF(@isLesser) then		
         SELECT TRUE INTO @returnValue;
     ELSE
@@ -73,5 +73,5 @@ END //
 DELIMITER ;
 
 
--- select clockIsGreater('2-1', '1-0');
+-- select isStrictlyGreater('2-1', '1-0');
 -- select * from t1 where (select testFunc('2-0-1', '1-0-0') = 1) limit 5;

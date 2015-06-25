@@ -10,10 +10,7 @@ import runtime.transformer.QueryCreator;
 import util.defaults.DBDefaults;
 import util.thrift.ThriftShadowTransaction;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -35,8 +32,10 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		List<String> childsUpdates = new ArrayList<>();
+
 		//@info: for now we always update the childs, because some concurrent update may "revert" the changes to the
-		// childs
+		// update childs
 		for(ForeignKeyConstraint fkConstraint : this.childsByConstraint.keySet())
 		{
 			StringBuilder buffer = new StringBuilder();
@@ -49,20 +48,19 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 			while(relationsIt.hasNext())
 			{
 				ParentChildRelation relation = relationsIt.next();
-				buffer.append(relation.getChild().getFieldName());
-				buffer.append("=");
+
+				boolean filterDeletedParent = false;
 
 				if(fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
-					buffer.append("NULL");
+					filterDeletedParent = true;
 
-				else
-				{
-					if(this.row.containsNewField(relation.getParent().getFieldName()))
-						buffer.append(
-								this.row.getUpdateFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-					else
-						buffer.append(this.row.getFieldValue(relation.getParent().getFieldName()).getFormattedValue());
-				}
+				String query = QueryCreator.selectFieldFromRow(this.row, relation.getParent(),
+						filterDeletedParent);
+
+				buffer.append(relation.getChild().getFieldName());
+				buffer.append("=(");
+				buffer.append(query);
+				buffer.append(")");
 
 				if(relationsIt.hasNext())
 					buffer.append(",");
@@ -90,10 +88,13 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
 			buffer.append(")=1");
 
-			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+			childsUpdates.add(buffer.toString());
 		}
 
 		super.generateStatements(shadowTransaction);
+
+		for(String update : childsUpdates)
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
 	}
 
 	@Override

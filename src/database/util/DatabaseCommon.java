@@ -162,15 +162,17 @@ public class DatabaseCommon
 
 	/**
 	 * Fill the row values with the values of the current entry of the ResultSet
+	 *
 	 * @param row
 	 * @param rs
+	 *
 	 * @throws SQLException
 	 */
 	public static void fillNormalFields(Row row, final ResultSet rs) throws SQLException
 	{
 		for(DataField field : row.getTable().getFieldsList())
 		{
-			if (field.isHiddenField())
+			if(field.isHiddenField())
 				continue;
 
 			String fieldValue = rs.getObject(field.getFieldName()).toString();

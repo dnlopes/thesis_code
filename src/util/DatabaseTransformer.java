@@ -201,7 +201,7 @@ public class DatabaseTransformer
 
 		try
 		{
-			String sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.DELETED_COLUMN + " boolean default 0";
+			String sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.DELETED_COLUMN + " boolean default 1";
 			stat.execute(sql);
 			sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.DELETED_CLOCK_COLUMN + " varchar(50)";
 			stat.execute(sql);

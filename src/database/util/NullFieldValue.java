@@ -9,10 +9,12 @@ import database.util.field.DataField;
  */
 public class NullFieldValue extends FieldValue
 {
-	
-	public NullFieldValue(DataField field, String value)
+
+	private static final String NULL_VALUE = "NULL";
+
+	public NullFieldValue(DataField field)
 	{
-		super(field, value);
+		super(field, NULL_VALUE);
 	}
 
 	@Override

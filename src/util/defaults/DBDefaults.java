@@ -12,8 +12,8 @@ public class DBDefaults
 	public static final String NOT_DELETED_VALUE = "0";
 	public static final String DELETED_VALUE = "1";
 	public static final String COMPARE_CLOCK_FUNCTION = "compareClocks";
+	public static final String IS_STRICTLY_GREATER_FUNCTION = "isStrictlyGreater";
 	public static final String CLOCK_IS_GREATER_FUNCTION = "clockIsGreater";
-	public static final String CLOCKS_ARE_CONCURRNET_FUNCTION = "areConcurrentClocks";
 	public static final String CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION = "isConcurrentOrGreaterClock";
 	public static final String CRDT_URL_PREFIX = "jdbc:crdt://";
 	public static final String DEFAULT_URL_PREFIX = "jdbc:mysql://";

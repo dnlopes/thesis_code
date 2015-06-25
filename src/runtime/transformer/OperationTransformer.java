@@ -21,7 +21,6 @@ public class OperationTransformer
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
 	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
-	private static final String SET_DELETED_CLOCK_NULL = DBDefaults.DELETED_CLOCK_COLUMN + "=NULL";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
 
