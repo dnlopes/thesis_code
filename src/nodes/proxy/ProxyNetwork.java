@@ -79,7 +79,8 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 			newTransport.open();
 		} catch(TTransportException e)
 		{
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
+			LOG.warn("failed to open connection to replicator node");
+			return null;
 		}
 
 		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
@@ -96,7 +97,9 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 		for(int i = 0; i < POOL_SIZE; i++)
 		{
 			ReplicatorRPC.Client replicatorConnection = this.createReplicatorConnection(replicatorConfig);
-			this.replicatorConnectionPool.addObject(replicatorConnection);
+
+			if(replicatorConnection != null)
+				this.replicatorConnectionPool.addObject(replicatorConnection);
 		}
 	}
 }

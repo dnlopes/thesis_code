@@ -341,7 +341,7 @@ public class DBScratchPad implements IDBScratchPad
 		this.batchEmpty = true;
 	}
 
-	private CoordinatorRequest generateCoordinationRequest()
+	private CoordinatorRequest generateCoordinationRequest() throws SQLException
 	{
 		CoordinatorRequest req = new CoordinatorRequest();
 
@@ -1132,11 +1132,15 @@ public class DBScratchPad implements IDBScratchPad
 					String col = colIt.next().toString();
 					String val = valIt.next().toString();
 					DataField field = this.fields.get(col);
-					FieldValue newContentField = new FieldValue(field, val);
-					insertedRow.addFieldValue(newContentField);
 
-					if(field.isPrimaryKey())
-						pkValue.addFieldValue(newContentField);
+					if(!field.isHiddenField())
+					{
+						FieldValue newContentField = new FieldValue(field, val);
+						insertedRow.updateFieldValue(newContentField);
+
+						if(field.isPrimaryKey())
+							pkValue.addFieldValue(newContentField);
+					}
 
 					if(!first)
 						buffer.append(",");
@@ -1146,9 +1150,10 @@ public class DBScratchPad implements IDBScratchPad
 
 					for(Constraint c : field.getInvariants())
 					{
-						if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType()
-								== ConstraintType.AUTO_INCREMENT)
-							insertedRow.addConstraintToverify(c);
+						if(c.requiresCoordination())
+							if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c
+									.getType() == ConstraintType.AUTO_INCREMENT)
+								insertedRow.addConstraintToverify(c);
 					}
 				}
 
@@ -1337,8 +1342,7 @@ public class DBScratchPad implements IDBScratchPad
 						this.fkConstraints, db);
 				op = new UpdateChildOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), updatedRow, parentsByConstraint);
-			}
-			else
+			} else
 				op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), updatedRow);
 

@@ -40,7 +40,8 @@ public class SQLTester
 		//stat.executeUpdate("INSERT INTO t2 (a,b,c,d,e) VALUES (9999,100,10,10,'CENAS')");
 
 		//insert neutral/parent
-		stat.executeUpdate("INSERT INTO t1 (a,b,c,d,e) VALUES (1223111,98880,10,10,'CENAS')");
+		stat.executeUpdate("INSERT INTO t1 (a,b,c,d,e) VALUES (2323123,98880,10,10,'CENAS')");
+		stat.executeUpdate("UPDATE t1 set c=c-9 where a=2323123");
 
 		// update child
 		//stat.executeUpdate("UPDATE t2 set e='COCO' where a=300");

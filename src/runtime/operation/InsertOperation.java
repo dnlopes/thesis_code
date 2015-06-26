@@ -2,6 +2,7 @@ package runtime.operation;
 
 
 import database.constraints.Constraint;
+import database.constraints.check.CheckConstraint;
 import database.util.*;
 import database.util.field.DataField;
 import runtime.transformer.OperationTransformer;
@@ -11,6 +12,7 @@ import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.*;
 
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -55,7 +57,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 	}
 
 	@Override
-	public void createRequestsToCoordinate(CoordinatorRequest request)
+	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
 		int counter = 0;
 
@@ -68,7 +70,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 			{
 			case AUTO_INCREMENT:
 				String symbol = SYMBOL_KEY + counter;
-				FieldValue fieldValue = this.row.getFieldValue(c.getFields().get(0).getFieldName());
+				FieldValue fieldValue = this.row.getUpdateFieldValue(c.getFields().get(0).getFieldName());
 				RequestValue requestValue = new RequestValue();
 				requestValue.setConstraintId(c.getConstraintIdentifier());
 				requestValue.setFieldName(fieldValue.getDataField().getFieldName());
@@ -87,7 +89,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				while(it.hasNext())
 				{
 					DataField currField = it.next();
-					buffer.append(this.row.getFieldValue(currField.getFieldName()));
+					buffer.append(this.row.getUpdateFieldValue(currField.getFieldName()));
 					if(it.hasNext())
 						buffer.append(",");
 				}
@@ -100,7 +102,11 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				break;
 			case CHECK:
 				DataField currField = c.getFields().get(0);
-				FieldValue deltafieldValue = this.row.getFieldValue(currField.getFieldName());
+				FieldValue deltafieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
+
+				if(!((CheckConstraint) c).isValidValue(deltafieldValue.getValue()))
+					throw new SQLException("field value not valid due to a check constraint restriction");
+
 				ApplyDelta applyDeltaRequest = new ApplyDelta();
 				applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
 				applyDeltaRequest.setDeltaValue(deltafieldValue.getValue());

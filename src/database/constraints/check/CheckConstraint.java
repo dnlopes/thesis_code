@@ -39,14 +39,16 @@ public class CheckConstraint extends AbstractConstraint
 	 */
 	public boolean isValidValue(String value)
 	{
+		double doubleValue = Double.parseDouble(value);
+
 		if(this.fieldType == 1)
 			return this.isValidString(value);
 		if(this.fieldType == 2)
-			return this.isValidInt(Integer.parseInt(value));
+			return this.isValidInt((int) doubleValue);
 		if(this.fieldType == 3)
-			return this.isValidFloat(Float.parseFloat(value));
+			return this.isValidFloat((float) doubleValue);
 		if(this.fieldType == 4)
-			return this.isValidDouble(Double.parseDouble(value));
+			return this.isValidDouble(doubleValue);
 		else
 		{
 			LOG.warn("unexpected field type");
@@ -64,10 +66,27 @@ public class CheckConstraint extends AbstractConstraint
 	 */
 	public boolean mustCoordinate(String newValue, String oldValue)
 	{
+		double oldDoubleValue = Double.parseDouble(oldValue);
+		double newDoubleValue = Double.parseDouble(newValue);
+
+		double delta = newDoubleValue - oldDoubleValue;
+
+		if(this.conditionType == CheckConstraintType.LESSER)
+			return delta > 0;
+		else if(this.conditionType == CheckConstraintType.GREATER)
+			return delta < 0;
+		else
+		{
+			LOG.error("unexpected condition type");
+			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
+			return false;
+		}
+
+		/*
 		if(this.fieldType == 1)
 			RuntimeUtils.throwRunTimeException("unexpected delta operation for a string field", ExitCode.UNEXPECTED_OP);
 		if(this.fieldType == 2)
-			return this.mustCoordinate(Integer.parseInt(newValue), Integer.parseInt(oldValue));
+			return this.mustCoordinate(newDoubleValue, oldDoubleValue);
 		if(this.fieldType == 3)
 			return this.mustCoordinate(Float.parseFloat(newValue), Float.parseFloat(oldValue));
 		if(this.fieldType == 4)
@@ -76,7 +95,7 @@ public class CheckConstraint extends AbstractConstraint
 		{
 			LOG.warn("unexpected field type");
 			return false;
-		}
+		}               */
 	}
 
 	/**

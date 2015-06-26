@@ -22,6 +22,7 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 import util.defaults.Configuration;
+import util.defaults.DBDefaults;
 
 import java.io.StringReader;
 import java.sql.Connection;
@@ -163,6 +164,8 @@ public class DeterministicQuery
 				valueList.set(i, "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
 		}
 
+		colList.add(DBDefaults.DELETED_COLUMN);
+		valueList.add(DBDefaults.NOT_DELETED_VALUE);
 		// fill in the missing tuples
 		if(missFields != null)
 		{
@@ -410,6 +413,8 @@ public class DeterministicQuery
 				}
 			} else
 			{
+				valList.add(value);
+				/*
 				DataField dataField = table.getField(colsList.get(counter));
 
 				if(dataField.isUnique())
@@ -440,7 +445,7 @@ public class DeterministicQuery
 									ExitCode.INVALIDUSAGE);
 					}
 				} else // we can use this value happily without worries
-					valList.add(value);
+					valList.add(value); */
 			}
 			counter++;
 		}

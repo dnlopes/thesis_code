@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 import util.thrift.CoordinatorRequest;
 import util.thrift.ThriftShadowTransaction;
 
+import java.sql.SQLException;
+
+
 /**
  * Created by dnlopes on 13/05/15.
  */
@@ -49,7 +52,7 @@ public abstract class AbstractOperation implements ShadowOperation
 	public abstract void generateStatements(ThriftShadowTransaction shadowTransaction);
 
 	@Override
-	public void createRequestsToCoordinate(CoordinatorRequest request)
+	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
 		// do nothing
 		// if one wants to coordinate, then override this method

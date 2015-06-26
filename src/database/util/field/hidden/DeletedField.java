@@ -67,10 +67,7 @@ public class DeletedField extends DataField
 	@Override
 	public String get_Value_In_Correct_Format(String Value)
 	{
-		// TODO Auto-generated method stub
-		if(Value.indexOf("'") == 0 && Value.lastIndexOf("'") == Value.length() - 1)
-			return Value;
-		return "'" + Value + "'";
+		return Value;
 	}
 
 	/**

@@ -4,6 +4,9 @@ package database.util;
 import database.constraints.Constraint;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
+import runtime.IdentifierFactory;
+import runtime.RuntimeUtils;
+import util.ExitCode;
 
 import java.util.*;
 
@@ -34,6 +37,8 @@ public class Row
 	public void updateFieldValue(FieldValue newValue)
 	{
 		DataField field = newValue.getDataField();
+
+		this.prepareValue(field, newValue);
 
 		this.newFieldValues.put(field.getFieldName(), newValue);
 
@@ -95,5 +100,37 @@ public class Row
 	public void addConstraintToverify(Constraint c)
 	{
 		this.contraintsToCheck.add(c);
+	}
+
+	private void prepareValue(DataField dataField, FieldValue fieldValue)
+	{
+		if(dataField.isUnique())
+		{
+			// we cannot touch the value, it must be coordinated later on commit time
+			if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
+			{
+				if(dataField.isAutoIncrement())
+				{
+					int nextId = IdentifierFactory.getNextId(dataField);
+					fieldValue.setValue(String.valueOf(nextId));
+				}
+			} else
+			{
+				if(dataField.isStringField())
+					fieldValue.setValue(IdentifierFactory.appendReplicaPrefix(fieldValue.getValue()));
+				else if(dataField.isNumberField())
+				{
+					// does not matter if it has semantic or not, because the generated id will be globally
+					// unique
+					// and if it has semantic, we exchange this temporary id for a definitive one in the
+					// coordinator
+					int nextId = IdentifierFactory.getNextId(dataField);
+					fieldValue.setValue(String.valueOf(nextId));
+				} else
+					RuntimeUtils.throwRunTimeException(
+							"columns with no semantic value must be either an integer" + " or a string",
+							ExitCode.INVALIDUSAGE);
+			}
+		}
 	}
 }

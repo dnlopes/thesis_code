@@ -12,6 +12,7 @@ import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.*;
 
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -76,7 +77,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	}
 
 	@Override
-	public void createRequestsToCoordinate(CoordinatorRequest request)
+	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
 		for(Constraint c : this.row.getContraintsToCheck())
 		{
@@ -116,15 +117,18 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 				FieldValue oldFieldValue = this.row.getFieldValue(currField.getFieldName());
 				FieldValue newFieldValue = this.row.getUpdateFieldValue(currField.getFieldName());
 
-				String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getFormattedValue(),
-						oldFieldValue.getFormattedValue());
+				if(!((CheckConstraint) c).isValidValue(newFieldValue.getValue()))
+					throw new SQLException("field value not valid due to a check constraint restriction");
+
+				String deltaValue = ((CheckConstraint) c).calculateDelta(newFieldValue.getValue(),
+						oldFieldValue.getValue());
 				ApplyDelta applyDeltaRequest = new ApplyDelta();
 				applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
 				applyDeltaRequest.setDeltaValue(deltaValue);
 				applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
 
-				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getFormattedValue(),
-						oldFieldValue.getFormattedValue()))
+				if(((CheckConstraint) c).mustCoordinate(newFieldValue.getValue(),
+						oldFieldValue.getValue()))
 				{
 					applyDeltaRequest.setMustCoordinate(true);
 					if(Configuration.TRACE_ENABLED)

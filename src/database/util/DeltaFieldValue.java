@@ -59,7 +59,8 @@ public class DeltaFieldValue extends FieldValue
 
 				this.delta *= -1;
 			}
-		}
+		}  else
+			this.delta = Double.parseDouble(this.value) - oldValue;
 
 		this.value = String.valueOf(oldValue + this.delta);
 	}
