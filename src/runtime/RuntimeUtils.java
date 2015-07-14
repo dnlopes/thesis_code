@@ -8,11 +8,13 @@ import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import runtime.operation.ShadowOperation;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
+import util.thrift.ThriftShadowTransaction;
 
 import java.text.DateFormat;
-
+import java.util.HashMap;
 
 
 /**
@@ -114,6 +116,19 @@ public class RuntimeUtils
 		{
 			return null;
 		}
+	}
+
+	public static ThriftShadowTransaction encodeShadowTransaction(Transaction txn)
+	{
+		ThriftShadowTransaction thriftTxn = new ThriftShadowTransaction();
+		thriftTxn.setOperations(new HashMap<Integer, String>());
+		thriftTxn.setTempOperations(new HashMap<Integer, String>());
+		thriftTxn.setTxnId(txn.getTxnId());
+
+		for(ShadowOperation op : txn.getShadowOperations())
+			op.generateStatements(thriftTxn);
+
+		return thriftTxn;
 	}
 
 }
