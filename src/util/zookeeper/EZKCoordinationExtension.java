@@ -4,6 +4,7 @@ package util.zookeeper;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.extension.EZKBaseExtension;
 import org.slf4j.Logger;
@@ -33,8 +34,12 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	@Override
 	public boolean matchesOperation(int requestType, String path)
 	{
-		if(requestType != ZooDefs.OpCode.setData && requestType != ZooDefs.OpCode.getData)
+		if(requestType != ZooDefs.OpCode.setData && requestType != ZooDefs.OpCode.getData && requestType != ZooDefs
+				.OpCode.setACL)
 			return false;
+
+		if(path.compareTo(CODES_OP.CLEANUP_OP_CODE) == 0)
+			return true;
 
 		return path.startsWith(BASE_DIR);
 	}
@@ -91,11 +96,13 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 			return true;
 
 		boolean success = true;
-		Set<String> addedNodes = new HashSet<String>();
-		StringBuilder buffer = new StringBuilder(EZKCoordinationExtension.UNIQUE_DIR + File.separatorChar);
+		Set<String> addedNodes = new HashSet<>();
+		StringBuilder buffer = new StringBuilder();
 
 		for(UniqueValue uniqueValue : valuesList)
 		{
+			buffer.setLength(0);
+			buffer.append(EZKCoordinationExtension.UNIQUE_DIR + File.separatorChar);
 			buffer.append(uniqueValue.getConstraintId());
 			buffer.append(File.separatorChar);
 			buffer.append(uniqueValue.getValue());
@@ -128,6 +135,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		try
 		{
 			extensionGate.create(node, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			LOG.trace("node {} reserved", node);
 			return true;
 		} catch(KeeperException e)
 		{
@@ -150,4 +158,44 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		}
 	}
 
+	protected Stat setACL(String path, List<ACL> acls, int version) throws KeeperException
+	{
+		if(path.compareTo(CODES_OP.CLEANUP_OP_CODE) == 0)
+			this.cleanup();
+
+		else
+			LOG.warn("unexpected operation code. Ignoring...");
+
+		return new Stat();
+	}
+
+	private void cleanup()
+	{
+		this.deleteDirectory(TMP_DIR, false);
+		this.deleteDirectory(UNIQUE_DIR, false);
+	}
+
+	private void deleteDirectory(String path, boolean deleteSelf)
+	{
+		List<String> childrens = null;
+		try
+		{
+			childrens = this.extensionGate.getChildren(path, false, null);
+
+			if(childrens.size() > 0)
+				for(String children : childrens)
+					this.deleteDirectory(path + File.separatorChar + children, true);
+
+			if(deleteSelf)
+				this.extensionGate.delete(path, -1);
+		} catch(KeeperException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public interface CODES_OP
+	{
+		public static final String CLEANUP_OP_CODE = "/CLEANUP";
+	}
 }

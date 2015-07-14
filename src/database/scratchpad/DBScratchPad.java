@@ -109,10 +109,11 @@ public class DBScratchPad implements IDBScratchPad
 		if(!this.activeTransaction.isReadOnly())
 		{
 			Request request = this.generateCoordinationRequest();
-			request.setRequiresCoordination(false);
 
 			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
-			shadowTransaction.setRequestToCoordinator(request);
+
+			if(request.isRequiresCoordination())
+				shadowTransaction.setRequestToCoordinator(request);
 
 			boolean commitDecision = network.commitOperation(shadowTransaction, this.proxyConfig.getReplicatorConfig
 					());
@@ -343,6 +344,7 @@ public class DBScratchPad implements IDBScratchPad
 	private Request generateCoordinationRequest() throws SQLException
 	{
 		Request req = new Request();
+		req.setRequiresCoordination(false);
 
 		for(ShadowOperation op : this.activeTransaction.getShadowOperations())
 			op.createRequestsToCoordinate(req);

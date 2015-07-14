@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public class EZKOperationCoordination implements OperationCoordinationService
 {
-	private static final int SESSION_TIMEOUT = 2000;
+
 	private static final Logger LOG = LoggerFactory.getLogger(EZKOperationCoordination.class);
 	public static final String BASE_DIR = "/coordination";
 	private final String PRIVATE_TMP_NODE;
@@ -27,23 +27,26 @@ public class EZKOperationCoordination implements OperationCoordinationService
 
 	protected final ZooKeeper zooKeeper;
 
-	public EZKOperationCoordination(String serverAddress, int id) throws IOException
+	public EZKOperationCoordination(ZooKeeper zooKeeper, int id) throws IOException
 	{
 		this.id = id;
 		this.PRIVATE_TMP_NODE = BASE_DIR + File.separatorChar + "tmp" + File.separatorChar + this.id;
-
-		this.zooKeeper = new ZooKeeper(serverAddress, SESSION_TIMEOUT, null);
+		this.zooKeeper = zooKeeper;
 	}
 
+	@Override
 	public void init(String codeBasePath) throws Exception
 	{
 		EZKExtensionRegistration.registerExtension(zooKeeper, EZKCoordinationExtension.class, codeBasePath);
 		// create private tmp node to hold generic byte array for responses
-		zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+		Stat stat = zooKeeper.exists(PRIVATE_TMP_NODE, false);
+		if(stat == null)
+			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
 		LOG.info("Extension client successfully binded to Zookeeper service");
 	}
 
+	@Override
 	public CoordinatorResponse coordinate(CoordinatorRequest request)
 	{
 		boolean singleRpc = !request.isSetRequests() || request.getRequestsSize() == 0;
@@ -53,6 +56,12 @@ public class EZKOperationCoordination implements OperationCoordinationService
 		else
 			return this.twoRpcCoordination(request);
 
+	}
+
+	@Override
+	public void cleanup() throws KeeperException, InterruptedException
+	{
+		this.zooKeeper.setACL(EZKCoordinationExtension.CODES_OP.CLEANUP_OP_CODE, null, -1);
 	}
 
 	private CoordinatorResponse singleRpcCoordination(CoordinatorRequest request)
@@ -108,5 +117,7 @@ public class EZKOperationCoordination implements OperationCoordinationService
 			response.setSuccess(false);
 		}
 	}
+
+
 
 }

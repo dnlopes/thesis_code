@@ -1,6 +1,7 @@
 package util.zookeeper;
 
 
+import org.apache.zookeeper.KeeperException;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 
@@ -10,11 +11,8 @@ import util.thrift.CoordinatorResponse;
 public interface OperationCoordinationService
 {
 
-	public interface CoordinationExtensionOperations
-	{
-		public static final String OP1 = "/coordination";
-	}
-
 	public CoordinatorResponse coordinate(CoordinatorRequest request);
+	public void init(String codeBasePath) throws Exception;
+	public void cleanup() throws KeeperException, InterruptedException;
 
 }

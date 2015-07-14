@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -47,9 +48,11 @@ public final class Configuration
 	private Map<Integer, DatabaseProperties> databases;
 	private DatabaseMetadata databaseMetadata;
 	private String databaseName;
+	private String extensionCodeDir;
 	private String schemaFile;
 	private int scratchpadPoolSize;
 	private StopWatch watch;
+
 
 	private Configuration()
 	{
@@ -140,6 +143,7 @@ public final class Configuration
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = BASE_DIR + "/" + map.getNamedItem("schemaFile").getNodeValue();
+		this.extensionCodeDir = map.getNamedItem("extensionCode").getNodeValue();
 
 		if(Configuration.INFO_ENABLED)
 		{
@@ -335,9 +339,34 @@ public final class Configuration
 		return this.scratchpadPoolSize;
 	}
 
+	public NodeConfig getMasterCoordinator()
+	{
+		return getCoordinatorConfigWithIndex(1);
+	}
+
 	private boolean checkConfig()
 	{
 		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0);
+	}
+
+	public String getZookeeperConnectionString()
+	{
+		StringBuffer buffer = new StringBuffer();
+
+		Iterator<NodeConfig> coordinatorConfigsIt = this.coordinators.values().iterator();
+		while(coordinatorConfigsIt.hasNext())
+		{
+			buffer.append(coordinatorConfigsIt.next().getHost());
+			if(coordinatorConfigsIt.hasNext())
+				buffer.append(",");
+		}
+
+		return buffer.toString();
+	}
+
+	public String getExtensionCodeDir()
+	{
+		return this.extensionCodeDir;
 	}
 }
 

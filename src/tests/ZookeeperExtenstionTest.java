@@ -29,8 +29,8 @@ public class ZookeeperExtenstionTest
 		String serverAddresses = args[1];
 
 		// Create and register counter extension
-		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(serverAddresses, 1);
-		coordinationExtenstion.init(extensionCodeDir);
+		//EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(serverAddresses, 1);
+		//coordinationExtenstion.init(extensionCodeDir);
 
 		CoordinatorRequest request = new CoordinatorRequest();
 
@@ -40,7 +40,7 @@ public class ZookeeperExtenstionTest
 		request.addToUniqueValues(u1);
 		request.addToUniqueValues(u2);
 
-		CoordinatorResponse response = coordinationExtenstion.coordinate(request);
+		//CoordinatorResponse response = coordinationExtenstion.coordinate(request);
 		int b = 0;
 
 		System.out.println("Asdasdas");

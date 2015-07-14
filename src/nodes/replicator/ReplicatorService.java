@@ -35,7 +35,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	public boolean commitOperation(ThriftShadowTransaction shadowTransaction) throws TException
 	{
 		//if we must coordinate then do it here. this is a blocking call
-		if(shadowTransaction.getRequestToCoordinator() != null)
+		if(shadowTransaction.isSetRequestToCoordinator())
 			if(!this.coordinate(shadowTransaction))
 				return false;
 
@@ -97,7 +97,8 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 			int opId = reqValue.getOpId();
 
 			String op = shadowTransaction.getOperations().get(opId);
-			op = op.replace(reqValue.getTempSymbol(), newValue);
+			op = op.replaceAll(reqValue.getTempSymbol(), newValue);
+			shadowTransaction.getOperations().put(opId, op);
 		}
 	}
 }

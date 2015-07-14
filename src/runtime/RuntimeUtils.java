@@ -23,9 +23,6 @@ import java.util.HashMap;
 public class RuntimeUtils
 {
 
-	private static final TSerializer T_SERIALIZER = new TSerializer(new TBinaryProtocol.Factory());
-	private static final TDeserializer T_DESERIALIZER = new TDeserializer(new TBinaryProtocol.Factory());
-
 	public static void throwRunTimeException(String message, int exitCode)
 	{
 		try
@@ -82,9 +79,10 @@ public class RuntimeUtils
 
 	public static byte[] encodeThriftObject(TBase request)
 	{
+		TSerializer serializer = new TSerializer(new TBinaryProtocol.Factory());
 		try
 		{
-			byte[] bytes = T_SERIALIZER.serialize(request);
+			byte[] bytes = serializer.serialize(request);
 			return bytes;
 		} catch(TException e)
 		{
@@ -94,10 +92,11 @@ public class RuntimeUtils
 
 	public static CoordinatorResponse decodeCoordinatorResponse(byte[] bytesObject)
 	{
+		TDeserializer deserializer = new TDeserializer(new TBinaryProtocol.Factory());
 		CoordinatorResponse req = new CoordinatorResponse();
 		try
 		{
-			T_DESERIALIZER.deserialize(req, bytesObject);
+			deserializer.deserialize(req, bytesObject);
 			return req;
 		} catch(TException e)
 		{
@@ -107,10 +106,11 @@ public class RuntimeUtils
 
 	public static CoordinatorRequest decodeCoordinatorRequest(byte[] requestByteArray)
 	{
+		TDeserializer deserializer = new TDeserializer(new TBinaryProtocol.Factory());
 		CoordinatorRequest req = new CoordinatorRequest();
 		try
 		{
-			T_DESERIALIZER.deserialize(req, requestByteArray);
+			deserializer.deserialize(req, requestByteArray);
 			return req;
 		} catch(TException e)
 		{
