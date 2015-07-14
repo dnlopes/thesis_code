@@ -91,9 +91,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req)
+	public CoordinatorResponse sendRequestToCoordinator(Request req)
 	{
-		req.setRequestId(0);
 		CoordinatorResponse response = new CoordinatorResponse();
 		response.setSuccess(false);
 

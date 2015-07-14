@@ -65,13 +65,27 @@ public class Coordinator extends AbstractNode
 		System.out.println("coordinator " + this.config.getId() + " online");
 	}
 
-	public CoordinatorResponse processInvariants(CoordinatorRequest req)
+	public CoordinatorResponse processRequest(Request request)
 	{
 		CoordinatorResponse response = new CoordinatorResponse();
+		List<RequestValue> requestedValues = new ArrayList<>();
 
-		for(UniqueValue uniqueValue : req.getUniqueValues())
+		for(RequestUnit unit : request.getRequests())
 		{
-			boolean res = processUniqueValueRequest(response, uniqueValue);
+			boolean res = false;
+
+			if(unit.isSetApplyDelta())
+				res = processApplyDelta(response, unit.getApplyDelta());
+
+			if(unit.isSetUniqueValue())
+				res = processUniqueValue(response, unit.getUniqueValue());
+
+			if(unit.isSetRequestValue())
+			{
+				this.processRequestValue(unit.getRequestValue());
+				requestedValues.add(unit.getRequestValue());
+			}
+
 			if(!res)
 			{
 				response.setSuccess(false);
@@ -79,20 +93,8 @@ public class Coordinator extends AbstractNode
 			}
 		}
 
-		for(ApplyDelta applyDelta : req.getDeltaValues())
-		{
-			boolean res = processApplyDelta(response, applyDelta);
-			if(!res)
-			{
-				response.setSuccess(false);
-				return response;
-			}
-		}
+		response.setRequestedValues(requestedValues);
 
-		for(RequestValue reqValue : req.getRequests())
-			this.processRequestValue(reqValue);
-
-		response.setRequestedValues(req.getRequests());
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("all requests were successfully processed");
 
@@ -120,7 +122,7 @@ public class Coordinator extends AbstractNode
 		}
 	}
 
-	private boolean processUniqueValueRequest(CoordinatorResponse response, UniqueValue uniqueValue)
+	private boolean processUniqueValue(CoordinatorResponse response, UniqueValue uniqueValue)
 	{
 		String desiredValue = uniqueValue.getValue();
 		String constraintId = uniqueValue.getConstraintId();

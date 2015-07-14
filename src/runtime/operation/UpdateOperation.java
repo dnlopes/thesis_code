@@ -77,7 +77,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	}
 
 	@Override
-	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
+	public void createRequestsToCoordinate(Request request) throws SQLException
 	{
 		for(Constraint c : this.row.getContraintsToCheck())
 		{
@@ -108,7 +108,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 				if(!shouldCoordinate)
 					break;
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
-				request.addToUniqueValues(uniqueValue);
+				request.addToRequests(RequestUnit.uniqueValue(uniqueValue));
 				if(Configuration.TRACE_ENABLED)
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
@@ -135,7 +135,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 						LOG.trace("new delta check entry added");
 				}
 
-				request.addToDeltaValues(applyDeltaRequest);
+				request.addToRequests(RequestUnit.applyDelta(applyDeltaRequest));
 				break;
 			default:
 				RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);

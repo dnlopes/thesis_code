@@ -1,11 +1,12 @@
 # Set terminal & output
 set terminal postscript eps enhanced color solid font 'Helvetica,18'
+set encoding utf8
 # Output
 set output outputfile
 
 # Axis
 #set yrange [0:30]
-set ylabel "Latency (ms)"
+set ylabel "Latência (ms)"
 #set xrange [0:100000]
 set xlabel "Throughput (txn/s)"
 set xtics nomirror rotate by -30 scale 0.5

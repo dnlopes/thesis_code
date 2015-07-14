@@ -223,6 +223,17 @@
 				<include name="mysql-connector-java-5.1.17-bin.jar"/>
 			</zipgroupfileset>
 		</jar>
+		<jar destfile="${jars.dir}/thrift.jar">
+			<fileset dir="${classes.dir}">
+				<include name="util/thrift/*.class" />
+			</fileset>
+			<manifest>
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<zipgroupfileset dir="${libs.dir}">
+				<include name="libthrift-0.9.2.jar"/>
+			</zipgroupfileset>
+		</jar>
 	</target>
 	<target name="deploy" depends="dist" description="Deploy WeakDB distribution">
 		<delete dir="${deploy.dir}" />

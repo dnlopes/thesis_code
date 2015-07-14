@@ -71,7 +71,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private boolean coordinate(ThriftShadowTransaction shadowTransaction)
 	{
-		CoordinatorRequest request = shadowTransaction.getRequestToCoordinator();
+		Request request = shadowTransaction.getRequestToCoordinator();
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(!response.isSuccess())

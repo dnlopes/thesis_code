@@ -3,9 +3,17 @@ package runtime;
 
 import database.util.field.DataField;
 import database.util.DatabaseCommon;
+import org.apache.thrift.TBase;
+import org.apache.thrift.TDeserializer;
+import org.apache.thrift.TException;
+import org.apache.thrift.TSerializer;
+import org.apache.thrift.protocol.TBinaryProtocol;
 import runtime.operation.ShadowOperation;
+import util.thrift.CoordinatorRequest;
+import util.thrift.CoordinatorResponse;
 import util.thrift.ThriftShadowTransaction;
 
+import java.io.*;
 import java.text.DateFormat;
 import java.util.HashMap;
 
@@ -15,6 +23,9 @@ import java.util.HashMap;
  */
 public class RuntimeUtils
 {
+
+	private static final TSerializer T_SERIALIZER = new TSerializer(new TBinaryProtocol.Factory());
+	private static final TDeserializer T_DESERIALIZER = new TDeserializer(new TBinaryProtocol.Factory());
 
 	public static void throwRunTimeException(String message, int exitCode)
 	{
@@ -82,4 +93,43 @@ public class RuntimeUtils
 
 		return thriftTxn;
 	}
+
+	public static byte[] encodeThriftObject(TBase request)
+	{
+		try
+		{
+			byte[] bytes = T_SERIALIZER.serialize(request);
+			return bytes;
+		} catch(TException e)
+		{
+			return null;
+		}
+	}
+
+	public static CoordinatorResponse decodeCoordinatorResponse(byte[] bytesObject)
+	{
+		CoordinatorResponse req = new CoordinatorResponse();
+		try
+		{
+			T_DESERIALIZER.deserialize(req, bytesObject);
+			return req;
+		} catch(TException e)
+		{
+			return null;
+		}
+	}
+
+	public static CoordinatorRequest decodeCoordinatorRequest(byte[] requestByteArray)
+	{
+		CoordinatorRequest req = new CoordinatorRequest();
+		try
+		{
+			T_DESERIALIZER.deserialize(req, requestByteArray);
+			return req;
+		} catch(TException e)
+		{
+			return null;
+		}
+	}
+
 }

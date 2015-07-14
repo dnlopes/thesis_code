@@ -23,17 +23,14 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	}
 
 	@Override
-	public CoordinatorResponse checkInvariants(CoordinatorRequest request) throws TException
+	public CoordinatorResponse checkInvariants(Request request) throws TException
 	{
-		if(Configuration.TRACE_ENABLED)
-			LOG.trace("request {} received", request.getRequestId());
-
-		CoordinatorResponse response = this.coordinator.processInvariants(request);
+		CoordinatorResponse response = this.coordinator.processRequest(request);
 
 		if(!response.isSuccess())
 			if(Configuration.TRACE_ENABLED)
 				LOG.trace("txn is not allowed to commit. Please abort");
-		else
+			else
 			if(Configuration.TRACE_ENABLED)
 				LOG.trace("txn is allowed to commit.");
 

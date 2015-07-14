@@ -108,12 +108,11 @@ public class DBScratchPad implements IDBScratchPad
 		// if read-only, then just return from this method
 		if(!this.activeTransaction.isReadOnly())
 		{
-			CoordinatorRequest request = this.generateCoordinationRequest();
-			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
+			Request request = this.generateCoordinationRequest();
+			request.setRequiresCoordination(false);
 
-			if(request.getDeltaValues().size() > 0 || request.getRequests().size() > 0 || request.getUniqueValues()
-					.size() > 0)
-				shadowTransaction.setRequestToCoordinator(request);
+			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
+			shadowTransaction.setRequestToCoordinator(request);
 
 			boolean commitDecision = network.commitOperation(shadowTransaction, this.proxyConfig.getReplicatorConfig
 					());
@@ -341,13 +340,9 @@ public class DBScratchPad implements IDBScratchPad
 		this.batchEmpty = true;
 	}
 
-	private CoordinatorRequest generateCoordinationRequest() throws SQLException
+	private Request generateCoordinationRequest() throws SQLException
 	{
-		CoordinatorRequest req = new CoordinatorRequest();
-
-		req.setDeltaValues(new ArrayList<ApplyDelta>());
-		req.setRequests(new ArrayList<RequestValue>());
-		req.setUniqueValues(new ArrayList<UniqueValue>());
+		Request req = new Request();
 
 		for(ShadowOperation op : this.activeTransaction.getShadowOperations())
 			op.createRequestsToCoordinate(req);
@@ -1293,9 +1288,10 @@ public class DBScratchPad implements IDBScratchPad
 				if(field.isHiddenField())
 					continue;
 
-				//FIXME: currently, we do not allow updates on primary keys or immutable fields
-				if(field.isImmutableField() || field.isPrimaryKey())
-					RuntimeUtils.throwRunTimeException("trying to modify a primary key or an immutable field",
+				//FIXME: currently, we do not allow updates on primary keys, foreign keys and immutable fields
+				if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
+					RuntimeUtils.throwRunTimeException("trying to modify a primary key, a foreign key or an " +
+									"immutable field",
 							ExitCode.UNEXPECTED_OP);
 
 				if(newValue == null)

@@ -7,6 +7,7 @@ struct ApplyDelta
     3: required string rowId;
     4: required bool mustCoordinate;
 }
+
 struct RequestValue
 {
     1: required string constraintId;
@@ -47,10 +48,21 @@ struct ThriftOperation {
 struct ThriftShadowTransaction {
     1: required i32 txnId;
     2: required map<i32,string> operations;
-    3: CoordinatorRequest requestToCoordinator;
+    3: Request requestToCoordinator;
     4: map<i32,string> tempOperations;
     5: string clock
     6: i32 replicatorId;
+}
+
+union RequestUnit {
+    1:UniqueValue uniqueValue;
+    2:ApplyDelta applyDelta;
+    3:RequestValue requestValue;
+}
+
+struct Request {
+    1:bool requiresCoordination;
+    2:list<RequestUnit> requests;
 }
 
 service ReplicatorRPC {
@@ -61,5 +73,5 @@ service ReplicatorRPC {
 
 service CoordinatorRPC
 {
-    CoordinatorResponse checkInvariants(1:CoordinatorRequest req);
+    CoordinatorResponse checkInvariants(1:Request request);
 }
