@@ -1,11 +1,9 @@
 package tests;
 
-import org.apache.zookeeper.ExtendedZookeeper;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.recipes.coordination.EZKOperationCoordination;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.UniqueValue;
+import util.zookeeper.EZKOperationCoordination;
 
 import java.util.ArrayList;
 
@@ -31,8 +29,7 @@ public class ZookeeperExtenstionTest
 		String serverAddresses = args[1];
 
 		// Create and register counter extension
-		ZooKeeper zooKeeper = new ZooKeeper(serverAddresses, 6000000, null);
-		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(zooKeeper, 1);
+		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(serverAddresses, 1);
 		coordinationExtenstion.init(extensionCodeDir);
 
 		CoordinatorRequest request = new CoordinatorRequest();
