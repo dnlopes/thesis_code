@@ -61,7 +61,7 @@ public class EZKOperationCoordination implements OperationCoordinationService
 	@Override
 	public void cleanup() throws KeeperException, InterruptedException
 	{
-		this.zooKeeper.setACL(EZKCoordinationExtension.CODES_OP.CLEANUP_OP_CODE, null, -1);
+		this.zooKeeper.setACL(EZKCoordinationExtension.OPS_STRINGS.CLEANUP_OP_CODE, null, -1);
 	}
 
 	private CoordinatorResponse singleRpcCoordination(CoordinatorRequest request)
@@ -117,7 +117,5 @@ public class EZKOperationCoordination implements OperationCoordinationService
 			response.setSuccess(false);
 		}
 	}
-
-
 
 }

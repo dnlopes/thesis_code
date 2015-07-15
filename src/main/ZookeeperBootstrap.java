@@ -65,7 +65,7 @@ public class ZookeeperBootstrap
 		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap();
 		bootstrap.installExtension();
 		bootstrap.readDatabaseState();
-
+		bootstrap.exitGracefully();
 	}
 
 	public ZookeeperBootstrap() throws IOException, SQLException
@@ -97,6 +97,12 @@ public class ZookeeperBootstrap
 					RuntimeUtils.throwRunTimeException("unkown constraint type", ExitCode.UNKNOWN_INVARIANT);
 			}
 		}
+	}
+
+	public void installExtension() throws Exception
+	{
+		this.extension.init(CONFIG.getExtensionCodeDir());
+		this.extension.cleanup();
 	}
 
 	private void treatUniqueConstraint(UniqueConstraint uniqueConstraint, CoordinatorRequest req)
@@ -178,7 +184,6 @@ public class ZookeeperBootstrap
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-
 		if(Configuration.TRACE_ENABLED)
 			LOG.trace("{} values already in use for constraint {}", counter,
 					uniqueConstraint.getConstraintIdentifier());
@@ -186,6 +191,7 @@ public class ZookeeperBootstrap
 
 	private void treatAutoIncrementConstraint(AutoIncrementConstraint autoIncrementConstraint, CoordinatorRequest req)
 	{
+		//TODO
 	}
 
 	private void createNode(String path)
@@ -199,25 +205,10 @@ public class ZookeeperBootstrap
 		}
 	}
 
-	private void deleteNode(String path)
-	{
-		try
-		{
-			this.zookeeper.delete(path, -1);
-		} catch(KeeperException | InterruptedException e)
-		{
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
-		}
-	}
-
-	public void cleanup()
+	public void exitGracefully()
 	{
 		DbUtils.closeQuietly(this.connection);
 	}
 
-	public void installExtension() throws Exception
-	{
-		this.extension.init(CONFIG.getExtensionCodeDir());
-		this.extension.cleanup();
-	}
+
 }
