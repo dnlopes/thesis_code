@@ -28,6 +28,7 @@ import util.zookeeper.OperationCoordinationService;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,13 +44,14 @@ import java.util.Set;
 public class ZookeeperBootstrap
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
 	private final Configuration CONFIG = Configuration.getInstance();
-	private static final int SESSION_TIMEOUT = 20000000;
+	static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
+
+	private static final int SESSION_TIMEOUT = 4000000;
 	private final Connection connection;
 	private final ZooKeeper zookeeper;
 	private final OperationCoordinationService extension;
-	private DatabaseMetadata databaseMetadata;
+	private final DatabaseMetadata databaseMetadata;
 
 	public static void main(String args[]) throws Exception
 	{
@@ -90,7 +92,7 @@ public class ZookeeperBootstrap
 				if(constraint.getType() == ConstraintType.UNIQUE)
 					this.treatUniqueConstraint((UniqueConstraint) constraint, request);
 				else if(constraint.getType() == ConstraintType.AUTO_INCREMENT)
-					this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint, request);
+					this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
 				else if(constraint.getType() == ConstraintType.CHECK)
 					LOG.warn("check constraints not yet supported");
 				else if(constraint.getType() != ConstraintType.FOREIGN_KEY)
@@ -189,9 +191,51 @@ public class ZookeeperBootstrap
 					uniqueConstraint.getConstraintIdentifier());
 	}
 
-	private void treatAutoIncrementConstraint(AutoIncrementConstraint autoIncrementConstraint, CoordinatorRequest req)
+	private void treatAutoIncrementConstraint(AutoIncrementConstraint autoIncrementConstraint)
 	{
-		//TODO
+		DataField field = autoIncrementConstraint.getFields().get(0);
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("SELECT MAX(");
+		buffer.append(field.getFieldName());
+		buffer.append(") AS ");
+		buffer.append(field.getFieldName());
+		buffer.append(" FROM ");
+		buffer.append(field.getTableName());
+
+		int maxId = 0;
+		try
+		{
+
+			Statement stmt = this.connection.createStatement();
+			ResultSet rs = stmt.executeQuery(buffer.toString());
+
+			if(rs.next())
+			{
+				maxId = rs.getInt(field.getFieldName());
+				String nodePath = EZKCoordinationExtension.COUNTERS_DIR + File.separatorChar +
+						autoIncrementConstraint.getConstraintIdentifier();
+				this.zookeeper.create(nodePath, toBytes(maxId), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			}
+
+			DbUtils.closeQuietly(stmt);
+			DbUtils.closeQuietly(rs);
+
+		} catch(SQLException e)
+		{
+			LOG.error("could not fetch the last id for constraint {}",
+					autoIncrementConstraint.getConstraintIdentifier(), e);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ID_GENERATOR_ERROR);
+		} catch(InterruptedException e)
+		{
+			e.printStackTrace();
+		} catch(KeeperException e)
+		{
+			LOG.error(e.getMessage());
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.INVALIDUSAGE);
+		}
+
+		if(LOG.isTraceEnabled())
+			LOG.trace("current id for field {} is {}", field.getFieldName(), maxId);
 	}
 
 	private void createNode(String path)
@@ -210,5 +254,11 @@ public class ZookeeperBootstrap
 		DbUtils.closeQuietly(this.connection);
 	}
 
+	private static byte[] toBytes(int value)
+	{
+		byte[] bytes = new byte[4];
+		ByteBuffer.wrap(bytes).putInt(value);
+		return bytes;
+	}
 
 }
