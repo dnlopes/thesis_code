@@ -98,7 +98,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 		this.activeTransaction = new Transaction(txnId);
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
 	}
 
@@ -486,12 +486,12 @@ public class DBScratchPad implements IDBScratchPad
 						String pk = tableDefinition.getPksPlain()[j];
 						if(subExpressionStrs[i].contains(pk))
 						{
-							if(Configuration.TRACE_ENABLED)
+							if(LOG.isTraceEnabled())
 								LOG.trace("I identified one primary key from your where clause " + pk);
 							if(subExpressionStrs[i].contains("="))
 							{
 								String tempStr = subExpressionStrs[i].replaceAll("\\s+", "");
-								if(Configuration.TRACE_ENABLED)
+								if(LOG.isTraceEnabled())
 									LOG.trace("I remove all space " + tempStr);
 								int indexOfEqualSign = tempStr.indexOf('=');
 								if(indexOfEqualSign < tempStr.length() - 1)
@@ -499,7 +499,7 @@ public class DBScratchPad implements IDBScratchPad
 									String valuePart = tempStr.substring(indexOfEqualSign + 1);
 									if(this.isInteger(valuePart))
 									{
-										if(Configuration.TRACE_ENABLED)
+										if(LOG.isTraceEnabled())
 											LOG.trace("We identified an integer");
 										if(!isFirst)
 										{
@@ -687,7 +687,7 @@ public class DBScratchPad implements IDBScratchPad
 				else
 					buffer.append("CREATE TABLE IF NOT EXISTS ");        // for mysql
 
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("creating temporary table {}", this.tempTableName);
 
 				buffer.append(tempTableName);
@@ -829,7 +829,7 @@ public class DBScratchPad implements IDBScratchPad
 				LOG.error("failed to create temporary tables for scratchpad", e);
 				RuntimeUtils.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
 			}
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("executor for table {} created", this.databaseTable.getName());
 		}
 
@@ -1539,7 +1539,7 @@ public class DBScratchPad implements IDBScratchPad
 
 				if(!rs.isBeforeFirst())
 				{
-					if(Configuration.DEBUG_ENABLED)
+					if(LOG.isDebugEnabled())
 						LOG.debug(buffer.toString());
 					throw new SQLException("result set is empty (could not fetch row from main storage)");
 				}

@@ -5,7 +5,6 @@ import database.util.DatabaseMetadata;
 import nodes.NodeConfig;
 import nodes.Role;
 import nodes.proxy.ProxyConfig;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -32,41 +31,30 @@ import java.util.Map;
  */
 public final class Configuration
 {
-	public static boolean DEBUG_ENABLED;
-	public static boolean TRACE_ENABLED;
-	public static boolean INFO_ENABLED;
 
 	private static Configuration ourInstance = new Configuration();
 	private static Logger LOG;
 
 	private static String CONFIG_FILE;
-	private static final String BASE_DIR = "/local/dp.lopes/deploy";
 
-	private Map<Integer, NodeConfig> replicators;
-	private Map<Integer, ProxyConfig> proxies;
-	private Map<Integer, NodeConfig> coordinators;
-	private Map<Integer, DatabaseProperties> databases;
-	private DatabaseMetadata databaseMetadata;
+	private final Map<Integer, NodeConfig> replicators;
+	private final Map<Integer, ProxyConfig> proxies;
+	private final Map<Integer, NodeConfig> coordinators;
+	private final Map<Integer, DatabaseProperties> databases;
+	private final DatabaseMetadata databaseMetadata;
 	private String databaseName;
 	private String extensionCodeDir;
 	private String schemaFile;
 	private int scratchpadPoolSize;
-	private StopWatch watch;
-
 
 	private Configuration()
 	{
 		LOG = LoggerFactory.getLogger(Configuration.class);
-		INFO_ENABLED = LOG.isInfoEnabled();
-		TRACE_ENABLED = LOG.isTraceEnabled();
-		DEBUG_ENABLED = LOG.isDebugEnabled();
-
 		CONFIG_FILE = System.getProperty("configPath");
-		if(Configuration.INFO_ENABLED)
+
+		if(LOG.isInfoEnabled())
 			LOG.info("loading configuration file: {}", CONFIG_FILE);
 
-
-		this.watch = new StopWatch();
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
@@ -74,7 +62,6 @@ public final class Configuration
 
 		try
 		{
-			watch.start();
 			loadConfigurationFile();
 		} catch(ConfigurationLoadException e)
 		{
@@ -90,10 +77,9 @@ public final class Configuration
 
 		DDLParser parser = new DDLParser(this.schemaFile);
 		this.databaseMetadata = parser.parseAnnotations();
-		this.watch.stop();
 
-		if(Configuration.TRACE_ENABLED)
-			LOG.trace("config file successfully loaded in {} ms", watch.getTime());
+		if(LOG.isTraceEnabled())
+			LOG.trace("config file successfully loaded");
 	}
 
 	public static Configuration getInstance()
@@ -142,10 +128,10 @@ public final class Configuration
 		NamedNodeMap map = n.getAttributes();
 		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
-		this.schemaFile = BASE_DIR + "/" + map.getNamedItem("schemaFile").getNodeValue();
+		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
 		this.extensionCodeDir = map.getNamedItem("extensionCode").getNodeValue();
 
-		if(Configuration.INFO_ENABLED)
+		if(LOG.isInfoEnabled())
 		{
 			LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
 			LOG.info("Database name: {}", this.databaseName);
@@ -339,14 +325,11 @@ public final class Configuration
 		return this.scratchpadPoolSize;
 	}
 
-	public NodeConfig getMasterCoordinator()
-	{
-		return getCoordinatorConfigWithIndex(1);
-	}
-
 	private boolean checkConfig()
 	{
-		return !(this.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators.size() == 0);
+		return !(this.scratchpadPoolSize == 0 || this.extensionCodeDir == null || this.databaseName == null || this
+				.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators
+				.size() == 0);
 	}
 
 	public String getZookeeperConnectionString()

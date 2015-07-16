@@ -109,7 +109,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 					break;
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
 				request.addToRequests(RequestUnit.uniqueValue(uniqueValue));
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case CHECK:
@@ -131,7 +131,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 						oldFieldValue.getValue()))
 				{
 					applyDeltaRequest.setMustCoordinate(true);
-					if(Configuration.TRACE_ENABLED)
+					if(LOG.isTraceEnabled())
 						LOG.trace("new delta check entry added");
 				}
 

@@ -45,10 +45,10 @@ public class DBCommitPad implements IDBCommitPad
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			if(Configuration.INFO_ENABLED)
+			if(LOG.isInfoEnabled())
 				LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
 		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
@@ -72,7 +72,7 @@ public class DBCommitPad implements IDBCommitPad
 			for(String statement : op.getOperations().values())
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("executing on maindb: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
@@ -81,7 +81,7 @@ public class DBCommitPad implements IDBCommitPad
 			this.connection.commit();
 			success = true;
 
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("txn {} committed", op.getTxnId());
 
 		} catch(SQLException e)

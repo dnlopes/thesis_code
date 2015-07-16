@@ -47,7 +47,7 @@ public class CheckConstraintEnforcer
 
 	private void setup(NodeConfig config)
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("scanning all used values");
 
 		StringBuilder buffer = new StringBuilder();
@@ -79,7 +79,7 @@ public class CheckConstraintEnforcer
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("{} values inserted", this.currentValues.size());
 	}
 

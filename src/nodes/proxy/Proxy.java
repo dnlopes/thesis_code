@@ -102,7 +102,7 @@ public class Proxy extends AbstractNode
 		TXN_COUNT++;
 
 		if(TXN_COUNT % FREQUENCY == 0)
-			if(Configuration.INFO_ENABLED)
+			if(LOG.isInfoEnabled())
 				LOG.info("committing txn {}", pad.getActiveTransaction().getTxnId());
 
 		pad.commitTransaction(this.networkInterface);
@@ -184,7 +184,7 @@ public class Proxy extends AbstractNode
 			}
 		}
 
-		if(Configuration.INFO_ENABLED)
+		if(LOG.isInfoEnabled())
 			LOG.info("{} scratchpads available for temporary execution", this.scratchpadsPool.getPoolSize());
 	}
 

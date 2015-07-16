@@ -63,7 +63,7 @@ public class CausalDeliver implements Deliver
 	private void addToQueue(ThriftShadowTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
-		if(Configuration.DEBUG_ENABLED)
+		if(LOG.isDebugEnabled())
 			LOG.debug("adding op with clock {} to queue", op.getClock());
 		this.queues.get(replicatorId).add(op);
 	}

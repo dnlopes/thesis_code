@@ -42,7 +42,7 @@ public class DatabaseMetadata
 		}
 
 		tablesMap.put(table.getName(), table);
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("table {} added", table.getName());
 	}
 

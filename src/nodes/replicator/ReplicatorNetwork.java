@@ -47,7 +47,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private void setup()
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("creating connection pool to coordinator");
 
 		for(int i = 0; i < POOL_SIZE; i++)
@@ -63,7 +63,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			this.coordinatorConnectionPool.addObject(rpcConnection);
 		}
 
-		if(Configuration.DEBUG_ENABLED)
+		if(LOG.isDebugEnabled())
 			LOG.debug("created {} connections to coordinator", this.coordinatorConnectionPool.getPoolSize());
 	}
 

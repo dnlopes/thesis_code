@@ -84,7 +84,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				this.row.updateFieldValue(new FieldValue(fieldValue.getDataField(), symbol));
 				this.isFinal = false;
 				counter++;
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("new request id entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case UNIQUE:
@@ -99,7 +99,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				}
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
 				request.addToRequests(RequestUnit.uniqueValue(uniqueValue));
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
 			case FOREIGN_KEY:
@@ -117,7 +117,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
 				request.addToRequests(RequestUnit.applyDelta(applyDeltaRequest));
 
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("new delta check entry added");
 				break;
 			default:

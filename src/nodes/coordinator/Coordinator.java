@@ -95,7 +95,7 @@ public class Coordinator extends AbstractNode
 
 		response.setRequestedValues(requestedValues);
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("all requests were successfully processed");
 
 		response.setSuccess(true);
@@ -110,7 +110,7 @@ public class Coordinator extends AbstractNode
 
 		if(this.checkEnforcers.get(constraintId).applyDelta(rowId, delta))
 		{
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("delta value {} applied sucessfully", delta);
 			return true;
 		} else
@@ -130,7 +130,7 @@ public class Coordinator extends AbstractNode
 
 		if(enforcer.reservValue(desiredValue))
 		{
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("new unique value reserved: {} for table-field {}", desiredValue, constraintId);
 
 			return true;
@@ -138,7 +138,7 @@ public class Coordinator extends AbstractNode
 		{
 			String error = "unique value already in use: " + desiredValue + " for table " + enforcer.getTableName();
 			response.setErrorMessage(error);
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("unique value already in use {} for table-field {}", desiredValue, constraintId);
 
 			return false;
@@ -150,7 +150,7 @@ public class Coordinator extends AbstractNode
 		String constraintId = reqValue.getConstraintId();
 		int newId = this.autoIncrementsEnforcers.get(constraintId).getNextId();
 		reqValue.setRequestedValue(String.valueOf(newId));
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("providing new auto incremented value {} for table-field {}", newId, constraintId);
 
 		return true;

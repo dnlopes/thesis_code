@@ -366,7 +366,7 @@ public abstract class DatabaseTable
 	{
 		if(getFieldCount() == colList.size() || getFieldCount() == valueList.size())
 		{
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("no missing fields");
 			return null;
 		}

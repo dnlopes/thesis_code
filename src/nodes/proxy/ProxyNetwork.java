@@ -89,7 +89,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 	private void setup()
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("setting up client connections");
 		ProxyConfig proxyConfig = (ProxyConfig) this.me;
 		NodeConfig replicatorConfig = proxyConfig.getReplicatorConfig();

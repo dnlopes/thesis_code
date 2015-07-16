@@ -37,7 +37,7 @@ public class CoordinatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		if(Configuration.INFO_ENABLED)
+		if(LOG.isInfoEnabled())
 			LOG.info("starting coordinator server on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}

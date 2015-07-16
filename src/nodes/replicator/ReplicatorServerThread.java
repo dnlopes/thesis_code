@@ -35,7 +35,7 @@ public class ReplicatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		if(Configuration.INFO_ENABLED)
+		if(LOG.isInfoEnabled())
 			LOG.info("starting replicator server on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}

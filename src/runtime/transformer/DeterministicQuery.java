@@ -125,13 +125,13 @@ public class DeterministicQuery
 	private static Set<String> findMissingDataFields(String tableName, List<String> colList, List<String> valueList)
 	{
 		if(DB_METADATA == null)
-			if(Configuration.DEBUG_ENABLED)
+			if(LOG.isDebugEnabled())
 				LOG.debug("DATABASE METADATA IS NULL");
 
 		DatabaseTable dtB = DB_METADATA.getTable(tableName);
 
 		if(dtB == null)
-			if(Configuration.DEBUG_ENABLED)
+			if(LOG.isDebugEnabled())
 				LOG.debug("dtb is null!!");
 		return dtB.findMisingDataField(colList, valueList);
 	}
@@ -298,7 +298,7 @@ public class DeterministicQuery
 			//executeUpdate the primaryKeySelectStr
 			try
 			{
-				if(Configuration.TRACE_ENABLED)
+				if(LOG.isTraceEnabled())
 					LOG.trace("fetching rows from main database");
 				PreparedStatement sPst = con.prepareStatement(primaryKeySelectStr);
 				ResultSet rs = sPst.executeQuery();
@@ -609,7 +609,7 @@ public class DeterministicQuery
 	 */
 	private static String[] assembleUpdates(String tableName, List<String> colList, List<String> valList, ResultSet rs)
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("assembling update for table {}", tableName);
 
 		StringBuilder buffer = new StringBuilder();
@@ -666,7 +666,7 @@ public class DeterministicQuery
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ERRORTRANSFORM);
 		}
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("update query assembled correctly");
 		return updateStrList.toArray(new String[updateStrList.size()]);
 	}
@@ -683,7 +683,7 @@ public class DeterministicQuery
 	 */
 	private static String[] assembleDeletes(String tableName, ResultSet rs)
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("assembling deletes for table {}", tableName);
 
 		StringBuilder buffer = new StringBuilder();
@@ -731,7 +731,7 @@ public class DeterministicQuery
 			LOG.error("failed to assemble delete query");
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.ERRORTRANSFORM);
 		}
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("delete query assembled correctly");
 		return deleteStrList.toArray(new String[deleteStrList.size()]);
 	}

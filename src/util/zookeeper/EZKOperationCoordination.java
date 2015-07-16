@@ -41,9 +41,9 @@ public class EZKOperationCoordination implements OperationCoordinationService
 		// create private tmp node to hold generic byte array for responses
 		Stat stat = zooKeeper.exists(PRIVATE_TMP_NODE, false);
 		if(stat == null)
-			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 
-		LOG.info("Extension client successfully binded to Zookeeper service");
+		LOG.info("Coordination extension successfully insallted at Zookeeper service");
 	}
 
 	@Override

@@ -115,7 +115,7 @@ public class ZookeeperBootstrap
 
 		this.createNode(prefix);
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("scanning all used values");
 
 		StringBuilder buffer = new StringBuilder();
@@ -184,7 +184,7 @@ public class ZookeeperBootstrap
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("{} values already in use for constraint {}", counter,
 					uniqueConstraint.getConstraintIdentifier());
 	}

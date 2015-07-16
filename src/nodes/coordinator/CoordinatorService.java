@@ -28,10 +28,10 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 		CoordinatorResponse response = this.coordinator.processRequest(request);
 
 		if(!response.isSuccess())
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("txn is not allowed to commit. Please abort");
 			else
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("txn is allowed to commit.");
 
 		return response;

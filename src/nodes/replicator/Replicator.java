@@ -106,7 +106,7 @@ public class Replicator extends AbstractNode
 
 		this.clockLock.unlock();
 
-		if(Configuration.DEBUG_ENABLED)
+		if(LOG.isDebugEnabled())
 			LOG.debug("clock incremented to {}", newClock.toString());
 
 		return newClock;
@@ -125,14 +125,14 @@ public class Replicator extends AbstractNode
 
 	private void mergeWithRemoteClock(LogicalClock clock)
 	{
-		if(Configuration.DEBUG_ENABLED)
+		if(LOG.isDebugEnabled())
 			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
 
 		this.clockLock.lock();
 		this.clock = this.clock.maxClock(clock);
 		this.clockLock.unlock();
 
-		if(Configuration.DEBUG_ENABLED)
+		if(LOG.isDebugEnabled())
 			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
@@ -146,7 +146,7 @@ public class Replicator extends AbstractNode
 			this.commitPadPool.addObject(commitPad);
 		}
 
-		if(Configuration.INFO_ENABLED)
+		if(LOG.isInfoEnabled())
 			LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
 	}
 }

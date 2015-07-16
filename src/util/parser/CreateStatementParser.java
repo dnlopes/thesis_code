@@ -28,7 +28,6 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 
-import util.defaults.Configuration;
 
 
 /**
@@ -395,7 +394,7 @@ public class CreateStatementParser
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
 		}
 

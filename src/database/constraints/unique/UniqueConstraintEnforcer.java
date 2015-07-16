@@ -42,7 +42,7 @@ public class UniqueConstraintEnforcer
 
 	private void setup(NodeConfig config)
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("scanning all used values");
 
 		StringBuilder buffer = new StringBuilder();
@@ -93,7 +93,7 @@ public class UniqueConstraintEnforcer
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.FETCH_RESULTS_ERROR);
 		}
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("{} values already in use for constraint {}", this.currentValues.size(),
 					this.constraint.getConstraintIdentifier());
 	}

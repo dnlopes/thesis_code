@@ -6,7 +6,6 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import util.defaults.Configuration;
 import util.thrift.*;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
 
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
 		shadowTransaction.setClock(newClock.getClockValue());
@@ -63,7 +62,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public void commitOperationAsync(ThriftShadowTransaction shadowTransaction) throws TException
 	{
-		if(Configuration.TRACE_ENABLED)
+		if(LOG.isTraceEnabled())
 			LOG.trace("received txn from other replicator");
 
 		this.deliver.dispatchOperation(shadowTransaction);
@@ -76,7 +75,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 		if(!response.isSuccess())
 		{
-			if(Configuration.TRACE_ENABLED)
+			if(LOG.isTraceEnabled())
 				LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 			return false;
 		}
