@@ -13,9 +13,12 @@
 
 	<!-- Main properties for this build -->
 	<property name="base.dir" value="." />
+	<property name="ezk.base.dir" value="${base.dir}/../ezk" />
+	<property name="ezk-build.file" value="${ezk.base.dir}/build.xml" />
 	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
 	<property name="tomcat.dir" value="/local/dp.lopes/tomcat6" />
 	<property name="src.dir" value="${base.dir}/src" />
+	<property name="base.libs.dir" value="${base.dir}/libs" />
 	<property name="libs.dir" value="${base.dir}/libs/weak" />
 	<property name="ezk.libs.dir" value="${base.dir}/libs/ezk" />
 	<property name="dist.dir" value="${base.dir}/dist" />
@@ -119,127 +122,88 @@
 	</target>
 	<target name="compile" depends="init" description="Compile WeakDB sources">
 		<touch>
-			<fileset dir="${src.dir}"/>
+			<fileset dir="${src.dir}" />
 		</touch>
 		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
 			   includeantruntime="false">
 			<classpath refid="weakdb.classpath" />
 		</javac>
 	</target>
-	<target name="dist" depends="compile" description="Generates WeakDB jars">
-		<jar destfile="${jars.dir}/replicator.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="main.ReplicatorMain" />
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
-			<zipfileset dir="${resources.dir}" prefix="/resources/">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</zipfileset>
-		</jar>
-		<jar destfile="${jars.dir}/coordinator.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="main.CoordinatorMain" />
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
+	<target name="jars" depends="compile">
+		<jar destfile="${jars.dir}/crdt-jdbc.jar" basedir="${classes.dir}">
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
 			</fileset>
-			<zipfileset dir="${resources.dir}" prefix="/resources/">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</zipfileset>
-		</jar>
-		<jar destfile="${jars.dir}/crdtjdbc.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
-			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</fileset>
-		</jar>
-		<jar destfile="${jars.dir}/micro-gendb.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="applications.micro.MicroPopulate" />
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
-			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</fileset>
-			<zipfileset dir="${resources.dir}" prefix="/resources/">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</zipfileset>
-		</jar>
-		<jar destfile="${jars.dir}/micro-client.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="applications.micro.MicroBenchmark" />
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
-			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</fileset>
-			<zipfileset dir="${resources.dir}" prefix="/resources/">
-				<include name="log4j.properties" />
-				<include name="tpcw_ddl.sql" />
-				<include name="tpcc_ddl.sql" />
-				<include name="micro_ddl.sql" />
-			</zipfileset>
-		</jar>
-		<jar destfile="${jars.dir}/db-transform.jar" basedir="${classes.dir}">
-			<manifest>
-				<attribute name="Main-Class" value="main.DatabaseTransformerMain" />
-				<attribute name="Class-Path" value="." />
-			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
-				<exclude name="ezk/*.jar"/>
-			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/thrift.jar">
 			<fileset dir="${classes.dir}">
 				<include name="util/thrift/*.class" />
 			</fileset>
-			<manifest>
-				<attribute name="Class-Path" value="." />
-			</manifest>
 			<zipgroupfileset dir="${libs.dir}">
-				<include name="libthrift-0.9.2.jar"/>
+				<include name="libthrift-0.9.2.jar" />
 			</zipgroupfileset>
 		</jar>
-		<copy file="${jars.dir}/thrift.jar" todir="${ezk.libs.dir}" overwrite="true"/>
+		<copy file="${jars.dir}/thrift.jar" todir="${ezk.libs.dir}" overwrite="true" />
+	</target>
+	<target name="dist" depends="jars" description="Generates main jars (including their dependencies)">
+		<one-jar destfile="${jars.dir}/replicator.jar">
+			<manifest>
+				<attribute name="One-Jar-Main-Class" value="main.ReplicatorMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<main jar="${jars.dir}/crdt-jdbc.jar" />
+			<lib>
+				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
+				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
+				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
+				<fileset file="${libs.dir}/libthrift-0.9.2.jar" />
+				<fileset file="${libs.dir}/commons-lang3-3.3.2.jar" />
+				<fileset file="${libs.dir}/mysql-connector-java-5.1.17-bin.jar" />
+				<fileset file="${libs.dir}/ezk-zookeeper.jar" />
+			</lib>
+		</one-jar>
+		<one-jar destfile="${jars.dir}/coordinator.jar">
+			<manifest>
+				<attribute name="One-Jar-Main-Class" value="main.CoordinatorMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<main jar="${jars.dir}/crdt-jdbc.jar" />
+			<lib>
+				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
+				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
+				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
+				<fileset file="${libs.dir}/libthrift-0.9.2.jar" />
+				<fileset file="${libs.dir}/commons-lang3-3.3.2.jar" />
+				<fileset file="${libs.dir}/mysql-connector-java-5.1.17-bin.jar" />
+			</lib>
+		</one-jar>
+		<one-jar destfile="${jars.dir}/micro-gendb.jar">
+			<manifest>
+				<attribute name="One-Jar-Main-Class" value="applications.micro.MicroPopulate" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<main jar="${jars.dir}/crdt-jdbc.jar" />
+			<lib>
+				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
+				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
+				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
+			</lib>
+		</one-jar>
+		<one-jar destfile="${jars.dir}/micro-client.jar">
+			<manifest>
+				<attribute name="One-Jar-Main-Class" value="applications.micro.MicroBenchmark" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<main jar="${jars.dir}/crdt-jdbc.jar" />
+			<lib>
+				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
+				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
+				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
+			</lib>
+		</one-jar>
+	</target>
+	<target name="build-zookeeper" description="">
+		<ant antfile="${ezk-build.file}" dir="${ezk.base.dir}" target="jar" description="Generates EZK jar" />
 	</target>
 	<target name="deploy" depends="dist" description="Deploy WeakDB distribution">
 		<delete dir="${deploy.dir}" />
@@ -277,7 +241,7 @@
 		<!--<antcall target="tpcc-dist-escada" />-->
 	</target>
 
-	<target name="tpcc-dist-codefuture"  >
+	<target name="tpcc-dist-codefuture">
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
 			   destdir="${tpcc.classes.dir}"
 			   debug="true" deprecation="false" nowarn="yes">
@@ -315,7 +279,7 @@
 		</jar>
 		<copy file="${jars.dir}/tpcc-codefuture-gendb.jar" todir="${deploy.dir}" />
 	</target>
-	<target name="tpcc-dist-escada"  >
+	<target name="tpcc-dist-escada">
 		<javac srcdir="${tpcc_escada.src.dir}" includes="**/*.java" includeantruntime="false"
 			   destdir="${tpcc_escada.classes.dir}"
 			   debug="true" deprecation="false" nowarn="yes">
@@ -519,6 +483,10 @@
 		</copy>
 	</target>
 
+
+	<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask"
+			 classpath="${base.libs.dir}/one-jar-ant-task-0.97.jar"
+			 onerror="report" />
 
 </project>
 
