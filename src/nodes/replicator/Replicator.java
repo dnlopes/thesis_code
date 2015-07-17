@@ -15,9 +15,6 @@ import util.ObjectPool;
 import util.defaults.Configuration;
 import util.thrift.ThriftShadowTransaction;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,13 +26,11 @@ public class Replicator extends AbstractNode
 {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
-	private static final int GC_THREAD_WAKEUP_INTERVAL = 500;
 
 	private LogicalClock clock;
 	private IReplicatorNetwork networkInterface;
 	private ObjectPool<IDBCommitPad> commitPadPool;
 	private Lock clockLock;
-	private GarbageCollector gc;
 
 	public Replicator(NodeConfig config)
 	{
@@ -56,10 +51,6 @@ public class Replicator extends AbstractNode
 		}
 
 		this.setupPads();
-		this.gc = new GarbageCollector(this.networkInterface);
-
-		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-		service.scheduleAtFixedRate(this.gc, 0, GC_THREAD_WAKEUP_INTERVAL , TimeUnit.MILLISECONDS);
 
 		System.out.println("replicator " + this.config.getId() + " online");
 	}

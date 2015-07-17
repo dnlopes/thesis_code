@@ -32,10 +32,14 @@ import java.util.Map;
 public final class Configuration
 {
 
-	private static Configuration ourInstance = new Configuration();
-	private static Logger LOG;
+	public interface Defaults
+	{
 
-	private static String CONFIG_FILE;
+		public static final String CONFIG_FILE = System.getProperty("configPath");
+	}
+
+	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
+	private static Configuration ourInstance = new Configuration();
 
 	private final Map<Integer, NodeConfig> replicators;
 	private final Map<Integer, ProxyConfig> proxies;
@@ -49,11 +53,11 @@ public final class Configuration
 
 	private Configuration()
 	{
-		LOG = LoggerFactory.getLogger(Configuration.class);
-		CONFIG_FILE = System.getProperty("configPath");
+		if(Defaults.CONFIG_FILE == null)
+			RuntimeUtils.throwRunTimeException("property \"configPath\" not defined", ExitCode.NOINITIALIZATION);
 
 		if(LOG.isInfoEnabled())
-			LOG.info("loading configuration file: {}", CONFIG_FILE);
+			LOG.info("loading configuration file: {}", Defaults.CONFIG_FILE);
 
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
@@ -95,7 +99,7 @@ public final class Configuration
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(CONFIG_FILE);
+			InputStream stream = new FileInputStream(Defaults.CONFIG_FILE);
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
 			//optional, but recommended
@@ -239,12 +243,15 @@ public final class Configuration
 		String id = map.getNamedItem("id").getNodeValue();
 		String host = map.getNamedItem("host").getNodeValue();
 		String port = map.getNamedItem("port").getNodeValue();
-		String refDatabase = map.getNamedItem("refDatabase").getNodeValue();
 
-		DatabaseProperties props = this.databases.get(Integer.parseInt(refDatabase));
+		NodeConfig newCoordinator;
 
-		NodeConfig newCoordinator = new NodeConfig(Role.REPLICATOR, Integer.parseInt(id), host, Integer.parseInt(port),
-				props);
+		if(port != null)
+			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host, Integer.parseInt(port),
+					null);
+		else
+			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host,
+					CoordinatorDefaults.ZOOKEEPER_DEFAULT_PORT, null);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}

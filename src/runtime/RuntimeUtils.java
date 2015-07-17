@@ -3,13 +3,10 @@ package runtime;
 
 import database.util.field.DataField;
 import database.util.DatabaseCommon;
-import org.apache.thrift.TBase;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
-import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import runtime.operation.ShadowOperation;
-import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.ThriftShadowTransaction;
 
@@ -77,19 +74,6 @@ public class RuntimeUtils
 		}
 	}
 
-	public static byte[] encodeThriftObject(TBase request)
-	{
-		TSerializer serializer = new TSerializer(new TBinaryProtocol.Factory());
-		try
-		{
-			byte[] bytes = serializer.serialize(request);
-			return bytes;
-		} catch(TException e)
-		{
-			return null;
-		}
-	}
-
 	public static CoordinatorResponse decodeCoordinatorResponse(byte[] bytesObject)
 	{
 		TDeserializer deserializer = new TDeserializer(new TBinaryProtocol.Factory());
@@ -97,20 +81,6 @@ public class RuntimeUtils
 		try
 		{
 			deserializer.deserialize(req, bytesObject);
-			return req;
-		} catch(TException e)
-		{
-			return null;
-		}
-	}
-
-	public static CoordinatorRequest decodeCoordinatorRequest(byte[] requestByteArray)
-	{
-		TDeserializer deserializer = new TDeserializer(new TBinaryProtocol.Factory());
-		CoordinatorRequest req = new CoordinatorRequest();
-		try
-		{
-			deserializer.deserialize(req, requestByteArray);
 			return req;
 		} catch(TException e)
 		{

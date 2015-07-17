@@ -13,6 +13,7 @@ public interface OperationCoordinationService
 
 	public CoordinatorResponse coordinate(CoordinatorRequest request);
 	public void init(String codeBasePath) throws Exception;
-	public void cleanup() throws KeeperException, InterruptedException;
+	public void cleanupDatabase() throws KeeperException, InterruptedException;
+	public void closeExtension() throws InterruptedException;
 
 }

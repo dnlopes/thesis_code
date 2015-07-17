@@ -29,7 +29,6 @@ public class DatabaseTransformer
 		this.databaseName = databaseName;
 
 		this.setup();
-
 	}
 
 	public DatabaseTransformer(String databaseHost, String databaseName)

@@ -29,10 +29,7 @@ import util.zookeeper.OperationCoordinationService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
@@ -45,9 +42,9 @@ public class ZookeeperBootstrap
 {
 
 	private final Configuration CONFIG = Configuration.getInstance();
-	static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
 
-	private static final int SESSION_TIMEOUT = 4000000;
+	private static final int SESSION_TIMEOUT = 2000000;
 	private final Connection connection;
 	private final ZooKeeper zookeeper;
 	private final OperationCoordinationService extension;
@@ -63,6 +60,7 @@ public class ZookeeperBootstrap
 
 		String configFilePath = args[0];
 		System.setProperty("configPath", configFilePath);
+		System.setProperty("jute.maxbuffer", "10M");
 
 		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap();
 		bootstrap.installExtension();
@@ -73,7 +71,7 @@ public class ZookeeperBootstrap
 	public ZookeeperBootstrap() throws IOException, SQLException
 	{
 		this.databaseMetadata = CONFIG.getDatabaseMetadata();
-		this.zookeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
+		this.zookeeper= new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 		this.extension = new EZKOperationCoordination(this.zookeeper, 1);
 		this.connection = ConnectionFactory.getDefaultConnection(CONFIG.getReplicatorConfigWithIndex(1));
 	}
@@ -104,7 +102,7 @@ public class ZookeeperBootstrap
 	public void installExtension() throws Exception
 	{
 		this.extension.init(CONFIG.getExtensionCodeDir());
-		this.extension.cleanup();
+		this.extension.cleanupDatabase();
 	}
 
 	private void treatUniqueConstraint(UniqueConstraint uniqueConstraint, CoordinatorRequest req)
@@ -249,9 +247,10 @@ public class ZookeeperBootstrap
 		}
 	}
 
-	public void exitGracefully()
+	public void exitGracefully() throws InterruptedException
 	{
 		DbUtils.closeQuietly(this.connection);
+		this.extension.closeExtension();
 	}
 
 	private static byte[] toBytes(int value)

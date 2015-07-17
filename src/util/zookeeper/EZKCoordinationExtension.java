@@ -7,9 +7,9 @@ import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.extension.EZKBaseExtension;
+import org.apache.zookeeper.server.EZKExtensionGate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeUtils;
 import util.thrift.*;
 
 import java.io.File;
@@ -28,15 +28,21 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	public static final String TMP_DIR = BASE_DIR + File.separatorChar + "tmp";
 	public static final String UNIQUE_DIR = BASE_DIR + File.separatorChar + "uniques";
 	public static final String COUNTERS_DIR = BASE_DIR + File.separatorChar + "counters";
+	public static final String OP_PREFIX = BASE_DIR;
+	public static final String CLEANUP_OP_CODE = OP_PREFIX + File.separatorChar + "cleanup";
+
+	public EZKCoordinationExtension()
+	{
+	}
 
 	@Override
 	public boolean matchesOperation(int requestType, String path)
 	{
-		/*if(requestType != ZooDefs.OpCode.setData && requestType != ZooDefs.OpCode.getData && requestType != ZooDefs
+		if(requestType != ZooDefs.OpCode.setData && requestType != ZooDefs.OpCode.getData && requestType != ZooDefs
 				.OpCode.setACL)
-			return false;          */
+			return false;
 
-		return path.startsWith(OPS_STRINGS.OP_PREFIX);
+		return path.startsWith(OP_PREFIX);
 	}
 
 	@Override
@@ -58,13 +64,20 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		if(stat == null)
 			this.extensionGate.create(COUNTERS_DIR, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
-		LOG.debug("EZKCoordination extension initialized");
+		LOG.info("EZKCoordination extension initialized");
 	}
 
 	@Override
 	protected Stat setData(String path, byte[] data, int version) throws KeeperException
 	{
-		if(path.startsWith(OPS_STRINGS.OP_PREFIX))
+		if(path.compareTo(CLEANUP_OP_CODE) == 0)
+		{
+			this.cleanup();
+			Stat returnStatus = new Stat();
+			returnStatus.setVersion(0);
+			return returnStatus;
+		}
+		else if(path.startsWith(OP_PREFIX))
 			return this.handleRequest(path, data);
 		else
 		{
@@ -76,10 +89,18 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	@Override
 	protected Stat setACL(String path, List<ACL> acls, int version) throws KeeperException
 	{
-		if(path.compareTo(OPS_STRINGS.CLEANUP_OP_CODE) == 0)
+		if(path.compareTo(CLEANUP_OP_CODE) == 0)
 		{
-			this.cleanup();
-			return new Stat();
+			try
+			{
+				this.cleanup();
+				return EZKExtensionGate.SUCCESS_STAT;
+			} catch(KeeperException e)
+			{
+				LOG.error("failed to cleanup zookeeper database");
+				throw e;
+			}
+
 		} else
 		{
 			LOG.warn("unexpected operation code. Calling default _setACL_ implementation");
@@ -89,7 +110,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 
 	private Stat handleRequest(String path, byte[] data) throws KeeperException
 	{
-		CoordinatorRequest request = RuntimeUtils.decodeCoordinatorRequest(data);
+		CoordinatorRequest request = ThriftUtils.decodeCoordinatorRequest(data);
 
 		this.reserveValues(request.getUniqueValues());
 		this.prepareRequestedValues(request.getRequests(), path, request);
@@ -103,6 +124,8 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	{
 		if(valuesList == null || valuesList.size() == 0)
 			return true;
+
+		LOG.info("reserving {} values", valuesList.size());
 
 		boolean success = true;
 		StringBuilder buffer = new StringBuilder();
@@ -120,6 +143,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 				throw new KeeperException.NodeExistsException();
 		}
 
+		LOG.info("done!");
 		return success;
 	}
 
@@ -148,7 +172,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 			}
 		}
 
-		byte[] encodedResponse = RuntimeUtils.encodeThriftObject(response);
+		byte[] encodedResponse = ThriftUtils.encodeThriftObject(response);
 		this.extensionGate.setData(nodePath, encodedResponse, -1);
 	}
 
@@ -173,30 +197,31 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		}
 	}
 
-	private void cleanup()
+	private void cleanup() throws KeeperException
 	{
-		this.deleteDirectory(TMP_DIR, false);
+		LOG.info("cleaning up database nodes");
+		LOG.info("deleting {} directory...", UNIQUE_DIR);
 		this.deleteDirectory(UNIQUE_DIR, false);
+		LOG.info("deleting {} directory...", COUNTERS_DIR);
 		this.deleteDirectory(COUNTERS_DIR, false);
+		LOG.info("database cleaned");
 	}
 
-	private void deleteDirectory(String path, boolean deleteSelf)
+	private void deleteDirectory(String path, boolean deleteSelf) throws KeeperException
 	{
 		List<String> childrens;
-		try
-		{
-			childrens = this.extensionGate.getChildren(path, false, null);
+		childrens = this.extensionGate.getChildren(path, false, null);
 
-			if(childrens.size() > 0)
-				for(String children : childrens)
-					this.deleteDirectory(path + File.separatorChar + children, true);
-
-			if(deleteSelf)
-				this.extensionGate.delete(path, -1);
-		} catch(KeeperException e)
+		if(childrens.size() > 0)
 		{
-			e.printStackTrace();
+			LOG.info("erasing {} nodes from {}", childrens.size(), path);
+
+			for(String children : childrens)
+				this.deleteDirectory(path + File.separatorChar + children, true);
 		}
+
+		if(deleteSelf)
+			this.extensionGate.delete(path, -1);
 	}
 
 	private int incrementAndGet(String nodePath) throws KeeperException
@@ -240,10 +265,4 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		return ByteBuffer.wrap(bytes).getInt();
 	}
 
-	public interface OPS_STRINGS
-	{
-
-		public static final String OP_PREFIX = BASE_DIR;
-		public static final String CLEANUP_OP_CODE = OP_PREFIX + File.separatorChar + "cleanup";
-	}
 }

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import util.ObjectPool;
 import util.defaults.Configuration;
 
+import util.defaults.ReplicatorDefaults;
 import util.thrift.*;
 
 import java.util.HashMap;
@@ -24,7 +25,6 @@ import java.util.Map;
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
 {
 
-	private static final int POOL_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
 	private Map<Integer, NodeConfig> replicatorsConfigs;
@@ -50,13 +50,13 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		if(LOG.isTraceEnabled())
 			LOG.trace("creating connection pool to coordinator");
 
-		for(int i = 0; i < POOL_SIZE; i++)
+		for(int i = 0; i < ReplicatorDefaults.COORDINATOR_CONNECTIONS; i++)
 		{
 			CoordinatorRPC.Client rpcConnection = this.createCoordinatorConnection();
 
 			if(rpcConnection == null)
 			{
-				LOG.warn("failed to create connection for coordinator: {}");
+				LOG.warn("failed to create connection for coordinator");
 				continue;
 			}
 
@@ -123,12 +123,6 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 	}
 
-	@Override
-	public void releaseResources()
-	{
-		//TODO
-	}
-
 	private CoordinatorRPC.Client createCoordinatorConnection()
 	{
 		TTransport newTransport = new TSocket(this.coordinatorConfig.getHost(), this.coordinatorConfig.getPort());
@@ -137,7 +131,6 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			newTransport.open();
 		} catch(TTransportException e)
 		{
-			LOG.warn("error while creating connections to coordinator: {}", e.getMessage());
 			newTransport.close();
 			return null;
 		}

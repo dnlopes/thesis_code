@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
+import util.thrift.ThriftUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,9 +42,9 @@ public class EZKOperationCoordination implements OperationCoordinationService
 		// create private tmp node to hold generic byte array for responses
 		Stat stat = zooKeeper.exists(PRIVATE_TMP_NODE, false);
 		if(stat == null)
-			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
-		LOG.info("Coordination extension successfully insallted at Zookeeper service");
+		LOG.info("Coordination extension successfully installed at Zookeeper service");
 	}
 
 	@Override
@@ -59,14 +60,21 @@ public class EZKOperationCoordination implements OperationCoordinationService
 	}
 
 	@Override
-	public void cleanup() throws KeeperException, InterruptedException
+	public void cleanupDatabase() throws KeeperException, InterruptedException
 	{
-		this.zooKeeper.setACL(EZKCoordinationExtension.OPS_STRINGS.CLEANUP_OP_CODE, null, -1);
+		//this.zooKeeper.setACL(EZKCoordinationExtension.CLEANUP_OP_CODE, ZooDefs.Ids.OPEN_ACL_UNSAFE, -1);
+		this.zooKeeper.setData(EZKCoordinationExtension.CLEANUP_OP_CODE, new byte[0], -1);
+	}
+
+	@Override
+	public void closeExtension() throws InterruptedException
+	{
+		this.zooKeeper.close();
 	}
 
 	private CoordinatorResponse singleRpcCoordination(CoordinatorRequest request)
 	{
-		byte[] bytesRequest = RuntimeUtils.encodeThriftObject(request);
+		byte[] bytesRequest = ThriftUtils.encodeThriftObject(request);
 		CoordinatorResponse response = new CoordinatorResponse();
 		response.setSuccess(false);
 
@@ -89,7 +97,7 @@ public class EZKOperationCoordination implements OperationCoordinationService
 
 	private CoordinatorResponse twoRpcCoordination(CoordinatorRequest request)
 	{
-		byte[] bytesRequest = RuntimeUtils.encodeThriftObject(request);
+		byte[] bytesRequest = ThriftUtils.encodeThriftObject(request);
 		CoordinatorResponse response = new CoordinatorResponse();
 		response.setSuccess(false);
 

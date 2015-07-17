@@ -38,6 +38,8 @@ public class IDGenerator
 		this.setupGenerator(config);
 	}
 
+
+
 	private void setupGenerator(NodeConfig config)
 	{
 		StringBuilder buffer = new StringBuilder();

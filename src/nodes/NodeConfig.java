@@ -1,7 +1,9 @@
 package nodes;
 
 
+import runtime.RuntimeUtils;
 import util.DatabaseProperties;
+import util.ExitCode;
 
 
 /**
@@ -24,6 +26,9 @@ public class NodeConfig
 		this.host = host;
 		this.port = port;
 		this.dbProps = props;
+
+		if(this.dbProps == null && this.role != Role.COORDINATOR)
+			RuntimeUtils.throwRunTimeException("dbProps not defined", ExitCode.NOINITIALIZATION);
 	}
 
 	public int getId()
@@ -44,11 +49,6 @@ public class NodeConfig
 	public String getName()
 	{
 		return this.role + "-" + this.id;
-	}
-
-	public Role getRole()
-	{
-		return this.role;
 	}
 
 	public DatabaseProperties getDbProps()

@@ -3,6 +3,7 @@ package tests;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import util.defaults.Configuration;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.UniqueValue;
@@ -17,58 +18,57 @@ import java.util.ArrayList;
 public class ZookeeperExtenstionTest
 {
 
+	private final Configuration CONFIG = Configuration.getInstance();
+	private static final int SESSION_TIMEOUT = 200000;
+
+
 	public static void main(String[] args) throws Exception
 	{
 		int a = 0;
 
-		if(args.length < 2)
+		if(args.length != 1)
 		{
-			System.err.println("Usage: ./ezkSharedValueDemo.sh <server-address(es)>");
+			System.err.println("Usage: <configFileLocation>");
 			System.exit(1);
 		}
 
-		String extensionCodeDir = args[0];
-		String serverAddresses = args[1];
+		String configFilePath = args[0];
+		System.setProperty("configPath", configFilePath);
 
-		// Create and register counter extension
-		ZooKeeper zooKeeper = new ZooKeeper(serverAddresses, 400000, null);
+		ZookeeperExtenstionTest tester = new ZookeeperExtenstionTest();
+		tester.testExtension();
+	}
+
+	public void testExtension() throws Exception
+	{
+		ZooKeeper zooKeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 
 		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(zooKeeper, 1);
-		coordinationExtenstion.init(extensionCodeDir);
+		coordinationExtenstion.init(CONFIG.getExtensionCodeDir());
+		coordinationExtenstion.cleanupDatabase();
+
+		zooKeeper.create("/coordination/uniques/w_id_warehouse_UNIQUE", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
+				CreateMode.PERSISTENT);
+
+		UniqueValue u1 = new UniqueValue("w_id_warehouse_UNIQUE", "value1");
+		UniqueValue u2 = new UniqueValue("w_id_warehouse_UNIQUE", "value2");
+		UniqueValue u3 = new UniqueValue("w_id_warehouse_UNIQUE", "value3");
+		UniqueValue u4 = new UniqueValue("w_id_warehouse_UNIQUE", "value4");
 
 		CoordinatorRequest request = new CoordinatorRequest();
-
-		//zooKeeper.create("/coordination/uniques/a", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode
-		// .PERSISTENT);
-
-
-		UniqueValue u1 = new UniqueValue("a", "value1");
-		UniqueValue u2 = new UniqueValue("a", "value2");
-		UniqueValue u3 = new UniqueValue("a", "value3");
-		UniqueValue u4 = new UniqueValue("a", "value4");
-
 		request.setUniqueValues(new ArrayList<UniqueValue>());
-		//request.addToUniqueValues(u1);
-		//request.addToUniqueValues(u2);
-
-		//CoordinatorResponse response = coordinationExtenstion.coordinate(request);
-
 
 		request = new CoordinatorRequest();
-		request.setUniqueValues(new ArrayList<UniqueValue>());
-		request.addToUniqueValues(u1);
+
+		//request.addToUniqueValues(u1);
+		//request.addToUniqueValues(u2);
 		request.addToUniqueValues(u4);
+		request.addToUniqueValues(u3);
 
 		CoordinatorResponse response = coordinationExtenstion.coordinate(request);
 
-		System.exit(1);
-		int b = 0;
-
-		System.out.println("Asdasdas");
-		//success = coordinationExtenstion.reserveValues("test2");
-		//success = coordinationExtenstion.reserveValues("test");
-
+		coordinationExtenstion.closeExtension();
+		System.out.println("finished");
 
 	}
-
 }
