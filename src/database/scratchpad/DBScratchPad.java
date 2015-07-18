@@ -10,6 +10,8 @@ import database.jdbc.ConnectionFactory;
 import database.util.*;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
+import database.util.value.DeltaFieldValue;
+import database.util.value.FieldValue;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;

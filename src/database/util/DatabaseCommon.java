@@ -6,6 +6,7 @@ import database.constraints.fk.ParentChildRelation;
 import database.scratchpad.IDBScratchPad;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
+import database.util.value.FieldValue;
 import org.apache.commons.dbutils.DbUtils;
 import runtime.transformer.QueryCreator;
 

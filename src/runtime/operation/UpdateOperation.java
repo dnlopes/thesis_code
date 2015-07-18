@@ -5,10 +5,10 @@ import database.constraints.Constraint;
 import database.constraints.check.CheckConstraint;
 import database.util.*;
 import database.util.field.DataField;
+import database.util.value.FieldValue;
 import runtime.transformer.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.*;
 

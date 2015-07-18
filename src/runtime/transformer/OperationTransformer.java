@@ -3,7 +3,7 @@ package runtime.transformer;
 
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
-import database.util.FieldValue;
+import database.util.value.FieldValue;
 import database.util.Row;
 import util.defaults.DBDefaults;
 
