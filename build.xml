@@ -19,7 +19,7 @@
 	<property name="tomcat.dir" value="/local/dp.lopes/tomcat6" />
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="base.libs.dir" value="${base.dir}/libs" />
-	<property name="libs.dir" value="${base.dir}/libs/weak" />
+	<property name="weak.libs.dir" value="${base.dir}/libs/weak" />
 	<property name="ezk.libs.dir" value="${base.dir}/libs/ezk" />
 	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="classes.dir" value="${dist.dir}/classes" />
@@ -33,7 +33,7 @@
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
 		<classpath>
-			<pathelement location="${libs.dir}/ant-contrib-0.3.jar" />
+			<pathelement location="${base.libs.dir}/ant-contrib-0.3.jar" />
 		</classpath>
 	</taskdef>
 
@@ -62,7 +62,7 @@
 
 	<!-- Path definitions -->
 	<path id="weakdb.classpath">
-		<fileset dir="${libs.dir}">
+		<fileset dir="${weak.libs.dir}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
@@ -129,81 +129,90 @@
 			<classpath refid="weakdb.classpath" />
 		</javac>
 	</target>
-	<target name="jars" depends="compile">
+	<target name="minimal-jars" depends="compile">
 		<jar destfile="${jars.dir}/crdt-jdbc.jar" basedir="${classes.dir}">
-			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
-			</fileset>
 		</jar>
-		<jar destfile="${jars.dir}/thrift.jar">
+		<jar destfile="${jars.dir}/thrift-custom.jar">
 			<fileset dir="${classes.dir}">
 				<include name="util/thrift/*.class" />
 			</fileset>
-			<zipgroupfileset dir="${libs.dir}">
+			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="libthrift-0.9.2.jar" />
 			</zipgroupfileset>
 		</jar>
-		<copy file="${jars.dir}/thrift.jar" todir="${ezk.libs.dir}" overwrite="true" />
 	</target>
-	<target name="dist" depends="jars" description="Generates main jars (including their dependencies)">
-		<one-jar destfile="${jars.dir}/replicator.jar">
+	<target name="dist" depends="compile-zookeeper, minimal-jars"
+			description="Generates main jars (including their dependencies)">
+		<jar destfile="${jars.dir}/replicator.jar">
 			<manifest>
-				<attribute name="One-Jar-Main-Class" value="main.ReplicatorMain" />
+				<attribute name="Main-Class" value="main.ReplicatorMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
-			<main jar="${jars.dir}/crdt-jdbc.jar" />
-			<lib>
-				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
-				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
-				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
-				<fileset file="${libs.dir}/libthrift-0.9.2.jar" />
-				<fileset file="${libs.dir}/commons-lang3-3.3.2.jar" />
-				<fileset file="${libs.dir}/mysql-connector-java-5.1.17-bin.jar" />
-				<fileset file="${libs.dir}/ezk-zookeeper.jar" />
-			</lib>
-		</one-jar>
-		<one-jar destfile="${jars.dir}/coordinator.jar">
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-lang3-3.3.2.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="libthrift-0.9.2.jar" />
+				<include name="ezk-zookeeper.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="crdt-jdbc.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/zookeeper-server.jar">
 			<manifest>
-				<attribute name="One-Jar-Main-Class" value="main.CoordinatorMain" />
+				<attribute name="Main-Class" value="org.apache.zookeeper.server.quorum.QuorumPeerMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
-			<main jar="${jars.dir}/crdt-jdbc.jar" />
-			<lib>
-				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
-				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
-				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
-				<fileset file="${libs.dir}/libthrift-0.9.2.jar" />
-				<fileset file="${libs.dir}/commons-lang3-3.3.2.jar" />
-				<fileset file="${libs.dir}/mysql-connector-java-5.1.17-bin.jar" />
-			</lib>
-		</one-jar>
-		<one-jar destfile="${jars.dir}/micro-gendb.jar">
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+			<zipgroupfileset dir="${ezk.libs.dir}">
+				<include name="slf4j-api-1.6.1.jar" />
+				<include name="netty-3.7.0.Final.jar" />
+				<include name="slf4j-log4j12-1.6.1.jar" />
+				<include name="log4j-1.2.16.jar" />
+				<include name="jline-0.9.94.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="thrift-custom.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="ezk-zookeeper.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/micro-gendb.jar">
 			<manifest>
-				<attribute name="One-Jar-Main-Class" value="applications.micro.MicroPopulate" />
+				<attribute name="Main-Class" value="applications.micro.MicroPopulate" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
-			<main jar="${jars.dir}/crdt-jdbc.jar" />
-			<lib>
-				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
-				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
-				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
-			</lib>
-		</one-jar>
-		<one-jar destfile="${jars.dir}/micro-client.jar">
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/micro-client.jar">
 			<manifest>
-				<attribute name="One-Jar-Main-Class" value="applications.micro.MicroBenchmark" />
+				<attribute name="Main-Class" value="applications.micro.MicroBenchmark" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
-			<main jar="${jars.dir}/crdt-jdbc.jar" />
-			<lib>
-				<fileset file="${libs.dir}/log4j-1.2.17.jar" />
-				<fileset file="${libs.dir}/slf4j-log4j12-1.7.10.jar" />
-				<fileset file="${libs.dir}/slf4j-api-1.7.10.jar" />
-			</lib>
-		</one-jar>
+			<fileset dir="${resources.dir}">
+				<include name="log4j.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+		</jar>
 	</target>
-	<target name="build-zookeeper" description="">
-		<ant antfile="${ezk-build.file}" dir="${ezk.base.dir}" target="jar" description="Generates EZK jar" />
+	<target name="compile-zookeeper" description="Rebuild EZK dependency jar">
+		<ant antfile="${ezk-build.file}" dir="${ezk.base.dir}" target="jar" />
 	</target>
 	<target name="deploy" depends="dist" description="Deploy WeakDB distribution">
 		<delete dir="${deploy.dir}" />
@@ -306,7 +315,7 @@
 				<attribute name="Class-Path" value="." />
 				<attribute name="Main-Class" value="escada.tpc.tpcc.database.populate.jmx.DatabasePopulate" />
 			</manifest>
-			<zipgroupfileset dir="${libs.dir}">
+			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
