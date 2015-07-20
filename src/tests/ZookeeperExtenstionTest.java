@@ -1,15 +1,12 @@
 package tests;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import util.defaults.Configuration;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
+import util.thrift.RequestValue;
 import util.thrift.UniqueValue;
 import util.zookeeper.EZKOperationCoordination;
-
-import java.util.ArrayList;
 
 
 /**
@@ -45,25 +42,27 @@ public class ZookeeperExtenstionTest
 
 		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(zooKeeper, 1);
 		coordinationExtenstion.init(CONFIG.getExtensionCodeDir());
-		coordinationExtenstion.cleanupDatabase();
+		//coordinationExtenstion.cleanupDatabase();
 
-		zooKeeper.create("/coordination/uniques/w_id_warehouse_UNIQUE", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
-				CreateMode.PERSISTENT);
+		//zooKeeper.create("/coordination/uniques/w_id_warehouse_UNIQUE", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
+		//		CreateMode.PERSISTENT);
 
-		UniqueValue u1 = new UniqueValue("w_id_warehouse_UNIQUE", "value1");
-		UniqueValue u2 = new UniqueValue("w_id_warehouse_UNIQUE", "value2");
+		UniqueValue u1 = new UniqueValue("w_id_warehouse_UNIQUE", "valu2aasde12");
+		UniqueValue u2 = new UniqueValue("w_id_warehouse_UNIQUE", "value211");
 		UniqueValue u3 = new UniqueValue("w_id_warehouse_UNIQUE", "value3");
 		UniqueValue u4 = new UniqueValue("w_id_warehouse_UNIQUE", "value4");
+		RequestValue requestValue = new RequestValue();
+		requestValue.setConstraintId("o_id_orders_AUTO_INCREMENT");
+		requestValue.setTempSymbol("@symbol");
+		requestValue.setOpId(1);
+		requestValue.setFieldName("test");
 
 		CoordinatorRequest request = new CoordinatorRequest();
-		request.setUniqueValues(new ArrayList<UniqueValue>());
-
-		request = new CoordinatorRequest();
-
-		//request.addToUniqueValues(u1);
+		request.addToRequests(requestValue);
+		request.addToUniqueValues(u1);
 		//request.addToUniqueValues(u2);
-		request.addToUniqueValues(u4);
-		request.addToUniqueValues(u3);
+		//request.addToUniqueValues(u4);
+		//request.addToUniqueValues(u3);
 
 		CoordinatorResponse response = coordinationExtenstion.coordinate(request);
 

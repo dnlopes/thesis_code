@@ -103,7 +103,7 @@ public class EZKOperationCoordination implements OperationCoordinationService
 
 		// async call to reserve unique values
 		this.zooKeeper.setData(PRIVATE_TMP_NODE, bytesRequest, -1, null, null);
-		// then, we call getData to get the requested values
+		// then, call getData to get the requested values
 		this.getRequestedValues(response);
 
 		return response;

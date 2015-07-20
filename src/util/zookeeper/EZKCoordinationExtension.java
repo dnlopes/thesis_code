@@ -150,6 +150,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	private void prepareRequestedValues(List<RequestValue> requestValues, String nodePath, CoordinatorRequest request)
 			throws KeeperException
 	{
+
 		if(requestValues == null)
 			return;
 
@@ -164,6 +165,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 			try
 			{
 				this.prepareValue(requestValue);
+				response.addToRequestedValues(requestValue);
 			} catch(KeeperException e)
 			{
 				// if something bad happens, set response success to false and leave
