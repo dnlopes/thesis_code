@@ -49,7 +49,10 @@ public class Row
 
 	public FieldValue getFieldValue(String fieldName)
 	{
-		return this.fieldValues.get(fieldName);
+		if(this.newFieldValues.containsKey(fieldName))
+			return this.newFieldValues.get(fieldName);
+		else
+			return this.fieldValues.get(fieldName);
 	}
 
 	public FieldValue getUpdateFieldValue(String fieldName)
