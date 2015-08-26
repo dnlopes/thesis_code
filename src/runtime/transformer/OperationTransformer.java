@@ -5,6 +5,8 @@ import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
 import database.util.value.FieldValue;
 import database.util.Row;
+import org.apache.zookeeper.server.util.Profiler;
+import runtime.operation.OperationsStatements;
 import util.defaults.DBDefaults;
 
 import java.util.Iterator;
@@ -250,5 +252,33 @@ public class OperationTransformer
 	public static String generateUpdateChildForeignKeyFields()
 	{
 		return null;
+	}
+
+	public static String generateSetParentVisible(ForeignKeyConstraint constraint, Row parent)
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(constraint.getParentTable().getName());
+		buffer.append(OperationsStatements.SET_DELETED);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.VISIBLE_PARENT_OP_SUFFIX);
+
+		return buffer.toString();
+	}
+
+	public static String mergeDeletedClock(Row parent)
+	{
+
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(parent.getTable().getName());
+		buffer.append(OperationsStatements.MERGE_DCLOCK_OP);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+
+		return buffer.toString();
 	}
 }

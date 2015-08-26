@@ -36,6 +36,8 @@ public final class Configuration
 	{
 
 		public static final String CONFIG_FILE = System.getProperty("configPath");
+		public static final int ZOOKEEPER_SESSION_TIMEOUT = 200000;
+
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);

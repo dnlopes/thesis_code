@@ -37,6 +37,8 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
@@ -61,7 +63,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 	}
 
 	@Override
-	public void createRequestsToCoordinate(Request request) throws SQLException
+	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
 		int counter = 0;
 
@@ -78,7 +80,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				RequestValue requestValue = new RequestValue();
 				requestValue.setConstraintId(c.getConstraintIdentifier());
 				requestValue.setFieldName(fieldValue.getDataField().getFieldName());
-				request.addToRequests(RequestUnit.requestValue(requestValue));
+				request.addToRequests(requestValue);
 				requestValue.setTempSymbol(symbol);
 				this.requestValues.add(requestValue);
 				this.row.updateFieldValue(new FieldValue(fieldValue.getDataField(), symbol));
@@ -98,7 +100,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 						buffer.append(",");
 				}
 				UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), buffer.toString());
-				request.addToRequests(RequestUnit.uniqueValue(uniqueValue));
+				request.addToUniqueValues(uniqueValue);
 				if(LOG.isTraceEnabled())
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
 				break;
@@ -115,7 +117,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				applyDeltaRequest.setConstraintId(c.getConstraintIdentifier());
 				applyDeltaRequest.setDeltaValue(deltafieldValue.getValue());
 				applyDeltaRequest.setRowId(this.row.getPrimaryKeyValue().getUniqueValue());
-				request.addToRequests(RequestUnit.applyDelta(applyDeltaRequest));
+				request.addToDeltaValues(applyDeltaRequest);
 
 				if(LOG.isTraceEnabled())
 					LOG.trace("new delta check entry added");

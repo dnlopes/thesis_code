@@ -23,7 +23,7 @@ import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.UniqueValue;
 import util.zookeeper.EZKCoordinationExtension;
-import util.zookeeper.EZKOperationCoordination;
+import util.zookeeper.EZKOperationCoordinator;
 import util.zookeeper.OperationCoordinationService;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public class ZookeeperBootstrap
 	{
 		this.databaseMetadata = CONFIG.getDatabaseMetadata();
 		this.zookeeper= new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
-		this.extension = new EZKOperationCoordination(this.zookeeper, 1);
+		this.extension = new EZKOperationCoordinator(this.zookeeper, 1);
 		this.connection = ConnectionFactory.getDefaultConnection(CONFIG.getReplicatorConfigWithIndex(1));
 	}
 

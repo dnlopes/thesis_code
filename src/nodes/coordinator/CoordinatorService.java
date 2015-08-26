@@ -23,7 +23,7 @@ public class CoordinatorService implements CoordinatorRPC.Iface
 	}
 
 	@Override
-	public CoordinatorResponse checkInvariants(Request request) throws TException
+	public CoordinatorResponse checkInvariants(CoordinatorRequest request) throws TException
 	{
 		CoordinatorResponse response = this.coordinator.processRequest(request);
 

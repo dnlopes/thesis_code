@@ -35,7 +35,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		//if we must coordinate then do it here. this is a blocking call
 		if(shadowTransaction.isSetRequestToCoordinator())
-			if(!this.coordinate(shadowTransaction))
+			if(!this.coordinateOperation(shadowTransaction))
 				return false;
 
 		shadowTransaction.setReplicatorId(this.replicator.getConfig().getId());
@@ -68,9 +68,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		this.deliver.dispatchOperation(shadowTransaction);
 	}
 
-	private boolean coordinate(ThriftShadowTransaction shadowTransaction)
+	private boolean coordinateOperation(ThriftShadowTransaction shadowTransaction)
 	{
-		Request request = shadowTransaction.getRequestToCoordinator();
+		CoordinatorRequest request = shadowTransaction.getRequestToCoordinator();
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(!response.isSuccess())
@@ -90,6 +90,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private void updateShadowTransaction(ThriftShadowTransaction shadowTransaction, List<RequestValue> reqValues)
 	{
+		//TODO: is this correct?
 		for(RequestValue reqValue : reqValues)
 		{
 			String newValue = reqValue.getRequestedValue();

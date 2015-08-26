@@ -6,7 +6,7 @@ import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.RequestValue;
 import util.thrift.UniqueValue;
-import util.zookeeper.EZKOperationCoordination;
+import util.zookeeper.EZKOperationCoordinator;
 
 
 /**
@@ -40,7 +40,7 @@ public class ZookeeperExtenstionTest
 	{
 		ZooKeeper zooKeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 
-		EZKOperationCoordination coordinationExtenstion = new EZKOperationCoordination(zooKeeper, 1);
+		EZKOperationCoordinator coordinationExtenstion = new EZKOperationCoordinator(zooKeeper, 1);
 		coordinationExtenstion.init(CONFIG.getExtensionCodeDir());
 		//coordinationExtenstion.cleanupDatabase();
 

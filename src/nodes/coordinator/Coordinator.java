@@ -65,8 +65,10 @@ public class Coordinator extends AbstractNode
 		System.out.println("coordinator " + this.config.getId() + " online");
 	}
 
-	public CoordinatorResponse processRequest(Request request)
+	public CoordinatorResponse processRequest(CoordinatorRequest request)
 	{
+		return null;
+		/*
 		CoordinatorResponse response = new CoordinatorResponse();
 		List<RequestValue> requestedValues = new ArrayList<>();
 
@@ -100,6 +102,7 @@ public class Coordinator extends AbstractNode
 
 		response.setSuccess(true);
 		return response;
+		*/
 	}
 
 	private boolean processApplyDelta(CoordinatorResponse response, ApplyDelta applyDelta)

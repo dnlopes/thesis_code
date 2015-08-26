@@ -8,16 +8,18 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.ObjectPool;
+import runtime.RuntimeUtils;
+import util.ExitCode;
 import util.defaults.Configuration;
 
-import util.defaults.ReplicatorDefaults;
 import util.thrift.*;
+import util.zookeeper.EZKOperationCoordinator;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,43 +30,27 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
 	private Map<Integer, NodeConfig> replicatorsConfigs;
-	private ObjectPool<CoordinatorRPC.Client> coordinatorConnectionPool;
-	private final NodeConfig coordinatorConfig;
+	private EZKOperationCoordinator ezkCoordinator;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
-		this.coordinatorConnectionPool = new ObjectPool<>();
+
+		try
+		{
+			ZooKeeper zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
+					Configuration.Defaults.ZOOKEEPER_SESSION_TIMEOUT, null);
+			this.ezkCoordinator = new EZKOperationCoordinator(zooKeeper, this.me.getId());
+		} catch(IOException e)
+		{
+			LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
+			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
+		}
 
 		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
-
-		this.coordinatorConfig = Configuration.getInstance().getCoordinatorConfigWithIndex(1);
-		this.setup();
-	}
-
-	private void setup()
-	{
-		if(LOG.isTraceEnabled())
-			LOG.trace("creating connection pool to coordinator");
-
-		for(int i = 0; i < ReplicatorDefaults.COORDINATOR_CONNECTIONS; i++)
-		{
-			CoordinatorRPC.Client rpcConnection = this.createCoordinatorConnection();
-
-			if(rpcConnection == null)
-			{
-				LOG.warn("failed to create connection for coordinator");
-				continue;
-			}
-
-			this.coordinatorConnectionPool.addObject(rpcConnection);
-		}
-
-		if(LOG.isDebugEnabled())
-			LOG.debug("created {} connections to coordinator", this.coordinatorConnectionPool.getPoolSize());
 	}
 
 	@Override
@@ -91,52 +77,11 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public CoordinatorResponse sendRequestToCoordinator(Request req)
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req)
 	{
 		CoordinatorResponse response = new CoordinatorResponse();
 		response.setSuccess(false);
 
-		CoordinatorRPC.Client connection = this.coordinatorConnectionPool.borrowObject();
-
-		if(connection == null)
-		{
-			LOG.warn("coordinator connection pool empty. Creating new connection...");
-			connection = this.createCoordinatorConnection();
-		}
-
-		if(connection == null)
-		{
-			LOG.warn("failed to create coordinator connection");
-			return response;
-		}
-
-		try
-		{
-			return connection.checkInvariants(req);
-		} catch(TException e)
-		{
-			return response;
-		} finally
-		{
-			if(connection != null)
-				this.coordinatorConnectionPool.returnObject(connection);
-		}
+		return this.ezkCoordinator.coordinate(req);
 	}
-
-	private CoordinatorRPC.Client createCoordinatorConnection()
-	{
-		TTransport newTransport = new TSocket(this.coordinatorConfig.getHost(), this.coordinatorConfig.getPort());
-		try
-		{
-			newTransport.open();
-		} catch(TTransportException e)
-		{
-			newTransport.close();
-			return null;
-		}
-
-		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
-		return new CoordinatorRPC.Client(protocol);
-	}
-
 }

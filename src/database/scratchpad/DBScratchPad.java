@@ -24,6 +24,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
+import nodes.coordinator.Coordinator;
 import nodes.proxy.IProxyNetwork;
 import nodes.proxy.ProxyConfig;
 import org.apache.commons.dbutils.DbUtils;
@@ -110,7 +111,7 @@ public class DBScratchPad implements IDBScratchPad
 		// if read-only, then just return from this method
 		if(!this.activeTransaction.isReadOnly())
 		{
-			Request request = this.generateCoordinationRequest();
+			CoordinatorRequest request = this.generateCoordinationRequest();
 
 			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
 
@@ -343,9 +344,10 @@ public class DBScratchPad implements IDBScratchPad
 		this.batchEmpty = true;
 	}
 
-	private Request generateCoordinationRequest() throws SQLException
+	private CoordinatorRequest generateCoordinationRequest() throws SQLException
 	{
-		Request req = new Request();
+		CoordinatorRequest req = new CoordinatorRequest();
+
 		req.setRequiresCoordination(false);
 
 		for(ShadowOperation op : this.activeTransaction.getShadowOperations())

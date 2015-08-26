@@ -33,8 +33,12 @@ TO_DOWNLOAD_COMMANDS = []
 ################################################################################################		
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
+JDCBs=['crdt']
 #JDCBs=['crdt','galera']
-JDCBs=['cluster']
+#JDCBs=['cluster']
+ENVIRONMENT='fct'
+#ENVIRONMENT='localhost'
+#ENVIRONMENT='amazon'
 NUMBER_REPLICAS=[3]
 NUMBER_USERS_LIST_1REPLICA=[1]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
@@ -91,10 +95,11 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
-		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	 
-		CONFIG_FILE = configsFilesBaseDir +'/amazon_tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
+		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	
+		CONFIG_FILE = configsFilesBaseDir + '/' + str(ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 
+		#CONFIG_FILE = configsFilesBaseDir +'/amazon_tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
 		if config.IS_LOCALHOST == True:
-			CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
+			CONFIG_FILE = configsFilesBaseDir + '/localhost_tpcc_' + str(numberOfReplicas) + 'node.xml' 
 		
 		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"		
 	  
@@ -144,10 +149,10 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 	now = datetime.datetime.now()
 	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_scalability_experiment
 
-	for numberOfReplicas in SCALABILITY_NUMBER_REPLICAS:		
-		CONFIG_FILE = configsFilesBaseDir +'/tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
+	for numberOfReplicas in SCALABILITY_NUMBER_REPLICAS:
+		CONFIG_FILE = configsFilesBaseDir + '/' + str(ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 		
 		if config.IS_LOCALHOST == True:
-			CONFIG_FILE = configsFilesBaseDir +'/tpcc_localhost_' + str(numberOfReplicas) + 'node.xml'
+			CONFIG_FILE = configsFilesBaseDir + '/localhost_tpcc_' + str(numberOfReplicas) + 'node.xml' 
 		
 		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"
 		
@@ -686,6 +691,7 @@ def startDatabaseLayer():
 		sys.exit()
 		
 def startCoordinatorsLayer(configFile):
+	#extract 
 	with hide('running','output'):
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
 		for key, value in output.iteritems():

@@ -18,17 +18,17 @@ import java.io.IOException;
 /**
  * Created by dnlopes on 13/07/15.
  */
-public class EZKOperationCoordination implements OperationCoordinationService
+public class EZKOperationCoordinator implements OperationCoordinationService
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(EZKOperationCoordination.class);
+	private static final Logger LOG = LoggerFactory.getLogger(EZKOperationCoordinator.class);
 	public static final String BASE_DIR = "/coordination";
 	private final String PRIVATE_TMP_NODE;
 	private final int id;
 
 	protected final ZooKeeper zooKeeper;
 
-	public EZKOperationCoordination(ZooKeeper zooKeeper, int id) throws IOException
+	public EZKOperationCoordinator(ZooKeeper zooKeeper, int id) throws IOException
 	{
 		this.id = id;
 		this.PRIVATE_TMP_NODE = BASE_DIR + File.separatorChar + "tmp" + File.separatorChar + this.id;

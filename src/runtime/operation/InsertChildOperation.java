@@ -25,7 +25,6 @@ public class InsertChildOperation extends InsertOperation
 
 	private Map<ForeignKeyConstraint, Row> parentRows;
 
-
 	public InsertChildOperation(int id, ExecutionPolicy policy, Map<ForeignKeyConstraint, Row> parents, Row newRow)
 	{
 		super(id, policy, newRow);
@@ -38,26 +37,24 @@ public class InsertChildOperation extends InsertOperation
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+		this.row.addFieldValue(
+				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+
+		this.row.mergeUpdates();
 
 		for(ForeignKeyConstraint constraint : this.parentRows.keySet())
 		{
-			//@info: we use select query instead of static values for fields that are pointing to parent
-			// this way we make sure we never break the foreign key invariant
-			// we also dynamically set the '_del' flag of the child to reflect the visibility of its parent
-			for(ParentChildRelation relation : constraint.getFieldsRelations())
+			if(constraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 			{
-				boolean filterDeletedParent = false;
+				Row parent = this.parentRows.get(constraint);
 
-				if(constraint.getPolicy().getUpdateAction() == ForeignKeyAction.SET_NULL)
-					filterDeletedParent = true;
-
-				String query = QueryCreator.selectFieldFromRow(this.parentRows.get(constraint), relation.getParent(),
-						filterDeletedParent);
-				this.row.updateFieldValue(new QueryFieldValue(relation.getChild(), query));
+				String op = OperationTransformer.generateSetParentVisible(constraint, parent);
+				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+				String mergedClockOp = OperationTransformer.mergeDeletedClock(parent);
+				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergedClockOp);
 			}
 		}
 
-		this.row.mergeUpdates();
 		StringBuilder buffer = new StringBuilder();
 
 		for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())

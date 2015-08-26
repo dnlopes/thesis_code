@@ -6,7 +6,6 @@ import database.util.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.thrift.CoordinatorRequest;
-import util.thrift.Request;
 import util.thrift.ThriftShadowTransaction;
 
 import java.sql.SQLException;
@@ -53,7 +52,7 @@ public abstract class AbstractOperation implements ShadowOperation
 	public abstract void generateStatements(ThriftShadowTransaction shadowTransaction);
 
 	@Override
-	public void createRequestsToCoordinate(Request request) throws SQLException
+	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
 		// do nothing
 		// if one wants to coordinate, then override this method
