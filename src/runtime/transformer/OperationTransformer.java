@@ -28,10 +28,11 @@ public class OperationTransformer
 
 	public static String generateInsertStatement(Row row)
 	{
+		//done
 		StringBuilder buffer = new StringBuilder();
 		StringBuilder valuesBuffer = new StringBuilder();
 
-		buffer.append("INSERT INTO ");
+		buffer.append(OperationsStatements.INSERT_INTO);
 		buffer.append(row.getTable().getName());
 		buffer.append(" (");
 
@@ -50,7 +51,7 @@ public class OperationTransformer
 			}
 		}
 
-		buffer.append(") VALUES (");
+		buffer.append(OperationsStatements.PARENT_VALUES_PARENT);
 		buffer.append(valuesBuffer.toString());
 		buffer.append(")");
 

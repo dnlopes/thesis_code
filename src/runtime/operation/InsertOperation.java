@@ -65,7 +65,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 	@Override
 	public void createRequestsToCoordinate(CoordinatorRequest request) throws SQLException
 	{
-		int counter = 0;
+		//int counter = 0;
 
 		for(Constraint c : this.row.getContraintsToCheck())
 		{
@@ -75,7 +75,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 			switch(c.getType())
 			{
 			case AUTO_INCREMENT:
-				String symbol = SYMBOL_KEY + counter;
+				/*String symbol = SYMBOL_KEY + counter;
 				FieldValue fieldValue = this.row.getUpdateFieldValue(c.getFields().get(0).getFieldName());
 				RequestValue requestValue = new RequestValue();
 				requestValue.setConstraintId(c.getConstraintIdentifier());
@@ -88,6 +88,8 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				counter++;
 				if(LOG.isTraceEnabled())
 					LOG.trace("new request id entry added for constraint {}", c.getConstraintIdentifier());
+				request.setRequiresCoordination(true);
+				break;*/
 				break;
 			case UNIQUE:
 				StringBuilder buffer = new StringBuilder();
@@ -103,8 +105,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				request.addToUniqueValues(uniqueValue);
 				if(LOG.isTraceEnabled())
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
-				break;
-			case FOREIGN_KEY:
+				request.setRequiresCoordination(true);
 				break;
 			case CHECK:
 				DataField currField = c.getFields().get(0);
@@ -121,6 +122,9 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 
 				if(LOG.isTraceEnabled())
 					LOG.trace("new delta check entry added");
+				request.setRequiresCoordination(true);
+				break;
+			case FOREIGN_KEY:
 				break;
 			default:
 				RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);

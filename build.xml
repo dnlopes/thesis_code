@@ -340,6 +340,15 @@
 			<zipgroupfileset dir="${jars.dir}">
 				<include name="crdt-jdbc.jar" />
 			</zipgroupfileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-lang3-3.3.2.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+				<include name="jsqlparser-0.9.2.jar" />
+			</zipgroupfileset>
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
 			</fileset>

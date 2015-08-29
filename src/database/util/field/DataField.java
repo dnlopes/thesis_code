@@ -10,6 +10,7 @@ import java.util.Set;
 import database.constraints.Constraint;
 import database.util.SemanticPolicy;
 import database.util.table.DatabaseTable;
+import database.util.value.FieldValue;
 
 
 /**
@@ -34,6 +35,7 @@ public abstract class DataField
 	private int position;
 	private DatabaseTable dbTable;
 	private boolean isUnique;
+	private FieldValue defaultFieldValue;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
@@ -232,5 +234,15 @@ public abstract class DataField
 	public boolean isUnique()
 	{
 		return this.isUnique;
+	}
+
+	public FieldValue getDefaultFieldValue()
+	{
+		return this.defaultFieldValue;
+	}
+
+	public void setDefaultFieldValue(FieldValue defaultFieldValue)
+	{
+		this.defaultFieldValue = defaultFieldValue;
 	}
 }

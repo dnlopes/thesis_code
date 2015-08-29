@@ -24,7 +24,6 @@ public class Driver implements TpccConstants
 		return performanceCounter;
 	}
 
-
 	/**
 	 * Can be disabled for debug use only.
 	 */
@@ -307,7 +306,7 @@ public class Driver implements TpccConstants
 			}
 		}
 
-		if(Tpcc.counting_on)
+		if(Tpcc.counting_on && returnValue == 0)
 		{
 			retry[0]--;
 			retry2[0][t_num]--;
@@ -416,7 +415,7 @@ public class Driver implements TpccConstants
 			}
 		}
 
-		if(Tpcc.counting_on)
+		if(Tpcc.counting_on && returnValue == 0)
 		{
 			retry[1]--;
 			retry2[1][t_num]--;
@@ -596,13 +595,14 @@ public class Driver implements TpccConstants
 			}
 		}
 
-		if(Tpcc.counting_on)
+		if(Tpcc.counting_on && returnValue == 0)
 		{
-			retry[3]--;
-			retry2[3][t_num]--;
+			//retry[3]--;
+			//retry2[3][t_num]--;
 			failure[3]++;
 			failure2[3][t_num]++;
 			this.stats.incrementAborts();
+
 		}
 
 		return returnValue;
@@ -683,7 +683,7 @@ public class Driver implements TpccConstants
 			}
 		}
 
-		if(Tpcc.counting_on)
+		if(Tpcc.counting_on && returnValue == 0)
 		{
 			retry[4]--;
 			retry2[4][t_num]--;

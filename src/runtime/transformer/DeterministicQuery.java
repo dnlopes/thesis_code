@@ -4,6 +4,7 @@ package runtime.transformer;
 import database.util.*;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
+import database.util.value.FieldValue;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -49,6 +50,7 @@ public class DeterministicQuery
 	private static final DatabaseMetadata DB_METADATA = Configuration.getInstance().getDatabaseMetadata();
 	private static final Logger LOG = LoggerFactory.getLogger(DeterministicQuery.class);
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+	private static final String NULL_VALUE = "NULL";
 
 	// intercepts update operation and make it deterministic
 	public static String[] makeToDeterministic(Connection con, CCJSqlParserManager parser, String sqlQuery)
@@ -171,9 +173,18 @@ public class DeterministicQuery
 		{
 			for(String missingDfName : missFields)
 			{
-				colList.add(missingDfName);
 				DataField dataField = databaseTable.getField(missingDfName);
+				//FieldValue defaultValue = dataField.getDefaultFieldValue();
+						/*
+				if(defaultValue != null)
+				{
+					colList.add(missingDfName);
+					valueList.add(defaultValue.getFormattedValue());
+					continue;
+				}       */
 
+				colList.add(missingDfName);
+				        /*
 				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
 					RuntimeUtils.throwRunTimeException("non-semantic columns must be assigned earlier",
 							ExitCode.ERRORTRANSFORM);
@@ -183,20 +194,16 @@ public class DeterministicQuery
 
 				if(dataField.isForeignKey())
 					throw new SQLException("foreign key is missing from sql query");
-
+                 */
+				// if is auto_increment, assign a unique ID
+				// does not matter if it has semantic or not, because the generated id will be globally unique
+				if(dataField.isAutoIncrement())
+					valueList.add(String.valueOf(IdentifierFactory.getNextId(dataField)));
+				else if(dataField.getDefaultFieldValue() != null)
+					valueList.add(dataField.getDefaultFieldValue().getFormattedValue());
 				else
-				{
-					// if is auto_increment, assign a unique ID
-					// does not matter if it has semantic or not, because the generated id will be globally unique
-					if(dataField.isAutoIncrement())
-						valueList.add(String.valueOf(IdentifierFactory.getNextId(dataField)));
-					else if(dataField.getDefaultValue().equalsIgnoreCase("CURRENT_TIMESTAMP"))
-						valueList.add("'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
-					else if(dataField.getDefaultValue() != null)
-						valueList.add(dataField.getDefaultValue());
-					else
-						RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
-				}
+					RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
+
 			}
 		}
 	}
@@ -750,7 +757,9 @@ public class DeterministicQuery
 	 */
 	private static String get_Value_In_Correct_Format(String tableName, int fieldIndex, String Value)
 	{
-		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		if(Value.compareTo(NULL_VALUE) == 0)
+			return Value;
+
 		DatabaseTable dbT = DB_METADATA.getTable(tableName);
 
 		DataField dF = dbT.getField(fieldIndex);
@@ -771,7 +780,9 @@ public class DeterministicQuery
 	 */
 	private static String get_Value_In_Correct_Format(String tableName, String dataFileName, String Value)
 	{
-		//DatabaseTable dbT = annotatedTableSchema.get(tableName);
+		if(Value.compareTo(NULL_VALUE) == 0)
+			return Value;
+
 		DatabaseTable dbT = DB_METADATA.getTable(tableName);
 		DataField dF = dbT.getField(dataFileName);
 		return dF.get_Value_In_Correct_Format(Value);

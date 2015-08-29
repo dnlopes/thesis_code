@@ -19,6 +19,13 @@ IF(currentClock IS NULL) then
     RETURN 1;
 END IF;
 
+SET @firstChar = SUBSTRING(newClock,1);
+SET @compareResult = STRCMP('@', @firstChar);
+
+IF(@compareResult = 0) then
+    RETURN TRUE;
+END IF;
+
 loopTag: WHILE (TRUE) DO
 
     SET @index = LOCATE('-', currentClock);

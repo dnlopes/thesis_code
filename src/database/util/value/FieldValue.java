@@ -13,6 +13,7 @@ public class FieldValue
 
 	protected final DataField dataField;
 	protected String value;
+	private static final String NULL_VALUE = "NULL";
 
 	public FieldValue(DataField field, String value)
 	{
@@ -27,6 +28,9 @@ public class FieldValue
 
 	public String getFormattedValue()
 	{
+		if(this.value.compareTo(NULL_VALUE) == 0)
+			return this.value;
+
 		CrdtDataFieldType fieldType = this.dataField.getCrdtType();
 
 		if(fieldType == CrdtDataFieldType.LWWDATETIME || fieldType == CrdtDataFieldType.NORMALDATETIME || fieldType ==

@@ -71,9 +71,5 @@ END //
 DELIMITER ;
 
 
-    -- SET @currEntry = CONVERT ( LEFT(currentClock, 1), SIGNED);
-    -- SET @newEntry = CONVERT ( LEFT(newClock, 1), SIGNED);
-
-
 -- select compareClocks('2-1', '1-0');
 -- select * from t1 where (select testFunc('2-0-1', '1-0-0') = 1) limit 5;

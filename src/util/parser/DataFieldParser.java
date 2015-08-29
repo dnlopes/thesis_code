@@ -3,6 +3,7 @@ package util.parser;
 
 import database.util.*;
 import database.util.field.*;
+import database.util.value.NullFieldValue;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import runtime.RuntimeUtils;
@@ -29,6 +30,11 @@ public class DataFieldParser
 		String dataType = getFieldDataType(fieldDefinition);
 		boolean isPrimaryKey = isPrimaryKey(attributeDef);
 		boolean isAutoIncremantal = isAutoIncremental(attributeDef);
+
+
+		// if it is an auto_increment field, then it has no semantic, for sure
+		if(isAutoIncremantal)
+			semanticPolicy = SemanticPolicy.NOSEMANTIC;
 
 		DataField field = null;
 		switch(crdtType)
@@ -215,18 +221,14 @@ public class DataFieldParser
 	{
 		if(attributeDef.toUpperCase().contains("DEFAULT"))
 		{
-			RuntimeUtils.throwRunTimeException("default value capture logic not yet implemented",
-					ExitCode.MISSING_IMPLEMENTATION);
-
-			/*int startIndex = attributeDef.toUpperCase().indexOf("DEFAULT");
-			String defaultValue = attributeDef.substring(startIndex + 8);
-			defaultValue.replaceAll("'", "");
-			field.setDefaultValue(defaultValue);*/
+			if(attributeDef.toUpperCase().contains("DEFAULT NULL"))
+			{
+				NullFieldValue nullFieldValue = new NullFieldValue(field);
+				field.setDefaultFieldValue(nullFieldValue);
+			} else
+				RuntimeUtils.throwRunTimeException("custom default value capture logic not yet implemented",
+						ExitCode.MISSING_IMPLEMENTATION);
 		}
-
-		if(attributeDef.toUpperCase().contains("NULL") && !attributeDef.toUpperCase().contains("NOT NULL"))
-			field.setDefaultValue("NULL");
-
 	}
 
 	private static void throw_Wrong_Format_Exception(String schemaStr)
