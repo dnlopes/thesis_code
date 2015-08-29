@@ -23,14 +23,12 @@ TPCC_TEST_TIME=60
 ################################################################################################
 #   PREFIXS AND VARIABLES
 ################################################################################################
-
-user="ubuntu"
-if IS_LOCALHOST:
-    user="dnl"
-    
+ZOOKEEPER_PORT='2181'
+ZOOKEEPER_CFG_FILE='zoo.cfg'
+user=''   
 MYSQL_PORT='3306'
 TOTAL_USERS=0
-JDCB=""
+JDCB=''
 TPCC_VERSION='codefuture'
 ACTIVE_EXPERIMENT=""
 prefix_latency_throughput_experiment = "latency-throughput"

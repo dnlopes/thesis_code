@@ -16,8 +16,7 @@ formatter = logging.Formatter('[%(levelname)s] %(message)s')
 ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
-ZOOKEEPER_PORT=2181
-ZOOKEEPER_CFG_FILE='zoo.cfg'
+
 ################################################################################################
 #   LOCAL VARIABLES
 ################################################################################################
@@ -109,16 +108,16 @@ def startCoordinators(configFile):
     currentId = config.coordinators_map.get(env.host_string)    
     port = config.coordinatorsIdToPortMap.get(currentId)
     logFile = 'coordinator' + str(currentId) + '.log'
-    command = 'java -Xms4000m -Xmx8000m -jar zookeeper-server.jar ' + ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
+    command = 'java -Xms4000m -Xmx8000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
     if config.IS_LOCALHOST:
-        command = 'java -jar zookeeper-server.jar ' + ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
+        command = 'java -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
 
     logger.info('starting coordinator (zookeeper) at %s', env.host_string)
     logger.info('%s',command)
     with cd(config.DEPLOY_DIR), hide('running','output'):
         run(command)       
     time.sleep(30)
-    if not isPortOpen(ZOOKEEPER_PORT):
+    if not isPortOpen(config.ZOOKEEPER_PORT):
         return '0'
     return '1'
 
@@ -173,6 +172,7 @@ def distributeCode():
         put(config.PROJECT_DIR + '/experiments', config.DEPLOY_DIR)
         put(config.PROJECT_DIR + '/resources/*.sql', config.DEPLOY_DIR)
         put(config.PROJECT_DIR + '/resources/*.properties', config.DEPLOY_DIR)
+        put(config.PROJECT_DIR + '/resources/*.cfg', config.DEPLOY_DIR)
 
 def downloadLogsTo(outputDir):
     logger.info('downloading log files from %s', env.host_string)    

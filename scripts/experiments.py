@@ -66,6 +66,12 @@ SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5]
 OVERHEAD_JDCBs=['mysql','crdt']
 OVERHEAD_USERS_LIST=[1,5]
 
+
+if ENVIRONMENT == 'amazon':
+	config.user='ubuntu'
+else:
+	config.user='dp.lopes'
+
 ################################################################################################		
 # MAIN METHODS
 ################################################################################################		
@@ -694,7 +700,7 @@ def startCoordinatorsLayer(configFile):
 	
 	with hide('running','output'):
 		#extract
-		execute(fab.prepareCoordinatorLayer, configFile, hosts=config.coordinators_nodes)
+		execute(fab.prepareCoordinatorLayer, hosts=config.coordinators_nodes)
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
 		for key, value in output.iteritems():
 			if value == '0':
