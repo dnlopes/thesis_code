@@ -207,6 +207,22 @@ def prepareTPCCDatabase():
 
     time.sleep(3)
 
+@parallel
+def prepareCoordinatorLayer():
+    
+    if config.JDBC != 'crdt':
+        logger.error("unexpected driver: %s", config.JDBC)
+        sys.exit()
+    
+    zookeeperPackage = 'zookeeper_data_ready.tar.gz'
+    logger.info('unpacking zookeeper data_dir at: %s', env.host_string)
+    with cd(config.BASE_DIR), hide('output','running'):
+        run('rm -rf zookeeper*')
+        run('cp ' + config.BACKUPS_DIR + '/' + zookeeperPackage + " " + config.BASE_DIR)
+        run('tar zxvf ' + zookeeperPackage)
+
+    time.sleep(3)
+
 ################################################################################################
 #   HELPER METHODS
 ################################################################################################

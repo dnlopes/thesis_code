@@ -691,8 +691,10 @@ def startDatabaseLayer():
 		sys.exit()
 		
 def startCoordinatorsLayer(configFile):
-	#extract 
+	
 	with hide('running','output'):
+		#extract
+		execute(fab.prepareCoordinatorLayer, configFile, hosts=config.coordinators_nodes)
 		output = execute(fab.startCoordinators, configFile, hosts=config.coordinators_nodes)
 		for key, value in output.iteritems():
 			if value == '0':
