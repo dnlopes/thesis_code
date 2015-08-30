@@ -24,21 +24,17 @@ public class IDGenerator
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IDGenerator.class);
-
+	private static final int DELTA = Configuration.getInstance().getProxies().size();
 	private AtomicInteger currentValue;
 	private DataField field;
-	private int delta;
 
 	public IDGenerator(DataField field, NodeConfig config)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
-		this.delta = Configuration.getInstance().getProxies().size();
 
 		this.setupGenerator(config);
 	}
-
-
 
 	private void setupGenerator(NodeConfig config)
 	{
@@ -83,7 +79,10 @@ public class IDGenerator
 
 	public int getNextId()
 	{
-		return this.currentValue.addAndGet(this.delta);
+		int newValue = this.currentValue.addAndGet(DELTA);
+		LOG.debug("new id generated for field {}: {}", this.field.getFieldName(), newValue);
+
+		return newValue;
 	}
 
 	public int getCurrentValue()

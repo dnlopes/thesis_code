@@ -22,7 +22,7 @@ public class DBCommitPad implements IDBCommitPad
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitPad.class);
-	private static final int NUMBER_OF_RETRIES = 10;
+	private static final int NUMBER_OF_RETRIES = 1;
 	private static int TXN_COUNT = 0;
 	private static final int FREQUENCY = 150;
 
