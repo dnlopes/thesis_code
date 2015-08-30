@@ -32,8 +32,8 @@ public class UpdateChildOperation extends UpdateOperation
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		//done
-		this.row.updateFieldValue(
-				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+		//this.row.updateFieldValue(
+		//		new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
@@ -54,9 +54,9 @@ public class UpdateChildOperation extends UpdateOperation
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
 			String insertRowBack = OperationTransformer.generateInsertParentRowBack(this.row, this.parentRows);
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), insertRowBack);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), insertRowBack);
 			mergeClockStatement = OperationTransformer.mergeDeletedClock(this.row);
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
 		}
 	}
 }

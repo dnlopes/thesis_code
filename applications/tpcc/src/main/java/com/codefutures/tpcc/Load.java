@@ -15,7 +15,7 @@ public class Load implements TpccConstants {
     private static boolean optionDebug = false;
 
 	private static final Logger logger = LoggerFactory.getLogger(Tpcc.class);
-
+	private static int historyId = 0;
 
 	public static void clean(Connection conn)
 	{
@@ -544,9 +544,9 @@ public class Load implements TpccConstants {
         final RecordLoader customerLoader = loadConfig.createLoader("customer", CUSTOMER_COLUMNS);
 
         final String[] HISTORY_COLUMN_NAME = {
-                "h_c_id", "h_c_d_id", "h_c_w_id", "h_d_id", "h_w_id", "h_date", "h_amount", "h_data"
+                "h_c_id", "h_c_d_id", "h_c_w_id", "h_d_id", "h_w_id", "h_date", "h_amount", "h_data", "h_id"
         };
-        final Record historyRecord = new Record(8);
+        final Record historyRecord = new Record(9);
         final RecordLoader historyLoader = loadConfig.createLoader("history", HISTORY_COLUMN_NAME);
 
         if ((currentShard == shardId) || (shardId == 0)) {
@@ -656,6 +656,7 @@ public class Load implements TpccConstants {
                     historyRecord.add(date);
                     historyRecord.add(h_amount);
                     historyRecord.add(h_data);
+					historyRecord.add(historyId++);
 
                     historyLoader.load(historyRecord);
 					historyLoader.commit();

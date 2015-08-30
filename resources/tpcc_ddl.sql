@@ -54,6 +54,7 @@
 )Engine=InnoDB;
 
 @ARSETTABLE create table history (
+	@LWWINTEGER h_id int AUTO_INCREMENT not null, 
 	@LWWINTEGER h_c_id int, 
 	@LWWINTEGER h_c_d_id tinyint, 
 	@LWWINTEGER h_c_w_id smallint,
@@ -62,6 +63,7 @@
 	@LWWDATETIME h_date date,
 	@LWWINTEGER h_amount decimal(6,2), 
 	@NORMALSTRING h_data varchar(24),
+	PRIMARY KEY(h_id),
 	FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 

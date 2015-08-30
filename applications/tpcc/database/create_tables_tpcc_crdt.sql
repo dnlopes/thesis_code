@@ -80,6 +80,7 @@ PRIMARY KEY(c_w_id, c_d_id, c_id) ) Engine=InnoDB;
 
 
 create table history (
+h_id int not null,
 h_c_id int, 
 h_c_d_id tinyint, 
 h_c_w_id smallint,
@@ -90,7 +91,8 @@ h_amount decimal(6,2),
 h_data varchar(24),
 _del boolean default 0,
 _cclock varchar(20),
-_dclock varchar(20)
+_dclock varchar(20),
+PRIMARY KEY(h_id)
 ) Engine=InnoDB;
 
 

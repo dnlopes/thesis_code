@@ -9,7 +9,6 @@ import database.util.value.FieldValue;
 import runtime.transformer.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import util.defaults.DBDefaults;
 import util.thrift.*;
 
 import java.sql.SQLException;
@@ -33,8 +32,8 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		//done
-		this.row.updateFieldValue(
-				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+		//this.row.updateFieldValue(
+		//		new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
@@ -56,9 +55,9 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
 			String insertRowBack = OperationTransformer.generateInsertRowBack(this.row);
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), insertRowBack);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), insertRowBack);
 			mergeClockStatement = OperationTransformer.mergeDeletedClock(this.row);
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
+			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
 		}
 	}
 

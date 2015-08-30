@@ -16,6 +16,7 @@ import java.util.Map;
 public final class PrimaryKeyValue
 {
 
+	private static final String DEFAULT_VALUE = "TRUE";
 	private String tableName;
 	private Map<String, FieldValue> values;
 	private String uniqueValue;
@@ -102,6 +103,9 @@ public final class PrimaryKeyValue
 
 	public String getPrimaryKeyWhereClause()
 	{
+		if(this.values.size() == 0)
+			return DEFAULT_VALUE;
+
 		if(!isPkGenerated)
 			this.generatePkWhereClause();
 

@@ -169,7 +169,7 @@ public class QueryCreator
 			buffer.append(countQuery);
 
 			if(fkConstraintsIterator.hasNext())
-				buffer.append("UNION ALL");
+				buffer.append(" UNION ALL ");
 		}
 
 		buffer.append(") as x");
