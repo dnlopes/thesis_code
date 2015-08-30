@@ -25,7 +25,7 @@ TPCC_TEST_TIME=60
 ################################################################################################
 ZOOKEEPER_PORT='2181'
 ZOOKEEPER_CFG_FILE='zoo.cfg'
-user=''   
+user='dp.lopes'   
 MYSQL_PORT='3306'
 TOTAL_USERS=0
 JDCB=''

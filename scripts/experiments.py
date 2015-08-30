@@ -41,10 +41,10 @@ ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'
 NUMBER_REPLICAS=[3]
 NUMBER_USERS_LIST_1REPLICA=[1]
-#NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
+NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
 #NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
-NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
+#NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
 #NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
 NUMBER_USERS_LIST_5REPLICA=[10,20,40,80,160,320,500,750,1000]
 userListToReplicasNumber = dict()
@@ -65,12 +65,6 @@ SCALABILITY_NUMBER_REPLICAS=[1,2,3,4,5]
 ################################################################################################		
 OVERHEAD_JDCBs=['mysql','crdt']
 OVERHEAD_USERS_LIST=[1,5]
-
-
-if ENVIRONMENT == 'amazon':
-	config.user='ubuntu'
-else:
-	config.user='dp.lopes'
 
 ################################################################################################		
 # MAIN METHODS
