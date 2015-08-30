@@ -6,7 +6,9 @@ import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import runtime.RuntimeUtils;
 import runtime.transformer.QueryCreator;
+import util.ExitCode;
 import util.defaults.DBDefaults;
 import util.thrift.ThriftShadowTransaction;
 
@@ -32,6 +34,14 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+
+		RuntimeUtils.throwRunTimeException("updates cannot have side effects", ExitCode.INVALIDUSAGE);
+		//INFO: currently updates cannot have side effects, thus updating a parent is the equivalent of updating a
+		// child tuple
+
+		//super.generateStatements(shadowTransaction);
+
+		/*
 		List<String> childsUpdates = new ArrayList<>();
 
 		//@info: for now we always update the childs, because some concurrent update may "revert" the changes to the
@@ -95,6 +105,8 @@ public class UpdateParentOperation extends UpdateOperation implements ParentOper
 
 		for(String update : childsUpdates)
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
+
+			*/
 	}
 
 	@Override

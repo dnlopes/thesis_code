@@ -34,6 +34,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		//done
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));

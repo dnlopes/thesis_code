@@ -2,15 +2,14 @@ package runtime.transformer;
 
 
 import database.constraints.fk.ForeignKeyConstraint;
-import database.util.ExecutionPolicy;
 import database.util.value.FieldValue;
 import database.util.Row;
-import org.apache.zookeeper.server.util.Profiler;
 import runtime.operation.OperationsStatements;
 import util.defaults.DBDefaults;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -22,13 +21,11 @@ public class OperationTransformer
 {
 
 	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
-	private static final String SET_NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
 	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
 
 	public static String generateInsertStatement(Row row)
 	{
-		//done
 		StringBuilder buffer = new StringBuilder();
 		StringBuilder valuesBuffer = new StringBuilder();
 
@@ -64,9 +61,9 @@ public class OperationTransformer
 
 		Iterator<FieldValue> fieldsValuesIt = row.getFieldValues().iterator();
 
-		buffer.append("UPDATE ");
+		buffer.append(OperationsStatements.UPDATE);
 		buffer.append(row.getTable().getName());
-		buffer.append(" SET ");
+		buffer.append(OperationsStatements.SET);
 
 		while(fieldsValuesIt.hasNext())
 		{
@@ -87,80 +84,10 @@ public class OperationTransformer
 		if(buffer.charAt(buffer.length() - 1) == ',')
 			buffer.setLength(buffer.length() - 1);
 
-		return buffer.toString();
-	}
-
-	public static String generateDeleteStatement(Row row)
-	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("UPDATE ");
-		buffer.append(row.getTable().getName());
-		buffer.append(" SET ");
-		buffer.append(SET_DELETED_EXPRESSION);
-		buffer.append(",");
-		buffer.append(SET_DELETED_CLOCK_EXPRESION);
-		buffer.append(" WHERE ");
+		buffer.append(OperationsStatements.WHERE);
 		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
-
-		return buffer.toString();
-	}
-
-	public static String generateContentUpdateFunctionClause(boolean equal)
-	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(DBDefaults.CLOCK_IS_GREATER_FUNCTION);
-		buffer.append("(");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")=1");
-
-		return buffer.toString();
-	}
-
-	public static String generateContentUpdateFunctionClause(boolean equal, String firstClock, String secondClock)
-	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
-		buffer.append("(");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
-
-		if(equal)
-			buffer.append(" >= 0");
-		else
-			buffer.append(" > 0");
-
-		return buffer.toString();
-	}
-
-	public static String generateVisibilityUpdateFunctionClause(ExecutionPolicy policy)
-	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
-		buffer.append("(");
-		buffer.append(DBDefaults.CONTENT_CLOCK_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
-
-		if(policy == ExecutionPolicy.DELETEWINS)
-			buffer.append(">=0");
-		else
-			buffer.append(">0");
-
-		//@info, this piece of code prevents state divergence in the case where 2 replicas concurrently deletes the
-		// same tuple. Without this code, the value of '_dclock' would not converge
-		buffer.append(" AND ");
-		buffer.append(DBDefaults.COMPARE_CLOCK_FUNCTION);
-		buffer.append("(");
-		buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-		buffer.append(",");
-		buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-		buffer.append(")");
-		buffer.append(">0");
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.CLOCK_IS_GREATER_SUFIX);
 
 		return buffer.toString();
 	}
@@ -231,28 +158,13 @@ public class OperationTransformer
 	{
 		StringBuilder buffer = new StringBuilder();
 
-		buffer.append("UPDATE ");
+		buffer.append(OperationsStatements.UPDATE);
 		buffer.append(row.getTable().getName());
-		buffer.append(" SET ");
-		buffer.append(SET_NOT_DELETED_EXPRESSION);
-		buffer.append(" WHERE ");
+		buffer.append(OperationsStatements.SET_NOT_DELETED);
+		buffer.append(OperationsStatements.WHERE);
 		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		return buffer.toString();
-	}
-
-	/**
-	 * Generates a SQL statement that update the foreign key fields in childs row according to the parent
-	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
-	 * that this statement was executed.
-	 *
-	 * @param parentRow
-	 *
-	 * @return
-	 */
-	public static String generateUpdateChildForeignKeyFields()
-	{
-		return null;
 	}
 
 	public static String generateSetParentVisible(ForeignKeyConstraint constraint, Row parent)
@@ -261,7 +173,7 @@ public class OperationTransformer
 
 		buffer.append(OperationsStatements.UPDATE);
 		buffer.append(constraint.getParentTable().getName());
-		buffer.append(OperationsStatements.SET_DELETED);
+		buffer.append(OperationsStatements.SET_NOT_DELETED);
 		buffer.append(OperationsStatements.WHERE);
 		buffer.append(parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		buffer.append(OperationsStatements.AND);
@@ -270,16 +182,83 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	public static String mergeDeletedClock(Row parent)
+	public static String mergeDeletedClock(Row row)
 	{
-
 		StringBuilder buffer = new StringBuilder();
 		buffer.append(OperationsStatements.UPDATE);
-		buffer.append(parent.getTable().getName());
+		buffer.append(row.getTable().getName());
 		buffer.append(OperationsStatements.MERGE_DCLOCK_OP);
 		buffer.append(OperationsStatements.WHERE);
-		buffer.append(parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		return buffer.toString();
 	}
+
+	public static String mergeContentClock(Row row)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(row.getTable().getName());
+		buffer.append(OperationsStatements.MERGE_CCLOCK_OP);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+
+		return buffer.toString();
+	}
+
+	public static String generateDeleteUpdateWins(Row row)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(row.getTable().getName());
+		buffer.append(OperationsStatements.SET_DELETED);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.DELETE_ROW_OP_SUFFIX_UPDATE_WINS);
+
+		return buffer.toString();
+	}
+
+	public static String generateDeleteDeleteWins(Row row)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(row.getTable().getName());
+		buffer.append(OperationsStatements.SET_DELETED);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.DELETE_ROW_OP_SUFFIX_DELETE_WINS);
+
+		return buffer.toString();
+	}
+
+	public static String generateInsertRowBack(Row childRow)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationTransformer.generateSetVisible(childRow));
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
+
+		return buffer.toString();
+	}
+
+	public static String generateInsertParentRowBack(Row childRow, Map<ForeignKeyConstraint, Row> parentRows)
+	{
+		String parentsCounterQuery = QueryCreator.countParentsVisible(parentRows);
+
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationTransformer.generateSetVisible(childRow));
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
+		buffer.append(OperationsStatements.AND);
+		buffer.append(parentRows.size());
+		buffer.append("=(");
+		buffer.append(parentsCounterQuery);
+		buffer.append(")");
+
+		return buffer.toString();
+	}
+
 }

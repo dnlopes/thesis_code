@@ -32,28 +32,21 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		//done
 		this.row.updateFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
-		StringBuilder buffer = new StringBuilder();
-
 		String updateStatement = OperationTransformer.generateUpdateStatement(this.row);
-		buffer.append(updateStatement);
-		buffer.append(" WHERE ");
-		buffer.append(this.row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
-		buffer.append(" AND ");
-		String compareClockClause = OperationTransformer.generateContentUpdateFunctionClause(true);
-		buffer.append(compareClockClause);
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), updateStatement);
 
-		String op = buffer.toString();
-
-		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+		String mergeClockStatement = OperationTransformer.mergeContentClock(this.row);
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
 
 		if(!this.isFinal)
 		{
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), updateStatement);
 
 			for(RequestValue rValue : this.requestValues)
 				rValue.setOpId(shadowTransaction.getOperations().size());
@@ -62,17 +55,10 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
-			buffer.setLength(0);
-			String visibleOp = OperationTransformer.generateSetVisible(this.row);
-			buffer.append(visibleOp);
-			buffer.append(" AND ");
-			buffer.append(DBDefaults.CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION);
-			buffer.append("(");
-			buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-			buffer.append(",");
-			buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-			buffer.append(")=1");
-			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+			String insertRowBack = OperationTransformer.generateInsertRowBack(this.row);
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), insertRowBack);
+			mergeClockStatement = OperationTransformer.mergeDeletedClock(this.row);
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);
 		}
 	}
 

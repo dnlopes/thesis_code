@@ -6,7 +6,9 @@ import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
 import database.util.ExecutionPolicy;
 import database.util.Row;
+import runtime.RuntimeUtils;
 import runtime.transformer.QueryCreator;
+import util.ExitCode;
 import util.defaults.DBDefaults;
 import util.thrift.ThriftShadowTransaction;
 
@@ -34,6 +36,10 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+		//TODO: missing implementation
+
+		/*
 		List<String> childsUpdates = new ArrayList<>();
 
 		// delete parent row
@@ -104,6 +110,7 @@ public class DeleteParentOperation extends DeleteOperation implements ParentOper
 
 		for(String update : childsUpdates)
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
+                          */
 	}
 
 	@Override

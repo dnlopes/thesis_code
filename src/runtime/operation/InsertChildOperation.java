@@ -31,6 +31,7 @@ public class InsertChildOperation extends InsertOperation
 	@Override
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
+		//done
 		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.DELETED_VALUE));
 		this.row.addFieldValue(
 				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
@@ -52,33 +53,10 @@ public class InsertChildOperation extends InsertOperation
 			}
 		}
 
+		String insertStatement = OperationTransformer.generateInsertStatement(this.row);
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), insertStatement);
+
 		StringBuilder buffer = new StringBuilder();
-
-		for(Map.Entry<ForeignKeyConstraint, Row> entry : this.parentRows.entrySet())
-		{
-			ForeignKeyConstraint fkConstraint = entry.getKey();
-			if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
-			{
-				buffer.setLength(0);
-				String update = OperationTransformer.generateSetVisible(entry.getValue());
-				buffer.append(update);
-				buffer.append(" AND ");
-				buffer.append(DBDefaults.CLOCKS_IS_CONCURRENT_OR_GREATER_FUNCTION);
-				buffer.append("(");
-				buffer.append(DBDefaults.DELETED_CLOCK_COLUMN);
-				buffer.append(",");
-				buffer.append(DBDefaults.CLOCK_VALUE_PLACEHOLDER);
-				buffer.append(")=1");
-				shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), update);
-			}
-		}
-
-		String insertOrUpdateStatement = OperationTransformer.generateInsertStatement(this.row);
-		buffer.setLength(0);
-		buffer.append(insertOrUpdateStatement);
-
-		String op = buffer.toString();
-		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
 
 		// now set the tuple visibility
 		String parentsCounterQuery = QueryCreator.countParentsVisible(this.parentRows);
@@ -91,9 +69,11 @@ public class InsertChildOperation extends InsertOperation
 		buffer.append(parentsCounterQuery);
 		buffer.append(")");
 
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+
 		if(!this.isFinal)
 		{
-			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), op);
+			shadowTransaction.putToTempOperations(shadowTransaction.getOperationsSize(), insertStatement);
 
 			for(RequestValue rValue : this.requestValues)
 				rValue.setOpId(shadowTransaction.getOperationsSize());
