@@ -25,17 +25,18 @@ public class IdentifierFactory
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 	private static final String REPLICA_PREFIX = System.getProperty("proxyid") + ":";
 
-	public static void createGenerators(NodeConfig config)
+	public static void setup(NodeConfig config)
 	{
-		if(LOG.isInfoEnabled())
-			LOG.info("bootstraping id generators for auto increment fields");
+		if(LOG.isTraceEnabled())
+			LOG.trace("bootstraping id generators for auto increment fields");
+
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
 			List<DataField> fields = table.getFieldsList();
 
 			for(DataField field : fields)
 			{
-				if(field.isNumberField())
+				if(field.isAutoIncrement())
 					createIdGenerator(field, config);
 			}
 		}

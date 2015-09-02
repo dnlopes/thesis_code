@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
 import util.ObjectPool;
-import util.defaults.Configuration;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -54,8 +53,6 @@ public class Proxy extends AbstractNode
 		this.transactionsCounter = new AtomicInteger();
 		this.scratchpadsCount = new AtomicInteger();
 		this.connectionsCounter = new AtomicInteger();
-
-		IdentifierFactory.createGenerators(this.config);
 
 		this.setup();
 		System.out.println("proxy " + this.config.getId() + " online");
@@ -168,7 +165,7 @@ public class Proxy extends AbstractNode
 
 	private void setup()
 	{
-		Configuration conf = Configuration.getInstance();
+		IdentifierFactory.setup(this.config);
 
 		for(int i = 0; i < TEMPORARY_SCRATCHPAD_POOL_SIZE; i++)
 		{
