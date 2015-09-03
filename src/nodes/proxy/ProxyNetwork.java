@@ -11,66 +11,48 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import util.ObjectPool;
-import util.thrift.*;
+import util.thrift.ReplicatorRPC;
+import util.thrift.ThriftShadowTransaction;
 
 
 /**
- * Created by dnlopes on 15/03/15.
+ * Created by dnlopes on 02/09/15.
  */
 public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 {
 
-	private final static int POOL_SIZE = 100;
-
-	private final ObjectPool<ReplicatorRPC.Client> replicatorConnectionPool;
-
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 
-	public ProxyNetwork(ProxyConfig node)
-	{
-		super(node);
-		this.replicatorConnectionPool = new ObjectPool<>();
+	private final NodeConfig replicatorConfig;
+	private ReplicatorRPC.Client replicatorRpc;
 
-		this.setup();
+	public ProxyNetwork(ProxyConfig proxyConfig)
+	{
+		super(proxyConfig);
+
+		if(LOG.isTraceEnabled())
+			LOG.trace("setting up rpc connection to replicator");
+
+		this.replicatorConfig = proxyConfig.getReplicatorConfig();
+		this.replicatorRpc = this.createReplicatorConnection();
 	}
 
 	@Override
 	public boolean commitOperation(ThriftShadowTransaction shadowTransaction, NodeConfig node)
 	{
-
-		ReplicatorRPC.Client connection = this.replicatorConnectionPool.borrowObject();
-
-		if(connection == null)
-		{
-			LOG.warn("replicator connection pool empty. Creating new connection...");
-			connection = this.createReplicatorConnection(node);
-		}
-
-		if(connection == null)
-		{
-			LOG.warn("failed to create connection to replicator");
-			return false;
-		}
-
 		try
 		{
-			return connection.commitOperation(shadowTransaction);
+			return replicatorRpc.commitOperation(shadowTransaction);
 		} catch(TException e)
 		{
 			LOG.warn("communication problem between proxy and replicator: {}", e.getMessage(), e);
 			return false;
-		} finally
-		{
-			if(connection != null)
-				this.replicatorConnectionPool.returnObject(connection);
 		}
 	}
 
-	private ReplicatorRPC.Client createReplicatorConnection(NodeConfig config)
+	private ReplicatorRPC.Client createReplicatorConnection()
 	{
-		TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+		TTransport newTransport = new TSocket(this.replicatorConfig.getHost(), this.replicatorConfig.getPort());
 		try
 		{
 			newTransport.open();
@@ -82,21 +64,5 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 
 		TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 		return new ReplicatorRPC.Client(protocol);
-	}
-
-	private void setup()
-	{
-		if(LOG.isTraceEnabled())
-			LOG.trace("setting up client connections");
-		ProxyConfig proxyConfig = (ProxyConfig) this.me;
-		NodeConfig replicatorConfig = proxyConfig.getReplicatorConfig();
-
-		for(int i = 0; i < POOL_SIZE; i++)
-		{
-			ReplicatorRPC.Client replicatorConnection = this.createReplicatorConnection(replicatorConfig);
-
-			if(replicatorConnection != null)
-				this.replicatorConnectionPool.addObject(replicatorConnection);
-		}
 	}
 }

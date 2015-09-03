@@ -4,7 +4,6 @@ package runtime.transformer;
 import database.util.*;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
-import database.util.value.FieldValue;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;

@@ -119,4 +119,6 @@ public final class ExitCode
 	public static final int ID_GENERATOR_ERROR = 41;
 	public static final int SCRATCHPAD_CLEANUP_ERROR = 41;
 
+	public static final int SANDBOX_INIT_FAILED = 45;
+
 }

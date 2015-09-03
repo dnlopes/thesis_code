@@ -62,14 +62,14 @@ public class CRDTPreparedStatement implements PreparedStatement
 	public ResultSet executeQuery() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-		return proxy.executeQuery(arg0, this.id);
+		return this.proxy.executeQuery(arg0, this.id);
 	}
 
 	@Override
 	public int executeUpdate() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-		return proxy.executeUpdate(arg0, this.id);
+		return this.proxy.executeUpdate(arg0, this.id);
 	}
 
 	@Override

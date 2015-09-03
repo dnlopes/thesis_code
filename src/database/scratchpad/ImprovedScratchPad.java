@@ -3,11 +3,12 @@ package database.scratchpad;
 
 import database.constraints.Constraint;
 import database.constraints.ConstraintType;
-import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
-import database.jdbc.ConnectionFactory;
-import database.util.*;
+import database.util.DatabaseCommon;
+import database.util.PrimaryKey;
+import database.util.PrimaryKeyValue;
+import database.util.Row;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.value.DeltaFieldValue;
@@ -25,23 +26,19 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import nodes.proxy.IProxyNetwork;
-import nodes.proxy.ProxyConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.transformer.DeterministicQuery;
 import runtime.RuntimeUtils;
-import runtime.operation.*;
 import runtime.Transaction;
+import runtime.operation.*;
 import util.ExitCode;
-import util.debug.Debug;
 import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.defaults.ScratchpadDefaults;
-import util.exception.CheckConstraintViolatedException;
-import util.thrift.*;
 
+import java.io.StringReader;
 import java.sql.*;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -51,16 +48,15 @@ import java.util.*;
 /**
  * Created by dnlopes on 10/03/15.
  */
-public class DBScratchPad implements IDBScratchPad
+public class ImprovedScratchPad implements IDBScratchPad
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DBScratchPad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ImprovedScratchPad.class);
 
-	private ProxyConfig proxyConfig;
 	private Transaction activeTransaction;
 	private int id;
-	private Map<String, IExecuter> executers;
-	private CCJSqlParserManager parser;
+	private Map<String, DBExecuter> executers;
+	private final CCJSqlParserManager parser;
 	private Connection defaultConnection;
 	private Statement statQ;
 	private Statement statU;
@@ -68,38 +64,20 @@ public class DBScratchPad implements IDBScratchPad
 	private boolean batchEmpty;
 	private String defaultDate;
 
-	public DBScratchPad(int id, Connection dbConnection) throws SQLException, ScratchpadException
+	public ImprovedScratchPad(int id, Connection dbConnection, CCJSqlParserManager parser)
+			throws SQLException, ScratchpadException
 	{
 		this.id = id;
 		this.defaultConnection = dbConnection;
 		this.executers = new HashMap<>();
 		this.batchEmpty = true;
-		this.parser = new CCJSqlParserManager();
+		this.parser = parser;
 		this.statQ = this.defaultConnection.createStatement();
 		this.statU = this.defaultConnection.createStatement();
 		this.statBU = this.defaultConnection.createStatement();
 
 		java.util.Date dt = new java.util.Date();
-		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-		this.defaultDate = sdf.format(dt);
-
-		this.createDBExecuters();
-	}
-
-	public DBScratchPad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
-	{
-		this.id = id;
-		this.proxyConfig = proxyConfig;
-		this.defaultConnection = ConnectionFactory.getDefaultConnection(proxyConfig);
-		this.executers = new HashMap<>();
-		this.batchEmpty = true;
-		this.parser = new CCJSqlParserManager();
-		this.statQ = this.defaultConnection.createStatement();
-		this.statU = this.defaultConnection.createStatement();
-		this.statBU = this.defaultConnection.createStatement();
-
-		java.util.Date dt = new java.util.Date();
-		SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		this.defaultDate = sdf.format(dt);
 
 		this.createDBExecuters();
@@ -125,22 +103,7 @@ public class DBScratchPad implements IDBScratchPad
 	@Override
 	public void commitTransaction(IProxyNetwork network) throws SQLException
 	{
-		// if read-only, then just return from this method
-		if(!this.activeTransaction.isReadOnly())
-		{
-			CoordinatorRequest request = this.generateCoordinationRequest();
-
-			ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(this.activeTransaction);
-
-			if(request.isRequiresCoordination())
-				shadowTransaction.setRequestToCoordinator(request);
-
-			boolean commitDecision = network.commitOperation(shadowTransaction, this.proxyConfig.getReplicatorConfig
-					());
-
-			if(!commitDecision)
-				throw new SQLException("commit on main storage failed");
-		}
+		RuntimeUtils.throwRunTimeException("missing method implementation", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	@Override
@@ -152,81 +115,58 @@ public class DBScratchPad implements IDBScratchPad
 	@Override
 	public ResultSet executeQuery(String op) throws SQLException
 	{
-		DBSingleOperation dbOp;
-
-		dbOp = new DBSingleOperation(op);
+		net.sf.jsqlparser.statement.Statement statement;
 
 		try
 		{
-			dbOp.parse(this.parser);
+			statement = this.parser.parse(new StringReader(op));
+
 		} catch(JSQLParserException e)
 		{
 			throw new SQLException("parser error: " + e.getMessage());
 		}
 
-		if(!dbOp.isQuery())
-			RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+		if(!(statement instanceof Select))
+			throw new SQLException("query statement expected");
 
-		String[][] tableName = dbOp.targetTable();
-		if(tableName.length == 1)
+		Select selectStatement = (Select) statement;
+
+		SelectBody sb = selectStatement.getSelectBody();
+
+		if(!(sb instanceof PlainSelect))
+			throw new SQLException("Cannot process select : " + selectStatement.toString());
+
+		PlainSelect psb = (PlainSelect) sb;
+		FromItem fi = psb.getFromItem();
+
+		if(!(fi instanceof Table))
+			throw new RuntimeException("Cannot process select : " + selectStatement.toString());
+
+		List joins = psb.getJoins();
+		int nJoins = joins == null ? 0 : joins.size();
+
+		String tableName;
+		if(nJoins == 0)
 		{
-			IExecuter executor = this.executers.get(tableName[0][2]);
+			tableName = ((Table) fi).getName().toUpperCase();
+
+			DBExecuter executor = this.executers.get(tableName);
+
 			if(executor == null)
 			{
-				LOG.error("executor for table {} not found", tableName[0][2]);
-				RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
-						ExitCode.EXECUTOR_NOT_FOUND);
-			}
-
-			try
-			{
-				return executor.executeTemporaryQueryOnSingleTable((Select) dbOp.getStatement(), this);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
-
+				LOG.error("executor for table {} not found", tableName);
+				throw new SQLException("executor not found");
+			} else
+				return executor.executeTemporaryQueryOnSingleTable(selectStatement, this);
 		} else
-		{
-			IExecuter[] executors = new DBExecuter[tableName.length];
-			for(int i = 0; i < tableName.length; i++)
-			{
-				executors[i] = this.executers.get(tableName[i][2]);
-				if(tableName[i][1] == null)
-					tableName[i][1] = executors[i].getAliasTable();
-				if(executors[i] == null)
-					throw new SQLException("scratchpad error: executor not found");
-			}
-			try
-			{
-				return executors[0].executeTemporaryQueryOnMultTable((Select) dbOp.getStatement(), this, executors,
-						tableName);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
-		}
+			//TODO: implement multi-table queries (joins)
+			return executeQueryMainStorage(op);
 	}
 
 	@Override
 	public ResultSet executeQueryMainStorage(String op) throws SQLException
 	{
 		return this.statQ.executeQuery(op);
-	}
-
-	public int executeUpdate(String originalOperation) throws SQLException
-	{
-		String[] deterministicOps;
-		try
-		{
-			deterministicOps = DeterministicQuery.makeToDeterministic(this.defaultConnection, this.parser,
-					originalOperation);
-		} catch(JSQLParserException e)
-		{
-			throw new SQLException("parser exception");
-		}
-
-		return this.executeUpdate(deterministicOps);
 	}
 
 	@Override
@@ -290,63 +230,40 @@ public class DBScratchPad implements IDBScratchPad
 		for(int i = 0; i < tempTables.size(); i++)
 		{
 			String tableName = tempTables.get(i);
-			IExecuter executor = new DBExecuter(i, tableName);
+			DBExecuter executor = new DBExecuter(i, tableName);
 			executor.setup(metadata, this);
 			this.executers.put(tableName.toUpperCase(), executor);
 			this.defaultConnection.commit();
 		}
 	}
 
-	private int executeUpdate(String[] updatesOps) throws SQLException
+	public int executeUpdate(String op) throws SQLException
 	{
-		int result = 0;
+		net.sf.jsqlparser.statement.Statement statement;
 
-		for(String updateStr : updatesOps)
-		{
-			DBSingleOperation dbOp;
-			int counter;
-			dbOp = new DBSingleOperation(updateStr);
-			counter = this.executeUpdate(dbOp);
-			result += counter;
-		}
-
-		return result;
-	}
-
-	private int executeUpdate(DBSingleOperation op) throws SQLException
-	{
 		try
 		{
-			op.parse(this.parser);
+			statement = this.parser.parse(new StringReader(op));
+
 		} catch(JSQLParserException e)
 		{
 			throw new SQLException("parser error: " + e.getMessage());
 		}
 
-		if(op.isQuery())
-			RuntimeUtils.throwRunTimeException("query operation not expected", ExitCode.UNEXPECTED_OP);
+		if(statement instanceof Select)
+			throw new SQLException("update operation expected but instead we got a select");
 
-		String[][] tableName = op.targetTable();
+		String tableName = getTableName(statement);
 
-		if(tableName.length > 1)
-			RuntimeUtils.throwRunTimeException("multi-table update not expected", ExitCode.MULTI_TABLE_UPDATE);
+		DBExecuter executor = this.executers.get(tableName);
 
-		IExecuter executor = this.executers.get(tableName[0][2]);
 		if(executor == null)
 		{
-			LOG.error("executor for table {} not found", tableName[0][2]);
-			RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
-					ExitCode.EXECUTOR_NOT_FOUND);
+			LOG.error("executor for table {} not found", tableName);
+			throw new SQLException("executor not found");
 		} else
-			try
-			{
-				return executor.executeTemporaryUpdate(op, this);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
+			return executor.executeTemporaryUpdate(statement, this);
 
-		return 0;
 	}
 
 	private void resetScratchpad() throws SQLException
@@ -354,26 +271,29 @@ public class DBScratchPad implements IDBScratchPad
 		this.activeTransaction = null;
 		this.statBU.clearBatch();
 
-		for(IExecuter executer : this.executers.values())
+		for(DBExecuter executer : this.executers.values())
 			executer.resetExecuter(this);
 
 		this.executeBatch();
 		this.batchEmpty = true;
 	}
 
-	private CoordinatorRequest generateCoordinationRequest() throws SQLException
+	private String getTableName(net.sf.jsqlparser.statement.Statement statement) throws SQLException
 	{
-		CoordinatorRequest req = new CoordinatorRequest();
-
-		req.setRequiresCoordination(false);
-
-		for(ShadowOperation op : this.activeTransaction.getShadowOperations())
-			op.createRequestsToCoordinate(req);
-
-		return req;
+		if(statement instanceof Insert)
+			return ((Insert) statement).getTable().getName().toUpperCase();
+		if(statement instanceof Delete)
+			return ((Delete) statement).getTable().getName().toUpperCase();
+		if(statement instanceof Update)
+		{
+			if(((Update) statement).getTables().size() != 1)
+				throw new SQLException("multi-table update operation not expected");
+			return ((Update) statement).getTables().get(0).getName().toUpperCase();
+		} else
+			throw new SQLException("could not parse statement table name");
 	}
 
-	private class DBExecuter implements IExecuter
+	private class DBExecuter
 	{
 
 		private static final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
@@ -453,35 +373,6 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		/**
-		 * Returns the alias table name
-		 */
-		public String getAliasTable()
-		{
-			return tableDefinition.getNameAlias();
-		}
-
-		/**
-		 * Add deleted to where statement
-		 */
-		public void addDeletedKeysWhere(StringBuilder buffer)
-		{
-
-		/*
-		for(String[] pk : deletedPks)
-		{
-			String[] pkAlias = tableDefinition.getPksAlias();
-			for(int i = 0; i < pk.length; i++)
-			{
-				buffer.append(" and ");
-				buffer.append(pkAlias[i]);
-				buffer.append(" <> '");
-				buffer.append(pk[i]);
-				buffer.append("'");
-			}
-		}      */
-		}
-
-		/**
 		 * Returns what should be in the from clause in select statements plus the primary key
 		 */
 		public void addFromTablePlusPrimaryKeyValues(StringBuilder buffer, boolean both, String[] tableNames,
@@ -490,7 +381,7 @@ public class DBScratchPad implements IDBScratchPad
 			if(both && modified)
 			{
 				StringBuilder pkValueStrBuilder = new StringBuilder("");
-				String[] subExpressionStrs = null;
+				String[] subExpressionStrs;
 				if(whereClauseStr.contains("AND"))
 				{
 					subExpressionStrs = whereClauseStr.split("AND");
@@ -615,7 +506,7 @@ public class DBScratchPad implements IDBScratchPad
 			for(int i = 0; i < tables.length; i++)
 			{
 				String t = "([ ,])" + tables[i][1] + "\\.";
-				String tRep = null;
+				String tRep;
 				if(inTempTable)
 				{
 					tRep = "$1" + ((DBExecuter) policies[i]).getTempTableName() + ".";
@@ -684,10 +575,8 @@ public class DBScratchPad implements IDBScratchPad
 				buffer.append(where);
 				buffer.append(" ) ");
 			}
-			addDeletedKeysWhere(buffer);
 		}
 
-		@Override
 		public void setup(DatabaseMetaData metadata, IDBScratchPad scratchpad)
 		{
 			try
@@ -854,9 +743,7 @@ public class DBScratchPad implements IDBScratchPad
 				LOG.trace("executor for table {} created", this.databaseTable.getName());
 		}
 
-		@Override
-		public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
-				throws SQLException, ScratchpadException
+		public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db) throws SQLException
 		{
 			String queryToOrigin;
 			String queryToTemp;
@@ -924,180 +811,24 @@ public class DBScratchPad implements IDBScratchPad
 			return db.executeQueryMainStorage(finalQuery);
 		}
 
-		private ResultSet cenas(IDBScratchPad pad, String cenas) throws SQLException
-		{
-			return pad.executeQueryMainStorage(cenas);
-		}
-
-		@Override
-		public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchPad db, IExecuter[] policies,
-														  String[][] tables) throws SQLException, ScratchpadException
-		{
-			if(true)
-				return cenas(db, selectOp.toString());
-			else
-			{
-				Debug.println("multi table select >>" + selectOp);
-				HashMap<String, Integer> columnNamesToNumbersMap = new HashMap<>();
-				StringBuilder buffer = new StringBuilder();
-				buffer.append("select ");                        // select in base table
-				PlainSelect select = (PlainSelect) selectOp.getSelectBody();
-				List what = select.getSelectItems();
-				int colIndex = 1;
-				TableDefinition tabdef;
-				boolean needComma = true;
-				boolean aggregateQuery = false;
-				if(what.size() == 1 && what.get(0).toString().equalsIgnoreCase("*"))
-				{
-					//			buffer.append( "*");
-					for(int i = 0; i < policies.length; i++)
-					{
-						tabdef = policies[i].getTableDefinition();
-						tabdef.addAliasColumnList(buffer, tables[i][1]);
-						for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
-						{ //columns doesnt include scratchpad tables
-							columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-							columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j], colIndex++);
-						}
-					}
-					needComma = false;
-				} else
-				{
-					Iterator it = what.iterator();
-					String str;
-					boolean f = true;
-					while(it.hasNext())
-					{
-						if(f)
-							f = false;
-						else
-							buffer.append(",");
-						str = it.next().toString();
-						if(str.startsWith("COUNT(") || str.startsWith("count(") || str.startsWith(
-								"MAX(") || str.startsWith(
-
-								"max("))
-							aggregateQuery = true;
-						int starPos = str.indexOf(".*");
-						if(starPos != -1)
-						{
-							String itTable = str.substring(0, starPos).trim();
-							for(int i = 0; i < tables.length; )
-							{
-								if(itTable.equalsIgnoreCase(tables[i][0]) || itTable.equalsIgnoreCase(tables[i][1]))
-								{
-									tabdef = policies[i].getTableDefinition();
-									tabdef.addAliasColumnList(buffer, tables[i][1]);
-									for(int j = 0; j < tabdef.colsPlain.length - 3; j++)
-									{ //columns doesnt include scratchpad tables
-										columnNamesToNumbersMap.put(tabdef.colsPlain[j], colIndex);
-										columnNamesToNumbersMap.put(tabdef.name + "." + tabdef.colsPlain[j],
-												colIndex++);
-									}
-									break;
-								}
-								i++;
-								if(i == tables.length)
-								{
-									Debug.println("not expected " + str + " in select");
-									buffer.append(str);
-								}
-							}
-							f = true;
-							needComma = false;
-						} else
-						{
-							buffer.append(str);
-							int aliasindex = str.toUpperCase().indexOf(" AS ");
-							if(aliasindex != -1)
-							{
-								columnNamesToNumbersMap.put(str.substring(aliasindex + 4), colIndex++);
-							} else
-							{
-								int dotindex;
-								dotindex = str.indexOf(".");
-								if(dotindex != -1)
-								{
-									columnNamesToNumbersMap.put(str.substring(dotindex + 1), colIndex++);
-								} else
-								{
-									columnNamesToNumbersMap.put(str, colIndex++);
-
-								}//else
-							}
-							needComma = true;
-						}//else
-
-					}
-				}
-				if(!aggregateQuery)
-				{
-					for(int i = 0; i < policies.length; i++)
-					{
-						if(needComma)
-							buffer.append(",");
-						else
-							needComma = true;
-						policies[i].addKeyVVBothTable(buffer, tables[i][1]);
-					}
-				}
-				buffer.append(" from ");
-				//get all joins:
-				if(select.getJoins() != null)
-				{
-					String whereConditionStr = select.getWhere().toString();
-					for(int i = 0; i < policies.length; i++)
-					{
-						if(i > 0)
-							buffer.append(",");
-						policies[i].addFromTablePlusPrimaryKeyValues(buffer, !db.getActiveTransaction().isReadOnly(),
-								tables[i], whereConditionStr);
-						//policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
-					}
-			/*for(Iterator joinsIt = select.getJoins().iterator();joinsIt.hasNext();){
-				Join join= (Join) joinsIt.next();
-				String joinString = join.toString();
-				if(joinString.contains("inner join")||joinString.contains("INNER JOIN")|| joinString.contains("left
-				outer join") || joinString.contains("LEFT OUTER JOIN"))
-					buffer.append(" ");
-				else
-					buffer.append(",");
-				buffer.append(join.toString());
-			}*/
-				}
-
-				//		}else{
-				//			for( int i = 0; i < policies.length; i++) {
-				//				if( i > 0)
-				//					buffer.append( ",");
-				//				policies[i].addFromTable( buffer, ! db.isReadOnly(), tables[i]);
-				//			}
-				//		}
-				addWhere(buffer, select.getWhere(), policies, tables, false);
-				return db.executeQueryMainStorage(buffer.toString());
-			}
-		}
-
-		@Override
-		public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
-				throws SQLException, ScratchpadException
+		public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, IDBScratchPad db)
+				throws SQLException
 		{
 			modified = true;
-			if(dbOp.getStatement() instanceof Insert)
-				return executeTempOpInsert((Insert) dbOp.getStatement(), db);
-			else if(dbOp.getStatement() instanceof Delete)
-				return executeTempOpDelete((Delete) dbOp.getStatement(), db);
-			else if(dbOp.getStatement() instanceof Update)
-				return executeTempOpUpdate((Update) dbOp.getStatement(), db);
+
+			if(statement instanceof Insert)
+				return executeTempOpInsert((Insert) statement, db);
+			else if(statement instanceof Delete)
+				return executeTempOpDelete((Delete) statement, db);
+			else if(statement instanceof Update)
+				return executeTempOpUpdate((Update) statement, db);
 			else
 			{
 				modified = false;
-				RuntimeUtils.throwRunTimeException("query operation expected", ExitCode.UNEXPECTED_OP);
+				throw new SQLException("update statement not found");
 			}
-			return 0;
 		}
 
-		@Override
 		public void resetExecuter(IDBScratchPad pad) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
@@ -1120,7 +851,7 @@ public class DBScratchPad implements IDBScratchPad
 		 *
 		 * @return
 		 *
-		 * @throws SQLException
+		 * @throws java.sql.SQLException
 		 */
 		private int executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
 		{
@@ -1169,8 +900,7 @@ public class DBScratchPad implements IDBScratchPad
 					for(Constraint c : field.getInvariants())
 					{
 						if(c.requiresCoordination())
-							if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c
-									.getType() == ConstraintType.AUTO_INCREMENT)
+							if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType() == ConstraintType.AUTO_INCREMENT)
 								insertedRow.addConstraintToverify(c);
 					}
 				}
@@ -1213,7 +943,7 @@ public class DBScratchPad implements IDBScratchPad
 		 *
 		 * @return
 		 *
-		 * @throws SQLException
+		 * @throws java.sql.SQLException
 		 */
 		private int executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
 		{
@@ -1313,8 +1043,8 @@ public class DBScratchPad implements IDBScratchPad
 
 				//FIXME: currently, we do not allow updates on primary keys, foreign keys and immutable fields
 				if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
-					RuntimeUtils.throwRunTimeException("trying to modify a primary key, a foreign key or an " +
-									"immutable field",
+					RuntimeUtils.throwRunTimeException(
+							"trying to modify a primary key, a foreign key or an " + "immutable field",
 							ExitCode.UNEXPECTED_OP);
 
 				if(newValue == null)
@@ -1384,7 +1114,7 @@ public class DBScratchPad implements IDBScratchPad
 		 * @param updateOp
 		 * @param pad
 		 *
-		 * @throws SQLException
+		 * @throws java.sql.SQLException
 		 */
 		private void addMissingRowsToScratchpad(Update updateOp, IDBScratchPad pad) throws SQLException
 		{
@@ -1485,9 +1215,6 @@ public class DBScratchPad implements IDBScratchPad
 					buffer.append(")");
 					pad.executeUpdateMainStorage(buffer.toString());
 				}
-			} catch(SQLException e)
-			{
-				throw e;
 			} finally
 			{
 				DbUtils.closeQuietly(res);
@@ -1524,17 +1251,6 @@ public class DBScratchPad implements IDBScratchPad
 				}
 			}
 			return true;
-		}
-
-		private void verifyCheckConstraints(DataField field, String newValue) throws CheckConstraintViolatedException
-		{
-			for(Constraint constraint : field.getInvariants())
-			{
-				if(constraint instanceof CheckConstraint)
-					if(!((CheckConstraint) constraint).isValidValue(newValue))
-						throw new CheckConstraintViolatedException(
-								"check constraint violated for field " + field.getFieldName());
-			}
 		}
 
 		private Row getUpdatedRowFromDatabase(Update updateOp, IDBScratchPad pad) throws SQLException
@@ -1576,9 +1292,6 @@ public class DBScratchPad implements IDBScratchPad
 
 				return null;
 
-			} catch(SQLException e)
-			{
-				throw e;
 			} finally
 			{
 				DbUtils.closeQuietly(rs);

@@ -32,14 +32,6 @@ import java.util.Map;
 public final class Configuration
 {
 
-	public interface Defaults
-	{
-
-		public static final String CONFIG_FILE = System.getProperty("configPath");
-		public static final int ZOOKEEPER_SESSION_TIMEOUT = 200000;
-
-	}
-
 	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 	private static Configuration ourInstance = new Configuration();
 
@@ -360,5 +352,22 @@ public final class Configuration
 	{
 		return this.extensionCodeDir;
 	}
+
+	public interface Defaults
+	{
+
+		public static final String CONFIG_FILE = System.getProperty("configPath");
+		public static final int ZOOKEEPER_SESSION_TIMEOUT = 200000;
+	}
+
+
+	public interface ProxyDefaults
+	{
+
+		public static boolean USE_SHARED_PROXY = false;
+		public static final NodeConfig PROXY_CONFIG = Configuration.getInstance().getProxyConfigWithIndex(
+				Integer.parseInt(System.getProperty("proxyid")));
+	}
+
 }
 

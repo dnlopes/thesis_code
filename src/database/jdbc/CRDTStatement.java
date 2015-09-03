@@ -25,13 +25,13 @@ public class CRDTStatement implements Statement
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		return proxy.executeQuery(arg0, this.id);
+		return this.proxy.executeQuery(arg0, this.id);
 	}
 
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-		return proxy.executeUpdate(arg0, this.id);
+		return this.proxy.executeUpdate(arg0, this.id);
 	}
 
 /*
