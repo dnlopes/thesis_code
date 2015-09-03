@@ -31,15 +31,18 @@ import java.util.Map;
  */
 public final class Configuration
 {
+	public static final String CONFIG_FILE = System.getProperty("configPath");
 
 	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-	private static Configuration ourInstance = new Configuration();
+	private static final Configuration ourInstance = new Configuration();
 
-	private final Map<Integer, NodeConfig> replicators;
-	private final Map<Integer, ProxyConfig> proxies;
-	private final Map<Integer, NodeConfig> coordinators;
-	private final Map<Integer, DatabaseProperties> databases;
-	private final DatabaseMetadata databaseMetadata;
+	public static boolean DEFAULT_USE_SHARED_PROXY = false;
+
+	private Map<Integer, NodeConfig> replicators;
+	private Map<Integer, ProxyConfig> proxies;
+	private Map<Integer, NodeConfig> coordinators;
+	private Map<Integer, DatabaseProperties> databases;
+	private DatabaseMetadata databaseMetadata;
 	private String databaseName;
 	private String extensionCodeDir;
 	private String schemaFile;
@@ -47,11 +50,16 @@ public final class Configuration
 
 	private Configuration()
 	{
-		if(Defaults.CONFIG_FILE == null)
-			RuntimeUtils.throwRunTimeException("property \"configPath\" not defined", ExitCode.NOINITIALIZATION);
+		if(CONFIG_FILE == null)
+			RuntimeUtils.throwRunTimeException("property \"configPath\" not set", ExitCode.NOINITIALIZATION);
 
+		load();
+	}
+
+	private void load()
+	{
 		if(LOG.isInfoEnabled())
-			LOG.info("loading configuration file: {}", Defaults.CONFIG_FILE);
+			LOG.info("loading configuration file: {}", CONFIG_FILE);
 
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
@@ -89,11 +97,10 @@ public final class Configuration
 	{
 		try
 		{
-
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(Defaults.CONFIG_FILE);
+			InputStream stream = new FileInputStream(CONFIG_FILE);
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
 			//optional, but recommended
@@ -286,6 +293,12 @@ public final class Configuration
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
+
+	public boolean useSharedProxy()
+	{
+		//TODO: inject this option in configuration file
+		return DEFAULT_USE_SHARED_PROXY;
+	}
 	public NodeConfig getReplicatorConfigWithIndex(int index)
 	{
 		return this.replicators.get(index);
@@ -353,21 +366,9 @@ public final class Configuration
 		return this.extensionCodeDir;
 	}
 
-	public interface Defaults
+	public interface ZookeeperDefaults
 	{
-
-		public static final String CONFIG_FILE = System.getProperty("configPath");
-		public static final int ZOOKEEPER_SESSION_TIMEOUT = 200000;
+		public static int ZOOKEEPER_SESSION_TIMEOUT = 200000;
 	}
-
-
-	public interface ProxyDefaults
-	{
-
-		public static boolean USE_SHARED_PROXY = false;
-		public static final NodeConfig PROXY_CONFIG = Configuration.getInstance().getProxyConfigWithIndex(
-				Integer.parseInt(System.getProperty("proxyid")));
-	}
-
 }
 

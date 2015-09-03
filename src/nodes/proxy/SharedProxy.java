@@ -41,7 +41,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 	// a small hack to avoid casting the same object over and over
 	private ProxyConfig privateConfig;
 
-	public SharedProxy(NodeConfig config)
+	public SharedProxy(final NodeConfig config)
 	{
 		super(config);
 

@@ -25,7 +25,7 @@ public class IdentifierFactory
 	private static final Map<String, IDGenerator> ID_GENERATORS_MAP = new HashMap<>();
 	private static final String REPLICA_PREFIX = System.getProperty("proxyid") + ":";
 
-	public static void setup(NodeConfig config)
+	public static void setup(final NodeConfig config)
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("bootstraping id generators for auto increment fields");

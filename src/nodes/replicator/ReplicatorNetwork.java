@@ -40,7 +40,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		try
 		{
 			ZooKeeper zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
-					Configuration.Defaults.ZOOKEEPER_SESSION_TIMEOUT, null);
+					Configuration.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
 			this.ezkCoordinator = new EZKOperationCoordinator(zooKeeper, this.me.getId());
 		} catch(IOException e)
 		{

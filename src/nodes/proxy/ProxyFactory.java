@@ -1,7 +1,6 @@
 package nodes.proxy;
 
 
-import nodes.NodeConfig;
 import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
@@ -14,12 +13,13 @@ import util.defaults.Configuration;
 public class ProxyFactory
 {
 
-	private static ProxyFactory ourInstance = new ProxyFactory();
+	private static final ProxyFactory ourInstance = new ProxyFactory();
+
+	private static boolean USE_SHARED_PROXY;
+	private static ProxyConfig PROXY_CONFIG;
+
 	private static Proxy sharedProxy;
 	private static int proxiesCounter;
-
-	private static boolean useSharedProxy = Configuration.ProxyDefaults.USE_SHARED_PROXY;
-	private static NodeConfig PROXY_CONFIG = Configuration.ProxyDefaults.PROXY_CONFIG;
 
 	public static ProxyFactory getInstance()
 	{
@@ -28,8 +28,12 @@ public class ProxyFactory
 
 	private ProxyFactory()
 	{
+		USE_SHARED_PROXY = Configuration.getInstance().useSharedProxy();
+		PROXY_CONFIG = (ProxyConfig) Configuration.getInstance().getProxyConfigWithIndex(
+			Integer.parseInt(System.getProperty("proxyid")));
+
 		proxiesCounter = 0;
-		if(useSharedProxy)
+		if(USE_SHARED_PROXY)
 			sharedProxy = new SharedProxy(PROXY_CONFIG);
 
 		IdentifierFactory.setup(PROXY_CONFIG);
@@ -37,7 +41,7 @@ public class ProxyFactory
 
 	public static Proxy getProxyInstance()
 	{
-		if(useSharedProxy)
+		if(USE_SHARED_PROXY)
 			return getSharedProxy();
 		else
 			return createSimpleProxy();

@@ -5,7 +5,6 @@ import database.jdbc.ConnectionFactory;
 import database.scratchpad.Sandbox;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
-import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
@@ -36,11 +35,11 @@ public class BasicProxy implements Proxy
 	private Connection dbConnection;
 	private CCJSqlParserManager sqlParser;
 
-	public BasicProxy(NodeConfig proxyConfig, int proxyId)
+	public BasicProxy(final ProxyConfig proxyConfig, int proxyId)
 	{
-		this.proxyConfig = (ProxyConfig) proxyConfig;
+		this.proxyConfig = proxyConfig;
 		this.proxyId = proxyId;
-		this.network = new ProxyNetwork((ProxyConfig) proxyConfig);
+		this.network = new ProxyNetwork(proxyConfig);
 		this.sqlParser = new CCJSqlParserManager();
 
 		try
