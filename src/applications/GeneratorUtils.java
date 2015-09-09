@@ -1,4 +1,4 @@
-package applications.micro;
+package applications;
 
 
 import java.util.Random;
@@ -35,17 +35,25 @@ public class GeneratorUtils
 
 	}
 
+	/**
+	 *
+	 * @param min
+	 * @param max
+	 * @return returns a value between min (inclusive) and max (exclusive)
+	 */
 	public static int randomNumber(int min, int max)
 	{
-		int next = RANDOM.nextInt();
-		int div = next % ((max - min) + 1);
-
-		if(div < 0)
-		{
-			div = div * -1;
-		}
-		return min + div;
-
+		return RANDOM.nextInt(max-min) + min;
 	}
-	
+
+	/**
+	 *
+	 * @param min
+	 * @param max
+	 * @return returns a value between min (inclusive) and max (inclusive)
+	 */
+	public static int randomNumberIncludeBoundaries(int min, int max)
+	{
+		return randomNumber(min, max+1);
+	}
 }

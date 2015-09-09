@@ -53,7 +53,7 @@ public class ConnectionFactory
 	public static Connection getCRDTConnection(DatabaseProperties props, String databaseName)
 			throws SQLException, ClassNotFoundException
 	{
-		StringBuffer buffer = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+		StringBuffer buffer = new StringBuffer(CRDTDriver.CRDT_URL_PREFIX);
 		buffer.append(props.getDbHost());
 		buffer.append(":");
 		buffer.append(props.getDbPort());
@@ -84,7 +84,7 @@ public class ConnectionFactory
 
 	public static Connection getCRDTConnection(NodeConfig nodeInfo) throws SQLException
 	{
-		StringBuffer url = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+		StringBuffer url = new StringBuffer(CRDTDriver.CRDT_URL_PREFIX);
 		url.append(nodeInfo.getDbProps().getDbHost());
 		url.append(":");
 		url.append(nodeInfo.getDbProps().getDbPort());

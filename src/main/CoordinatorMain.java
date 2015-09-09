@@ -26,7 +26,7 @@ public class CoordinatorMain
 		int id = Integer.parseInt(args[1]);
 		String configFilePath = args[0];
 
-		System.setProperty("configPath", configFilePath);
+		Configuration.setupConfiguration(configFilePath);
 
 		Coordinator coordinator = new Coordinator(Configuration.getInstance().getCoordinatorConfigWithIndex(id));
 	}

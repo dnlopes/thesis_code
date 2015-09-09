@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * Created by dnlopes on 24/03/15.
+ * @DEPRECATED
  */
 public class CheckConstraintEnforcer
 {

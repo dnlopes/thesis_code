@@ -6,7 +6,6 @@ import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.Configuration;
 import util.defaults.DBDefaults;
 import util.thrift.ThriftShadowTransaction;
 
@@ -18,17 +17,15 @@ import java.sql.Statement;
 /**
  * Created by dnlopes on 06/04/15.
  */
-public class DBCommitPad implements IDBCommitPad
+public class DBCommitterAgent implements DBCommitter
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DBCommitPad.class);
-	private static final int NUMBER_OF_RETRIES = 1;
+	private static final Logger LOG = LoggerFactory.getLogger(DBCommitterAgent.class);
 	private static int TXN_COUNT = 0;
-	private static final int FREQUENCY = 150;
 
 	private Connection connection;
 
-	public DBCommitPad(NodeConfig config)
+	public DBCommitterAgent(NodeConfig config)
 	{
 		try
 		{
@@ -44,14 +41,14 @@ public class DBCommitPad implements IDBCommitPad
 	{
 		TXN_COUNT++;
 
-		if(TXN_COUNT % FREQUENCY == 0)
+		if(TXN_COUNT % Defaults.LOG_FREQUENCY == 0)
 			if(LOG.isInfoEnabled())
 				LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
 
 		if(LOG.isTraceEnabled())
 			LOG.trace("commiting op from replicator {}", op.getReplicatorId());
 
-		for(int i = 0; i < NUMBER_OF_RETRIES; i++)
+		for(int i = 0; i < Defaults.NUMBER_OF_RETRIES; i++)
 		{
 			boolean commitDecision = this.tryCommit(op);
 
@@ -66,6 +63,7 @@ public class DBCommitPad implements IDBCommitPad
 	{
 		Statement stat = null;
 		boolean success = false;
+
 		try
 		{
 			stat = this.connection.createStatement();
@@ -73,10 +71,11 @@ public class DBCommitPad implements IDBCommitPad
 			{
 				String rebuiltStatement = this.replacePlaceholders(op, statement);
 				if(LOG.isTraceEnabled())
-					LOG.trace("executing on maindb: {}", rebuiltStatement);
+					LOG.trace("executing on main storage: {}", rebuiltStatement);
 
 				stat.addBatch(rebuiltStatement);
 			}
+
 			stat.executeBatch();
 			this.connection.commit();
 			success = true;
@@ -98,6 +97,7 @@ public class DBCommitPad implements IDBCommitPad
 		{
 			DbUtils.closeQuietly(stat);
 		}
+
 		return success;
 	}
 
@@ -105,6 +105,7 @@ public class DBCommitPad implements IDBCommitPad
 	{
 		String clockString = op.getClock();
 		statement = statement.replaceAll(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
+
 		return statement;
 	}
 }

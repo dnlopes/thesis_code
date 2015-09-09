@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by dnlopes on 25/03/15.
+ * @DEPRECATED
  */
 public class UniqueConstraintEnforcer
 {

@@ -10,7 +10,7 @@ import java.util.Map;
 
 
 /**
- * accumulates information on a transaction as it is processed
+ * Accumulates information on a transaction as it is processed
  */
 public class Transaction
 {

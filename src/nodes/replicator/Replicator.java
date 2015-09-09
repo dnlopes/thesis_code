@@ -1,8 +1,8 @@
 package nodes.replicator;
 
 
-import database.scratchpad.DBCommitPad;
-import database.scratchpad.IDBCommitPad;
+import database.scratchpad.DBCommitterAgent;
+import database.scratchpad.DBCommitter;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
 import org.apache.thrift.transport.TTransportException;
@@ -29,15 +29,15 @@ public class Replicator extends AbstractNode
 
 	private LogicalClock clock;
 	private IReplicatorNetwork networkInterface;
-	private ObjectPool<IDBCommitPad> commitPadPool;
+	private ObjectPool<DBCommitter> agentsPool;
 	private Lock clockLock;
 
 	public Replicator(NodeConfig config)
 	{
 		super(config);
 
-		this.clock = new LogicalClock(Configuration.getInstance().getAllReplicatorsConfig().size());
-		this.commitPadPool = new ObjectPool<>();
+		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
+		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
 		this.networkInterface = new ReplicatorNetwork(this.config);
 
@@ -50,7 +50,7 @@ public class Replicator extends AbstractNode
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
 
-		this.setupPads();
+		this.createAgents();
 
 		System.out.println("replicator " + this.config.getId() + " online");
 	}
@@ -64,12 +64,12 @@ public class Replicator extends AbstractNode
 	 */
 	public boolean commitOperation(ThriftShadowTransaction shadowTransaction)
 	{
-		IDBCommitPad pad = this.commitPadPool.borrowObject();
+		DBCommitter pad = this.agentsPool.borrowObject();
 
 		if(pad == null)
 		{
 			LOG.warn("commitpad pool was empty");
-			pad = new DBCommitPad(this.config);
+			pad = new DBCommitterAgent(this.config);
 		}
 
 		boolean commitDecision = pad.commitShadowTransaction(shadowTransaction);
@@ -77,7 +77,7 @@ public class Replicator extends AbstractNode
 		if(!commitDecision)
 			LOG.warn("something went very wrong. State will not converge because operation failed to commit");
 
-		this.commitPadPool.returnObject(pad);
+		this.agentsPool.returnObject(pad);
 
 		return commitDecision;
 	}
@@ -127,17 +127,17 @@ public class Replicator extends AbstractNode
 			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
-	private void setupPads()
+	private void createAgents()
 	{
-		Configuration conf = Configuration.getInstance();
+		int agentsNumber = Configuration.getInstance().getScratchpadPoolSize();
 
-		for(int i = 0; i < conf.getScratchpadPoolSize(); i++)
+		for(int i = 0; i < agentsNumber; i++)
 		{
-			IDBCommitPad commitPad = new DBCommitPad(this.getConfig());
-			this.commitPadPool.addObject(commitPad);
+			DBCommitter agent = new DBCommitterAgent(this.getConfig());
+			this.agentsPool.addObject(agent);
 		}
 
 		if(LOG.isInfoEnabled())
-			LOG.info("{} commitpads available for main storage execution", this.commitPadPool.getPoolSize());
+			LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
 	}
 }

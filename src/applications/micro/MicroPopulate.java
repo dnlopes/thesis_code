@@ -1,7 +1,7 @@
 package applications.micro;
 
 
-import applications.micro.workload.MicroConstants;
+import applications.GeneratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.DatabaseProperties;

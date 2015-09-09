@@ -31,12 +31,12 @@ import java.util.Map;
  */
 public final class Configuration
 {
-	public static final String CONFIG_FILE = System.getProperty("configPath");
 
 	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-	private static final Configuration ourInstance = new Configuration();
+	private volatile static boolean IS_CONFIGURED = false;
 
-	public static boolean DEFAULT_USE_SHARED_PROXY = false;
+	private static String CONFIG_FILE;
+	private static Configuration SINGLETON;
 
 	private Map<Integer, NodeConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -47,16 +47,32 @@ public final class Configuration
 	private String extensionCodeDir;
 	private String schemaFile;
 	private int scratchpadPoolSize;
+	private boolean useSharedProxy;
 
-	private Configuration()
+	private Configuration(String configFilePath)
 	{
-		if(CONFIG_FILE == null)
-			RuntimeUtils.throwRunTimeException("property \"configPath\" not set", ExitCode.NOINITIALIZATION);
+		if(configFilePath == null)
+			RuntimeUtils.throwRunTimeException("config file path argument is null", ExitCode.NOINITIALIZATION);
+		else
+			CONFIG_FILE = configFilePath;
 
-		load();
+		loadConfiguration();
+
+		//set defaults (todo inject this values on config file)
+		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
+
+		IS_CONFIGURED = true;
 	}
 
-	private void load()
+	public static synchronized void setupConfiguration(String configFilePath)
+	{
+		if(IS_CONFIGURED)
+			LOG.warn("setupConfiguration called twice");
+		else
+			SINGLETON = new Configuration(configFilePath);
+	}
+
+	private void loadConfiguration()
 	{
 		if(LOG.isInfoEnabled())
 			LOG.info("loading configuration file: {}", CONFIG_FILE);
@@ -71,7 +87,8 @@ public final class Configuration
 			loadConfigurationFile();
 		} catch(ConfigurationLoadException e)
 		{
-			RuntimeUtils.throwRunTimeException("failed to load config file: " + e.getMessage(), ExitCode.XML_ERROR);
+			RuntimeUtils.throwRunTimeException("failed to loadConfiguration config file: " + e.getMessage(),
+					ExitCode.XML_ERROR);
 		}
 
 		if(!this.checkConfig())
@@ -90,7 +107,7 @@ public final class Configuration
 
 	public static Configuration getInstance()
 	{
-		return ourInstance;
+		return SINGLETON;
 	}
 
 	private void loadConfigurationFile() throws ConfigurationLoadException
@@ -293,12 +310,12 @@ public final class Configuration
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-
 	public boolean useSharedProxy()
 	{
 		//TODO: inject this option in configuration file
-		return DEFAULT_USE_SHARED_PROXY;
+		return this.useSharedProxy;
 	}
+
 	public NodeConfig getReplicatorConfigWithIndex(int index)
 	{
 		return this.replicators.get(index);
@@ -339,6 +356,11 @@ public final class Configuration
 		return this.scratchpadPoolSize;
 	}
 
+	public int getReplicatorsCount()
+	{
+		return this.replicators.size();
+	}
+
 	private boolean checkConfig()
 	{
 		return !(this.scratchpadPoolSize == 0 || this.extensionCodeDir == null || this.databaseName == null || this
@@ -368,7 +390,15 @@ public final class Configuration
 
 	public interface ZookeeperDefaults
 	{
+
 		public static int ZOOKEEPER_SESSION_TIMEOUT = 200000;
+	}
+
+
+	public interface Defaults
+	{
+
+		public static final boolean USE_SHARED_PROXY = false;
 	}
 }
 

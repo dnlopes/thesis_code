@@ -26,7 +26,7 @@ public class ReplicatorMain
 		int id = Integer.parseInt(args[1]);
 		String configFilePath = args[0];
 
-		System.setProperty("configPath", configFilePath);
+		Configuration.setupConfiguration(configFilePath);
 
 		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(id));
 	}

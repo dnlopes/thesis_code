@@ -1,4 +1,4 @@
-package applications.micro.workload;
+package applications.micro;
 
 
 /**

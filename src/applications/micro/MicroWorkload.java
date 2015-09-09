@@ -1,7 +1,9 @@
-package applications.micro.workload;
+package applications.micro;
 
 
-import applications.micro.GeneratorUtils;
+import applications.Transaction;
+import applications.Workload;
+import applications.GeneratorUtils;
 
 import java.util.Random;
 
@@ -78,6 +80,12 @@ public class MicroWorkload implements Workload,
 	public int getCoordinatedRate()
 	{
 		return this.coordinatedRate;
+	}
+
+	@Override
+	public Transaction getNextTransaction()
+	{
+		return null;
 	}
 
 }

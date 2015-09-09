@@ -120,7 +120,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 			{
 				c.getDatabaseResources().setDriver("database.jdbc.CRDTDriver");
 				c.getDatabaseResources().setCustomJDBC(true);
-				StringBuffer buffer = new StringBuffer(DBDefaults.CRDT_URL_PREFIX);
+				StringBuffer buffer = new StringBuffer(CRDTDriver.CRDT_URL_PREFIX);
 				buffer.append(DB_PROPERTIES.getDbHost());
 				buffer.append(":");
 				buffer.append(DB_PROPERTIES.getDbPort());

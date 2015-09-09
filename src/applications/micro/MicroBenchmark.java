@@ -1,8 +1,8 @@
 package applications.micro;
 
 
-import applications.micro.workload.MicroWorkload;
-import applications.micro.workload.Workload;
+import applications.Emulator;
+import applications.Workload;
 import nodes.NodeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

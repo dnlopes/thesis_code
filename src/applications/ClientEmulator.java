@@ -1,7 +1,6 @@
-package applications.micro;
+package applications;
 
 
-import applications.micro.workload.Workload;
 import database.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +57,17 @@ public class ClientEmulator extends Thread
 			LOG.error("failed to create connection for client: {}", e.getMessage(), e);
 			System.exit(-1);
 		}
+	}
+
+	public ClientEmulator(Workload workload, Connection conn)
+	{
+		this.workload = workload;
+		this.sumReadLatency = 0;
+		this.sumWriteLatency = 0;
+		this.successCounterRead = 0;
+		this.successCounterWrite = 0;
+		this.abortCounter = 0;
+		this.con = conn;
 	}
 
 	@Override

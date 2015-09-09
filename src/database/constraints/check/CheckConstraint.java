@@ -33,7 +33,7 @@ public class CheckConstraint extends AbstractConstraint
 	}
 
 	/**
-	 * Check if the argument passed is a value that meets this check constraint
+	 * Check if the argument passed is a valid value for this check constraint
 	 * @param value
 	 * @return
 	 */
@@ -81,21 +81,6 @@ public class CheckConstraint extends AbstractConstraint
 			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
 			return false;
 		}
-
-		/*
-		if(this.fieldType == 1)
-			RuntimeUtils.throwRunTimeException("unexpected delta operation for a string field", ExitCode.UNEXPECTED_OP);
-		if(this.fieldType == 2)
-			return this.mustCoordinate(newDoubleValue, oldDoubleValue);
-		if(this.fieldType == 3)
-			return this.mustCoordinate(Float.parseFloat(newValue), Float.parseFloat(oldValue));
-		if(this.fieldType == 4)
-			return this.mustCoordinate(Double.parseDouble(newValue), Double.parseDouble(oldValue));
-		else
-		{
-			LOG.warn("unexpected field type");
-			return false;
-		}               */
 	}
 
 	/**
@@ -111,55 +96,6 @@ public class CheckConstraint extends AbstractConstraint
 
 		double delta = newValueDouble - oldValueDouble;
 		return String.valueOf(delta);
-	}
-
-	private boolean mustCoordinate(int newValue, int oldValue)
-	{
-		int delta = newValue - oldValue;
-
-		if(this.conditionType == CheckConstraintType.LESSER)
-			return delta > 0;
-		else if(this.conditionType == CheckConstraintType.GREATER)
-			return delta < 0;
-		else
-		{
-			LOG.error("unexpected condition type");
-			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
-			return false;
-		}
-	}
-
-	private boolean mustCoordinate(float newValue, float oldValue)
-	{
-		float delta = newValue - oldValue;
-
-		if(this.conditionType == CheckConstraintType.LESSER)
-			return delta > 0;
-		else if(this.conditionType == CheckConstraintType.GREATER)
-			return delta < 0;
-		else
-		{
-			LOG.error("unexpected condition type");
-			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
-			return false;
-		}
-	}
-
-	private boolean mustCoordinate(double newValue, double oldValue)
-	{
-		double delta = newValue - oldValue;
-
-		if(this.conditionType == CheckConstraintType.LESSER)
-			return delta > 0;
-		else if(this.conditionType == CheckConstraintType.GREATER)
-			return delta < 0;
-		else
-		{
-			LOG.error("unexpected condition type");
-			RuntimeUtils.throwRunTimeException("tried to verify an unexpected check constraint", ExitCode.UNEXPECTED_OP);
-			return false;
-		}
-
 	}
 
 	private boolean isValidInt(int value)

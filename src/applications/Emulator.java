@@ -1,9 +1,9 @@
-package applications.micro;
+package applications;
 
 
-import applications.micro.workload.Workload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.RuntimeUtils;
 import util.DatabaseProperties;
 
 import java.io.FileNotFoundException;
@@ -26,6 +26,8 @@ public class Emulator
 	public static volatile boolean RUNNING;
 	public static volatile boolean COUTING;
 	private static int RAMPUP_TIME = 5;
+
+	private String emulatorName;
 	private int numberOfClients;
 	private ExecutorService threadsService;
 	private List<ClientEmulator> clients;
@@ -47,11 +49,28 @@ public class Emulator
 		this.dbProps = dbProps;
 	}
 
+	public Emulator(int id, String emulatorName, int numberClients, int runtime, Workload workload, DatabaseProperties
+			dbProps)
+	{
+		RUNNING = true;
+		COUTING = false;
+		this.emulatorId = id;
+		this.numberOfClients = numberClients;
+		this.threadsService = Executors.newFixedThreadPool(this.numberOfClients);
+		this.clients = new ArrayList<>();
+		this.benchmarkRuntime = runtime;
+		this.workload = workload;
+		this.dbProps = dbProps;
+		this.emulatorName = emulatorName;
+	}
+
 	public boolean startBenchmark()
 	{
 		System.out.println("****************************************");
-		System.out.println("************ Microbenchmark ************");
-		System.out.println("****************************************");
+		System.out.print("************ ");
+		System.out.print(this.emulatorName);
+		System.out.print(" ************");
+		System.out.println();
 
 		for(int i = 0; i < this.numberOfClients; i++)
 		{

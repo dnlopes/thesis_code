@@ -26,6 +26,12 @@ public class PrimaryKey
 		this.isGenerated = false;
 	}
 
+	public PrimaryKey(String formatedPk, int size)
+	{
+		this.queryClause = formatedPk;
+		pkSize = size;
+	}
+
 	public void addField(DataField field)
 	{
 		this.fields.put(field.getFieldName(), field);
@@ -35,12 +41,6 @@ public class PrimaryKey
 	public Map<String, DataField> getPrimaryKeyFields()
 	{
 		return this.fields;
-	}
-
-	public PrimaryKey(String formatedPk, int size)
-	{
-		this.queryClause = formatedPk;
-		pkSize = size;
 	}
 
 	public int getSize()

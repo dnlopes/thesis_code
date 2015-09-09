@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by dnlopes on 25/03/15.
+ * @DEPRECATED
  */
 public class AutoIncrementEnforcer
 {

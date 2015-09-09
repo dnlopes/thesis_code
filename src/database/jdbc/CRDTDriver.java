@@ -1,7 +1,5 @@
 package database.jdbc;
 
-import util.defaults.DBDefaults;
-
 import java.sql.*;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -14,6 +12,7 @@ import java.util.logging.Logger;
  */
 public class CRDTDriver implements Driver
 {
+	public static final String CRDT_URL_PREFIX = "jdbc:crdt://";
 
 	static
 	{
@@ -43,7 +42,7 @@ public class CRDTDriver implements Driver
 	@Override
 	public boolean acceptsURL(String url) throws SQLException
 	{
-		return url.startsWith(DBDefaults.CRDT_URL_PREFIX);
+		return url.startsWith(CRDT_URL_PREFIX);
 	}
 
 

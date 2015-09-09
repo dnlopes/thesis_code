@@ -59,7 +59,8 @@ public class ZookeeperBootstrap
 		}
 
 		String configFilePath = args[0];
-		System.setProperty("configPath", configFilePath);
+		Configuration.setupConfiguration(configFilePath);
+
 		System.setProperty("jute.maxbuffer", "10M");
 
 		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap();
