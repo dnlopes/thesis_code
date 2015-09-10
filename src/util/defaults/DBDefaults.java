@@ -16,4 +16,7 @@ public class DBDefaults
 	public static final String DEFAULT_USER = "sa";
 	public static final int DEFAULT_MYSQL_PORT = 3306;
 
+
+
+
 }

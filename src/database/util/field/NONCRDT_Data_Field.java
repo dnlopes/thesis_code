@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import database.util.SemanticPolicy;
 import util.ExitCode;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class NONCRDT_Data_Field.
  */
@@ -39,7 +38,6 @@ public class NONCRDT_Data_Field extends DataField {
 	 */
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value) {
-		// TODO Auto-generated method stub
 		try {
 			throw new RuntimeException(
 					"NONCRDT data should not be transformed!");
@@ -61,7 +59,6 @@ public class NONCRDT_Data_Field extends DataField {
 	 */
 	@Override
 	public String get_Crdt_Form(String Value) {
-		// TODO Auto-generated method stub
 		try {
 			throw new RuntimeException(
 					"NONCRDT data should not be transformed!");
@@ -84,7 +81,6 @@ public class NONCRDT_Data_Field extends DataField {
 	 */
 	@Override
 	public String get_Value_In_Correct_Format(String Value) {
-		// TODO Auto-generated method stub
 		return Value;
 	}
 

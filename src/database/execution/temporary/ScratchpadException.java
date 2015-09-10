@@ -1,10 +1,14 @@
-package database.scratchpad;
+package database.execution.temporary;
+
+
+import java.sql.SQLException;
+
 
 /**
  * Created by dnlopes on 10/03/15.
  */
 
-public class ScratchpadException extends Exception
+public class ScratchpadException extends SQLException
 {
 
 	public ScratchpadException()

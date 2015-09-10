@@ -2,7 +2,7 @@ package nodes.proxy;
 
 
 import database.jdbc.ConnectionFactory;
-import database.scratchpad.Sandbox;
+import database.execution.temporary.Sandbox;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;

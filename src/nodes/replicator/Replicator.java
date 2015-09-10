@@ -1,8 +1,8 @@
 package nodes.replicator;
 
 
-import database.scratchpad.DBCommitterAgent;
-import database.scratchpad.DBCommitter;
+import database.execution.main.DBCommitterAgent;
+import database.execution.main.DBCommitter;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
 import org.apache.thrift.transport.TTransportException;

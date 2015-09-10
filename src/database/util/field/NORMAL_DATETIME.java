@@ -5,8 +5,6 @@ import java.sql.ResultSet;
 
 import database.util.SemanticPolicy;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class LWW_DATETIME.
@@ -36,7 +34,6 @@ public class NORMAL_DATETIME extends DataField
 						   SemanticPolicy policy)
 	{
 		super(CrdtDataFieldType.NORMALDATETIME, dFN, tN, dT, iPK, iAIC, position, policy);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -54,7 +51,6 @@ public class NORMAL_DATETIME extends DataField
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -74,7 +70,6 @@ public class NORMAL_DATETIME extends DataField
 	@Override
 	public String get_Crdt_Form(String Value)
 	{
-		// TODO Auto-generated method stub
 		Value = Value.trim();
 		if(Value.indexOf("'") == 0 && Value.lastIndexOf("'") == (Value.length() - 1))
 			Value = Value.substring(1, Value.length() - 1);

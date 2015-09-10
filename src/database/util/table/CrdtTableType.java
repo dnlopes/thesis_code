@@ -1,6 +1,5 @@
 package database.util.table;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum CrdtTableType.
  */

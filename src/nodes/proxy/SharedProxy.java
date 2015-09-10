@@ -1,9 +1,8 @@
 package nodes.proxy;
 
 
-import database.scratchpad.DBScratchPad;
-import database.scratchpad.IDBScratchPad;
-import database.scratchpad.ScratchpadException;
+import database.execution.temporary.DBScratchpad;
+import database.execution.temporary.Scratchpad;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
 import runtime.RuntimeUtils;
@@ -31,9 +30,9 @@ public class SharedProxy extends AbstractNode implements Proxy
 	private static final int FREQUENCY = 150;
 	private static final int TEMPORARY_SCRATCHPAD_POOL_SIZE = Integer.parseInt(System.getProperty("usersNum")) + 5;
 
-	private final ObjectPool<IDBScratchPad> scratchpadsPool;
+	private final ObjectPool<Scratchpad> scratchpadsPool;
 	// associates a connection id with the corresponding scratchpad
-	private final ConcurrentHashMap<Integer, IDBScratchPad> activeScratchpads;
+	private final ConcurrentHashMap<Integer, Scratchpad> activeScratchpads;
 	private final IProxyNetwork networkInterface;
 	private final AtomicInteger transactionsCounter;
 	private final AtomicInteger scratchpadsCount;
@@ -65,7 +64,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 
 	public ResultSet executeQuery(String op, int connectionId) throws SQLException
 	{
-		IDBScratchPad pad;
+		Scratchpad pad;
 
 		if(!this.connectionIsActive(connectionId))
 			pad = this.beginTransaction(connectionId);
@@ -77,7 +76,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 
 	public int executeUpdate(String op, int connectionId) throws SQLException
 	{
-		IDBScratchPad pad;
+		Scratchpad pad;
 
 		if(!this.connectionIsActive(connectionId))
 			pad = this.beginTransaction(connectionId);
@@ -89,7 +88,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 
 	public void commit(int connectionId) throws SQLException
 	{
-		IDBScratchPad pad = this.activeScratchpads.get(connectionId);
+		Scratchpad pad = this.activeScratchpads.get(connectionId);
 
 		/* if does not contain the txn, it means the transaction was not yet created
 		 i.e no statements were executed. Thus, it should commit in every case */
@@ -110,7 +109,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 
 	public void abort(int connectionId)
 	{
-		IDBScratchPad pad = this.activeScratchpads.get(connectionId);
+		Scratchpad pad = this.activeScratchpads.get(connectionId);
 
 		if(pad == null)
 			return;
@@ -121,7 +120,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 
 	public void closeTransaction(int connectionId) throws SQLException
 	{
-		IDBScratchPad pad = this.activeScratchpads.get(connectionId);
+		Scratchpad pad = this.activeScratchpads.get(connectionId);
 
 		if(pad == null)
 			return;
@@ -135,9 +134,9 @@ public class SharedProxy extends AbstractNode implements Proxy
 		}
 	}
 
-	public IDBScratchPad beginTransaction(int connectionId)
+	public Scratchpad beginTransaction(int connectionId)
 	{
-		IDBScratchPad pad = null;
+		Scratchpad pad = null;
 
 		if(!this.activeScratchpads.containsKey(connectionId)) // txn is about to begin
 		{
@@ -147,8 +146,8 @@ public class SharedProxy extends AbstractNode implements Proxy
 				LOG.warn("scratchpad pool was empty");
 				try
 				{
-					pad = new DBScratchPad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
-				} catch(SQLException | ScratchpadException e)
+					pad = new DBScratchpad(this.scratchpadsCount.incrementAndGet(), this.privateConfig);
+				} catch(SQLException e)
 				{
 					LOG.error("failed to initialize scratchpad: {}", e.getMessage());
 					RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);
@@ -171,10 +170,10 @@ public class SharedProxy extends AbstractNode implements Proxy
 		{
 			try
 			{
-				IDBScratchPad scratchpad = new DBScratchPad(i, (ProxyConfig) config);
+				Scratchpad scratchpad = new DBScratchpad(i, (ProxyConfig) config);
 				this.scratchpadsPool.addObject(scratchpad);
 				this.scratchpadsCount.incrementAndGet();
-			} catch(ScratchpadException | SQLException e)
+			} catch(SQLException e)
 			{
 				LOG.error("failed to create scratchpad with id {}", i, e);
 				RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_INIT_FAILED);

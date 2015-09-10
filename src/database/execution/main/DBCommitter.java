@@ -1,4 +1,4 @@
-package database.scratchpad;
+package database.execution.main;
 
 
 import util.thrift.ThriftShadowTransaction;
@@ -6,7 +6,7 @@ import util.thrift.ThriftShadowTransaction;
 
 /**
  * Created by dnlopes on 06/04/15.
- * Interface to execute shadow-txn on main storage
+ * Interface to execute shadow transactions on main storage
  */
 public interface DBCommitter
 {
@@ -22,7 +22,6 @@ public interface DBCommitter
 	public interface Defaults
 	{
 		public static final int NUMBER_OF_RETRIES = 1;
-		public static int TXN_COUNT = 0;
 		public static final int LOG_FREQUENCY = 150;
 	}
 }

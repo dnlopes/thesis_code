@@ -70,7 +70,6 @@ public class READONLY_Table extends DatabaseTable
 	@Override
 	public String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -89,7 +88,6 @@ public class READONLY_Table extends DatabaseTable
 	public String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
 			throws JSQLParserException
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -105,7 +103,6 @@ public class READONLY_Table extends DatabaseTable
 	@Override
 	public String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

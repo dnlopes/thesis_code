@@ -3,7 +3,7 @@ package database.util;
 
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
-import database.scratchpad.IDBScratchPad;
+import database.execution.temporary.Scratchpad;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.value.FieldValue;
@@ -45,7 +45,7 @@ public class DatabaseCommon
 	}
 
 	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
-																IDBScratchPad pad) throws SQLException
+																Scratchpad pad) throws SQLException
 	{
 		Map<ForeignKeyConstraint, Row> parentByConstraint = new HashMap<>();
 
@@ -88,7 +88,7 @@ public class DatabaseCommon
 
 	public static List<Row> findChildsFromTable(Row parentRow, DatabaseTable table, List<ParentChildRelation>
 			relations,
-												IDBScratchPad pad) throws SQLException
+												Scratchpad pad) throws SQLException
 	{
 		List<Row> childs = new ArrayList<>();
 
@@ -106,7 +106,7 @@ public class DatabaseCommon
 		return childs;
 	}
 
-	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, IDBScratchPad pad) throws SQLException
+	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, Scratchpad pad) throws SQLException
 	{
 		String query = QueryCreator.findParent(childRow, constraint);
 

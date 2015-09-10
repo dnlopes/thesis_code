@@ -58,7 +58,8 @@ public final class Configuration
 
 		loadConfiguration();
 
-		//set defaults (todo inject this values on config file)
+		//set defaults here
+		//TODO inject this values on config file
 		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
 
 		IS_CONFIGURED = true;

@@ -36,7 +36,6 @@ public class DeletedField extends DataField
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -50,7 +49,6 @@ public class DeletedField extends DataField
 	@Override
 	public String get_Crdt_Form(String Value)
 	{
-		// TODO Auto-generated method stub
 		Value = Value.trim();
 		if(Value.indexOf("'") == 0 && Value.lastIndexOf("'") == (Value.length() - 1))
 			Value = Value.substring(1, Value.length() - 1);

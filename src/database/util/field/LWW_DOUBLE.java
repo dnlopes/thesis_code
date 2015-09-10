@@ -4,8 +4,6 @@ import java.sql.ResultSet;
 
 import database.util.SemanticPolicy;
 
-// TODO: Auto-generated Javadoc
-
 
 /**
  * The Class LWW_DOUBLE.
@@ -44,7 +42,6 @@ public class LWW_DOUBLE extends DataField
 	@Override
 	public String get_Crdt_Form(ResultSet rs, String Value)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -64,7 +61,6 @@ public class LWW_DOUBLE extends DataField
 	@Override
 	public String get_Crdt_Form(String Value)
 	{
-		// TODO Auto-generated method stub
 		return this.getFieldName() + " = " + Value;
 	}
 
@@ -85,7 +81,6 @@ public class LWW_DOUBLE extends DataField
 	@Override
 	public String get_Value_In_Correct_Format(String Value)
 	{
-		// TODO Auto-generated method stub
 		return Value;
 	}
 

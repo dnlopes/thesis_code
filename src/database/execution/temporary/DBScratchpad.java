@@ -1,4 +1,4 @@
-package database.scratchpad;
+package database.execution.temporary;
 
 
 import database.constraints.Constraint;
@@ -51,10 +51,10 @@ import java.util.*;
 /**
  * Created by dnlopes on 10/03/15.
  */
-public class DBScratchPad implements IDBScratchPad
+public class DBScratchpad implements Scratchpad
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DBScratchPad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DBScratchpad.class);
 
 	private ProxyConfig proxyConfig;
 	private Transaction activeTransaction;
@@ -68,7 +68,7 @@ public class DBScratchPad implements IDBScratchPad
 	private boolean batchEmpty;
 	private String defaultDate;
 
-	public DBScratchPad(int id, Connection dbConnection) throws SQLException, ScratchpadException
+	public DBScratchpad(int id, Connection dbConnection) throws SQLException
 	{
 		this.id = id;
 		this.defaultConnection = dbConnection;
@@ -86,7 +86,7 @@ public class DBScratchPad implements IDBScratchPad
 		this.createDBExecuters();
 	}
 
-	public DBScratchPad(int id, ProxyConfig proxyConfig) throws SQLException, ScratchpadException
+	public DBScratchpad(int id, ProxyConfig proxyConfig) throws SQLException
 	{
 		this.id = id;
 		this.proxyConfig = proxyConfig;
@@ -178,13 +178,7 @@ public class DBScratchPad implements IDBScratchPad
 						ExitCode.EXECUTOR_NOT_FOUND);
 			}
 
-			try
-			{
-				return executor.executeTemporaryQueryOnSingleTable((Select) dbOp.getStatement(), this);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
+			return executor.executeTemporaryQueryOnSingleTable((Select) dbOp.getStatement(), this);
 
 		} else
 		{
@@ -197,14 +191,9 @@ public class DBScratchPad implements IDBScratchPad
 				if(executors[i] == null)
 					throw new SQLException("scratchpad error: executor not found");
 			}
-			try
-			{
-				return executors[0].executeTemporaryQueryOnMultTable((Select) dbOp.getStatement(), this, executors,
-						tableName);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
+
+			return executors[0].executeTemporaryQueryOnMultTable((Select) dbOp.getStatement(), this, executors,
+					tableName);
 		}
 	}
 
@@ -338,13 +327,7 @@ public class DBScratchPad implements IDBScratchPad
 			RuntimeUtils.throwRunTimeException("could not find a proper executor for this operation",
 					ExitCode.EXECUTOR_NOT_FOUND);
 		} else
-			try
-			{
-				return executor.executeTemporaryUpdate(op, this);
-			} catch(ScratchpadException e)
-			{
-				throw new SQLException("scratchpad error: " + e.getMessage());
-			}
+			return executor.executeTemporaryUpdate(op, this);
 
 		return 0;
 	}
@@ -688,7 +671,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		@Override
-		public void setup(DatabaseMetaData metadata, IDBScratchPad scratchpad)
+		public void setup(DatabaseMetaData metadata, Scratchpad scratchpad)
 		{
 			try
 			{
@@ -855,8 +838,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		@Override
-		public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, IDBScratchPad db)
-				throws SQLException, ScratchpadException
+		public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, Scratchpad db) throws SQLException
 		{
 			String queryToOrigin;
 			String queryToTemp;
@@ -924,14 +906,14 @@ public class DBScratchPad implements IDBScratchPad
 			return db.executeQueryMainStorage(finalQuery);
 		}
 
-		private ResultSet cenas(IDBScratchPad pad, String cenas) throws SQLException
+		private ResultSet cenas(Scratchpad pad, String cenas) throws SQLException
 		{
 			return pad.executeQueryMainStorage(cenas);
 		}
 
 		@Override
-		public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, IDBScratchPad db, IExecuter[] policies,
-														  String[][] tables) throws SQLException, ScratchpadException
+		public ResultSet executeTemporaryQueryOnMultTable(Select selectOp, Scratchpad db, IExecuter[] policies,
+														  String[][] tables) throws SQLException
 		{
 			if(true)
 				return cenas(db, selectOp.toString());
@@ -1079,8 +1061,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		@Override
-		public int executeTemporaryUpdate(DBSingleOperation dbOp, IDBScratchPad db)
-				throws SQLException, ScratchpadException
+		public int executeTemporaryUpdate(DBSingleOperation dbOp, Scratchpad db) throws SQLException
 		{
 			modified = true;
 			if(dbOp.getStatement() instanceof Insert)
@@ -1098,7 +1079,7 @@ public class DBScratchPad implements IDBScratchPad
 		}
 
 		@Override
-		public void resetExecuter(IDBScratchPad pad) throws SQLException
+		public void resetExecuter(Scratchpad pad) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("TRUNCATE TABLE ");
@@ -1122,7 +1103,7 @@ public class DBScratchPad implements IDBScratchPad
 		 *
 		 * @throws SQLException
 		 */
-		private int executeTempOpInsert(Insert insertOp, IDBScratchPad db) throws SQLException
+		private int executeTempOpInsert(Insert insertOp, Scratchpad db) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("insert into ");
@@ -1215,7 +1196,7 @@ public class DBScratchPad implements IDBScratchPad
 		 *
 		 * @throws SQLException
 		 */
-		private int executeTempOpDelete(Delete deleteOp, IDBScratchPad db) throws SQLException
+		private int executeTempOpDelete(Delete deleteOp, Scratchpad db) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT ");
@@ -1288,7 +1269,7 @@ public class DBScratchPad implements IDBScratchPad
 			}
 		}
 
-		private int executeTempOpUpdate(Update updateOp, IDBScratchPad db) throws SQLException
+		private int executeTempOpUpdate(Update updateOp, Scratchpad db) throws SQLException
 		{
 			// before writting in the scratchpad, add the missing rows to the scratchpad
 			this.addMissingRowsToScratchpad(updateOp, db);
@@ -1313,8 +1294,8 @@ public class DBScratchPad implements IDBScratchPad
 
 				//FIXME: currently, we do not allow updates on primary keys, foreign keys and immutable fields
 				if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
-					RuntimeUtils.throwRunTimeException("trying to modify a primary key, a foreign key or an " +
-									"immutable field",
+					RuntimeUtils.throwRunTimeException(
+							"trying to modify a primary key, a foreign key or an " + "immutable field",
 							ExitCode.UNEXPECTED_OP);
 
 				if(newValue == null)
@@ -1386,7 +1367,7 @@ public class DBScratchPad implements IDBScratchPad
 		 *
 		 * @throws SQLException
 		 */
-		private void addMissingRowsToScratchpad(Update updateOp, IDBScratchPad pad) throws SQLException
+		private void addMissingRowsToScratchpad(Update updateOp, Scratchpad pad) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
@@ -1537,7 +1518,7 @@ public class DBScratchPad implements IDBScratchPad
 			}
 		}
 
-		private Row getUpdatedRowFromDatabase(Update updateOp, IDBScratchPad pad) throws SQLException
+		private Row getUpdatedRowFromDatabase(Update updateOp, Scratchpad pad) throws SQLException
 		{
 			Expression whereClause = updateOp.getWhere();
 			if(whereClause == null)
@@ -1640,7 +1621,7 @@ public class DBScratchPad implements IDBScratchPad
 			}
 		}
 
-		private void calculateOperationSideEffects(ParentOperation op, Row parentRow, IDBScratchPad pad)
+		private void calculateOperationSideEffects(ParentOperation op, Row parentRow, Scratchpad pad)
 				throws SQLException
 		{
 

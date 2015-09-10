@@ -2,9 +2,8 @@ package tests.exec;
 
 
 import database.jdbc.ConnectionFactory;
-import database.scratchpad.DBScratchPad;
-import database.scratchpad.IDBScratchPad;
-import database.scratchpad.ScratchpadException;
+import database.execution.temporary.DBScratchpad;
+import database.execution.temporary.Scratchpad;
 import net.sf.jsqlparser.JSQLParserException;
 import nodes.NodeConfig;
 import nodes.proxy.ProxyConfig;
@@ -22,7 +21,7 @@ public class PadTest
 	private static PreparedStatement[] pStmts;
 	private static Connection conn;
 
-	public static void main(String args[]) throws ScratchpadException, SQLException, JSQLParserException
+	public static void main(String args[]) throws SQLException, JSQLParserException
 	{
 		pStmts = new PreparedStatement[37];
 
@@ -33,7 +32,7 @@ public class PadTest
 
 		setup();
 
-		IDBScratchPad pad = new DBScratchPad(1, (ProxyConfig) proxy);
+		Scratchpad pad = new DBScratchpad(1, (ProxyConfig) proxy);
 
 		int column = 1;
 		pStmts[0].setInt(column++, 1);
