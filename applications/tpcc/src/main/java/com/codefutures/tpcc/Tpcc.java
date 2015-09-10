@@ -43,12 +43,10 @@ public class Tpcc implements TpccConstants
 	private static final String JOINS = "JOINS";
 	public static boolean CUSTOM_JDBC;
 	private int proxyId;
-	private PerformanceCounters MAIN_PERFORMANCE_COUNTER = new PerformanceCounters();
 
 	private final List<TpccThread> clientThreads;
 	private List<PerformanceCounters> performanceCounters = new LinkedList<>();
 	private final List<PerSecondStatistics> perSecondStatsList;
-	private final Statistics mainStats;
 
 	private static final String PROPERTIESFILE = "client.database.properties";
 
@@ -101,7 +99,6 @@ public class Tpcc implements TpccConstants
 	public Tpcc()
 	{
 		this.clientThreads = new ArrayList<>();
-		this.mainStats = new Statistics();
 		this.perSecondStatsList = new ArrayList<>();
 	}
 
@@ -527,8 +524,10 @@ public class Tpcc implements TpccConstants
 		boolean useCustomJDBC = Boolean.parseBoolean(argv[3]);
 		int testDuration = Integer.parseInt(argv[4]);
 
-		System.setProperty("configPath", configFile);
+		//System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
+
+		Configuration.setupConfiguration(configFile);
 		System.setProperty("usersNum", String.valueOf(usersNum));
 		System.setProperty("customJDBC", String.valueOf(useCustomJDBC));
 		System.setProperty("testDuration", String.valueOf(testDuration));

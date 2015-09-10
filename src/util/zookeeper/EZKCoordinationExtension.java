@@ -10,7 +10,6 @@ import org.apache.zookeeper.extension.EZKBaseExtension;
 import org.apache.zookeeper.server.EZKExtensionGate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.ZookeeperDefaults;
 import util.thrift.*;
 
 import java.io.File;
@@ -25,11 +24,12 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(EZKCoordinationExtension.class);
-	public static final String BASE_DIR = ZookeeperDefaults.ZOOKEEPER_BASE_NODE;
-	public static final String TMP_DIR = BASE_DIR + File.separatorChar + "tmp";
-	public static final String UNIQUE_DIR = BASE_DIR + File.separatorChar + "uniques";
-	public static final String COUNTERS_DIR = BASE_DIR + File.separatorChar + "counters";
-	public static final String OP_PREFIX = BASE_DIR;
+	public static final String ZOOKEEPER_BASE_NODE = "/coordination";
+
+	public static final String TMP_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp";
+	public static final String UNIQUE_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "uniques";
+	public static final String COUNTERS_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "counters";
+	public static final String OP_PREFIX = ZOOKEEPER_BASE_NODE;
 	public static final String CLEANUP_OP_CODE = OP_PREFIX + File.separatorChar + "cleanup";
 
 	public EZKCoordinationExtension()
@@ -49,9 +49,9 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	@Override
 	public void init() throws KeeperException
 	{
-		Stat stat = extensionGate.exists(BASE_DIR, false);
+		Stat stat = extensionGate.exists(ZOOKEEPER_BASE_NODE, false);
 		if(stat == null)
-			this.extensionGate.create(BASE_DIR, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			this.extensionGate.create(ZOOKEEPER_BASE_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
 		stat = extensionGate.exists(TMP_DIR, false);
 		if(stat == null)

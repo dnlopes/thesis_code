@@ -177,4 +177,9 @@ public class LogicalClock implements java.io.Serializable
 
 	}
 
+	public LogicalClock duplicate()
+	{
+		return new LogicalClock(this.entries);
+	}
+
 }

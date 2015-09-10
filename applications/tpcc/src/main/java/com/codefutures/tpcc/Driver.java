@@ -152,6 +152,22 @@ public class Driver implements TpccConstants
 	private void doNextTransaction(int t_num, int sequence)
 	{
 		int success = 0;
+
+		int random = Util.randomNumber(0,100);
+
+		if(random < TpccConstants.DELIVERY_TXN_RATE)
+			success = doDelivery(t_num);
+		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE)
+			success = doNeword(t_num);
+		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants.ORDER_STAT_TXN_RATE)
+			success = doOrdstat(t_num);
+		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants
+				.ORDER_STAT_TXN_RATE + TpccConstants.PAYMENT_TXN_RATE)
+			success = doPayment(t_num);
+		else
+			success = doSlev(t_num);
+/*
+
 		if(sequence == 0)
 		{
 			success = doNeword(t_num);
@@ -172,16 +188,31 @@ public class Driver implements TpccConstants
 			logger.error("unkown sequence number: {}", sequence);
 			System.exit(1);
 		}
-
+                     */
 		/*
-		if(success == 0) //aborted
-			this.performanceCounter.setAbortRate();
-		else if(success == 1)
+		int success = 0;
+		if(sequence == 0)
 		{
-			this.performanceCounter.setCommitRate();
-			if(sequence == 0)
-				this.performanceCounter.setTPMC();
-		}                                    */
+			success = doNeword(t_num);
+		} else if(sequence == 1)
+		{
+			success = doPayment(t_num);
+		} else if(sequence == 2)
+		{
+			success = doOrdstat(t_num);
+		} else if(sequence == 3)
+		{
+			success = doDelivery(t_num);
+		} else if(sequence == 4)
+		{
+			success = doSlev(t_num);
+		} else
+		{
+			logger.error("unkown sequence number: {}", sequence);
+			System.exit(1);
+		}
+		*/
+
 	}
 
 	/*

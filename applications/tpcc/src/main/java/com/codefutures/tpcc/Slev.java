@@ -120,7 +120,7 @@ public class Slev implements TpccConstants
 				ps.setInt(1, w_id);
 				ps.setInt(2, ol_i_id);
 				ps.setInt(3, level);
-				if(TRACE)
+				//if(TRACE)
 					/*logger.trace(
 							"SELECT count(*) FROM stock WHERE s_w_id = " + w_id + " AND s_i_id = " + ol_i_id + " AND" +
 									" " +

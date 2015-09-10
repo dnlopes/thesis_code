@@ -119,6 +119,12 @@ public class TpccStatements
 			pStmts[i].setFetchSize(fetchSize);
 		}
 
+
+
+
+
+
+
 		// NewOrder statements.
 		pStmtsStrings[0] = "SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = ? AND " +
 				"c_w_id = ? AND c_d_id = ? AND c_id = ?";
