@@ -2,14 +2,9 @@ package util.defaults;
 
 
 /**
- * Created by dnlopes on 17/07/15.
+ * Created by dnlopes on 10/09/15.
  */
-public class ReplicatorDefaults
+public interface ReplicatorDefaults
 {
-
-	private static final String COORDINATOR_CONNECTIONS_DEFAULT = "100";
-
-	public static final int COORDINATOR_CONNECTIONS = Integer.parseInt(
-			System.getProperty("coord.coonections", COORDINATOR_CONNECTIONS_DEFAULT));
-
+	public static final int GARBAGE_COLLECTOR_THREAD_INTERVAL = 10000;
 }

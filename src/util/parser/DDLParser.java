@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
 import database.util.table.DatabaseTable;
-import util.defaults.Configuration;
 
 
 /**

@@ -8,16 +8,16 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import runtime.RuntimeUtils;
-import util.ExitCode;
-import util.defaults.Configuration;
+import util.Configuration;
 
+import util.defaults.ZookeeperDefaults;
 import util.thrift.*;
-import util.zookeeper.EZKOperationCoordinator;
+import util.zookeeper.EZKCoordinationClient;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,22 +30,31 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
 	private Map<Integer, NodeConfig> replicatorsConfigs;
-	private EZKOperationCoordinator ezkCoordinator;
+	private EZKCoordinationClient ezkClient;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
 
+		ZooKeeper zooKeeper = null;
 		try
 		{
-			ZooKeeper zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
-					Configuration.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
-			this.ezkCoordinator = new EZKOperationCoordinator(zooKeeper, this.me.getId());
+			zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
+					ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
 		} catch(IOException e)
 		{
 			LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
+		}
+
+		this.ezkClient = new EZKCoordinationClient(zooKeeper, this.me.getId());
+
+		try
+		{
+			this.ezkClient.init(Configuration.getInstance().getExtensionCodeDir());
+		} catch(KeeperException | InterruptedException e)
+		{
+			LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
 		}
 
 		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
@@ -82,6 +91,6 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		CoordinatorResponse response = new CoordinatorResponse();
 		response.setSuccess(false);
 
-		return this.ezkCoordinator.coordinate(req);
+		return this.ezkClient.coordinate(req);
 	}
 }

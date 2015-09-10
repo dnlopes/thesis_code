@@ -3,10 +3,8 @@ package runtime.operation;
 
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.ExecutionPolicy;
-import database.util.value.FieldValue;
 import database.util.Row;
 import runtime.transformer.OperationTransformer;
-import util.defaults.DBDefaults;
 import util.thrift.RequestValue;
 import util.thrift.ThriftShadowTransaction;
 
@@ -19,7 +17,7 @@ import java.util.Map;
 public class UpdateChildOperation extends UpdateOperation
 {
 
-	//@TODO: we must implement the logic where the child tuple "changes" parent
+	//@TODO: implement the logic where the child tuple "changes" parent
 	private Map<ForeignKeyConstraint, Row> parentRows;
 	
 	public UpdateChildOperation(int id, ExecutionPolicy policy, Row updatedRow, Map<ForeignKeyConstraint, Row> parents)

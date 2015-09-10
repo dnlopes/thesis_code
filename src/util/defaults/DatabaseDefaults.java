@@ -3,7 +3,7 @@ package util.defaults;
 /**
  * Created by dnlopes on 05/03/15.
  */
-public class DBDefaults
+public interface DatabaseDefaults
 {
 	public static final String CLOCK_VALUE_PLACEHOLDER = "'@clock@'";
 	public static final String CONTENT_CLOCK_COLUMN = "_cclock";
@@ -16,7 +16,6 @@ public class DBDefaults
 	public static final String DEFAULT_USER = "sa";
 	public static final int DEFAULT_MYSQL_PORT = 3306;
 
-
-
+	public static final boolean OPTIMIZE_BATCH = true;
 
 }

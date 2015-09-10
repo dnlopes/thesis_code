@@ -2,8 +2,8 @@ package database.jdbc;
 
 
 import nodes.NodeConfig;
-import util.defaults.Configuration;
-import util.defaults.DBDefaults;
+import util.Configuration;
+import util.defaults.DatabaseDefaults;
 import util.DatabaseProperties;
 
 import java.sql.Connection;
@@ -34,10 +34,9 @@ public class ConnectionFactory
 		}
 	}
 
-	public static Connection getDefaultConnection(DatabaseProperties props, String databaseName)
-			throws SQLException
+	public static Connection getDefaultConnection(DatabaseProperties props, String databaseName) throws SQLException
 	{
-		StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		StringBuffer buffer = new StringBuffer(DatabaseDefaults.DEFAULT_URL_PREFIX);
 		buffer.append(props.getDbHost());
 		buffer.append(":");
 		buffer.append(props.getDbPort());
@@ -60,6 +59,9 @@ public class ConnectionFactory
 		buffer.append("/");
 		buffer.append(databaseName);
 
+		if(DatabaseDefaults.OPTIMIZE_BATCH)
+			buffer.append("?rewriteBatchedStatements=true");
+
 		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
 		c.setAutoCommit(false);
 
@@ -68,7 +70,7 @@ public class ConnectionFactory
 
 	public static Connection getDefaultConnection(NodeConfig nodeInfo) throws SQLException
 	{
-		StringBuffer url = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+		StringBuffer url = new StringBuffer(DatabaseDefaults.DEFAULT_URL_PREFIX);
 		url.append(nodeInfo.getDbProps().getDbHost());
 		url.append(":");
 		url.append(nodeInfo.getDbProps().getDbPort());
@@ -90,6 +92,9 @@ public class ConnectionFactory
 		url.append(nodeInfo.getDbProps().getDbPort());
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
+
+		if(DatabaseDefaults.OPTIMIZE_BATCH)
+			url.append("?rewriteBatchedStatements=true");
 
 		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbProps().getDbUser(),
 				nodeInfo.getDbProps().getDbPwd());

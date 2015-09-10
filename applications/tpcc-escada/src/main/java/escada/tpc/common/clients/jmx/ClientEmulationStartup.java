@@ -24,8 +24,8 @@ import escada.tpc.logger.PerformanceLogger;
 import escada.tpc.tpcc.database.populate.jmx.DatabasePopulate;
 import nodes.NodeConfig;
 import org.apache.log4j.Logger;
-import util.defaults.Configuration;
-import util.defaults.DBDefaults;
+import util.Configuration;
+import util.defaults.DatabaseDefaults;
 import util.DatabaseProperties;
 
 import java.io.FileNotFoundException;
@@ -133,7 +133,7 @@ public class ClientEmulationStartup implements ClientEmulationStartupMBean,
 			{
 				c.getDatabaseResources().setDriver("com.mysql.jdbc.Driver");
 				c.getDatabaseResources().setCustomJDBC(false);
-				StringBuffer buffer = new StringBuffer(DBDefaults.DEFAULT_URL_PREFIX);
+				StringBuffer buffer = new StringBuffer(DatabaseDefaults.DEFAULT_URL_PREFIX);
 				buffer.append(DB_PROPERTIES.getDbHost());
 				buffer.append(":");
 				buffer.append(DB_PROPERTIES.getDbPort());

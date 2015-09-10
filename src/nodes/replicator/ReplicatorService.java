@@ -1,7 +1,6 @@
 package nodes.replicator;
 
 
-import nodes.Deliver;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private Replicator replicator;
 	private IReplicatorNetwork network;
-	private Deliver deliver;
+	private DeliverAgent deliver;
 
 	public ReplicatorService(Replicator replicator, IReplicatorNetwork network)
 	{

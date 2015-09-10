@@ -36,8 +36,8 @@ import runtime.operation.*;
 import runtime.Transaction;
 import util.ExitCode;
 import util.debug.Debug;
-import util.defaults.Configuration;
-import util.defaults.DBDefaults;
+import util.Configuration;
+import util.defaults.DatabaseDefaults;
 import util.defaults.ScratchpadDefaults;
 import util.exception.CheckConstraintViolatedException;
 import util.thrift.*;
@@ -359,7 +359,7 @@ public class DBScratchpad implements Scratchpad
 	private class DBExecuter implements IExecuter
 	{
 
-		private static final String SP_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+		private static final String SP_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=0";
 
 		private TableDefinition tableDefinition;
 		private DatabaseTable databaseTable;
@@ -741,7 +741,7 @@ public class DBScratchpad implements Scratchpad
 					buffer.append(" ");
 					if(tmpStr.length > 1)
 						buffer.append(tmpStr[1]);
-					if(colSet.getString(4).equalsIgnoreCase(DBDefaults.DELETED_CLOCK_COLUMN))
+					if(colSet.getString(4).equalsIgnoreCase(DatabaseDefaults.DELETED_CLOCK_COLUMN))
 					{
 						buffer.append(" DEFAULT FALSE ");
 					}
@@ -1375,13 +1375,13 @@ public class DBScratchpad implements Scratchpad
 			addWhere(buffer, updateOp.getWhere());
 			//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 			buffer.append(" AND ");
-			buffer.append(DBDefaults.DELETED_COLUMN);
+			buffer.append(DatabaseDefaults.DELETED_COLUMN);
 			buffer.append("=0) UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 			buffer.append(this.tempTableName);
 			addWhere(buffer, updateOp.getWhere());
 			//buffer.append(");");
 			buffer.append(" AND ");
-			buffer.append(DBDefaults.DELETED_COLUMN);
+			buffer.append(DatabaseDefaults.DELETED_COLUMN);
 			buffer.append("=0)");
 
 			ResultSet res = null;

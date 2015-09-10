@@ -18,13 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import util.defaults.Configuration;
+import util.Configuration;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.UniqueValue;
 import util.zookeeper.EZKCoordinationExtension;
-import util.zookeeper.EZKOperationCoordinator;
-import util.zookeeper.OperationCoordinationService;
+import util.zookeeper.EZKCoordinationClient;
+import util.zookeeper.EZKCoordinationService;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class ZookeeperBootstrap
 	private static final int SESSION_TIMEOUT = 2000000;
 	private final Connection connection;
 	private final ZooKeeper zookeeper;
-	private final OperationCoordinationService extension;
+	private final EZKCoordinationService ezkClient;
 	private final DatabaseMetadata databaseMetadata;
 
 	public static void main(String args[]) throws Exception
@@ -73,7 +73,7 @@ public class ZookeeperBootstrap
 	{
 		this.databaseMetadata = CONFIG.getDatabaseMetadata();
 		this.zookeeper= new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
-		this.extension = new EZKOperationCoordinator(this.zookeeper, 1);
+		this.ezkClient = new EZKCoordinationClient(this.zookeeper, 1);
 		this.connection = ConnectionFactory.getDefaultConnection(CONFIG.getReplicatorConfigWithIndex(1));
 	}
 
@@ -102,8 +102,8 @@ public class ZookeeperBootstrap
 
 	public void installExtension() throws Exception
 	{
-		this.extension.init(CONFIG.getExtensionCodeDir());
-		this.extension.cleanupDatabase();
+		this.ezkClient.init(CONFIG.getExtensionCodeDir());
+		this.ezkClient.cleanupDatabase();
 	}
 
 	private void treatUniqueConstraint(UniqueConstraint uniqueConstraint, CoordinatorRequest req)
@@ -168,7 +168,7 @@ public class ZookeeperBootstrap
 				counter++;
 				if(counter == 1000)
 				{
-					CoordinatorResponse response = this.extension.coordinate(req);
+					CoordinatorResponse response = this.ezkClient.coordinate(req);
 					if(!response.isSuccess())
 						RuntimeUtils.throwRunTimeException("failed to reserve values", ExitCode.DUPLICATED_FIELD);
 
@@ -251,7 +251,7 @@ public class ZookeeperBootstrap
 	public void exitGracefully() throws InterruptedException
 	{
 		DbUtils.closeQuietly(this.connection);
-		this.extension.closeExtension();
+		this.ezkClient.closeExtension();
 	}
 
 	private static byte[] toBytes(int value)

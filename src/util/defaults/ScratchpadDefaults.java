@@ -3,7 +3,7 @@ package util.defaults;
 /**
  * Created by dnlopes on 10/03/15.
  */
-public final class ScratchpadDefaults
+public interface ScratchpadDefaults
 {
 
 	public static final int RDBMS_H2 = 1;

@@ -12,9 +12,13 @@ import runtime.LogicalClock;
 import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.ObjectPool;
-import util.defaults.Configuration;
+import util.Configuration;
+import util.defaults.ReplicatorDefaults;
 import util.thrift.ThriftShadowTransaction;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,9 +32,12 @@ public class Replicator extends AbstractNode
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
 
 	private LogicalClock clock;
-	private IReplicatorNetwork networkInterface;
-	private ObjectPool<DBCommitter> agentsPool;
-	private Lock clockLock;
+	private final IReplicatorNetwork networkInterface;
+	private final ObjectPool<DBCommitter> agentsPool;
+	private final Lock clockLock;
+	private final GarbageCollector garbageCollector;
+	private final ScheduledExecutorService scheduleService;
+
 
 	public Replicator(NodeConfig config)
 	{
@@ -39,6 +46,11 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
+		this.scheduleService = Executors.newScheduledThreadPool(1);
+		this.garbageCollector = new GarbageCollector(this);
+
+		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0, ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+
 		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		try
@@ -50,7 +62,7 @@ public class Replicator extends AbstractNode
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
 
-		this.createAgents();
+		this.createCommiterAgents();
 
 		System.out.println("replicator " + this.config.getId() + " online");
 	}
@@ -127,7 +139,7 @@ public class Replicator extends AbstractNode
 			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
-	private void createAgents()
+	private void createCommiterAgents()
 	{
 		int agentsNumber = Configuration.getInstance().getScratchpadPoolSize();
 

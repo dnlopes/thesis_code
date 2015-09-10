@@ -10,6 +10,7 @@ import org.apache.zookeeper.extension.EZKBaseExtension;
 import org.apache.zookeeper.server.EZKExtensionGate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.defaults.ZookeeperDefaults;
 import util.thrift.*;
 
 import java.io.File;
@@ -24,7 +25,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(EZKCoordinationExtension.class);
-	public static final String BASE_DIR = "/coordination";
+	public static final String BASE_DIR = ZookeeperDefaults.ZOOKEEPER_BASE_NODE;
 	public static final String TMP_DIR = BASE_DIR + File.separatorChar + "tmp";
 	public static final String UNIQUE_DIR = BASE_DIR + File.separatorChar + "uniques";
 	public static final String COUNTERS_DIR = BASE_DIR + File.separatorChar + "counters";
@@ -76,12 +77,11 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 			Stat returnStatus = new Stat();
 			returnStatus.setVersion(0);
 			return returnStatus;
-		}
-		else if(path.startsWith(OP_PREFIX))
+		} else if(path.startsWith(OP_PREFIX))
 			return this.handleRequest(path, data);
 		else
 		{
-			LOG.warn("unexpected operation code. Calling default _setData_ implementation");
+			LOG.warn("unexpected operation code. Calling default 'setData' implementation");
 			return this.extensionGate.setData(path, data, version);
 		}
 	}
@@ -201,12 +201,21 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 
 	private void cleanup() throws KeeperException
 	{
-		LOG.info("cleaning up database nodes");
-		LOG.info("deleting {} directory...", UNIQUE_DIR);
+		if(LOG.isInfoEnabled())
+		{
+			LOG.info("cleaning up database nodes");
+			LOG.info("deleting {} directory...", UNIQUE_DIR);
+		}
+
 		this.deleteDirectory(UNIQUE_DIR, false);
-		LOG.info("deleting {} directory...", COUNTERS_DIR);
+
+		if(LOG.isInfoEnabled())
+			LOG.info("deleting {} directory...", COUNTERS_DIR);
+
 		this.deleteDirectory(COUNTERS_DIR, false);
-		LOG.info("database cleaned");
+
+		if(LOG.isInfoEnabled())
+			LOG.info("database cleaned");
 	}
 
 	private void deleteDirectory(String path, boolean deleteSelf) throws KeeperException

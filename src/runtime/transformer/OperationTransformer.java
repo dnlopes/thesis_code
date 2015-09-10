@@ -5,7 +5,7 @@ import database.constraints.fk.ForeignKeyConstraint;
 import database.util.value.FieldValue;
 import database.util.Row;
 import runtime.operation.OperationsStatements;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,8 +20,8 @@ import java.util.Map;
 public class OperationTransformer
 {
 
-	private static final String SET_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=1";
-	private static final String SET_DELETED_CLOCK_EXPRESION = DBDefaults.DELETED_CLOCK_COLUMN + "=" + DBDefaults
+	private static final String SET_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=1";
+	private static final String SET_DELETED_CLOCK_EXPRESION = DatabaseDefaults.DELETED_CLOCK_COLUMN + "=" + DatabaseDefaults
 			.CLOCK_VALUE_PLACEHOLDER;
 
 	public static String generateInsertStatement(Row row)

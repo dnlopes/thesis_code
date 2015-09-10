@@ -4,7 +4,7 @@ package util;
 import database.jdbc.ConnectionFactory;
 import org.apache.commons.dbutils.DbUtils;
 import runtime.RuntimeUtils;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 import util.defaults.ScratchpadDefaults;
 
 import java.sql.*;
@@ -33,8 +33,8 @@ public class DatabaseTransformer
 
 	public DatabaseTransformer(String databaseHost, String databaseName)
 	{
-		this.dbProps = new DatabaseProperties(DBDefaults.DEFAULT_USER, DBDefaults.DEFAULT_PASSWORD, databaseHost,
-				DBDefaults.DEFAULT_MYSQL_PORT);
+		this.dbProps = new DatabaseProperties(DatabaseDefaults.DEFAULT_USER, DatabaseDefaults.DEFAULT_PASSWORD, databaseHost,
+				DatabaseDefaults.DEFAULT_MYSQL_PORT);
 		this.databaseName = databaseName;
 
 		this.setup();
@@ -174,19 +174,19 @@ public class DatabaseTransformer
 			{
 				String columnName = rs.getString(4);
 
-				if(columnName.compareTo(DBDefaults.DELETED_COLUMN) == 0)
+				if(columnName.compareTo(DatabaseDefaults.DELETED_COLUMN) == 0)
 				{
-					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DBDefaults.DELETED_COLUMN;
+					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DatabaseDefaults.DELETED_COLUMN;
 					stat.execute(sql);
 				}
-				if(columnName.compareTo(DBDefaults.DELETED_CLOCK_COLUMN) == 0)
+				if(columnName.compareTo(DatabaseDefaults.DELETED_CLOCK_COLUMN) == 0)
 				{
-					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DBDefaults.DELETED_CLOCK_COLUMN;
+					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DatabaseDefaults.DELETED_CLOCK_COLUMN;
 					stat.execute(sql);
 				}
-				if(columnName.compareTo(DBDefaults.CONTENT_CLOCK_COLUMN) == 0)
+				if(columnName.compareTo(DatabaseDefaults.CONTENT_CLOCK_COLUMN) == 0)
 				{
-					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DBDefaults.CONTENT_CLOCK_COLUMN;
+					String sql = "ALTER TABLE " + tableName + " DROP COLUMN " + DatabaseDefaults.CONTENT_CLOCK_COLUMN;
 					stat.execute(sql);
 				}
 			}
@@ -200,11 +200,11 @@ public class DatabaseTransformer
 
 		try
 		{
-			String sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.DELETED_COLUMN + " boolean default 0";
+			String sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.DELETED_COLUMN + " boolean default 0";
 			stat.execute(sql);
-			sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.DELETED_CLOCK_COLUMN + " varchar(50)";
+			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.DELETED_CLOCK_COLUMN + " varchar(50)";
 			stat.execute(sql);
-			sql = "ALTER TABLE " + tableName + " ADD " + DBDefaults.CONTENT_CLOCK_COLUMN + " varchar(50)";
+			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.CONTENT_CLOCK_COLUMN + " varchar(50)";
 			stat.execute(sql);
 
 		} catch(SQLException e)

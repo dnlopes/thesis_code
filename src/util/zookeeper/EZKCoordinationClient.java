@@ -7,44 +7,46 @@ import org.apache.zookeeper.extension.EZKExtensionRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
+import util.defaults.ZookeeperDefaults;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.ThriftUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 
 /**
  * Created by dnlopes on 13/07/15.
  */
-public class EZKOperationCoordinator implements OperationCoordinationService
+public class EZKCoordinationClient implements EZKCoordinationService
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(EZKOperationCoordinator.class);
-	public static final String BASE_DIR = "/coordination";
-	private final String PRIVATE_TMP_NODE;
+	private static final Logger LOG = LoggerFactory.getLogger(EZKCoordinationClient.class);
+
+	private final String privateNode;
 	private final int id;
+	private final ZooKeeper zooKeeper;
 
-	protected final ZooKeeper zooKeeper;
-
-	public EZKOperationCoordinator(ZooKeeper zooKeeper, int id) throws IOException
+	public EZKCoordinationClient(ZooKeeper zooKeeper, int id)
 	{
 		this.id = id;
-		this.PRIVATE_TMP_NODE = BASE_DIR + File.separatorChar + "tmp" + File.separatorChar + this.id;
+		this.privateNode = ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp" + File
+				.separatorChar + this.id;
 		this.zooKeeper = zooKeeper;
 	}
 
 	@Override
-	public void init(String codeBasePath) throws Exception
+	public void init(String codeBasePath) throws KeeperException, InterruptedException
 	{
-		EZKExtensionRegistration.registerExtension(zooKeeper, EZKCoordinationExtension.class, codeBasePath);
-		// create private tmp node to hold generic byte array for responses
-		Stat stat = zooKeeper.exists(PRIVATE_TMP_NODE, false);
-		if(stat == null)
-			zooKeeper.create(PRIVATE_TMP_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+		EZKExtensionRegistration.registerExtension(this.zooKeeper, EZKCoordinationExtension.class, codeBasePath);
 
-		LOG.info("Coordination extension successfully installed at Zookeeper service");
+		// create private tmp node to hold generic byte array for responses
+		Stat stat = this.zooKeeper.exists(this.privateNode, false);
+		if(stat == null)
+			this.zooKeeper.create(this.privateNode, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+
+		if(LOG.isInfoEnabled())
+			LOG.info("Coordination extension successfully installed at Zookeeper");
 	}
 
 	@Override
@@ -81,15 +83,17 @@ public class EZKOperationCoordinator implements OperationCoordinationService
 		try
 		{
 			// sync call to reserve unique values
-			Stat stat = this.zooKeeper.setData(PRIVATE_TMP_NODE, bytesRequest, -1);
+			Stat stat = this.zooKeeper.setData(this.privateNode, bytesRequest, -1);
 
 			if(stat.getVersion() == 0)
 				response.setSuccess(true);
 
-		} catch(KeeperException e)
+		} catch(KeeperException | InterruptedException e)
 		{
-		} catch(InterruptedException e)
-		{
+			if(LOG.isWarnEnabled())
+				LOG.warn(e.getMessage());
+
+			response.setSuccess(false);
 		}
 
 		return response;
@@ -102,7 +106,7 @@ public class EZKOperationCoordinator implements OperationCoordinationService
 		response.setSuccess(false);
 
 		// async call to reserve unique values
-		this.zooKeeper.setData(PRIVATE_TMP_NODE, bytesRequest, -1, null, null);
+		this.zooKeeper.setData(this.privateNode, bytesRequest, -1, null, null);
 		// then, call getData to get the requested values
 		this.getRequestedValues(response);
 
@@ -113,14 +117,11 @@ public class EZKOperationCoordinator implements OperationCoordinationService
 	{
 		try
 		{
-			byte[] responseByteArray = this.zooKeeper.getData(PRIVATE_TMP_NODE, false, null);
+			byte[] responseByteArray = this.zooKeeper.getData(privateNode, false, null);
 			CoordinatorResponse tmpResponse = RuntimeUtils.decodeCoordinatorResponse(responseByteArray);
 			response.setSuccess(tmpResponse.isSuccess());
 			response.setRequestedValues(tmpResponse.getRequestedValues());
-		} catch(KeeperException e)
-		{
-			response.setSuccess(false);
-		} catch(InterruptedException e)
+		} catch(KeeperException | InterruptedException e)
 		{
 			response.setSuccess(false);
 		}

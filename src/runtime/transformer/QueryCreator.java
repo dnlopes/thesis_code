@@ -6,7 +6,7 @@ import database.constraints.fk.ParentChildRelation;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.Row;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.Map;
 public class QueryCreator
 {
 
-	private static final String NOT_DELETED_EXPRESSION = DBDefaults.DELETED_COLUMN + "=0";
+	private static final String NOT_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=0";
 
 	/**
 	 * Generates a SQL query that selects all child rows that are pointing to the given parent row

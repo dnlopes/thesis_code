@@ -1,7 +1,7 @@
 package tests.parser;
 
 
-import util.defaults.Configuration;
+import util.Configuration;
 import database.util.DatabaseMetadata;
 
 /**

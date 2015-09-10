@@ -7,7 +7,7 @@ import database.util.value.FieldValue;
 import database.util.Row;
 import runtime.transformer.OperationTransformer;
 import runtime.transformer.QueryCreator;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 import util.thrift.RequestValue;
 import util.thrift.ThriftShadowTransaction;
 
@@ -32,11 +32,11 @@ public class InsertChildOperation extends InsertOperation
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		//done
-		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.DELETED_VALUE));
+		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DatabaseDefaults.DELETED_VALUE));
 		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+				new FieldValue(this.row.getTable().getContentClockField(), DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER));
 		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+				new FieldValue(this.row.getTable().getDeletedClockField(), DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 

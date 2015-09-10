@@ -4,7 +4,7 @@ package nodes.proxy;
 import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import util.defaults.Configuration;
+import util.Configuration;
 
 
 /**

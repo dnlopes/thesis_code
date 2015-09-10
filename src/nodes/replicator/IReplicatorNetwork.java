@@ -2,7 +2,6 @@ package nodes.replicator;
 
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
-import util.thrift.Request;
 import util.thrift.ThriftShadowTransaction;
 
 

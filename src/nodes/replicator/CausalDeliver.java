@@ -1,11 +1,10 @@
 package nodes.replicator;
 
 
-import nodes.Deliver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
-import util.defaults.Configuration;
+import util.Configuration;
 import util.thrift.ThriftShadowTransaction;
 
 import java.util.*;
@@ -18,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by dnlopes on 23/05/15.
  */
-public class CausalDeliver implements Deliver
+public class CausalDeliver implements DeliverAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
@@ -26,6 +25,7 @@ public class CausalDeliver implements Deliver
 
 	private final Map<Integer, Queue<ThriftShadowTransaction>> queues;
 	private final Replicator replicator;
+	private final ScheduledExecutorService scheduleService;
 
 	public CausalDeliver(Replicator replicator)
 	{
@@ -36,8 +36,8 @@ public class CausalDeliver implements Deliver
 
 		DeliveryThread deliveryThread = new DeliveryThread();
 
-		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-		service.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService = Executors.newScheduledThreadPool(1);
+		this.scheduleService.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	private void setup()
@@ -104,7 +104,6 @@ public class CausalDeliver implements Deliver
 
 	private class DeliveryThread implements Runnable
 	{
-
 		@Override
 		public void run()
 		{

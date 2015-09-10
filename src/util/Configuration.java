@@ -1,4 +1,4 @@
-package util.defaults;
+package util;
 
 
 import database.util.DatabaseMetadata;
@@ -10,10 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import runtime.RuntimeUtils;
-import util.ExitCode;
+import util.defaults.ZookeeperDefaults;
 import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
-import util.DatabaseProperties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,7 +57,6 @@ public final class Configuration
 
 		loadConfiguration();
 
-		//set defaults here
 		//TODO inject this values on config file
 		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
 
@@ -269,8 +267,7 @@ public final class Configuration
 			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host, Integer.parseInt(port),
 					null);
 		else
-			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host,
-					CoordinatorDefaults.ZOOKEEPER_DEFAULT_PORT, null);
+			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host, ZookeeperDefaults.ZOOKEEPER_DEFAULT_PORT,null);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -313,7 +310,6 @@ public final class Configuration
 
 	public boolean useSharedProxy()
 	{
-		//TODO: inject this option in configuration file
 		return this.useSharedProxy;
 	}
 
@@ -389,16 +385,8 @@ public final class Configuration
 		return this.extensionCodeDir;
 	}
 
-	public interface ZookeeperDefaults
-	{
-
-		public static int ZOOKEEPER_SESSION_TIMEOUT = 200000;
-	}
-
-
 	public interface Defaults
 	{
-
 		public static final boolean USE_SHARED_PROXY = false;
 	}
 }

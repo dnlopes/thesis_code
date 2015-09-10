@@ -6,7 +6,7 @@ import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 import util.thrift.ThriftShadowTransaction;
 
 import java.sql.Connection;
@@ -104,7 +104,7 @@ public class DBCommitterAgent implements DBCommitter
 	private String replacePlaceholders(ThriftShadowTransaction op, String statement)
 	{
 		String clockString = op.getClock();
-		statement = statement.replaceAll(DBDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
+		statement = statement.replaceAll(DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
 
 		return statement;
 	}

@@ -60,11 +60,9 @@
 import database.jdbc.ConnectionFactory;
 import network.AbstractNodeConfig;
 import util.IDFactories.IdentifierFactory;
-import util.defaults.Configuration;
+import util.Configuration;
 
-import java.sql.*;
 import java.sql.Date;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 

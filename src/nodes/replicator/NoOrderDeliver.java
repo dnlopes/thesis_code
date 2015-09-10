@@ -1,14 +1,13 @@
 package nodes.replicator;
 
 
-import nodes.Deliver;
 import util.thrift.ThriftShadowTransaction;
 
 
 /**
  * Created by dnlopes on 24/05/15.
  */
-public class NoOrderDeliver implements Deliver
+public class NoOrderDeliver implements DeliverAgent
 {
 
 	private final Replicator replicator;

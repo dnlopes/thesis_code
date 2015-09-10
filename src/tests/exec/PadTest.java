@@ -7,7 +7,7 @@ import database.execution.temporary.Scratchpad;
 import net.sf.jsqlparser.JSQLParserException;
 import nodes.NodeConfig;
 import nodes.proxy.ProxyConfig;
-import util.defaults.Configuration;
+import util.Configuration;
 
 import java.sql.*;
 

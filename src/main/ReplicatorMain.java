@@ -5,7 +5,7 @@ import nodes.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
-import util.defaults.Configuration;
+import util.Configuration;
 
 
 /**

@@ -21,8 +21,8 @@ import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
-import util.defaults.Configuration;
-import util.defaults.DBDefaults;
+import util.Configuration;
+import util.defaults.DatabaseDefaults;
 
 import java.io.StringReader;
 import java.sql.Connection;
@@ -165,8 +165,8 @@ public class DeterministicQuery
 				valueList.set(i, "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
 		}
 
-		colList.add(DBDefaults.DELETED_COLUMN);
-		valueList.add(DBDefaults.NOT_DELETED_VALUE);
+		colList.add(DatabaseDefaults.DELETED_COLUMN);
+		valueList.add(DatabaseDefaults.NOT_DELETED_VALUE);
 		// fill in the missing tuples
 		if(missFields != null)
 		{

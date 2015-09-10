@@ -10,7 +10,7 @@ import runtime.IdentifierFactory;
 import runtime.transformer.OperationTransformer;
 import runtime.RuntimeUtils;
 import util.ExitCode;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 import util.thrift.*;
 
 import java.sql.SQLException;
@@ -35,11 +35,11 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		//done
-		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DBDefaults.NOT_DELETED_VALUE));
+		this.row.addFieldValue(new FieldValue(this.row.getTable().getDeletedField(), DatabaseDefaults.NOT_DELETED_VALUE));
 		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+				new FieldValue(this.row.getTable().getContentClockField(), DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER));
 		this.row.addFieldValue(
-				new FieldValue(this.row.getTable().getDeletedClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
+				new FieldValue(this.row.getTable().getDeletedClockField(), DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 

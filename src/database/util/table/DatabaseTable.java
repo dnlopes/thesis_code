@@ -24,8 +24,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
-import util.defaults.Configuration;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 
 
 /**
@@ -552,11 +551,11 @@ public abstract class DatabaseTable
 		this.deletedField.setDefaultValue("1");
 		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 
-		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(), DBDefaults.CONTENT_CLOCK_COLUMN);
+		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(), DatabaseDefaults.CONTENT_CLOCK_COLUMN);
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
 		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
-		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(), DBDefaults.DELETED_CLOCK_COLUMN);
+		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(), DatabaseDefaults.DELETED_CLOCK_COLUMN);
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
 		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
 

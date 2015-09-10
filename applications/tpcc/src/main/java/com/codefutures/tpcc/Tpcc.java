@@ -21,7 +21,7 @@ import com.codefutures.tpcc.stats.ThreadStatistics;
 import nodes.NodeConfig;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import util.defaults.Configuration;
+import util.Configuration;
 import util.DatabaseProperties;
 
 

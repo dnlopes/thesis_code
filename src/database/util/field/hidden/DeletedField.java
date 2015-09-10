@@ -4,7 +4,7 @@ package database.util.field.hidden;
 import database.util.field.CrdtDataFieldType;
 import database.util.field.DataField;
 import database.util.SemanticPolicy;
-import util.defaults.DBDefaults;
+import util.defaults.DatabaseDefaults;
 
 import java.sql.ResultSet;
 
@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 public class DeletedField extends DataField
 {
 
-	private static final String FIELD_NAME = DBDefaults.DELETED_COLUMN;
+	private static final String FIELD_NAME = DatabaseDefaults.DELETED_COLUMN;
 	private static final String FIELD_TYPE = "boolean";
 
 
