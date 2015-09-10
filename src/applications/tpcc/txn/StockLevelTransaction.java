@@ -9,7 +9,7 @@ import java.sql.Connection;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class SlevTransaction implements Transaction
+public class StockLevelTransaction implements Transaction
 {
 	
 	@Override

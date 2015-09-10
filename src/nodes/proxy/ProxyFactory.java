@@ -35,8 +35,8 @@ public class ProxyFactory
 		proxiesCounter = 0;
 		if(USE_SHARED_PROXY)
 			sharedProxy = new SharedProxy(PROXY_CONFIG);
-
-		IdentifierFactory.setup(PROXY_CONFIG);
+		else
+			IdentifierFactory.setup(PROXY_CONFIG);
 	}
 
 	public static Proxy getProxyInstance()

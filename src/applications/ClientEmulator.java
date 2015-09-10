@@ -4,54 +4,41 @@ package applications;
 import database.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 /**
  * Created by dnlopes on 05/06/15.
  */
-public class ClientEmulator extends Thread
+public class ClientEmulator implements Runnable
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientEmulator.class);
 
-	private Connection con;
-	private Workload workload;
-
-	public int getSuccessCounterRead()
-	{
-		return successCounterRead;
-	}
-
-	public int getSuccessCounterWrite()
-	{
-		return successCounterWrite;
-	}
-
+	private Connection connection;
+	private final BenchmarkOptions options;
 	private long sumReadLatency, sumWriteLatency;
 	private int successCounterRead, successCounterWrite, abortCounter;
 
-	public ClientEmulator(Workload workload, DatabaseProperties dbProps)
+	public ClientEmulator(BenchmarkOptions options)
 	{
-		this.workload = workload;
+		this.options = options;
 		this.sumReadLatency = 0;
 		this.sumWriteLatency = 0;
 		this.successCounterRead = 0;
 		this.successCounterWrite = 0;
 		this.abortCounter = 0;
 
-		boolean customJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
-
 		try
 		{
-			if(customJDBC)
-				this.con = ConnectionFactory.getCRDTConnection(dbProps, "micro");
+			if(this.options.isCRDTDriver())
+				this.connection = ConnectionFactory.getCRDTConnection(this.options.getDbProps(),
+						this.options.getDatabaseName());
 			else
-				this.con = ConnectionFactory.getDefaultConnection(dbProps, "micro");
+				this.connection = ConnectionFactory.getDefaultConnection(this.options.getDbProps(),
+						this.options.getDatabaseName());
 		} catch(SQLException | ClassNotFoundException e)
 		{
 			LOG.error("failed to create connection for client: {}", e.getMessage(), e);
@@ -59,34 +46,24 @@ public class ClientEmulator extends Thread
 		}
 	}
 
-	public ClientEmulator(Workload workload, Connection conn)
-	{
-		this.workload = workload;
-		this.sumReadLatency = 0;
-		this.sumWriteLatency = 0;
-		this.successCounterRead = 0;
-		this.successCounterWrite = 0;
-		this.abortCounter = 0;
-		this.con = conn;
-	}
-
 	@Override
 	public void run()
 	{
 		while(Emulator.RUNNING)
 		{
-			String op = workload.getNextOperation();
+			Transaction txn = this.options.getWorkload().getNextTransaction();
 
 			long beginTime = System.nanoTime();
-			boolean success = this.doOperation(op);
+			boolean success = txn.executeTransaction(this.connection);
 			long endTime = System.nanoTime();
 
 			long latency = (endTime - beginTime) / 1000000;
+
 			if(success)
 			{
 				if(Emulator.COUTING)
 				{
-					if(op.contains("SELECT"))
+					if(txn.isReadOnly())
 					{
 						this.sumReadLatency += latency;
 						this.successCounterRead++;
@@ -101,73 +78,14 @@ public class ClientEmulator extends Thread
 		}
 	}
 
-	private boolean doOperation(String op)
-	{
-		Statement stat;
-		try
-		{
-			stat = this.con.createStatement();
-			if(op.contains("SELECT"))
-				stat.executeQuery(op);
-			else
-				stat.executeUpdate(op);
-
-			this.con.commit();
-			return true;
-
-		} catch(SQLException e)
-		{
-			if(LOG.isErrorEnabled())
-				LOG.error("op execution error: {}", e.getMessage());
-			try
-			{
-				this.con.rollback();
-			} catch(SQLException e1)
-			{
-				e1.printStackTrace();
-			}
-			return false;
-		}
-	}
-
 	public int getTotalOperations()
 	{
 		return this.successCounterRead + this.successCounterWrite;
 	}
 
-	public float getAverageLatency()
-	{
-		float avgLatency = 0;
-
-		avgLatency += this.getOperationsAverageReadLatency() * (100 - this.workload.getWriteRate())/100;
-		avgLatency += this.getOperationsAverageWriteLatency() * this.workload.getWriteRate()/100;
-
-		return avgLatency;
-	}
-
 	public int getAbortCounter()
 	{
 		return this.abortCounter;
-	}
-
-	public float getOperationsAverageReadLatency()
-	{
-		return this.sumReadLatency / this.successCounterRead;
-	}
-
-	public float getOperationsAverageWriteLatency()
-	{
-		return this.sumWriteLatency / this.successCounterWrite;
-	}
-
-	public float getTotalWriteLatency()
-	{
-		return this.sumWriteLatency;
-	}
-
-	public float getTotalReadLatency()
-	{
-		return this.sumReadLatency;
 	}
 
 }

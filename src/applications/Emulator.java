@@ -3,8 +3,6 @@ package applications;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeUtils;
-import util.DatabaseProperties;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -13,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -25,69 +24,48 @@ public class Emulator
 
 	public static volatile boolean RUNNING;
 	public static volatile boolean COUTING;
-	private static int RAMPUP_TIME = 5;
 
-	private String emulatorName;
-	private int numberOfClients;
 	private ExecutorService threadsService;
 	private List<ClientEmulator> clients;
-	private int benchmarkRuntime;
-	private Workload workload;
 	private int emulatorId;
-	private DatabaseProperties dbProps;
+	private BenchmarkOptions options;
 
-	public Emulator(int id, int numberClients, int runtime, Workload workload, DatabaseProperties dbProps)
+	public Emulator(int id, BenchmarkOptions options)
 	{
 		RUNNING = true;
 		COUTING = false;
 		this.emulatorId = id;
-		this.numberOfClients = numberClients;
-		this.threadsService = Executors.newFixedThreadPool(this.numberOfClients);
+		this.options = options;
 		this.clients = new ArrayList<>();
-		this.benchmarkRuntime = runtime;
-		this.workload = workload;
-		this.dbProps = dbProps;
+		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 	}
 
-	public Emulator(int id, String emulatorName, int numberClients, int runtime, Workload workload, DatabaseProperties
-			dbProps)
-	{
-		RUNNING = true;
-		COUTING = false;
-		this.emulatorId = id;
-		this.numberOfClients = numberClients;
-		this.threadsService = Executors.newFixedThreadPool(this.numberOfClients);
-		this.clients = new ArrayList<>();
-		this.benchmarkRuntime = runtime;
-		this.workload = workload;
-		this.dbProps = dbProps;
-		this.emulatorName = emulatorName;
-	}
-
-	public boolean startBenchmark()
+	public boolean runBenchmark()
 	{
 		System.out.println("****************************************");
-		System.out.print("************ ");
-		System.out.print(this.emulatorName);
-		System.out.print(" ************");
+		System.out.print("************  ");
+		System.out.print(this.options.getName());
+		System.out.print("  ************");
 		System.out.println();
+		System.out.println("****************************************");
 
-		for(int i = 0; i < this.numberOfClients; i++)
+		for(int i = 0; i < this.options.getClientsNumber(); i++)
 		{
-			Runnable client = new ClientEmulator(this.workload, this.dbProps);
+			ClientEmulator client = new ClientEmulator(this.options);
+			this.clients.add(client);
 			this.threadsService.execute(client);
-			this.clients.add((ClientEmulator) client);
 		}
 
-		if(RAMPUP_TIME > 0)
+		if(BenchmarkOptions.Defaults.RAMPUP_TIME > 0)
 		{
 			System.out.println("Starting ramp up time...");
 			try
 			{
-				Thread.sleep(RAMPUP_TIME * 1000);
+				Thread.sleep(BenchmarkOptions.Defaults.RAMPUP_TIME * 1000);
 			} catch(InterruptedException e)
 			{
 				LOG.error("ramp up time interrupted: {}", e.getMessage());
+				this.shutdownEmulator();
 				return false;
 			}
 			System.out.println("Ramp up time ended!");
@@ -98,7 +76,7 @@ public class Emulator
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
 
-		while((runTime = System.currentTimeMillis() - startTime) < this.benchmarkRuntime * 1000)
+		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
 			System.out.println("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try
@@ -107,15 +85,19 @@ public class Emulator
 			} catch(InterruptedException e)
 			{
 				LOG.error("Benchmark was interrupted: {}", e.getMessage());
+				this.shutdownEmulator();
 				return false;
 			}
 		}
 
-		COUTING = false;
 		RUNNING = false;
+		COUTING = false;
+
 		final long actualTestTime = System.currentTimeMillis() - startTime;
+
 		System.out.println("Experiment ended!");
 		System.out.println("Benchmark elapsed time: " + df.format(actualTestTime / 1000.0f));
+
 		return true;
 	}
 
@@ -127,7 +109,8 @@ public class Emulator
 
 		for(ClientEmulator client : this.clients)
 		{
-			avgLatency += client.getAverageLatency();
+			//TODO merge stats
+			//avgLatency += client.getAverageLatency();
 			opsCounter += client.getTotalOperations();
 			abortCounter += client.getAbortCounter();
 		}
@@ -137,10 +120,11 @@ public class Emulator
 		StringBuilder buffer = new StringBuilder();
 		boolean customJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
+		//TODO
 		buffer.append("#writeRate,coordinationRate,avgLatency,commits,aborts,customJdbc\n");
-		buffer.append(this.workload.getWriteRate());
+		//buffer.append(this.workload.getWriteRate());
 		buffer.append(",");
-		buffer.append(this.workload.getCoordinatedRate());
+		//buffer.append(this.workload.getCoordinatedRate());
 		buffer.append(",");
 		buffer.append(avgLatency);
 		buffer.append(",");
@@ -165,6 +149,22 @@ public class Emulator
 
 	public String getPrefix()
 	{
-		return "Em" + this.emulatorId + "_" + this.numberOfClients + "users";
+		return "Em" + this.emulatorId + "_" + this.options.getClientsNumber() + "users";
 	}
+
+	public void shutdownEmulator()
+	{
+		COUTING = false;
+		RUNNING = false;
+		this.threadsService.shutdown();
+
+		try
+		{
+			this.threadsService.awaitTermination(5000, TimeUnit.MILLISECONDS);
+		} catch(InterruptedException e)
+		{
+			LOG.error(e.getMessage(), e);
+		}
+	}
+
 }

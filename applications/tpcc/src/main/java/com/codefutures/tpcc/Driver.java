@@ -132,6 +132,7 @@ public class Driver implements TpccConstants
         /* Actually, WaitTimes are needed... */
 		//CHECK: Is activate_transaction handled correctly?
 		int sequence = Util.seqGet();
+
 		while(Tpcc.activate_transaction == 1)
 		{
 			if(DEBUG)
@@ -153,6 +154,7 @@ public class Driver implements TpccConstants
 	{
 		int success = 0;
 
+		/*
 		int random = Util.randomNumber(0,100);
 
 		if(random < TpccConstants.DELIVERY_TXN_RATE)
@@ -165,8 +167,8 @@ public class Driver implements TpccConstants
 				.ORDER_STAT_TXN_RATE + TpccConstants.PAYMENT_TXN_RATE)
 			success = doPayment(t_num);
 		else
-			success = doSlev(t_num);
-/*
+			success = doSlev(t_num);      */
+
 
 		if(sequence == 0)
 		{
@@ -188,7 +190,7 @@ public class Driver implements TpccConstants
 			logger.error("unkown sequence number: {}", sequence);
 			System.exit(1);
 		}
-                     */
+
 		/*
 		int success = 0;
 		if(sequence == 0)

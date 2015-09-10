@@ -110,6 +110,7 @@ public class NewOrder implements TpccConstants
 		{
 			if(DEBUG)
 				logger.debug("Transaction:	New Order");
+
 			int w_id = w_id_arg;
 			int d_id = d_id_arg;
 			int c_id = c_id_arg;
