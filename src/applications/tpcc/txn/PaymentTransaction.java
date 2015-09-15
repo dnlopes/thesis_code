@@ -1,7 +1,7 @@
 package applications.tpcc.txn;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccStatements;
 import applications.tpcc.metadata.PaymentMetadata;
@@ -23,11 +23,11 @@ public class PaymentTransaction implements Transaction
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private final PaymentMetadata metadata;
 	private String lastError;
 
-	public PaymentTransaction(PaymentMetadata txnMetadata, BenchmarkOptions options)
+	public PaymentTransaction(PaymentMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = options;
@@ -465,6 +465,7 @@ public class PaymentTransaction implements Transaction
 		h_data = RandomStringUtils.randomAlphanumeric(10).toUpperCase();
 		proceed = 10;
 
+		/*
 		try
 		{
 			ps = statements.createPreparedStatement(con, 19);
@@ -493,7 +494,7 @@ public class PaymentTransaction implements Transaction
 			this.rollbackQuietly(con);
 			return false;
 		}
-
+           */
 		try
 		{
 			con.commit();

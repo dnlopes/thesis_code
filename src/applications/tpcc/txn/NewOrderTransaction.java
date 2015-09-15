@@ -1,7 +1,7 @@
 package applications.tpcc.txn;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccAbortedTransactionException;
 import applications.tpcc.TpccConstants;
@@ -38,11 +38,11 @@ public class NewOrderTransaction implements Transaction
 	private String s_dist_09 = null;
 	private String s_dist_10 = null;
 
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private final NewOrderMetadata metadata;
 	private String lastError;
 
-	public NewOrderTransaction(NewOrderMetadata txnMetadata, BenchmarkOptions options)
+	public NewOrderTransaction(NewOrderMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = options;
@@ -125,8 +125,6 @@ public class NewOrderTransaction implements Transaction
 				try
 				{
 					int column = 1;
-					//SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?
-					//final PreparedStatement pstmt35 = pStmts.getStatement(35);
 					ps = statements.createPreparedStatement(con, 35);
 					ps.setInt(column++, this.metadata.getWarehouseId());
 					ps.setInt(column++, this.metadata.getDistrictId());
@@ -336,7 +334,6 @@ public class NewOrderTransaction implements Transaction
 
 				try
 				{
-					//final PreparedStatement pstmt5 = pStmts.getStatement(5);
 					ps = statements.createPreparedStatement(con, 5);
 					ps.setInt(1, ol_i_id);
 
@@ -462,10 +459,6 @@ public class NewOrderTransaction implements Transaction
 				ol_amount = ol_quantity * i_price * (1 + w_tax + d_tax) * (1 - c_discount);
 				amt[ol_num_seq[ol_number - 1]] = ol_amount;
 
-				//Get prepared statement
-				//"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity,
-				// ol_amount, ol_dist_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
 				try
 				{
 					//final PreparedStatement pstmt8 = pStmts.getStatement(8);
@@ -523,7 +516,7 @@ public class NewOrderTransaction implements Transaction
 			DbUtils.closeQuietly(ps);
 			// Rollback if an aborted transaction, they are intentional in some percentage of cases.
 			if(logger.isDebugEnabled())
-				logger.debug("Caught AbortedTransactionException");
+				logger.debug("Caught TpccAbortedTransactionException");
 
 			this.rollbackQuietly(con);
 			return true; // this is not an error!

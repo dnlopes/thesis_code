@@ -28,9 +28,9 @@ public class Emulator
 	private ExecutorService threadsService;
 	private List<ClientEmulator> clients;
 	private int emulatorId;
-	private BenchmarkOptions options;
+	private BaseBenchmarkOptions options;
 
-	public Emulator(int id, BenchmarkOptions options)
+	public Emulator(int id, BaseBenchmarkOptions options)
 	{
 		RUNNING = true;
 		COUTING = false;
@@ -121,12 +121,14 @@ public class Emulator
 		}
 
 		avgLatency = avgLatency / clients.size();
-
+		avgReadLatency = avgReadLatency / clients.size();
+		avgWriteLatency= avgWriteLatency / clients.size();
 		StringBuilder buffer = new StringBuilder();
 
 		//TODO
 		buffer.append("#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
 				"users");
+
 		this.options.getWorkload().addExtraColumns(buffer);
 
 		buffer.append("\n");

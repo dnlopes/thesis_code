@@ -18,11 +18,11 @@ public class ClientEmulator implements Runnable
 	private static final Logger LOG = LoggerFactory.getLogger(ClientEmulator.class);
 
 	private Connection connection;
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private long sumReadLatency, sumWriteLatency;
 	private int successCounterRead, successCounterWrite, abortCounter;
 
-	public ClientEmulator(BenchmarkOptions options)
+	public ClientEmulator(BaseBenchmarkOptions options)
 	{
 		this.options = options;
 		this.sumReadLatency = 0;
@@ -57,6 +57,7 @@ public class ClientEmulator implements Runnable
 			boolean success = txn.executeTransaction(this.connection);
 			long endTime = System.nanoTime();
 
+			// in milliseconds
 			long latency = (endTime - beginTime) / 1000000;
 
 			if(success)

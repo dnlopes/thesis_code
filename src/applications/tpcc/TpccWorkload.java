@@ -1,7 +1,7 @@
 package applications.tpcc;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.GeneratorUtils;
 import applications.Transaction;
 import applications.Workload;
@@ -20,18 +20,18 @@ public class TpccWorkload implements Workload
 	private static final Logger LOG = LoggerFactory.getLogger(TpccWorkload.class);
 
 	@Override
-	public Transaction getNextTransaction(BenchmarkOptions options)
+	public Transaction getNextTransaction(BaseBenchmarkOptions options)
 	{
-		int random = GeneratorUtils.randomNumberIncludeBoundaries(0, 100);
+		int random = GeneratorUtils.randomNumberIncludeBoundaries(1, 100);
 
-		if(random < TpccConstants.DELIVERY_TXN_RATE)
+		if(random <= TpccConstants.DELIVERY_TXN_RATE)
 			return new DeliveryTransaction(createDeliveryMetadata(), options);
-		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE)
+		else if(random <= TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE)
 			return new NewOrderTransaction(createNewOrderMetadata(), options);
-		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants
+		else if(random <= TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants
 				.ORDER_STAT_TXN_RATE)
 			return new OrderStatTransaction(createOrderStatMetadata(), options);
-		else if(random < TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants
+		else if(random <= TpccConstants.DELIVERY_TXN_RATE + TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants
 				.ORDER_STAT_TXN_RATE + TpccConstants.PAYMENT_TXN_RATE)
 			return new PaymentTransaction(createPaymentMetadata(), options);
 		else

@@ -1,7 +1,7 @@
 package applications.tpcc.txn;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccStatements;
 import applications.tpcc.metadata.StockLevelMetadata;
@@ -25,11 +25,11 @@ public class StockLevelTransaction implements Transaction
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private final StockLevelMetadata metadata;
 	private String lastError;
 
-	public StockLevelTransaction(StockLevelMetadata txnMetadata, BenchmarkOptions options)
+	public StockLevelTransaction(StockLevelMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = options;

@@ -69,4 +69,8 @@ public class Sandbox
 		return this.scratchpad.getActiveTransaction();
 	}
 
+	public void resetSandbox()
+	{
+		this.transactionIsRunning = false;
+	}
 }

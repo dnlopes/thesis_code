@@ -1,13 +1,11 @@
 package applications.tpcc.txn;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
 import applications.tpcc.metadata.DeliveryMetadata;
-import applications.tpcc.metadata.NewOrderMetadata;
-import applications.tpcc.metadata.OrderStatMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +25,11 @@ public class DeliveryTransaction implements Transaction
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private final DeliveryMetadata metadata;
 	private String lastError;
 
-	public DeliveryTransaction(DeliveryMetadata txnMetadata, BenchmarkOptions options)
+	public DeliveryTransaction(DeliveryMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = options;
@@ -75,6 +73,14 @@ public class DeliveryTransaction implements Transaction
 				if(rs.next())
 				{
 					no_o_id = rs.getInt(1);
+
+					if(this.options.isCRDTDriver()) // small hack
+					{
+						if(rs.next())
+						{
+							no_o_id = rs.getInt(1);
+						}
+					}
 				}
 
 				rs.close();

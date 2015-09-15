@@ -62,7 +62,7 @@ public class BasicProxy implements Proxy
 	@Override
 	public void abort(int connectionId)
 	{
-		// do nothing
+		this.sandbox.resetSandbox();
 	}
 
 	@Override
@@ -84,6 +84,7 @@ public class BasicProxy implements Proxy
 		boolean commitDecision = this.network.commitOperation(shadowTransaction,
 				this.proxyConfig.getReplicatorConfig());
 
+		this.sandbox.resetSandbox();
 		if(!commitDecision)
 			throw new SQLException("commit on main storage failed");
 

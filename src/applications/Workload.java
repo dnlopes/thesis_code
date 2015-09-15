@@ -5,7 +5,7 @@ package applications;
  */
 public interface Workload
 {
-	public Transaction getNextTransaction(BenchmarkOptions options);
+	public Transaction getNextTransaction(BaseBenchmarkOptions options);
 	public float getWriteRate();
 	public float getReadRate();
 	public float getCoordinatedOperationsRate();

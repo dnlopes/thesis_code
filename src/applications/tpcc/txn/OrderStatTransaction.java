@@ -1,10 +1,9 @@
 package applications.tpcc.txn;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.NewOrderMetadata;
 import applications.tpcc.metadata.OrderStatMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
@@ -26,11 +25,11 @@ public class OrderStatTransaction implements Transaction
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
-	private final BenchmarkOptions options;
+	private final BaseBenchmarkOptions options;
 	private final OrderStatMetadata metadata;
 	private String lastError;
 
-	public OrderStatTransaction(OrderStatMetadata txnMetadata, BenchmarkOptions options)
+	public OrderStatTransaction(OrderStatMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = options;

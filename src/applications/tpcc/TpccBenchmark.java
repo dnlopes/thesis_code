@@ -16,14 +16,13 @@ public class TpccBenchmark
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TpccBenchmark.class);
-	private static final String BENCHMARK_NAME = "TPCC";
+	private static final String BENCHMARK_NAME = "TPCC Benchmark";
 
 	public static void main(String[] args)
-
 	{
 		if(args.length != 5)
 		{
-			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <jdbc> [CRDT/MYSQL]");
+			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <jdbc> [crdt/mysql]");
 			System.exit(-1);
 		}
 

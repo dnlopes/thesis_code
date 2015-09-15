@@ -1,7 +1,7 @@
 package applications.micro;
 
 
-import applications.BenchmarkOptions;
+import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.Workload;
 
@@ -17,7 +17,7 @@ public class MicroWorkload implements Workload
 	}
 
 	@Override
-	public Transaction getNextTransaction(BenchmarkOptions options)
+	public Transaction getNextTransaction(BaseBenchmarkOptions options)
 	{
 		return null;
 	}
