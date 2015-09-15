@@ -51,7 +51,7 @@ public class ClientEmulator implements Runnable
 	{
 		while(Emulator.RUNNING)
 		{
-			Transaction txn = this.options.getWorkload().getNextTransaction();
+			Transaction txn = this.options.getWorkload().getNextTransaction(options);
 
 			long beginTime = System.nanoTime();
 			boolean success = txn.executeTransaction(this.connection);
@@ -74,13 +74,53 @@ public class ClientEmulator implements Runnable
 					}
 				}
 			} else
+			{
 				this.abortCounter++;
+				LOG.error(txn.getLastError());
+			}
 		}
 	}
 
 	public int getTotalOperations()
 	{
 		return this.successCounterRead + this.successCounterWrite;
+	}
+
+	public int getSuccessCounter()
+	{
+		return this.successCounterRead + this.successCounterWrite;
+	}
+
+	public int getSuccessCounterRead()
+	{
+		return this.successCounterRead;
+	}
+
+	public int getSuccessCounterWrite()
+	{
+		return this.successCounterWrite;
+	}
+
+	public float getAverageReadLatency()
+	{
+		if(this.successCounterRead == 0)
+			return 0;
+
+		return this.sumReadLatency / this.successCounterRead;
+	}
+
+	public float getAverageWriteLatency()
+	{
+		if(this.successCounterWrite == 0)
+			return 0;
+
+		return this.sumWriteLatency / this.successCounterWrite;
+	}
+
+	public float getAverageLatency()
+	{
+		return (this.getAverageReadLatency() * this.successCounterRead + this.getAverageWriteLatency() * this
+				.successCounterWrite) / this.getSuccessCounter();
 	}
 
 	public int getAbortCounter()

@@ -5,5 +5,12 @@ package applications;
  */
 public interface Workload
 {
-	public Transaction getNextTransaction();
+	public Transaction getNextTransaction(BenchmarkOptions options);
+	public float getWriteRate();
+	public float getReadRate();
+	public float getCoordinatedOperationsRate();
+
+	public void addExtraColumns(StringBuilder buffer);
+	public void addExtraColumnValues(StringBuilder buffer);
+
 }

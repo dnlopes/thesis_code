@@ -84,4 +84,17 @@ public class GeneratorUtils
 		return ((((randomNumberIncludeBoundaries(0, A) | randomNumberIncludeBoundaries(x, y)) + C) % (y - x + 1)) + x);
 
 	}
+
+	public static String lastName(int num) {
+		String name = null;
+		String[] n =
+				{"BAR", "OUGHT", "ABLE", "PRI", "PRES",
+						"ESE", "ANTI", "CALLY", "ATION", "EING"};
+
+		name = n[num / 100];
+		name = name + n[(num / 10) % 10];
+		name = name + n[num % 10];
+
+		return name;
+	}
 }

@@ -23,8 +23,8 @@ public class TpccBenchmark
 	{
 		if(args.length != 5)
 		{
-			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <jdbc>");
-			System.exit(1);
+			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <jdbc> [CRDT/MYSQL]");
+			System.exit(-1);
 		}
 
 		String configFile = args[0];

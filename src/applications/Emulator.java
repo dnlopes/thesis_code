@@ -47,6 +47,9 @@ public class Emulator
 		System.out.print(this.options.getName());
 		System.out.print("  ************");
 		System.out.println();
+		System.out.println("Number of clients: " + this.options.getClientsNumber());
+		System.out.println("JDBC driver: " + this.options.getJdbc());
+		System.out.println("Benchmark duration: " + this.options.getDuration());
 		System.out.println("****************************************");
 
 		for(int i = 0; i < this.options.getClientsNumber(); i++)
@@ -104,13 +107,15 @@ public class Emulator
 	public void printStatistics()
 	{
 		int abortCounter = 0;
-		float avgLatency = 0;
+		float avgLatency = 0, avgReadLatency = 0, avgWriteLatency = 0;
 		int opsCounter = 0;
 
 		for(ClientEmulator client : this.clients)
 		{
 			//TODO merge stats
-			//avgLatency += client.getAverageLatency();
+			avgLatency += client.getAverageLatency();
+			avgReadLatency += client.getAverageReadLatency();
+			avgWriteLatency+= client.getAverageWriteLatency();
 			opsCounter += client.getTotalOperations();
 			abortCounter += client.getAbortCounter();
 		}
@@ -118,21 +123,32 @@ public class Emulator
 		avgLatency = avgLatency / clients.size();
 
 		StringBuilder buffer = new StringBuilder();
-		boolean customJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
 		//TODO
-		buffer.append("#writeRate,coordinationRate,avgLatency,commits,aborts,customJdbc\n");
-		//buffer.append(this.workload.getWriteRate());
+		buffer.append("#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
+				"users");
+		this.options.getWorkload().addExtraColumns(buffer);
+
+		buffer.append("\n");
+		buffer.append(options.getWorkload().getWriteRate());
 		buffer.append(",");
-		//buffer.append(this.workload.getCoordinatedRate());
+		buffer.append(this.options.getWorkload().getCoordinatedOperationsRate());
 		buffer.append(",");
 		buffer.append(avgLatency);
+		buffer.append(",");
+		buffer.append(avgReadLatency);
+		buffer.append(",");
+		buffer.append(avgWriteLatency);
 		buffer.append(",");
 		buffer.append(opsCounter);
 		buffer.append(",");
 		buffer.append(abortCounter);
 		buffer.append(",");
-		buffer.append(String.valueOf(customJDBC));
+		buffer.append(options.getJdbc());
+		buffer.append(",");
+		buffer.append(options.getClientsNumber());
+
+		this.options.getWorkload().addExtraColumnValues(buffer);
 
 		PrintWriter out;
 		try

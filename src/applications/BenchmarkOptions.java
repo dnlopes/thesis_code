@@ -1,6 +1,8 @@
 package applications;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.DatabaseProperties;
 
 
@@ -9,6 +11,8 @@ import util.DatabaseProperties;
  */
 public abstract class BenchmarkOptions
 {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BenchmarkOptions.class);
 
 	private final int clientsNumber;
 	private final int duration;
@@ -26,6 +30,12 @@ public abstract class BenchmarkOptions
 		this.name = name;
 		this.workload = workload;
 		this.dbProps = dbProps;
+
+		if(!this.isValidJdbc(this.jdbc))
+		{
+			LOG.error("invalid jdbc");
+			System.exit(-1);
+		}
 	}
 
 	public String getName()
@@ -65,15 +75,31 @@ public abstract class BenchmarkOptions
 
 	public abstract String getDatabaseName();
 
+	private boolean isValidJdbc(String jdbc)
+	{
+		for(String driver : JDBCS.JDBCS_ALLOWED)
+		{
+			if(jdbc.compareTo(driver) == 0)
+				return true;
+		}
+
+		return false;
+	}
+
 	public interface JDBCS
 	{
 
-		public static String CRDT_DRIVER = "CRDT";
-		public static String MYSQL_DRIVER = "MYSQL";
+		public static String CRDT_DRIVER = "crdt";
+		public static String MYSQL_DRIVER = "mysql";
+
+		public static String[] JDBCS_ALLOWED = {CRDT_DRIVER, MYSQL_DRIVER};
 	}
+
 
 	public interface Defaults
 	{
+
 		public static final int RAMPUP_TIME = 10;
 	}
+
 }

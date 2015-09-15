@@ -1,6 +1,7 @@
 package applications.micro;
 
 
+import applications.BenchmarkOptions;
 import applications.Transaction;
 import applications.Workload;
 
@@ -16,9 +17,38 @@ public class MicroWorkload implements Workload
 	}
 
 	@Override
-	public Transaction getNextTransaction()
+	public Transaction getNextTransaction(BenchmarkOptions options)
 	{
 		return null;
 	}
 
+	@Override
+	public float getWriteRate()
+	{
+		return 0;
+	}
+
+	@Override
+	public float getReadRate()
+	{
+		return 0;
+	}
+
+	@Override
+	public float getCoordinatedOperationsRate()
+	{
+		return 0;
+	}
+
+	@Override
+	public void addExtraColumns(StringBuilder buffer)
+	{
+
+	}
+
+	@Override
+	public void addExtraColumnValues(StringBuilder buffer)
+	{
+
+	}
 }
