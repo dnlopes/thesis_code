@@ -16,6 +16,5 @@ public class MicroBenchmark
 	public static void main(String[] args)
 
 	{
-		//TODO
 	}
 }

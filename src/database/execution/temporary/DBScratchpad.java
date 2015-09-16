@@ -108,7 +108,7 @@ public class DBScratchpad implements Scratchpad
 	@Override
 	public void startTransaction(Transaction txn)
 	{
-		//TODO
+		RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	public void startTransaction(int txnId)

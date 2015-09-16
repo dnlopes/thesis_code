@@ -112,7 +112,6 @@ public class Emulator
 
 		for(ClientEmulator client : this.clients)
 		{
-			//TODO merge stats
 			avgLatency += client.getAverageLatency();
 			avgReadLatency += client.getAverageReadLatency();
 			avgWriteLatency+= client.getAverageWriteLatency();
@@ -125,7 +124,6 @@ public class Emulator
 		avgWriteLatency= avgWriteLatency / clients.size();
 		StringBuilder buffer = new StringBuilder();
 
-		//TODO
 		buffer.append("#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
 				"users");
 

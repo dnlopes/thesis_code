@@ -65,7 +65,7 @@ public class SharedProxy extends AbstractNode implements Proxy
 	@Override
 	public void setReadOnly(boolean readOnly)
 	{
-		//TODO implement
+		RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
 	}
 
 	public ResultSet executeQuery(String op, int connectionId) throws SQLException
