@@ -73,6 +73,19 @@ public class CRDTConnection implements Connection
 			RuntimeUtils.throwRunTimeException("autocommit not supported", ExitCode.AUTO_COMMIT_NOT_SUPPORTED);
 	}
 
+	@Override
+	public void setReadOnly(boolean readOnly) throws SQLException
+	{
+		this.proxy.setReadOnly(readOnly);
+	}
+
+	@Override
+	public void close() throws SQLException
+	{
+		proxy.closeTransaction(this.connectionId);
+	}
+
+
 /*
 	NOT IMPLEMENTED METHODS START HERE
 */
@@ -96,12 +109,6 @@ public class CRDTConnection implements Connection
 	}
 
 	@Override
-	public void close() throws SQLException
-	{
-		proxy.closeTransaction(this.connectionId);
-	}
-
-	@Override
 	public int getTransactionIsolation() throws SQLException
 	{
 		return 0;
@@ -115,12 +122,6 @@ public class CRDTConnection implements Connection
 
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException
-	{
-		throw new MissingImplementationException("missing implementation");
-	}
-
-	@Override
-	public void setReadOnly(boolean readOnly) throws SQLException
 	{
 		throw new MissingImplementationException("missing implementation");
 	}

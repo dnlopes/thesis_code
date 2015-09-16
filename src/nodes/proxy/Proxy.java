@@ -11,6 +11,7 @@ import java.sql.SQLException;
 public interface Proxy
 {
 	public int assignConnectionId();
+	public void setReadOnly(boolean readOnly);
 
 	public void abort(int connectionId);
 	public void commit(int connectionId) throws SQLException;

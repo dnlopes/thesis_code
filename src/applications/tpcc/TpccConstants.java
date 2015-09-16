@@ -9,11 +9,11 @@ public interface TpccConstants
 
 	// transactions probabilities
 	// sum must be 100
-	public static int NEW_ORDER_TXN_RATE = 0;		//45 is default
+	public static int NEW_ORDER_TXN_RATE = 20;		//45 is default
 	public static int PAYMENT_TXN_RATE = 0;		//43 is default
-	public static int DELIVERY_TXN_RATE = 100;	//4 is default
+	public static int DELIVERY_TXN_RATE = 0;	//4 is default
 
-	public static int ORDER_STAT_TXN_RATE = 0;	//4 is default ; read only
+	public static int ORDER_STAT_TXN_RATE = 80;	//4 is default ; read only
 	public static int STOCK_LEVEL_TXN_RATE = 0;	//4 is default ; read only
 
 	// general constants

@@ -13,4 +13,5 @@ public interface Transaction
 	public boolean executeTransaction(Connection con);
 	public String getLastError();
 	public boolean isReadOnly();
+	public String getName();
 }

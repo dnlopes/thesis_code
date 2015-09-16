@@ -41,6 +41,16 @@ public class OrderStatTransaction implements Transaction
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		try
+		{
+			con.setReadOnly(true);
+		} catch(SQLException e)
+		{
+			lastError = e.getMessage();
+			this.rollbackQuietly(con);
+			return false;
+		}
+
 		TpccStatements statements = TpccStatements.getInstance();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -268,6 +278,12 @@ public class OrderStatTransaction implements Transaction
 	public boolean isReadOnly()
 	{
 		return true;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "OrderStatTransaction";
 	}
 
 	private void rollbackQuietly(Connection connection)

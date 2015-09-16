@@ -62,6 +62,12 @@ public class SharedProxy extends AbstractNode implements Proxy
 		return this.connectionsCounter++;
 	}
 
+	@Override
+	public void setReadOnly(boolean readOnly)
+	{
+		//TODO implement
+	}
+
 	public ResultSet executeQuery(String op, int connectionId) throws SQLException
 	{
 		Scratchpad pad;
@@ -158,7 +164,8 @@ public class SharedProxy extends AbstractNode implements Proxy
 		int txnId = transactionsCounter.incrementAndGet();
 		this.activeScratchpads.put(connectionId, pad);
 
-		pad.startTransaction(txnId);
+		//TODO fix compile error
+		//pad.startTransaction(txnId);
 		return pad;
 	}
 

@@ -77,7 +77,7 @@ public class ClientEmulator implements Runnable
 			} else
 			{
 				this.abortCounter++;
-				LOG.error(txn.getLastError());
+				LOG.error("txn {} failed: {}",txn.getName(), txn.getLastError());
 			}
 		}
 	}

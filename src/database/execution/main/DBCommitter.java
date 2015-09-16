@@ -21,7 +21,7 @@ public interface DBCommitter
 
 	public interface Defaults
 	{
-		public static final int NUMBER_OF_RETRIES = 1;
+		public static final int NUMBER_OF_RETRIES = 10;
 		public static final int LOG_FREQUENCY = 150;
 	}
 }

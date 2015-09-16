@@ -518,7 +518,7 @@ public class Payment implements TpccConstants
 		//Get prepared statement
 		//"INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES(?, ?,
 		// ?, ?, ?, ?, ?, ?)"
-		try
+		/*try
 		{
 			this.ps = pStmts.createPreparedStatement(19);
 			ps.setInt(1, c_d_id);
@@ -529,11 +529,11 @@ public class Payment implements TpccConstants
 			ps.setString(6, currentTimeStamp.toString());
 			ps.setFloat(7, h_amount);
 			ps.setString(8, h_data);
-			/*if(TRACE)
+			if(TRACE)
 				logger.trace("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, " +
 						"h_data)" +
 						" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
-						currentTimeStamp.toString() + "," + h_amount + ","); */
+						currentTimeStamp.toString() + "," + h_amount + ",");
 			ps.executeUpdate();
 
 		} catch(SQLException e)
@@ -543,12 +543,12 @@ public class Payment implements TpccConstants
 			DbUtils.closeQuietly(this.ps);
 			pStmts.rollback();
 
-			/*logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
+			logger.error("INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)" +
 							" VALUES( " + c_d_id + "," + c_w_id + "," + c_id + "," + d_id + "," + w_id + "," +
 							currentTimeStamp.toString() + "," + h_amount + "," h_data);
-			*/
+
 			return 0;
-		}
+		}  */
 
 		try
 		{

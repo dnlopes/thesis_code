@@ -23,17 +23,25 @@ public class Sandbox
 	private static final Logger LOG = LoggerFactory.getLogger(Sandbox.class);
 
 	private final int sandboxId;
+
 	private Scratchpad scratchpad;
+	private ReadOnlyScratchpad readOnlyScratchpad;
+
+	private boolean readOnlyMode;
 	private boolean transactionIsRunning;
+
+	private Transaction transaction;
 	private int txnCounter;
 
 	public Sandbox(int sandboxId, Connection dbConnection, CCJSqlParserManager parser)
 	{
 		this.sandboxId = sandboxId;
+		this.readOnlyMode = false;
 
 		try
 		{
 			this.scratchpad = new ImprovedScratchpad(this.sandboxId, dbConnection, parser);
+			this.readOnlyScratchpad = new ThinScratchpad(dbConnection, parser);
 
 		} catch(SQLException e)
 		{
@@ -44,33 +52,52 @@ public class Sandbox
 
 	public ResultSet executeQuery(String op) throws SQLException
 	{
+		if(this.readOnlyMode)
+			return this.readOnlyScratchpad.executeQuery(op);
+
+		//its the first op from this txn
 		if(!this.transactionIsRunning)
-		{
-			this.scratchpad.startTransaction(this.txnCounter++);
-			this.transactionIsRunning = true;
-		}
+			this.startTransaction();
 
 		return this.scratchpad.executeQuery(op);
 	}
 
 	public int executeUpdate(String op) throws SQLException
 	{
+		if(this.readOnlyMode)
+			throw new SQLException("update statement not acceptable under read-only mode");
+
+		//its the first op from this txn
 		if(!this.transactionIsRunning)
-		{
-			this.scratchpad.startTransaction(this.txnCounter++);
-			this.transactionIsRunning = true;
-		}
+			this.startTransaction();
 
 		return this.scratchpad.executeUpdate(op);
 	}
 
-	public Transaction getActiveTransaction()
+	public Transaction getTransaction()
 	{
-		return this.scratchpad.getActiveTransaction();
+		return this.transaction;
 	}
 
-	public void resetSandbox()
+	public void endTransaction()
 	{
 		this.transactionIsRunning = false;
+	}
+
+	private void startTransaction() throws SQLException
+	{
+		this.transaction = new Transaction(this.txnCounter++);
+		this.transactionIsRunning = true;
+		this.scratchpad.startTransaction(this.transaction);
+	}
+
+	public void setReadOnlyMode(boolean readOnlyMode)
+	{
+		this.readOnlyMode = readOnlyMode;
+	}
+
+	public boolean isReadOnlyMode()
+	{
+		return this.readOnlyMode;
 	}
 }

@@ -106,6 +106,11 @@ public class DBScratchpad implements Scratchpad
 	}
 
 	@Override
+	public void startTransaction(Transaction txn)
+	{
+		//TODO
+	}
+
 	public void startTransaction(int txnId)
 	{
 		try
@@ -332,7 +337,8 @@ public class DBScratchpad implements Scratchpad
 		return 0;
 	}
 
-	private void resetScratchpad() throws SQLException
+	@Override
+	public void resetScratchpad() throws SQLException
 	{
 		this.activeTransaction = null;
 		this.statBU.clearBatch();

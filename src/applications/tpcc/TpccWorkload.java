@@ -42,7 +42,7 @@ public class TpccWorkload implements Workload
 	public float getWriteRate()
 	{
 		return (TpccConstants.NEW_ORDER_TXN_RATE + TpccConstants.DELIVERY_TXN_RATE + TpccConstants.PAYMENT_TXN_RATE) /
-				100;
+				100f;
 	}
 
 	@Override

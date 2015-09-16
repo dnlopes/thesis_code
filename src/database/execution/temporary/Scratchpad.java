@@ -15,7 +15,7 @@ import java.sql.SQLException;
 public interface Scratchpad
 {
 
-	public void startTransaction(int txnId);
+	public void startTransaction(Transaction txn) throws SQLException;
 
 	public void commitTransaction(IProxyNetwork proxy) throws SQLException;
 
@@ -34,5 +34,7 @@ public interface Scratchpad
 	public void addToBatchUpdate(String op) throws SQLException;
 
 	public int executeBatch() throws SQLException;
+
+	public void resetScratchpad() throws SQLException;
 
 }

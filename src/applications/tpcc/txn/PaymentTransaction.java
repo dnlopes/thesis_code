@@ -39,6 +39,16 @@ public class PaymentTransaction implements Transaction
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		try
+		{
+			con.setReadOnly(false);
+		} catch(SQLException e)
+		{
+			lastError = e.getMessage();
+			this.rollbackQuietly(con);
+			return false;
+		}
+
 		TpccStatements statements = TpccStatements.getInstance();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -520,6 +530,12 @@ public class PaymentTransaction implements Transaction
 	public boolean isReadOnly()
 	{
 		return false;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "PaymentTransaction";
 	}
 
 	private void rollbackQuietly(Connection connection)

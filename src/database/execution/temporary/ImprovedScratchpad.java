@@ -30,7 +30,7 @@ public class ImprovedScratchpad implements Scratchpad
 
 	private static final Logger LOG = LoggerFactory.getLogger(ImprovedScratchpad.class);
 
-	private Transaction activeTransaction;
+	private Transaction transaction;
 	private int id;
 	private Map<String, DBExecutorAgent> executers;
 	private final CCJSqlParserManager parser;
@@ -40,8 +40,7 @@ public class ImprovedScratchpad implements Scratchpad
 	private Statement statBU;
 	private boolean batchEmpty;
 
-	public ImprovedScratchpad(int id, Connection dbConnection, CCJSqlParserManager parser)
-			throws SQLException
+	public ImprovedScratchpad(int id, Connection dbConnection, CCJSqlParserManager parser) throws SQLException
 	{
 		this.id = id;
 		this.defaultConnection = dbConnection;
@@ -56,20 +55,15 @@ public class ImprovedScratchpad implements Scratchpad
 	}
 
 	@Override
-	public void startTransaction(int txnId)
+	public void startTransaction(Transaction txn) throws SQLException
 	{
-		try
-		{
-			this.resetScratchpad();
-		} catch(SQLException e)
-		{
-			LOG.error("failed to clean scratchpad before starting transaction: {}", e.getMessage());
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SCRATCHPAD_CLEANUP_ERROR);
-		}
-		this.activeTransaction = new Transaction(txnId);
+
+		this.resetScratchpad();
+
+		this.transaction = txn;
 
 		if(LOG.isTraceEnabled())
-			LOG.trace("Beggining txn {}", activeTransaction.getTxnId());
+			LOG.trace("Beggining txn {} on sandbox {}", transaction.getTxnId(), this.id);
 	}
 
 	@Override
@@ -138,6 +132,7 @@ public class ImprovedScratchpad implements Scratchpad
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
+
 		net.sf.jsqlparser.statement.Statement statement;
 
 		try
@@ -186,6 +181,7 @@ public class ImprovedScratchpad implements Scratchpad
 	@Override
 	public int executeBatch() throws SQLException
 	{
+
 		if(this.batchEmpty)
 		{
 			LOG.warn("trying to execute an empty batch in scratchpad {}", this.getScratchpadId());
@@ -207,7 +203,7 @@ public class ImprovedScratchpad implements Scratchpad
 	@Override
 	public Transaction getActiveTransaction()
 	{
-		return this.activeTransaction;
+		return this.transaction;
 	}
 
 	private void createDBExecuters() throws SQLException
@@ -238,15 +234,17 @@ public class ImprovedScratchpad implements Scratchpad
 		}
 	}
 
-	private void resetScratchpad() throws SQLException
+	@Override
+	public void resetScratchpad() throws SQLException
 	{
-		this.activeTransaction = null;
+		this.transaction = null;
 		this.statBU.clearBatch();
 
 		for(DBExecutorAgent agent : this.executers.values())
 			agent.resetExecuter(this);
 
 		this.executeBatch();
+
 		this.batchEmpty = true;
 	}
 

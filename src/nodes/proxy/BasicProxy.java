@@ -62,17 +62,23 @@ public class BasicProxy implements Proxy
 	@Override
 	public void abort(int connectionId)
 	{
-		this.sandbox.resetSandbox();
+		this.sandbox.endTransaction();
+	}
+
+	@Override
+	public void setReadOnly(boolean readOnly)
+	{
+		this.sandbox.setReadOnlyMode(readOnly);
 	}
 
 	@Override
 	public void commit(int connectionId) throws SQLException
 	{
-		Transaction transaction = this.sandbox.getActiveTransaction();
-
 		// if read-only, just return
-		if(transaction.isReadOnly())
+		if(this.sandbox.isReadOnlyMode())
 			return;
+
+		Transaction transaction = this.sandbox.getTransaction();
 
 		CoordinatorRequest request = this.createCoordinatorRequest(transaction);
 
@@ -84,7 +90,8 @@ public class BasicProxy implements Proxy
 		boolean commitDecision = this.network.commitOperation(shadowTransaction,
 				this.proxyConfig.getReplicatorConfig());
 
-		this.sandbox.resetSandbox();
+		this.sandbox.endTransaction();
+
 		if(!commitDecision)
 			throw new SQLException("commit on main storage failed");
 
