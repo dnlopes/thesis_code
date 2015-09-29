@@ -18,7 +18,7 @@ public class ProxyFactory
 	private static boolean USE_SHARED_PROXY;
 	private static ProxyConfig PROXY_CONFIG;
 
-	private static Proxy sharedProxy;
+	private static Object sharedProxy;
 	private static int proxiesCounter;
 
 	public static ProxyFactory getInstance()
@@ -29,14 +29,18 @@ public class ProxyFactory
 	private ProxyFactory()
 	{
 		USE_SHARED_PROXY = Configuration.getInstance().useSharedProxy();
+
 		PROXY_CONFIG = (ProxyConfig) Configuration.getInstance().getProxyConfigWithIndex(
-			Integer.parseInt(System.getProperty("proxyid")));
+				Integer.parseInt(System.getProperty("proxyid")));
 
 		proxiesCounter = 0;
-		if(USE_SHARED_PROXY)
+
+		//TODO: re-implement shared proxy and uncomment next block
+		/*if(USE_SHARED_PROXY)
 			sharedProxy = new SharedProxy(PROXY_CONFIG);
-		else
-			IdentifierFactory.setup(PROXY_CONFIG);
+		else*/
+
+		IdentifierFactory.setup(PROXY_CONFIG);
 	}
 
 	public static Proxy getProxyInstance()
@@ -57,7 +61,10 @@ public class ProxyFactory
 		if(sharedProxy == null)
 			RuntimeUtils.throwRunTimeException("SharedProxy object is null", ExitCode.NULLPOINTER);
 
-		return sharedProxy;
+		//TODO: re-implement shared-proxy and uncomment next block
+		//return sharedProxy;
+
+		return null;
 	}
 
 	private static synchronized int assignProxyId()

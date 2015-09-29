@@ -1,6 +1,12 @@
 package database.execution.temporary;
 
 
+import database.execution.SQLBasicInterface;
+import database.execution.SQLInterface;
+import database.execution.temporary.pad.ReadOnlyScratchpad;
+import database.execution.temporary.pad.ReadWriteScratchpad;
+import database.execution.temporary.pad.AllOperationsScratchpad;
+import database.execution.temporary.pad.ReadScratchpad;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +29,12 @@ public class Sandbox
 	private static final Logger LOG = LoggerFactory.getLogger(Sandbox.class);
 
 	private final int sandboxId;
+	private SQLInterface sqlInterface;
 
-	private Scratchpad scratchpad;
+	private ReadWriteScratchpad scratchpad;
 	private ReadOnlyScratchpad readOnlyScratchpad;
 
-	private boolean readOnlyMode;
+	private boolean readMode;
 	private boolean transactionIsRunning;
 
 	private Transaction transaction;
@@ -36,12 +43,13 @@ public class Sandbox
 	public Sandbox(int sandboxId, Connection dbConnection, CCJSqlParserManager parser)
 	{
 		this.sandboxId = sandboxId;
-		this.readOnlyMode = false;
+		this.readMode = false;
 
 		try
 		{
-			this.scratchpad = new ImprovedScratchpad(this.sandboxId, dbConnection, parser);
-			this.readOnlyScratchpad = new ThinScratchpad(dbConnection, parser);
+			this.sqlInterface = new SQLBasicInterface(dbConnection);
+			this.readOnlyScratchpad = new ReadScratchpad(this.sqlInterface, parser);
+			this.scratchpad = new AllOperationsScratchpad(this.sandboxId, this.sqlInterface, parser);
 
 		} catch(SQLException e)
 		{
@@ -52,7 +60,7 @@ public class Sandbox
 
 	public ResultSet executeQuery(String op) throws SQLException
 	{
-		if(this.readOnlyMode)
+		if(this.readMode)
 			return this.readOnlyScratchpad.executeQuery(op);
 
 		//its the first op from this txn
@@ -64,7 +72,7 @@ public class Sandbox
 
 	public int executeUpdate(String op) throws SQLException
 	{
-		if(this.readOnlyMode)
+		if(this.readMode)
 			throw new SQLException("update statement not acceptable under read-only mode");
 
 		//its the first op from this txn
@@ -93,11 +101,11 @@ public class Sandbox
 
 	public void setReadOnlyMode(boolean readOnlyMode)
 	{
-		this.readOnlyMode = readOnlyMode;
+		this.readMode = readOnlyMode;
 	}
 
 	public boolean isReadOnlyMode()
 	{
-		return this.readOnlyMode;
+		return this.readMode;
 	}
 }

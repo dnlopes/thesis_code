@@ -23,10 +23,8 @@ public interface OperationsStatements
 	public static final String MERGE_DCLOCK_OP = " SET _dclock=maxClock(_dclock,'@clock@')";
 	public static final String MERGE_CCLOCK_OP = " SET _cclock=maxClock(_cclock,'@clock@')";
 
-	public static final String DELETE_ROW_OP_SUFFIX_UPDATE_WINS = "isConcurrentOrGreaterClock(_cclock,'@clock@')=TRUE " +
-			"AND isStrictlyGreater(_dclock,'@clock@')=TRUE";
-	public static final String DELETE_ROW_OP_SUFFIX_DELETE_WINS = "isConcurrentOrGreaterClock(_cclock,'@clock@')=TRUE"
-			+ " AND isStrictlyGreater(_dclock,'@clock@')=TRUE";
+	public static final String DELETE_ROW_OP_SUFFIX_UPDATE_WINS = "isStrictlyGreater(_cclock,'@clock@')=TRUE";
+	public static final String DELETE_ROW_OP_SUFFIX_DELETE_WINS = "isConcurrentOrGreaterClock(_cclock,'@clock@')=TRUE";
 
 	public static final String CLOCK_IS_GREATER_SUFIX = "clockIsGreater(_cclock,'@clock@')=TRUE";
 

@@ -49,9 +49,24 @@ public class UpdateChildOperation extends UpdateOperation
 				rValue.setOpId(shadowTransaction.getOperations().size());
 		}
 
+		// if @UPDATEWINS, lets make parents visible
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
-			String insertRowBack = OperationTransformer.generateInsertParentRowBack(this.row, this.parentRows);
+			for(ForeignKeyConstraint constraint : this.parentRows.keySet())
+			{
+				if(constraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+				{
+					Row parent = this.parentRows.get(constraint);
+
+					String op = OperationTransformer.generateSetParentVisible(constraint, parent);
+					shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), op);
+					String mergedClockOp = OperationTransformer.mergeDeletedClock(parent);
+					shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergedClockOp);
+				}
+			}
+
+			String insertRowBack = OperationTransformer.generateConditionalSetChildVisibleOnUpdate(this.row,
+					this.parentRows);
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), insertRowBack);
 			mergeClockStatement = OperationTransformer.mergeDeletedClock(this.row);
 			shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), mergeClockStatement);

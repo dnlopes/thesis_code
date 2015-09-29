@@ -17,8 +17,8 @@ public final class PrimaryKeyValue
 {
 
 	private static final String DEFAULT_VALUE = "TRUE";
-	private String tableName;
-	private Map<String, FieldValue> values;
+	private final String tableName;
+	private final Map<String, FieldValue> values;
 	private String uniqueValue;
 	private String primaryKeyWhereClause;
 	private String pkValue;
@@ -147,7 +147,6 @@ public final class PrimaryKeyValue
 		this.isValueGenerated = true;
 		this.pkValue = buffer.toString();
 	}
-
 
 	public String getValue()
 	{

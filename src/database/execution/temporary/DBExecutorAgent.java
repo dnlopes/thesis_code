@@ -5,6 +5,7 @@ import database.constraints.Constraint;
 import database.constraints.ConstraintType;
 import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
+import database.execution.SQLInterface;
 import database.util.DatabaseCommon;
 import database.util.PrimaryKey;
 import database.util.PrimaryKeyValue;
@@ -34,21 +35,20 @@ import util.Configuration;
 import util.defaults.DatabaseDefaults;
 import util.defaults.ScratchpadDefaults;
 
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
 
 
 /**
  * Created by dnlopes on 10/09/15.
  */
-public class DBExecutorAgent
+public class DBExecutorAgent implements IExecutorAgent
 {
 
 	private static final String SP_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=0";
 	private static final Logger LOG = LoggerFactory.getLogger(DBExecutorAgent.class);
+
+	private SQLInterface sqlInterface;
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
@@ -57,7 +57,7 @@ public class DBExecutorAgent
 	private String tempTableName;
 	private String tempTableNameAlias;
 	private int tableId;
-	private boolean modified;
+
 	private FromItem fromItemTemp;
 	private PrimaryKey pk;
 	private List<SelectItem> selectAllItems;
@@ -67,7 +67,7 @@ public class DBExecutorAgent
 	private Set<PrimaryKeyValue> deletedRows;
 	private Map<String, PrimaryKeyValue> recordedPkValues;
 
-	public DBExecutorAgent(int tableId, String tableName)
+	public DBExecutorAgent(int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
 	{
 		this.tableId = tableId;
 		this.ops = new ArrayList<>();
@@ -81,7 +81,6 @@ public class DBExecutorAgent
 		}
 
 		this.pk = databaseTable.getPrimaryKey();
-		this.modified = false;
 		this.selectAllItems = new ArrayList<>();
 		this.fields = this.databaseTable.getFieldsMap();
 
@@ -98,244 +97,18 @@ public class DBExecutorAgent
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.recordedPkValues = new HashMap<>();
+
+		this.sqlInterface = sqlInterface;
 	}
 
-	/**
-	 * Returns the table definition for this execution policy
-	 */
-	public TableDefinition getTableDefinition()
-	{
-		return tableDefinition;
-	}
-
-	/**
-	 * Returns the temporary table name
-	 */
-	public String getTempTableName()
-	{
-		return tempTableName;
-	}
-
-	/**
-	 * Returns the table name
-	 */
-	public String getTableName()
-	{
-		return tableDefinition.name;
-	}
-
-	/**
-	 * Returns what should be in the from clause in select statements plus the primary key
-	 */
-	public void addFromTablePlusPrimaryKeyValues(StringBuilder buffer, boolean both, String[] tableNames,
-												 String whereClauseStr)
-	{
-		if(both && modified)
-		{
-			StringBuilder pkValueStrBuilder = new StringBuilder("");
-			String[] subExpressionStrs;
-			if(whereClauseStr.contains("AND"))
-			{
-				subExpressionStrs = whereClauseStr.split("AND");
-			} else
-			{
-				subExpressionStrs = whereClauseStr.split("and");
-			}
-
-			boolean isFirst = true;
-			for(int i = 0; i < subExpressionStrs.length; i++)
-			{
-				for(int j = 0; j < tableDefinition.getPksPlain().length; j++)
-				{
-					String pk = tableDefinition.getPksPlain()[j];
-					if(subExpressionStrs[i].contains(pk))
-					{
-						if(LOG.isTraceEnabled())
-							LOG.trace("I identified one primary key from your where clause " + pk);
-						if(subExpressionStrs[i].contains("="))
-						{
-							String tempStr = subExpressionStrs[i].replaceAll("\\s+", "");
-							if(LOG.isTraceEnabled())
-								LOG.trace("I remove all space " + tempStr);
-							int indexOfEqualSign = tempStr.indexOf('=');
-							if(indexOfEqualSign < tempStr.length() - 1)
-							{
-								String valuePart = tempStr.substring(indexOfEqualSign + 1);
-								if(this.isInteger(valuePart))
-								{
-									if(LOG.isTraceEnabled())
-										LOG.trace("We identified an integer");
-									if(!isFirst)
-									{
-										pkValueStrBuilder.append("AND");
-									} else
-									{
-										isFirst = false;
-									}
-									pkValueStrBuilder.append(tempStr.subSequence(0, indexOfEqualSign));
-									pkValueStrBuilder.append("=");
-									pkValueStrBuilder.append(valuePart);
-								}
-							}
-						}
-					}
-				}
-			}
-
-			buffer.append("(select * from ");
-			buffer.append(tableNames[0]);
-			if(!pkValueStrBuilder.toString().equals(""))
-			{
-				buffer.append(" where ");
-				buffer.append(pkValueStrBuilder.toString());
-			}
-			buffer.append(" union select * from ");
-			buffer.append(tempTableName);
-			if(!pkValueStrBuilder.toString().equals(""))
-			{
-				buffer.append(" where ");
-				buffer.append(pkValueStrBuilder.toString());
-			}
-			buffer.append(") as ");
-			buffer.append(tableNames[1]);
-		} else
-		{
-			buffer.append(tableDefinition.name);
-			buffer.append(" as ");
-			buffer.append(tableNames[1]);
-		}
-	}
-
-	/**
-	 * Returns what should be in the what clause in select statements
-	 */
-	public void addKeyVVBothTable(StringBuilder buffer, String tableAlias)
-	{
-		//		return tableDefinition.getPkListAlias() + "," + tableDefinition.getNameAlias() + "." +
-		// ScratchpadDefaults.SCRATCHPAD_COL_CLOCK;
-		String[] pks = tableDefinition.getPksPlain();
-		for(int i = 0; i < pks.length; i++)
-		{
-			buffer.append(tableAlias);
-			buffer.append(".");
-			buffer.append(pks[i]);
-			buffer.append(",");
-		}
-		buffer.append(tableAlias);
-		buffer.append(".");
-		buffer.append(ScratchpadDefaults.SCRATCHPAD_COL_CLOCK);
-	}
-
-	/**
-	 * Add where clause to the current buffer, removing needed deleted Pks
-	 */
-	protected void addWhere(StringBuilder buffer, Expression e)
-	{
-		if(e == null)
-			return;
-		buffer.append(" WHERE (");
-		buffer.append(SP_DELETED_EXPRESSION);
-		buffer.append(")");
-		if(e != null)
-		{
-			buffer.append(" AND ( ");
-			buffer.append(e.toString());
-			buffer.append(" ) ");
-		}
-	}
-
-	/**
-	 * Replace alias in string
-	 *
-	 * @param where
-	 * @param policies
-	 * @param tables
-	 *
-	 * @return
-	 */
-	protected String replaceAliasInStr(String where, IExecuter[] policies, String[][] tables, boolean inTempTable)
-	{
-		for(int i = 0; i < tables.length; i++)
-		{
-			String t = "([ ,])" + tables[i][1] + "\\.";
-			String tRep;
-			if(inTempTable)
-			{
-				tRep = "$1" + ((DBExecutorAgent) policies[i]).getTempTableName() + ".";
-				//else
-				//tRep = policies[i].getName() + ".";
-				where = where.replaceAll(t, tRep);
-			}
-		}
-		return where;
-/*		StringBuffer b = new StringBuffer();
-		for( int i = 0; i < tables.length; i++) {
-			String t = tables[i][1] + ".";
-			String tRep = policies[i].getAliasTable() + ".";
-			String whereUp = where.toUpperCase();
-			int pos = 0;
-			b.setLength(0);
-			while( true) {
-				int nextPos = whereUp.indexOf( t,pos);
-				if( nextPos < 0) {
-					b.append( where.substring( pos));
-					break;
-				}
-				if( nextPos > 0)
-					b.append( where.substring(pos, nextPos));
-				if( nextPos == 0) {
-					b.append( tRep);
-					pos = nextPos + t.length();
-				} else {
-					char ch = where.charAt(nextPos - 1);
-					if( Character.isJavaIdentifierPart(ch))	{	// not completely correct, but should work
-						b.append( t);
-						pos = nextPos + t.length();
-					} else {
-						b.append( tRep);
-						pos = nextPos + t.length();
-					}
-				}
-			}
-			where = b.toString();
-		}
-		return where;
-*/
-	}
-
-	/**
-	 * Add where clause to the current buffer, removing needed deleted Pks
-	 */
-	protected void addWhere(StringBuilder buffer, Expression e, IExecuter[] policies, String[][] tables,
-							boolean inTempTable)
-	{
-		if(e == null)
-			return;
-		buffer.append(" where ");
-		for(int i = 0; i < policies.length; i++)
-		{
-			if(i > 0)
-				buffer.append(" and ");
-			buffer.append(tables[i][1]);
-			buffer.append(".");
-			buffer.append(SP_DELETED_EXPRESSION);
-		}
-		if(e != null)
-		{
-			buffer.append(" and ( ");
-			String where = replaceAliasInStr(e.toString(), policies, tables, inTempTable);
-			buffer.append(where);
-			buffer.append(" ) ");
-		}
-	}
-
-	public void setup(DatabaseMetaData metadata, Scratchpad scratchpad)
+	@Override
+	public void setup(DatabaseMetaData metadata, int scratchpadId)
 	{
 		try
 		{
 			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.databaseTable.getName() +
 					"_" +
-					scratchpad.getScratchpadId();
+					scratchpadId;
 			this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), tempTableName);
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
@@ -484,8 +257,8 @@ public class DBExecutorAgent
 			else
 				buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
 
-			scratchpad.executeUpdateMainStorage(buffer2.toString());
-			scratchpad.executeUpdateMainStorage(buffer.toString());
+			this.sqlInterface.executeUpdate(buffer2.toString());
+			this.sqlInterface.executeUpdate(buffer.toString());
 
 		} catch(SQLException e)
 		{
@@ -496,7 +269,8 @@ public class DBExecutorAgent
 			LOG.trace("executor for table {} created", this.databaseTable.getName());
 	}
 
-	public ResultSet executeTemporaryQueryOnSingleTable(Select selectOp, Scratchpad db) throws SQLException
+	@Override
+	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException
 	{
 		String queryToOrigin;
 		String queryToTemp;
@@ -561,38 +335,53 @@ public class DBExecutorAgent
 
 		String finalQuery = buffer.toString();
 
-		return db.executeQueryMainStorage(finalQuery);
+		return this.sqlInterface.executeQuery(finalQuery);
 	}
 
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, Scratchpad db)
-			throws SQLException
+	@Override
+	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement) throws SQLException
 	{
-		modified = true;
-
 		if(statement instanceof Insert)
-			return executeTempOpInsert((Insert) statement, db);
+			return executeTempOpInsert((Insert) statement);
 		else if(statement instanceof Delete)
-			return executeTempOpDelete((Delete) statement, db);
+			return executeTempOpDelete((Delete) statement);
 		else if(statement instanceof Update)
-			return executeTempOpUpdate((Update) statement, db);
+			return executeTempOpUpdate((Update) statement);
 		else
 		{
-			modified = false;
 			throw new SQLException("update statement not found");
 		}
 	}
 
-	public void resetExecuter(Scratchpad pad) throws SQLException
+	@Override
+	public void resetExecuter() throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("TRUNCATE TABLE ");
 		buffer.append(this.tempTableName);
-		pad.addToBatchUpdate(buffer.toString());
+		this.sqlInterface.executeUpdate(buffer.toString());
 		this.duplicatedRows.clear();
 		this.recordedPkValues.clear();
 		this.deletedRows.clear();
 		this.ops.clear();
-		this.modified = false;
+	}
+
+	/**
+	 * Add where clause to the current buffer, removing needed deleted Pks
+	 */
+	protected void addWhere(StringBuilder buffer, Expression e)
+	{
+		if(e == null)
+			return;
+		buffer.append(" WHERE (");
+		buffer.append(SP_DELETED_EXPRESSION);
+		buffer.append(")");
+		if(e != null)
+		{
+			buffer.append(" AND ( ");
+			buffer.append(e.toString());
+			buffer.append(" ) ");
+		}
 	}
 
 	/**
@@ -606,7 +395,7 @@ public class DBExecutorAgent
 	 *
 	 * @throws java.sql.SQLException
 	 */
-	private int executeTempOpInsert(Insert insertOp, Scratchpad db) throws SQLException
+	private int executeTempOpInsert(Insert insertOp) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("insert into ");
@@ -665,14 +454,14 @@ public class DBExecutorAgent
 		buffer.append(" values ");
 		buffer.append(insertOp.getItemsList());
 
-		int result = db.executeUpdateMainStorage(buffer.toString());
+		int result = this.sqlInterface.executeUpdate(buffer.toString());
 
 		ShadowOperation op;
 
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
 			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(insertedRow,
-					this.fkConstraints, db);
+					this.fkConstraints, this.sqlInterface);
 			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), parentsByConstraint, insertedRow);
 		} else // its a "neutral" or "parent" row
@@ -699,7 +488,7 @@ public class DBExecutorAgent
 	 *
 	 * @throws java.sql.SQLException
 	 */
-	private int executeTempOpDelete(Delete deleteOp, Scratchpad db) throws SQLException
+	private int executeTempOpDelete(Delete deleteOp) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("(SELECT ");
@@ -725,7 +514,8 @@ public class DBExecutorAgent
 
 		try
 		{
-			res = db.executeQueryMainStorage(query);
+			res = this.sqlInterface.executeQuery(query);
+
 			Row rowToDelete = null;
 			while(res.next())
 			{
@@ -749,14 +539,14 @@ public class DBExecutorAgent
 			buffer.append(deleteOp.getWhere().toString());
 			String delete = buffer.toString();
 
-			db.executeUpdateMainStorage(delete);
+			this.sqlInterface.executeUpdate(delete);
 
 			ShadowOperation op;
 			if(this.databaseTable.isParentTable())
 			{
 				op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(),
 						this.databaseTable.getExecutionPolicy(), rowToDelete);
-				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete, db);
+				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete);
 				rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
 
 			} else
@@ -772,11 +562,11 @@ public class DBExecutorAgent
 		}
 	}
 
-	private int executeTempOpUpdate(Update updateOp, Scratchpad db) throws SQLException
+	private int executeTempOpUpdate(Update updateOp) throws SQLException
 	{
 		// before writting in the scratchpad, add the missing rows to the scratchpad
-		this.addMissingRowsToScratchpad(updateOp, db);
-		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp, db);
+		this.addMissingRowsToScratchpad(updateOp);
+		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp);
 
 		// now perform the actual update only in the scratchpad
 		StringBuilder buffer = new StringBuilder();
@@ -836,13 +626,13 @@ public class DBExecutorAgent
 		{
 			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), updatedRow);
-			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow, db);
+			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow);
 			affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
 
 		} else if(this.fkConstraints.size() > 0) // its a child row
 		{
 			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(updatedRow,
-					this.fkConstraints, db);
+					this.fkConstraints, this.sqlInterface);
 			op = new UpdateChildOperation(db.getActiveTransaction().getNextOperationId(),
 					this.databaseTable.getExecutionPolicy(), updatedRow, parentsByConstraint);
 		} else
@@ -854,10 +644,7 @@ public class DBExecutorAgent
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
 		String updateStr = buffer.toString();
-		db.addToBatchUpdate(updateStr);
-		db.executeBatch();
-		this.modified = true;
-
+		this.sqlInterface.executeUpdate(updateStr);
 		return affectedRows;
 	}
 
@@ -870,7 +657,7 @@ public class DBExecutorAgent
 	 *
 	 * @throws java.sql.SQLException
 	 */
-	private void addMissingRowsToScratchpad(Update updateOp, Scratchpad pad) throws SQLException
+	private void addMissingRowsToScratchpad(Update updateOp) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
@@ -890,7 +677,8 @@ public class DBExecutorAgent
 		ResultSet res = null;
 		try
 		{
-			res = pad.executeQueryMainStorage(buffer.toString());
+			res = this.sqlInterface.executeQuery(buffer.toString());
+
 			while(res.next())
 			{
 				if(!res.getString("tname").equals(this.tempTableName))
@@ -923,7 +711,7 @@ public class DBExecutorAgent
 				buffer.append(this.tempTableName);
 				buffer.append(" values (");
 
-				PrimaryKeyValue pkValue = new PrimaryKeyValue(this.getTableName());
+				PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
 
 				Iterator<DataField> fieldsIt = this.fields.values().iterator();
 
@@ -945,7 +733,7 @@ public class DBExecutorAgent
 						if(field.isStringField())
 							oldContent = "NULL";
 						else if(field.isDateField())
-							oldContent = IExecuter.Defaults.DEFAULT_DATE_VALUE;
+							oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
 
 					if(field.isStringField() || field.isDateField())
 					{
@@ -967,7 +755,7 @@ public class DBExecutorAgent
 
 				duplicatedRows.add(pkValue);
 				buffer.append(")");
-				pad.executeUpdateMainStorage(buffer.toString());
+				this.sqlInterface.executeUpdate(buffer.toString());
 			}
 		} finally
 		{
@@ -975,39 +763,7 @@ public class DBExecutorAgent
 		}
 	}
 
-	//temporarily put there, need to file into other java files
-	public boolean isInteger(String str)
-	{
-		if(str == null)
-		{
-			return false;
-		}
-		int length = str.length();
-		if(length == 0)
-		{
-			return false;
-		}
-		int i = 0;
-		if(str.charAt(0) == '-')
-		{
-			if(length == 1)
-			{
-				return false;
-			}
-			i = 1;
-		}
-		for(; i < length; i++)
-		{
-			char c = str.charAt(i);
-			if(c <= '/' || c >= ':')
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private Row getUpdatedRowFromDatabase(Update updateOp, Scratchpad pad) throws SQLException
+	private Row getUpdatedRowFromDatabase(Update updateOp) throws SQLException
 	{
 		Expression whereClause = updateOp.getWhere();
 		if(whereClause == null)
@@ -1026,7 +782,7 @@ public class DBExecutorAgent
 		ResultSet rs = null;
 		try
 		{
-			rs = pad.executeQueryMainStorage(buffer.toString());
+			rs = this.sqlInterface.executeQuery(buffer.toString());
 
 			if(!rs.isBeforeFirst())
 			{
@@ -1107,23 +863,21 @@ public class DBExecutorAgent
 		}
 	}
 
-	private void calculateOperationSideEffects(ParentOperation op, Row parentRow, Scratchpad pad) throws
-			SQLException
+	private void calculateOperationSideEffects(ParentOperation op, Row parentRow) throws SQLException
 	{
 
 		for(ForeignKeyConstraint fkConstraint : parentRow.getTable().getChildTablesConstraints())
 		{
 
 			List<Row> childRows = DatabaseCommon.findChildsFromTable(parentRow, fkConstraint.getChildTable(),
-					fkConstraint.getFieldsRelations(), pad);
+					fkConstraint.getFieldsRelations(), this.sqlInterface);
 
 			if(op.getOperationType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() ==
 					ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot delete parent row because of foreign key restriction");
 
-			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() ==
-					ForeignKeyAction.RESTRICT)
+			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.RESTRICT)
 				if(childRows.size() > 0)
 					throw new SQLException("cannot update parent row because of foreign key restriction");
 

@@ -6,7 +6,6 @@ import database.util.ExecutionPolicy;
 import database.util.value.FieldValue;
 import database.util.Row;
 import runtime.transformer.OperationTransformer;
-import runtime.transformer.QueryCreator;
 import util.defaults.DatabaseDefaults;
 import util.thrift.RequestValue;
 import util.thrift.ThriftShadowTransaction;
@@ -56,20 +55,9 @@ public class InsertChildOperation extends InsertOperation
 		String insertStatement = OperationTransformer.generateInsertStatement(this.row);
 		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), insertStatement);
 
-		StringBuilder buffer = new StringBuilder();
-
-		// now set the tuple visibility
-		String parentsCounterQuery = QueryCreator.countParentsVisible(this.parentRows);
-		buffer.setLength(0);
-		String visibleOp = OperationTransformer.generateSetVisible(this.row);
-		buffer.append(visibleOp);
-		buffer.append(" AND ");
-		buffer.append(this.parentRows.size());
-		buffer.append("=(");
-		buffer.append(parentsCounterQuery);
-		buffer.append(")");
-
-		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), buffer.toString());
+		String childVisibilityOp = OperationTransformer.generateConditionalSetChildVisibleOnInsert(this.row,
+				this.parentRows);
+		shadowTransaction.putToOperations(shadowTransaction.getOperationsSize(), childVisibilityOp);
 
 		if(!this.isFinal)
 		{

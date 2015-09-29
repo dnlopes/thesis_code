@@ -3,7 +3,7 @@ package database.util;
 
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.fk.ParentChildRelation;
-import database.execution.temporary.Scratchpad;
+import database.execution.SQLInterface;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.value.FieldValue;
@@ -45,14 +45,14 @@ public class DatabaseCommon
 	}
 
 	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
-																Scratchpad pad) throws SQLException
+																SQLInterface sqlInterface) throws SQLException
 	{
 		Map<ForeignKeyConstraint, Row> parentByConstraint = new HashMap<>();
 
 		for(int i = 0; i < constraints.size(); i++)
 		{
 			ForeignKeyConstraint c = constraints.get(i);
-			Row parent = findParent(childRow, c, pad);
+			Row parent = findParent(childRow, c, sqlInterface);
 			parentByConstraint.put(c, parent);
 
 			if(parent == null)
@@ -88,13 +88,13 @@ public class DatabaseCommon
 
 	public static List<Row> findChildsFromTable(Row parentRow, DatabaseTable table, List<ParentChildRelation>
 			relations,
-												Scratchpad pad) throws SQLException
+												SQLInterface sqlInterface) throws SQLException
 	{
 		List<Row> childs = new ArrayList<>();
 
 		String query = QueryCreator.findChildFromTableQuery(parentRow, table, relations);
 
-		ResultSet rs = pad.executeQueryMainStorage(query);
+		ResultSet rs = sqlInterface.executeQuery(query);
 
 		while(rs.next())
 		{
@@ -106,11 +106,11 @@ public class DatabaseCommon
 		return childs;
 	}
 
-	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, Scratchpad pad) throws SQLException
+	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface) throws SQLException
 	{
 		String query = QueryCreator.findParent(childRow, constraint);
 
-		ResultSet rs = pad.executeQuery(query);
+		ResultSet rs = sqlInterface.executeQuery(query);
 		if(!rs.isBeforeFirst())
 		{
 			DbUtils.closeQuietly(rs);

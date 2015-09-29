@@ -32,8 +32,6 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 	public void generateStatements(ThriftShadowTransaction shadowTransaction)
 	{
 		//done
-		//this.row.updateFieldValue(
-		//		new FieldValue(this.row.getTable().getContentClockField(), DBDefaults.CLOCK_VALUE_PLACEHOLDER));
 
 		this.row.mergeUpdates();
 
@@ -51,7 +49,7 @@ public class UpdateOperation extends AbstractOperation implements ShadowOperatio
 				rValue.setOpId(shadowTransaction.getOperations().size());
 		}
 
-		// if @UPDATEWINS, make sure that row is visible in case some concurrent operation deleted it
+		// if @UPDATEWINS, make sure that this row is visible in case some concurrent operation deleted it
 		if(this.tablePolicy == ExecutionPolicy.UPDATEWINS)
 		{
 			String insertRowBack = OperationTransformer.generateInsertRowBack(this.row);

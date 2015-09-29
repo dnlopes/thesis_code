@@ -38,6 +38,23 @@ struct CoordinatorRequest
     4: required bool requiresCoordination;
 }
 
+
+enum CRDTOperationType {
+    UPDATE_CONTENT
+}
+
+
+struct CRDTOperation {
+    1: required string op;
+    2: required string clock;
+    3: required CRDTOperationType type;
+}
+
+struct CRDTTransaction {
+    1: required list
+}
+
+
 struct ThriftOperation {
     1: required i32 txnId;
     2: required map<i32, string> operations;

@@ -21,9 +21,16 @@ public class OperationTransformer
 {
 
 	private static final String SET_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=1";
-	private static final String SET_DELETED_CLOCK_EXPRESION = DatabaseDefaults.DELETED_CLOCK_COLUMN + "=" + DatabaseDefaults
-			.CLOCK_VALUE_PLACEHOLDER;
+	private static final String SET_DELETED_CLOCK_EXPRESION = DatabaseDefaults.DELETED_CLOCK_COLUMN + "=" +
+			DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER;
 
+	/**
+	 * Generates a SQL insert statement to a table that has no forein key defined
+	 *
+	 * @param row
+	 *
+	 * @return
+	 */
 	public static String generateInsertStatement(Row row)
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -145,28 +152,6 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	/**
-	 * Generates a SQL statement that sets the visibility flag to TRUE
-	 * It does so silenty, which means that this statement will leave no footprint. In other words, no one will know
-	 * that this statement was executed.
-	 *
-	 * @param row
-	 *
-	 * @return
-	 */
-	public static String generateSetVisible(Row row)
-	{
-		StringBuilder buffer = new StringBuilder();
-
-		buffer.append(OperationsStatements.UPDATE);
-		buffer.append(row.getTable().getName());
-		buffer.append(OperationsStatements.SET_NOT_DELETED);
-		buffer.append(OperationsStatements.WHERE);
-		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
-
-		return buffer.toString();
-	}
-
 	public static String generateSetParentVisible(ForeignKeyConstraint constraint, Row parent)
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -206,6 +191,73 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
+	/**
+	 * Generates a SQL statement that sets the deleted flag to FALSE for this @childRow
+	 * This operation is executed together with @UPDATEWINS policy
+	 * to allow rows to be 'visible' again in case some concurrent delete operation deleted it
+	 *
+	 * @param childRow
+	 *
+	 * @return
+	 */
+	public static String generateInsertRowBack(Row childRow)
+	{
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(OperationTransformer.generateSetVisible(childRow));
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
+
+		return buffer.toString();
+	}
+
+	public static String generateConditionalSetChildVisibleOnUpdate(Row childRow,
+																	Map<ForeignKeyConstraint, Row> parentRows)
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		String parentsCounterQuery = QueryCreator.countParentsVisible(parentRows);
+		buffer.append(OperationTransformer.generateSetVisible(childRow));
+		buffer.append(OperationsStatements.AND);
+		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
+		buffer.append(OperationsStatements.AND);
+		buffer.append(parentRows.size());
+		buffer.append("=(");
+		buffer.append(parentsCounterQuery);
+		buffer.append(")");
+
+		return buffer.toString();
+	}
+
+	/**
+	 * Update the deleted flag of a children row depending on the visibility of its parents
+	 * If all parents of this child are visible (i.e. not deleted), then the child deleted flag is set to 0
+	 *
+	 * @param childRow
+	 * @param parentRows
+	 *
+	 * @return
+	 */
+	public static String generateConditionalSetChildVisibleOnInsert(Row childRow,
+																	Map<ForeignKeyConstraint, Row> parentRows)
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		String parentsCounterQuery = QueryCreator.countParentsVisible(parentRows);
+		String visibleOp = OperationTransformer.generateSetVisible(childRow);
+		buffer.append(visibleOp);
+		buffer.append(OperationsStatements.AND);
+		buffer.append(parentRows.size());
+		buffer.append("=(");
+		buffer.append(parentsCounterQuery);
+		buffer.append(")");
+
+		return buffer.toString();
+	}
+
+	//****************************************************************************************//
+	//********************************* DELETE OPs
+	//****************************************************************************************//
+
 	public static String generateDeleteUpdateWins(Row row)
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -234,29 +286,19 @@ public class OperationTransformer
 		return buffer.toString();
 	}
 
-	public static String generateInsertRowBack(Row childRow)
+	//****************************************************************************************//
+	//********************************* AUXILIAR METHODS
+	//****************************************************************************************//
+
+	private static String generateSetVisible(Row row)
 	{
 		StringBuilder buffer = new StringBuilder();
-		buffer.append(OperationTransformer.generateSetVisible(childRow));
-		buffer.append(OperationsStatements.AND);
-		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
 
-		return buffer.toString();
-	}
-
-	public static String generateInsertParentRowBack(Row childRow, Map<ForeignKeyConstraint, Row> parentRows)
-	{
-		String parentsCounterQuery = QueryCreator.countParentsVisible(parentRows);
-
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(OperationTransformer.generateSetVisible(childRow));
-		buffer.append(OperationsStatements.AND);
-		buffer.append(OperationsStatements.IS_CONCURRENT_OR_GREATER_DCLOCK);
-		buffer.append(OperationsStatements.AND);
-		buffer.append(parentRows.size());
-		buffer.append("=(");
-		buffer.append(parentsCounterQuery);
-		buffer.append(")");
+		buffer.append(OperationsStatements.UPDATE);
+		buffer.append(row.getTable().getName());
+		buffer.append(OperationsStatements.SET_NOT_DELETED);
+		buffer.append(OperationsStatements.WHERE);
+		buffer.append(row.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		return buffer.toString();
 	}
