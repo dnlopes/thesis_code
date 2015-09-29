@@ -8,7 +8,6 @@ public class DBReadSetEntry implements DBEntry
 {
 
 	public String key;
-	public String clock;
 
 	@Override
 	public String getKey()
@@ -16,9 +15,4 @@ public class DBReadSetEntry implements DBEntry
 		return this.key;
 	}
 
-	@Override
-	public String getClock()
-	{
-		return this.clock;
-	}
 }
