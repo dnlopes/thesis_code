@@ -16,8 +16,9 @@ import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.Transaction;
 import util.defaults.ScratchpadDefaults;
+import util.thrift.CRDTOperation;
+import util.thrift.CRDTTransaction;
 
 import java.io.StringReader;
 import java.sql.*;
@@ -32,7 +33,7 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 
 	private static final Logger LOG = LoggerFactory.getLogger(AllOperationsScratchpad.class);
 
-	private Transaction transaction;
+	private CRDTTransaction transaction;
 	private int id;
 	private Map<String, IExecutorAgent> executers;
 	private final CCJSqlParserManager parser;
@@ -49,14 +50,14 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 	}
 
 	@Override
-	public void startTransaction(Transaction txn) throws SQLException
+	public void startTransaction(CRDTTransaction txn) throws SQLException
 	{
 		this.resetScratchpad();
 
 		this.transaction = txn;
 
 		if(LOG.isTraceEnabled())
-			LOG.trace("Beggining txn {} on sandbox {}", transaction.getTxnId(), this.id);
+			LOG.trace("Beggining txn {} on sandbox {}", transaction.getId(), this.id);
 	}
 
 	@Override
@@ -119,7 +120,7 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
-
+		CRDTOperation crdtOperation = new CRDTOperation();
 		net.sf.jsqlparser.statement.Statement statement;
 
 		try
@@ -143,11 +144,15 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 			LOG.error("executor agent for table {} not found", tableName);
 			throw new SQLException("executor agent not found");
 		} else
-			return agent.executeTemporaryUpdate(statement);
+		{
+			int result = agent.executeTemporaryUpdate(statement, crdtOperation);
+			this.transaction.addToOpsList(crdtOperation);
+			return result;
+		}
 	}
 
 	@Override
-	public Transaction getActiveTransaction()
+	public CRDTTransaction getActiveTransaction()
 	{
 		return this.transaction;
 	}
@@ -173,7 +178,7 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 		for(int i = 0; i < tempTables.size(); i++)
 		{
 			String tableName = tempTables.get(i);
-			DBExecutorAgent executor = new DBExecutorAgent(i, tableName, this.dbInterface);
+			DBExecutorAgent executor = new DBExecutorAgent(this.id, i, tableName, this.dbInterface);
 			executor.setup(metadata, this.id);
 			this.executers.put(tableName.toUpperCase(), executor);
 			this.dbInterface.commit();

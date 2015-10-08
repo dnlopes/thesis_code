@@ -421,11 +421,6 @@ public abstract class DatabaseTable
 		return false;
 	}
 
-	/*
-	 * If an update or delete are not specified by all primary keys, we need to
-	 * first fetch them from database
-	 */
-
 	/**
 	 * Generated primary key query.
 	 *

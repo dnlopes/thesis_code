@@ -7,6 +7,7 @@ import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.Row;
 import util.defaults.DatabaseDefaults;
+import util.defaults.ScratchpadDefaults;
 
 import java.util.Iterator;
 import java.util.List;
@@ -93,16 +94,24 @@ public class QueryCreator
 	 *
 	 * @return a sql query
 	 */
-	public static String findParent(Row childRow, ForeignKeyConstraint constraint)
+	public static String findParent(Row childRow, ForeignKeyConstraint constraint, int sandboxId)
 	{
 		DatabaseTable remoteTable = constraint.getParentTable();
+		String tempTable = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + remoteTable.getName() + "_" + sandboxId;
 
 		StringBuilder buffer = new StringBuilder();
+		StringBuilder buffer2 = new StringBuilder();
+
 		buffer.append("SELECT ");
-		buffer.append(remoteTable.getNormalFieldsSelection());
+		buffer.append(remoteTable.getPrimaryKeyString());
 		buffer.append(" FROM ");
 		buffer.append(remoteTable.getName());
 		buffer.append(" WHERE ");
+		buffer2.append("SELECT ");
+		buffer2.append(remoteTable.getPrimaryKeyString());
+		buffer2.append(" FROM ");
+		buffer2.append(tempTable);
+		buffer2.append(" WHERE ");
 
 		Iterator<ParentChildRelation> relationsIt = constraint.getFieldsRelations().iterator();
 
@@ -115,10 +124,19 @@ public class QueryCreator
 			buffer.append(parentField.getFieldName());
 			buffer.append("=");
 			buffer.append(childRow.getFieldValue(childField.getFieldName()).getFormattedValue());
+			buffer2.append(parentField.getFieldName());
+			buffer2.append("=");
+			buffer2.append(childRow.getFieldValue(childField.getFieldName()).getFormattedValue());
 
 			if(relationsIt.hasNext())
+			{
 				buffer.append(" AND ");
+				buffer2.append(" AND ");
+			}
 		}
+
+		buffer.append(" UNION ");
+		buffer.append(buffer2);
 
 		return buffer.toString();
 	}

@@ -18,5 +18,5 @@ import java.sql.SQLException;
  */
 public interface ReadOnlyScratchpad
 {
-	public ResultSet executeQuery(String query) throws SQLException;
+	ResultSet executeQuery(String query) throws SQLException;
 }

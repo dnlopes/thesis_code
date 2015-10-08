@@ -12,6 +12,7 @@ import runtime.Transaction;
 import runtime.operation.ShadowOperation;
 import runtime.transformer.DeterministicQuery;
 import util.ExitCode;
+import util.thrift.CRDTTransaction;
 import util.thrift.CoordinatorRequest;
 import util.thrift.ThriftShadowTransaction;
 
@@ -78,19 +79,21 @@ public class BasicProxy implements Proxy
 		if(this.sandbox.isReadOnlyMode())
 			return;
 
-		Transaction transaction = this.sandbox.getTransaction();
+		CRDTTransaction transaction = this.sandbox.getTransaction();
 
 		CoordinatorRequest request = this.createCoordinatorRequest(transaction);
 
-		ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(transaction);
+		//ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(transaction);
 
-		if(request.isRequiresCoordination())
+		/*if(request.isRequiresCoordination())
 			shadowTransaction.setRequestToCoordinator(request);
 
 		boolean commitDecision = this.network.commitOperation(shadowTransaction,
 				this.proxyConfig.getReplicatorConfig());
-
+                                              */
 		this.sandbox.endTransaction();
+
+		boolean commitDecision = true;
 
 		if(!commitDecision)
 			throw new SQLException("commit on main storage failed");
@@ -134,14 +137,14 @@ public class BasicProxy implements Proxy
 		return result;
 	}
 
-	private CoordinatorRequest createCoordinatorRequest(Transaction transaction) throws SQLException
+	private CoordinatorRequest createCoordinatorRequest(CRDTTransaction transaction) throws SQLException
 	{
 		CoordinatorRequest req = new CoordinatorRequest();
 
 		req.setRequiresCoordination(false);
 
-		for(ShadowOperation op : transaction.getShadowOperations())
-			op.createRequestsToCoordinate(req);
+		//for(ShadowOperation op : transaction.getShadowOperations())
+		//	op.createRequestsToCoordinate(req);
 
 		return req;
 	}

@@ -2,6 +2,7 @@ package database.execution.temporary;
 
 
 import net.sf.jsqlparser.statement.select.Select;
+import util.thrift.CRDTOperation;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -17,7 +18,7 @@ import java.util.Date;
  */
 public interface IExecutorAgent
 {
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement)
+	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTOperation crdtOperation)
 			throws SQLException;
 
 	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException;

@@ -3,7 +3,6 @@ package database.execution.temporary;
 
 import database.constraints.Constraint;
 import database.constraints.ConstraintType;
-import database.constraints.fk.ForeignKeyAction;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.execution.SQLInterface;
 import database.util.DatabaseCommon;
@@ -30,10 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import runtime.operation.*;
+import runtime.transformer.QueryCreator;
 import util.ExitCode;
 import util.Configuration;
 import util.defaults.DatabaseDefaults;
 import util.defaults.ScratchpadDefaults;
+import util.thrift.CRDTOperation;
+import util.thrift.CRDTOperationType;
 
 import java.sql.*;
 import java.util.*;
@@ -57,6 +59,7 @@ public class DBExecutorAgent implements IExecutorAgent
 	private String tempTableName;
 	private String tempTableNameAlias;
 	private int tableId;
+	private int sandboxId;
 
 	private FromItem fromItemTemp;
 	private PrimaryKey pk;
@@ -67,8 +70,9 @@ public class DBExecutorAgent implements IExecutorAgent
 	private Set<PrimaryKeyValue> deletedRows;
 	private Map<String, PrimaryKeyValue> recordedPkValues;
 
-	public DBExecutorAgent(int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
+	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
 	{
+		this.sandboxId = sandboxId;
 		this.tableId = tableId;
 		this.ops = new ArrayList<>();
 		this.fkConstraints = new ArrayList<>();
@@ -339,14 +343,15 @@ public class DBExecutorAgent implements IExecutorAgent
 	}
 
 	@Override
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement) throws SQLException
+	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTOperation crdtOperation)
+			throws SQLException
 	{
 		if(statement instanceof Insert)
-			return executeTempOpInsert((Insert) statement);
+			return executeTempOpInsert((Insert) statement, crdtOperation);
 		else if(statement instanceof Delete)
-			return executeTempOpDelete((Delete) statement);
+			return executeTempOpDelete((Delete) statement, crdtOperation);
 		else if(statement instanceof Update)
-			return executeTempOpUpdate((Update) statement);
+			return executeTempOpUpdate((Update) statement, crdtOperation);
 		else
 		{
 			throw new SQLException("update statement not found");
@@ -366,9 +371,6 @@ public class DBExecutorAgent implements IExecutorAgent
 		this.ops.clear();
 	}
 
-	/**
-	 * Add where clause to the current buffer, removing needed deleted Pks
-	 */
 	protected void addWhere(StringBuilder buffer, Expression e)
 	{
 		if(e == null)
@@ -384,18 +386,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	/**
-	 * Execute insert operation in the temporary table
-	 *
-	 * @param op
-	 * @param insertOp
-	 * @param db
-	 *
-	 * @return
-	 *
-	 * @throws java.sql.SQLException
-	 */
-	private int executeTempOpInsert(Insert insertOp) throws SQLException
+	private int executeTempOpInsert(Insert insertOp, CRDTOperation crdtOperation) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("insert into ");
@@ -405,6 +396,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
 		Row insertedRow = new Row(this.databaseTable, pkValue);
+
+		Map<String, String> fieldsMap = new HashMap<>();
 
 		if(columnsList == null)
 		{
@@ -422,12 +415,15 @@ public class DBExecutorAgent implements IExecutorAgent
 			{
 				String col = colIt.next().toString();
 				String val = valIt.next().toString();
+
 				DataField field = this.fields.get(col);
 
 				if(!field.isHiddenField())
 				{
 					FieldValue newContentField = new FieldValue(field, val);
 					insertedRow.updateFieldValue(newContentField);
+
+					fieldsMap.put(col, val);
 
 					if(field.isPrimaryKey())
 						pkValue.addFieldValue(newContentField);
@@ -456,39 +452,29 @@ public class DBExecutorAgent implements IExecutorAgent
 
 		int result = this.sqlInterface.executeUpdate(buffer.toString());
 
-		ShadowOperation op;
+		crdtOperation.setTableName(this.databaseTable.getName());
+		crdtOperation.setUniquePkValue(pkValue.getUniqueValue());
+		crdtOperation.setPrimaryKey(pkValue.getValue());
+		crdtOperation.setNewFieldValues(fieldsMap);
 
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
-			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(insertedRow,
-					this.fkConstraints, this.sqlInterface);
-			op = new InsertChildOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), parentsByConstraint, insertedRow);
-		} else // its a "neutral" or "parent" row
-			op = new InsertOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), insertedRow);
+			crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
 
-		db.getActiveTransaction().addOperation(op);
+			Map<String, String> parentsByConstraint = findParentRows(insertedRow, this.fkConstraints,
+					this.sqlInterface);
+			crdtOperation.setParentsMap(parentsByConstraint);
+
+		} else
+			// its a "neutral" or "parent" row
+			crdtOperation.setOpType(CRDTOperationType.INSERT);
 
 		this.recordedPkValues.put(insertedRow.getPrimaryKeyValue().getUniqueValue(), pkValue);
 
 		return result;
 	}
 
-	/**
-	 * My version of delete.
-	 * We transform each delete in a simple query.
-	 * We record the _SP_immut values of the ResultSet.
-	 * Subsequent operations will ignore rows that match some _SP_immut value that we have recorded
-	 *
-	 * @param deleteOp
-	 * @param db
-	 *
-	 * @return
-	 *
-	 * @throws java.sql.SQLException
-	 */
-	private int executeTempOpDelete(Delete deleteOp) throws SQLException
+	private int executeTempOpDelete(Delete deleteOp, CRDTOperation crdtOperation) throws SQLException
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("(SELECT ");
@@ -515,8 +501,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		try
 		{
 			res = this.sqlInterface.executeQuery(query);
+			PrimaryKeyValue pkValue = null;
 
-			Row rowToDelete = null;
 			while(res.next())
 			{
 				if(!res.isLast())
@@ -524,12 +510,10 @@ public class DBExecutorAgent implements IExecutorAgent
 							ExitCode.FETCH_RESULTS_ERROR);
 
 				rowsDeleted++;
-				PrimaryKeyValue rowPkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable);
-				rowToDelete = new Row(this.databaseTable, rowPkValue);
-				DatabaseCommon.fillNormalFields(rowToDelete, res);
+				pkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable);
 
-				this.recordedPkValues.remove(rowToDelete.getPrimaryKeyValue().getValue());
-				this.duplicatedRows.remove(rowToDelete.getPrimaryKeyValue());
+				this.recordedPkValues.remove(pkValue.getValue());
+				this.duplicatedRows.remove(pkValue);
 			}
 
 			buffer = new StringBuilder();
@@ -541,19 +525,20 @@ public class DBExecutorAgent implements IExecutorAgent
 
 			this.sqlInterface.executeUpdate(delete);
 
-			ShadowOperation op;
+			crdtOperation.setTableName(this.databaseTable.getName());
+			crdtOperation.setUniquePkValue(pkValue.getUniqueValue());
+			crdtOperation.setPrimaryKey(pkValue.getValue());
+
 			if(this.databaseTable.isParentTable())
 			{
-				op = new DeleteParentOperation(db.getActiveTransaction().getNextOperationId(),
-						this.databaseTable.getExecutionPolicy(), rowToDelete);
-				this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete);
-				rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
+				crdtOperation.setOpType(CRDTOperationType.DELETE_PARENT);
+
+				//TODO: delete parent cascade missing implementation
+				//this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete);
+				//rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
 
 			} else
-				op = new DeleteOperation(db.getActiveTransaction().getNextOperationId(),
-						this.databaseTable.getExecutionPolicy(), rowToDelete);
-
-			db.getActiveTransaction().addOperation(op);
+				crdtOperation.setOpType(CRDTOperationType.DELETE);
 
 			return rowsDeleted;
 		} finally
@@ -562,11 +547,19 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	private int executeTempOpUpdate(Update updateOp) throws SQLException
+	private int executeTempOpUpdate(Update updateOp, CRDTOperation crdtOperation) throws SQLException
 	{
 		// before writting in the scratchpad, add the missing rows to the scratchpad
 		this.addMissingRowsToScratchpad(updateOp);
 		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp);
+
+		Map<String, String> oldValuesMap = new HashMap<>();
+		Map<String, String> newValuesMap = new HashMap<>();
+
+		Map<String, FieldValue> currentRowValues = updatedRow.getFieldsValuesMap();
+
+		for(Map.Entry<String, FieldValue> entry : currentRowValues.entrySet())
+			oldValuesMap.put(entry.getKey(), entry.getValue().getFormattedValue());
 
 		// now perform the actual update only in the scratchpad
 		StringBuilder buffer = new StringBuilder();
@@ -603,6 +596,7 @@ public class DBExecutorAgent implements IExecutorAgent
 				newFieldValue = new FieldValue(field, newValue);
 
 			updatedRow.updateFieldValue(newFieldValue);
+			newValuesMap.put(columnName, newFieldValue.getFormattedValue());
 
 			for(Constraint c : field.getInvariants())
 			{
@@ -618,33 +612,29 @@ public class DBExecutorAgent implements IExecutorAgent
 				buffer.append(",");
 		}
 
-		ShadowOperation op;
-		int affectedRows = 1;
-
-		// if is parent table, check if this op has side effects
-		if(this.databaseTable.isParentTable() && updatedRow.hasSideEffects())
-		{
-			op = new UpdateParentOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), updatedRow);
-			this.calculateOperationSideEffects((UpdateParentOperation) op, updatedRow);
-			affectedRows += ((UpdateParentOperation) op).getNumberOfRows();
-
-		} else if(this.fkConstraints.size() > 0) // its a child row
-		{
-			Map<ForeignKeyConstraint, Row> parentsByConstraint = DatabaseCommon.findParentRows(updatedRow,
-					this.fkConstraints, this.sqlInterface);
-			op = new UpdateChildOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), updatedRow, parentsByConstraint);
-		} else
-			op = new UpdateOperation(db.getActiveTransaction().getNextOperationId(),
-					this.databaseTable.getExecutionPolicy(), updatedRow);
-
-		db.getActiveTransaction().addOperation(op);
-
 		buffer.append(" WHERE ");
 		buffer.append(updateOp.getWhere().toString());
 		String updateStr = buffer.toString();
 		this.sqlInterface.executeUpdate(updateStr);
+
+		int affectedRows = 1;
+
+		crdtOperation.setTableName(this.databaseTable.getName());
+		crdtOperation.setUniquePkValue(updatedRow.getPrimaryKeyValue().getUniqueValue());
+		crdtOperation.setPrimaryKey(updatedRow.getPrimaryKeyValue().getValue());
+		crdtOperation.setNewFieldValues(newValuesMap);
+		crdtOperation.setOldFieldValues(oldValuesMap);
+
+		if(this.fkConstraints.size() > 0) // its a child row
+		{
+			Map<String, String> parentsByConstraint = findParentRows(updatedRow, this.fkConstraints, this
+					.sqlInterface);
+
+			crdtOperation.setParentsMap(parentsByConstraint);
+			crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
+		} else
+			crdtOperation.setOpType(CRDTOperationType.UPDATE);
+
 		return affectedRows;
 	}
 
@@ -841,6 +831,45 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append(" )");
 	}
 
+	private Map<String, String> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
+											   SQLInterface sqlInterface) throws SQLException
+	{
+		Map<String, String> parentByConstraint = new HashMap<>();
+
+		for(int i = 0; i < constraints.size(); i++)
+		{
+			ForeignKeyConstraint c = constraints.get(i);
+			Row parent = findParent(childRow, c, sqlInterface);
+			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getValue());
+
+			if(parent == null)
+				throw new SQLException("parent row not found. Foreing key violated");
+
+		}
+
+		return parentByConstraint;
+	}
+
+	private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface) throws
+			SQLException
+	{
+		String query = QueryCreator.findParent(childRow, constraint, this.sandboxId);
+
+		ResultSet rs = sqlInterface.executeQuery(query);
+		if(!rs.isBeforeFirst())
+		{
+			DbUtils.closeQuietly(rs);
+			throw new SQLException("parent row not found. Foreing key violated");
+		}
+
+		rs.next();
+		DatabaseTable remoteTable = constraint.getParentTable();
+		PrimaryKeyValue parentPk = DatabaseCommon.getPrimaryKeyValue(rs, remoteTable);
+		DbUtils.closeQuietly(rs);
+
+		return new Row(remoteTable, parentPk);
+	}
+
 	private class MyValueExpression implements Expression
 	{
 
@@ -863,25 +892,4 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	private void calculateOperationSideEffects(ParentOperation op, Row parentRow) throws SQLException
-	{
-
-		for(ForeignKeyConstraint fkConstraint : parentRow.getTable().getChildTablesConstraints())
-		{
-
-			List<Row> childRows = DatabaseCommon.findChildsFromTable(parentRow, fkConstraint.getChildTable(),
-					fkConstraint.getFieldsRelations(), this.sqlInterface);
-
-			if(op.getOperationType() == OperationType.DELETE && fkConstraint.getPolicy().getDeleteAction() ==
-					ForeignKeyAction.RESTRICT)
-				if(childRows.size() > 0)
-					throw new SQLException("cannot delete parent row because of foreign key restriction");
-
-			if(op.getOperationType() == OperationType.UPDATE && fkConstraint.getPolicy().getUpdateAction() == ForeignKeyAction.RESTRICT)
-				if(childRows.size() > 0)
-					throw new SQLException("cannot update parent row because of foreign key restriction");
-
-			op.addSideEffects(fkConstraint, childRows);
-		}
-	}
 }

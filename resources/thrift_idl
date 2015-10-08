@@ -38,22 +38,31 @@ struct CoordinatorRequest
     4: required bool requiresCoordination;
 }
 
-
 enum CRDTOperationType {
-    UPDATE_CONTENT
+    INSERT,
+    INSERT_CHILD,
+    UPDATE,
+    UPDATE_CHILD,
+    DELETE,
+    DELETE_PARENT
 }
 
-
 struct CRDTOperation {
-    1: required string op;
-    2: required string clock;
-    3: required CRDTOperationType type;
+    1: required string tableName;
+    2: required string primaryKey;
+    3: required string uniquePkValue;
+    4: required CRDTOperationType opType;
+    5: optional map<string,string> newFieldValues;
+    6: optional map<string,string> oldFieldValues;
+    //map between constraintId-parentPkValue
+    7: optional map<string,string> parentsMap;
 }
 
 struct CRDTTransaction {
-    1: required list
+    1: required i32 id;
+    2: required string txnClock;
+    3: required list<CRDTOperation> opsList;
 }
-
 
 struct ThriftOperation {
     1: required i32 txnId;

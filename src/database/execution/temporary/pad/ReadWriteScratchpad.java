@@ -2,6 +2,7 @@ package database.execution.temporary.pad;
 
 
 import runtime.Transaction;
+import util.thrift.CRDTTransaction;
 
 import java.sql.SQLException;
 
@@ -15,9 +16,9 @@ import java.sql.SQLException;
  */
 public interface ReadWriteScratchpad extends ReadOnlyScratchpad
 {
-	public void startTransaction(Transaction txn) throws SQLException;
+	public void startTransaction(CRDTTransaction txn) throws SQLException;
 	public int getScratchpadId();
-	public Transaction getActiveTransaction();
+	public CRDTTransaction getActiveTransaction();
 	public void resetScratchpad() throws SQLException;
 	public int executeUpdate(String op) throws SQLException;
 }

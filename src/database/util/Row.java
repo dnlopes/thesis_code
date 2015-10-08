@@ -70,6 +70,11 @@ public class Row
 		return this.fieldValues.values();
 	}
 
+	public Map<String, FieldValue> getFieldsValuesMap()
+	{
+		return this.fieldValues;
+	}
+
 	public DatabaseTable getTable()
 	{
 		return this.table;

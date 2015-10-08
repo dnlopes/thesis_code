@@ -86,12 +86,10 @@ public final class PrimaryKeyValue
 		StringBuilder buffer = new StringBuilder(this.tableName);
 		buffer.append(":");
 
-		Iterator<FieldValue> it = values.values().iterator();
+		Iterator<FieldValue> it = this.values.values().iterator();
 		while(it.hasNext())
 		{
 			FieldValue fValue = it.next();
-			buffer.append(fValue.getDataField().getFieldName());
-			buffer.append("=");
 			buffer.append(fValue.getFormattedValue());
 			if(it.hasNext())
 				buffer.append(",");

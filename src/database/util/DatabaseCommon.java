@@ -44,24 +44,6 @@ public class DatabaseCommon
 		return pkValue;
 	}
 
-	public static Map<ForeignKeyConstraint, Row> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
-																SQLInterface sqlInterface) throws SQLException
-	{
-		Map<ForeignKeyConstraint, Row> parentByConstraint = new HashMap<>();
-
-		for(int i = 0; i < constraints.size(); i++)
-		{
-			ForeignKeyConstraint c = constraints.get(i);
-			Row parent = findParent(childRow, c, sqlInterface);
-			parentByConstraint.put(c, parent);
-
-			if(parent == null)
-				throw new SQLException("parent row not found. Foreing key violated");
-
-		}
-		return parentByConstraint;
-	}
-
 	public static Row getFullRow(ResultSet rs, DatabaseTable dbTable) throws SQLException
 	{
 		PrimaryKeyValue pkValue = getPrimaryKeyValue(rs, dbTable);
@@ -75,9 +57,6 @@ public class DatabaseCommon
 				objString = "NULL";
 			else
 				objString = fieldValue.toString();
-
-			//if(fieldValue == null)
-			//	RuntimeUtils.throwRunTimeException("field value is null", ExitCode.ERRORNOTNULL);
 
 			FieldValue fValue = new FieldValue(field, objString);
 			row.addFieldValue(fValue);
@@ -104,25 +83,6 @@ public class DatabaseCommon
 
 		DbUtils.closeQuietly(rs);
 		return childs;
-	}
-
-	private static Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface) throws SQLException
-	{
-		String query = QueryCreator.findParent(childRow, constraint);
-
-		ResultSet rs = sqlInterface.executeQuery(query);
-		if(!rs.isBeforeFirst())
-		{
-			DbUtils.closeQuietly(rs);
-			throw new SQLException("parent row not found. Foreing key violated");
-		}
-
-		rs.next();
-		DatabaseTable remoteTable = constraint.getParentTable();
-		PrimaryKeyValue parentPk = getPrimaryKeyValue(rs, remoteTable);
-		DbUtils.closeQuietly(rs);
-
-		return new Row(remoteTable, parentPk);
 	}
 
 	public static Date NOW()

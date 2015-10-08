@@ -11,8 +11,8 @@ import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.Transaction;
 import util.ExitCode;
+import util.thrift.CRDTTransaction;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -37,7 +37,7 @@ public class Sandbox
 	private boolean readMode;
 	private boolean transactionIsRunning;
 
-	private Transaction transaction;
+	private CRDTTransaction transaction;
 	private int txnCounter;
 
 	public Sandbox(int sandboxId, Connection dbConnection, CCJSqlParserManager parser)
@@ -82,7 +82,7 @@ public class Sandbox
 		return this.scratchpad.executeUpdate(op);
 	}
 
-	public Transaction getTransaction()
+	public CRDTTransaction getTransaction()
 	{
 		return this.transaction;
 	}
@@ -94,9 +94,10 @@ public class Sandbox
 
 	private void startTransaction() throws SQLException
 	{
-		this.transaction = new Transaction(this.txnCounter++);
-		this.transactionIsRunning = true;
+		this.transaction = new CRDTTransaction();
+		this.transaction.setId(this.txnCounter++);
 		this.scratchpad.startTransaction(this.transaction);
+		this.transactionIsRunning = true;
 	}
 
 	public void setReadOnlyMode(boolean readOnlyMode)
