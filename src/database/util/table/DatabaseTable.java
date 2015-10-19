@@ -42,6 +42,7 @@ public abstract class DatabaseTable
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
 	private Set<Constraint> tableInvarists;
+	private Map<String, Constraint> constraintsMap;
 	private PrimaryKey primaryKey;
 	private String insertColsString;
 	private Set<ForeignKeyConstraint> childTablesConstraints;
@@ -75,6 +76,7 @@ public abstract class DatabaseTable
 		this.hiddenFields = new HashMap<>();
 		this.normalFields = new HashMap<>();
 		this.tableInvarists = new LinkedHashSet<>();
+		this.constraintsMap = new HashMap<>();
 		this.containsAutoIncrementField = false;
 		this.isParentTable = false;
 
@@ -123,6 +125,10 @@ public abstract class DatabaseTable
 
 		this.insertColsString = buffer.toString();
 		this.generateSelectFieldsForQuery();
+
+
+		for(Constraint c : this.tableInvarists)
+			this.constraintsMap.put(c.getConstraintIdentifier(), c);
 	}
 
 	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
@@ -562,6 +568,11 @@ public abstract class DatabaseTable
 	public Set<Constraint> getTableInvarists()
 	{
 		return this.tableInvarists;
+	}
+
+	public Constraint getConstraint(String constraintId)
+	{
+		return this.constraintsMap.get(constraintId);
 	}
 
 	public String getInsertColsString()

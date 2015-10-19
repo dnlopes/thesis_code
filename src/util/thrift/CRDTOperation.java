@@ -42,9 +42,10 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
   private static final org.apache.thrift.protocol.TField PRIMARY_KEY_FIELD_DESC = new org.apache.thrift.protocol.TField("primaryKey", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField UNIQUE_PK_VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("uniquePkValue", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField OP_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("opType", org.apache.thrift.protocol.TType.I32, (short)4);
-  private static final org.apache.thrift.protocol.TField NEW_FIELD_VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("newFieldValues", org.apache.thrift.protocol.TType.MAP, (short)5);
-  private static final org.apache.thrift.protocol.TField OLD_FIELD_VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("oldFieldValues", org.apache.thrift.protocol.TType.MAP, (short)6);
-  private static final org.apache.thrift.protocol.TField PARENTS_MAP_FIELD_DESC = new org.apache.thrift.protocol.TField("parentsMap", org.apache.thrift.protocol.TType.MAP, (short)7);
+  private static final org.apache.thrift.protocol.TField PK_WHERE_CLAUSE_FIELD_DESC = new org.apache.thrift.protocol.TField("pkWhereClause", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField NEW_FIELD_VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("newFieldValues", org.apache.thrift.protocol.TType.MAP, (short)6);
+  private static final org.apache.thrift.protocol.TField OLD_FIELD_VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("oldFieldValues", org.apache.thrift.protocol.TType.MAP, (short)7);
+  private static final org.apache.thrift.protocol.TField PARENTS_MAP_FIELD_DESC = new org.apache.thrift.protocol.TField("parentsMap", org.apache.thrift.protocol.TType.MAP, (short)8);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -60,6 +61,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
    * @see CRDTOperationType
    */
   public CRDTOperationType opType; // required
+  public String pkWhereClause; // optional
   public Map<String,String> newFieldValues; // optional
   public Map<String,String> oldFieldValues; // optional
   public Map<String,String> parentsMap; // optional
@@ -74,9 +76,10 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
      * @see CRDTOperationType
      */
     OP_TYPE((short)4, "opType"),
-    NEW_FIELD_VALUES((short)5, "newFieldValues"),
-    OLD_FIELD_VALUES((short)6, "oldFieldValues"),
-    PARENTS_MAP((short)7, "parentsMap");
+    PK_WHERE_CLAUSE((short)5, "pkWhereClause"),
+    NEW_FIELD_VALUES((short)6, "newFieldValues"),
+    OLD_FIELD_VALUES((short)7, "oldFieldValues"),
+    PARENTS_MAP((short)8, "parentsMap");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -99,11 +102,13 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
           return UNIQUE_PK_VALUE;
         case 4: // OP_TYPE
           return OP_TYPE;
-        case 5: // NEW_FIELD_VALUES
+        case 5: // PK_WHERE_CLAUSE
+          return PK_WHERE_CLAUSE;
+        case 6: // NEW_FIELD_VALUES
           return NEW_FIELD_VALUES;
-        case 6: // OLD_FIELD_VALUES
+        case 7: // OLD_FIELD_VALUES
           return OLD_FIELD_VALUES;
-        case 7: // PARENTS_MAP
+        case 8: // PARENTS_MAP
           return PARENTS_MAP;
         default:
           return null;
@@ -145,7 +150,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
   }
 
   // isset id assignments
-  private static final _Fields optionals[] = {_Fields.NEW_FIELD_VALUES,_Fields.OLD_FIELD_VALUES,_Fields.PARENTS_MAP};
+  private static final _Fields optionals[] = {_Fields.PK_WHERE_CLAUSE,_Fields.NEW_FIELD_VALUES,_Fields.OLD_FIELD_VALUES,_Fields.PARENTS_MAP};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -157,6 +162,8 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.OP_TYPE, new org.apache.thrift.meta_data.FieldMetaData("opType", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CRDTOperationType.class)));
+    tmpMap.put(_Fields.PK_WHERE_CLAUSE, new org.apache.thrift.meta_data.FieldMetaData("pkWhereClause", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.NEW_FIELD_VALUES, new org.apache.thrift.meta_data.FieldMetaData("newFieldValues", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
@@ -205,6 +212,9 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
     if (other.isSetOpType()) {
       this.opType = other.opType;
     }
+    if (other.isSetPkWhereClause()) {
+      this.pkWhereClause = other.pkWhereClause;
+    }
     if (other.isSetNewFieldValues()) {
       Map<String,String> __this__newFieldValues = new HashMap<String,String>(other.newFieldValues);
       this.newFieldValues = __this__newFieldValues;
@@ -229,6 +239,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
     this.primaryKey = null;
     this.uniquePkValue = null;
     this.opType = null;
+    this.pkWhereClause = null;
     this.newFieldValues = null;
     this.oldFieldValues = null;
     this.parentsMap = null;
@@ -335,6 +346,30 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
   public void setOpTypeIsSet(boolean value) {
     if (!value) {
       this.opType = null;
+    }
+  }
+
+  public String getPkWhereClause() {
+    return this.pkWhereClause;
+  }
+
+  public CRDTOperation setPkWhereClause(String pkWhereClause) {
+    this.pkWhereClause = pkWhereClause;
+    return this;
+  }
+
+  public void unsetPkWhereClause() {
+    this.pkWhereClause = null;
+  }
+
+  /** Returns true if field pkWhereClause is set (has been assigned a value) and false otherwise */
+  public boolean isSetPkWhereClause() {
+    return this.pkWhereClause != null;
+  }
+
+  public void setPkWhereClauseIsSet(boolean value) {
+    if (!value) {
+      this.pkWhereClause = null;
     }
   }
 
@@ -477,6 +512,14 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
       }
       break;
 
+    case PK_WHERE_CLAUSE:
+      if (value == null) {
+        unsetPkWhereClause();
+      } else {
+        setPkWhereClause((String)value);
+      }
+      break;
+
     case NEW_FIELD_VALUES:
       if (value == null) {
         unsetNewFieldValues();
@@ -518,6 +561,9 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
     case OP_TYPE:
       return getOpType();
 
+    case PK_WHERE_CLAUSE:
+      return getPkWhereClause();
+
     case NEW_FIELD_VALUES:
       return getNewFieldValues();
 
@@ -546,6 +592,8 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
       return isSetUniquePkValue();
     case OP_TYPE:
       return isSetOpType();
+    case PK_WHERE_CLAUSE:
+      return isSetPkWhereClause();
     case NEW_FIELD_VALUES:
       return isSetNewFieldValues();
     case OLD_FIELD_VALUES:
@@ -605,6 +653,15 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
         return false;
     }
 
+    boolean this_present_pkWhereClause = true && this.isSetPkWhereClause();
+    boolean that_present_pkWhereClause = true && that.isSetPkWhereClause();
+    if (this_present_pkWhereClause || that_present_pkWhereClause) {
+      if (!(this_present_pkWhereClause && that_present_pkWhereClause))
+        return false;
+      if (!this.pkWhereClause.equals(that.pkWhereClause))
+        return false;
+    }
+
     boolean this_present_newFieldValues = true && this.isSetNewFieldValues();
     boolean that_present_newFieldValues = true && that.isSetNewFieldValues();
     if (this_present_newFieldValues || that_present_newFieldValues) {
@@ -658,6 +715,11 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
     list.add(present_opType);
     if (present_opType)
       list.add(opType.getValue());
+
+    boolean present_pkWhereClause = true && (isSetPkWhereClause());
+    list.add(present_pkWhereClause);
+    if (present_pkWhereClause)
+      list.add(pkWhereClause);
 
     boolean present_newFieldValues = true && (isSetNewFieldValues());
     list.add(present_newFieldValues);
@@ -721,6 +783,16 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
     }
     if (isSetOpType()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.opType, other.opType);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetPkWhereClause()).compareTo(other.isSetPkWhereClause());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetPkWhereClause()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pkWhereClause, other.pkWhereClause);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -806,6 +878,16 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
       sb.append(this.opType);
     }
     first = false;
+    if (isSetPkWhereClause()) {
+      if (!first) sb.append(", ");
+      sb.append("pkWhereClause:");
+      if (this.pkWhereClause == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.pkWhereClause);
+      }
+      first = false;
+    }
     if (isSetNewFieldValues()) {
       if (!first) sb.append(", ");
       sb.append("newFieldValues:");
@@ -923,7 +1005,15 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // NEW_FIELD_VALUES
+          case 5: // PK_WHERE_CLAUSE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.pkWhereClause = iprot.readString();
+              struct.setPkWhereClauseIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // NEW_FIELD_VALUES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map32 = iprot.readMapBegin();
@@ -943,7 +1033,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 6: // OLD_FIELD_VALUES
+          case 7: // OLD_FIELD_VALUES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map36 = iprot.readMapBegin();
@@ -963,7 +1053,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // PARENTS_MAP
+          case 8: // PARENTS_MAP
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map40 = iprot.readMapBegin();
@@ -1017,6 +1107,13 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
         oprot.writeFieldBegin(OP_TYPE_FIELD_DESC);
         oprot.writeI32(struct.opType.getValue());
         oprot.writeFieldEnd();
+      }
+      if (struct.pkWhereClause != null) {
+        if (struct.isSetPkWhereClause()) {
+          oprot.writeFieldBegin(PK_WHERE_CLAUSE_FIELD_DESC);
+          oprot.writeString(struct.pkWhereClause);
+          oprot.writeFieldEnd();
+        }
       }
       if (struct.newFieldValues != null) {
         if (struct.isSetNewFieldValues()) {
@@ -1085,16 +1182,22 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
       oprot.writeString(struct.uniquePkValue);
       oprot.writeI32(struct.opType.getValue());
       BitSet optionals = new BitSet();
-      if (struct.isSetNewFieldValues()) {
+      if (struct.isSetPkWhereClause()) {
         optionals.set(0);
       }
-      if (struct.isSetOldFieldValues()) {
+      if (struct.isSetNewFieldValues()) {
         optionals.set(1);
       }
-      if (struct.isSetParentsMap()) {
+      if (struct.isSetOldFieldValues()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetParentsMap()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetPkWhereClause()) {
+        oprot.writeString(struct.pkWhereClause);
+      }
       if (struct.isSetNewFieldValues()) {
         {
           oprot.writeI32(struct.newFieldValues.size());
@@ -1138,8 +1241,12 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
       struct.setUniquePkValueIsSet(true);
       struct.opType = util.thrift.CRDTOperationType.findByValue(iprot.readI32());
       struct.setOpTypeIsSet(true);
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
+        struct.pkWhereClause = iprot.readString();
+        struct.setPkWhereClauseIsSet(true);
+      }
+      if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TMap _map50 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
           struct.newFieldValues = new HashMap<String,String>(2*_map50.size);
@@ -1154,7 +1261,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
         }
         struct.setNewFieldValuesIsSet(true);
       }
-      if (incoming.get(1)) {
+      if (incoming.get(2)) {
         {
           org.apache.thrift.protocol.TMap _map54 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
           struct.oldFieldValues = new HashMap<String,String>(2*_map54.size);
@@ -1169,7 +1276,7 @@ public class CRDTOperation implements org.apache.thrift.TBase<CRDTOperation, CRD
         }
         struct.setOldFieldValuesIsSet(true);
       }
-      if (incoming.get(2)) {
+      if (incoming.get(3)) {
         {
           org.apache.thrift.protocol.TMap _map58 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
           struct.parentsMap = new HashMap<String,String>(2*_map58.size);

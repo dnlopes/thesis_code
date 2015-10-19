@@ -458,8 +458,9 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setUniquePkValue(pkValue.getUniqueValue());
 		crdtOperation.setPrimaryKey(pkValue.getValue());
 		crdtOperation.setNewFieldValues(fieldsMap);
+		crdtOperation.setPkWhereClause(insertedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
-		this.verifyParentsConsistency(crdtOperation, insertedRow);
+		this.verifyParentsConsistency(crdtOperation, insertedRow, true);
 
 		return result;
 	}
@@ -614,8 +615,9 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setPrimaryKey(updatedRow.getPrimaryKeyValue().getValue());
 		crdtOperation.setNewFieldValues(newValuesMap);
 		crdtOperation.setOldFieldValues(oldValuesMap);
+		crdtOperation.setPkWhereClause(updatedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
-		this.verifyParentsConsistency(crdtOperation, updatedRow);
+		this.verifyParentsConsistency(crdtOperation, updatedRow, false);
 
 		return affectedRows;
 	}
@@ -826,7 +828,7 @@ public class DBExecutorAgent implements IExecutorAgent
 				continue;
 
 			Row parent = findParent(childRow, c, sqlInterface);
-			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getValue());
+			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 			if(parent == null)
 				throw new SQLException("parent row not found. Foreing key violated");
@@ -839,11 +841,14 @@ public class DBExecutorAgent implements IExecutorAgent
 			return parentByConstraint;
 	}
 
-	private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row) throws SQLException
+	private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert) throws SQLException
 	{
 		if(this.fkConstraints.size() > 0) // its a child row
 		{
-			crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
+			if(isInsert)
+				crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
+			else
+				crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
 			Map<String, String> parentsByConstraint = findParentRows(row, this.fkConstraints,
 					this.sqlInterface);
 

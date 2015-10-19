@@ -143,9 +143,9 @@ public class CRDTTransaction implements org.apache.thrift.TBase<CRDTTransaction,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.REPLICATOR_ID, new org.apache.thrift.meta_data.FieldMetaData("replicatorId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.TXN_CLOCK, new org.apache.thrift.meta_data.FieldMetaData("txnClock", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.TXN_CLOCK, new org.apache.thrift.meta_data.FieldMetaData("txnClock", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.OPS_LIST, new org.apache.thrift.meta_data.FieldMetaData("opsList", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.OPS_LIST, new org.apache.thrift.meta_data.FieldMetaData("opsList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CRDTOperation.class))));
     tmpMap.put(_Fields.REQUEST_TO_COORDINATOR, new org.apache.thrift.meta_data.FieldMetaData("requestToCoordinator", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
@@ -717,12 +717,6 @@ public class CRDTTransaction implements org.apache.thrift.TBase<CRDTTransaction,
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // alas, we cannot check 'id' because it's a primitive and you chose the non-beans generator.
-    if (txnClock == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'txnClock' was not present! Struct: " + toString());
-    }
-    if (opsList == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'opsList' was not present! Struct: " + toString());
-    }
     // check for sub-struct validity
     if (requestToCoordinator != null) {
       requestToCoordinator.validate();
@@ -899,27 +893,37 @@ public class CRDTTransaction implements org.apache.thrift.TBase<CRDTTransaction,
     public void write(org.apache.thrift.protocol.TProtocol prot, CRDTTransaction struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeI32(struct.id);
-      oprot.writeString(struct.txnClock);
-      {
-        oprot.writeI32(struct.opsList.size());
-        for (CRDTOperation _iter66 : struct.opsList)
-        {
-          _iter66.write(oprot);
-        }
-      }
       BitSet optionals = new BitSet();
       if (struct.isSetReplicatorId()) {
         optionals.set(0);
       }
-      if (struct.isSetRequestToCoordinator()) {
+      if (struct.isSetTxnClock()) {
         optionals.set(1);
       }
-      if (struct.isSetCompiledTxn()) {
+      if (struct.isSetOpsList()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetRequestToCoordinator()) {
+        optionals.set(3);
+      }
+      if (struct.isSetCompiledTxn()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetReplicatorId()) {
         oprot.writeI32(struct.replicatorId);
+      }
+      if (struct.isSetTxnClock()) {
+        oprot.writeString(struct.txnClock);
+      }
+      if (struct.isSetOpsList()) {
+        {
+          oprot.writeI32(struct.opsList.size());
+          for (CRDTOperation _iter66 : struct.opsList)
+          {
+            _iter66.write(oprot);
+          }
+        }
       }
       if (struct.isSetRequestToCoordinator()) {
         struct.requestToCoordinator.write(oprot);
@@ -934,31 +938,35 @@ public class CRDTTransaction implements org.apache.thrift.TBase<CRDTTransaction,
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.id = iprot.readI32();
       struct.setIdIsSet(true);
-      struct.txnClock = iprot.readString();
-      struct.setTxnClockIsSet(true);
-      {
-        org.apache.thrift.protocol.TList _list67 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.opsList = new ArrayList<CRDTOperation>(_list67.size);
-        CRDTOperation _elem68;
-        for (int _i69 = 0; _i69 < _list67.size; ++_i69)
-        {
-          _elem68 = new CRDTOperation();
-          _elem68.read(iprot);
-          struct.opsList.add(_elem68);
-        }
-      }
-      struct.setOpsListIsSet(true);
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.replicatorId = iprot.readI32();
         struct.setReplicatorIdIsSet(true);
       }
       if (incoming.get(1)) {
+        struct.txnClock = iprot.readString();
+        struct.setTxnClockIsSet(true);
+      }
+      if (incoming.get(2)) {
+        {
+          org.apache.thrift.protocol.TList _list67 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.opsList = new ArrayList<CRDTOperation>(_list67.size);
+          CRDTOperation _elem68;
+          for (int _i69 = 0; _i69 < _list67.size; ++_i69)
+          {
+            _elem68 = new CRDTOperation();
+            _elem68.read(iprot);
+            struct.opsList.add(_elem68);
+          }
+        }
+        struct.setOpsListIsSet(true);
+      }
+      if (incoming.get(3)) {
         struct.requestToCoordinator = new CoordinatorRequest();
         struct.requestToCoordinator.read(iprot);
         struct.setRequestToCoordinatorIsSet(true);
       }
-      if (incoming.get(2)) {
+      if (incoming.get(4)) {
         struct.compiledTxn = new CRDTCompiledTransaction();
         struct.compiledTxn.read(iprot);
         struct.setCompiledTxnIsSet(true);
