@@ -346,15 +346,17 @@ public class DBExecutorAgent implements IExecutorAgent
 	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTOperation crdtOperation)
 			throws SQLException
 	{
-		if(statement instanceof Insert)
-			return executeTempOpInsert((Insert) statement, crdtOperation);
-		else if(statement instanceof Delete)
+		if(statement instanceof Delete)
 			return executeTempOpDelete((Delete) statement, crdtOperation);
-		else if(statement instanceof Update)
-			return executeTempOpUpdate((Update) statement, crdtOperation);
+
 		else
 		{
-			throw new SQLException("update statement not found");
+			if(statement instanceof Insert)
+				return executeTempOpInsert((Insert) statement, crdtOperation);
+			else if(statement instanceof Update)
+				return executeTempOpUpdate((Update) statement, crdtOperation);
+			else
+				throw new SQLException("update statement not found");
 		}
 	}
 
@@ -457,19 +459,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setPrimaryKey(pkValue.getValue());
 		crdtOperation.setNewFieldValues(fieldsMap);
 
-		if(this.fkConstraints.size() > 0) // its a child row
-		{
-			crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
-
-			Map<String, String> parentsByConstraint = findParentRows(insertedRow, this.fkConstraints,
-					this.sqlInterface);
-			crdtOperation.setParentsMap(parentsByConstraint);
-
-		} else
-			// its a "neutral" or "parent" row
-			crdtOperation.setOpType(CRDTOperationType.INSERT);
-
-		this.recordedPkValues.put(insertedRow.getPrimaryKeyValue().getUniqueValue(), pkValue);
+		this.verifyParentsConsistency(crdtOperation, insertedRow);
 
 		return result;
 	}
@@ -578,7 +568,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			if(field.isHiddenField())
 				continue;
 
-			//FIXME: currently, we do not allow updates on primary keys, foreign keys and immutable fields
+			// currently, we do not allow updates on primary keys, foreign keys and immutable fields
 			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
 				RuntimeUtils.throwRunTimeException(
 						"trying to modify a primary key, a foreign key or an " + "immutable field",
@@ -625,15 +615,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setNewFieldValues(newValuesMap);
 		crdtOperation.setOldFieldValues(oldValuesMap);
 
-		if(this.fkConstraints.size() > 0) // its a child row
-		{
-			Map<String, String> parentsByConstraint = findParentRows(updatedRow, this.fkConstraints, this
-					.sqlInterface);
-
-			crdtOperation.setParentsMap(parentsByConstraint);
-			crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
-		} else
-			crdtOperation.setOpType(CRDTOperationType.UPDATE);
+		this.verifyParentsConsistency(crdtOperation, updatedRow);
 
 		return affectedRows;
 	}
@@ -839,15 +821,38 @@ public class DBExecutorAgent implements IExecutorAgent
 		for(int i = 0; i < constraints.size(); i++)
 		{
 			ForeignKeyConstraint c = constraints.get(i);
+
+			if(!c.requiresParentConsistency())
+				continue;
+
 			Row parent = findParent(childRow, c, sqlInterface);
 			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getValue());
 
 			if(parent == null)
 				throw new SQLException("parent row not found. Foreing key violated");
-
 		}
 
-		return parentByConstraint;
+		//return null in the case where app never deletes any parent
+		if(parentByConstraint.size() == 0)
+			return null;
+		else
+			return parentByConstraint;
+	}
+
+	private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row) throws SQLException
+	{
+		if(this.fkConstraints.size() > 0) // its a child row
+		{
+			crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
+			Map<String, String> parentsByConstraint = findParentRows(row, this.fkConstraints,
+					this.sqlInterface);
+
+			if(parentsByConstraint != null)
+				crdtOperation.setParentsMap(parentsByConstraint);
+
+		} else
+			// its a "neutral" or "parent" row
+			crdtOperation.setOpType(CRDTOperationType.INSERT);
 	}
 
 	private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface) throws

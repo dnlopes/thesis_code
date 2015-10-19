@@ -7,6 +7,7 @@ import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.DatabaseDefaults;
+import util.thrift.CRDTCompiledTransaction;
 import util.thrift.ThriftShadowTransaction;
 
 import java.sql.Connection;
@@ -37,20 +38,20 @@ public class DBCommitterAgent implements DBCommitter
 	}
 
 	@Override
-	public boolean commitShadowTransaction(ThriftShadowTransaction op)
+	public boolean commitShadowTransaction(CRDTCompiledTransaction txn)
 	{
 		TXN_COUNT++;
 
 		if(TXN_COUNT % Defaults.LOG_FREQUENCY == 0)
 			if(LOG.isInfoEnabled())
-				LOG.info("txn {} from replicator {} committing on main storage ", op.getTxnId(), op.getReplicatorId());
+				LOG.info("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
 
 		if(LOG.isTraceEnabled())
-			LOG.trace("commiting op from replicator {}", op.getReplicatorId());
+			LOG.trace("commiting op from replicator {}", txn.getReplicatorId());
 
 		for(int i = 0; i < Defaults.NUMBER_OF_RETRIES; i++)
 		{
-			boolean commitDecision = this.tryCommit(op);
+			boolean commitDecision = this.tryCommit(txn);
 
 			if(commitDecision)
 				return true;
@@ -59,7 +60,7 @@ public class DBCommitterAgent implements DBCommitter
 		return false;
 	}
 
-	private boolean tryCommit(ThriftShadowTransaction op)
+	private boolean tryCommit(CRDTCompiledTransaction op)
 	{
 		Statement stat = null;
 		boolean success = false;
@@ -67,13 +68,12 @@ public class DBCommitterAgent implements DBCommitter
 		try
 		{
 			stat = this.connection.createStatement();
-			for(String statement : op.getOperations().values())
+			for(String statement : op.getOpsList())
 			{
-				String rebuiltStatement = this.replacePlaceholders(op, statement);
 				if(LOG.isTraceEnabled())
-					LOG.trace("executing on main storage: {}", rebuiltStatement);
+					LOG.trace("executing on main storage: {}", statement);
 
-				stat.addBatch(rebuiltStatement);
+				stat.addBatch(statement);
 			}
 
 			stat.executeBatch();
@@ -81,17 +81,17 @@ public class DBCommitterAgent implements DBCommitter
 			success = true;
 
 			if(LOG.isTraceEnabled())
-				LOG.trace("txn {} committed", op.getTxnId());
+				LOG.trace("txn {} committed", op.getId());
 
 		} catch(SQLException e)
 		{
 			try
 			{
 				DbUtils.rollback(this.connection);
-				LOG.warn("txn {} rollback ({})", op.getTxnId(), e.getMessage());
+				LOG.warn("txn {} rollback ({})", op.getId(), e.getMessage());
 			} catch(SQLException e1)
 			{
-				LOG.warn("failed to rollback txn {}", op.getTxnId(), e1);
+				LOG.warn("failed to rollback txn {}", op.getId(), e1);
 			}
 		} finally
 		{

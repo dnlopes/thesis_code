@@ -4,6 +4,7 @@ package database.constraints.fk;
 import database.constraints.AbstractConstraint;
 import database.constraints.ConstraintType;
 import database.util.field.DataField;
+import database.util.table.CRDTTableType;
 import database.util.table.DatabaseTable;
 
 import java.util.ArrayList;
@@ -91,6 +92,11 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 	public DatabaseTable getChildTable()
 	{
 		return this.childTable;
+	}
+
+	public boolean requiresParentConsistency()
+	{
+		return this.parentTable.getTableType() == CRDTTableType.ARSETTABLE;
 	}
 
 }

@@ -31,7 +31,7 @@ public class ArsetTable extends DatabaseTable
 	 */
 	public ArsetTable(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.ARSETTABLE, dataFields, policy);
+		super(tableName, CRDTTableType.ARSETTABLE, dataFields, policy);
 	}
 
 	/**

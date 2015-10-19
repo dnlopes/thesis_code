@@ -1,10 +1,12 @@
-package nodes.replicator;
+package nodes.replicator.deliver;
 
 
+import nodes.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
 import util.Configuration;
+import util.thrift.CRDTCompiledTransaction;
 import util.thrift.ThriftShadowTransaction;
 
 import java.util.*;
@@ -17,17 +19,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by dnlopes on 23/05/15.
  */
-public class CausalDeliver implements DeliverAgent
+public class CausalDeliverAgent implements DeliverAgent
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliver.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliverAgent.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
 
-	private final Map<Integer, Queue<ThriftShadowTransaction>> queues;
+	private final Map<Integer, Queue<CRDTCompiledTransaction>> queues;
 	private final Replicator replicator;
 	private final ScheduledExecutorService scheduleService;
 
-	public CausalDeliver(Replicator replicator)
+	public CausalDeliverAgent(Replicator replicator)
 	{
 		this.replicator = replicator;
 		this.queues = new HashMap<>();
@@ -46,31 +48,34 @@ public class CausalDeliver implements DeliverAgent
 
 		for(int i = 0; i < replicatorsNumber; i++)
 		{
-			Queue q = new PriorityBlockingQueue(10, new LogicalClockComparator(i));
+
+			Queue q = new PriorityBlockingQueue(100, new LogicalClockComparator(i));
 			this.queues.put(i + 1, q); // i+1 because replicator id starts at 1 but clock index starts at 0
 		}
 	}
 
 	@Override
-	public void dispatchOperation(ThriftShadowTransaction op)
+	public void deliverTransaction(CRDTCompiledTransaction op)
 	{
-		if(this.canDeliver(op))
+		if(canDeliver(op))
 			replicator.deliverShadowTransaction(op);
 		else
-			this.addToQueue(op);
+			addToQueue(op);
 	}
 
-	private void addToQueue(ThriftShadowTransaction op)
+	private void addToQueue(CRDTCompiledTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
-		if(LOG.isDebugEnabled())
-			LOG.debug("adding op with clock {} to queue", op.getClock());
+
+		if(LOG.isTraceEnabled())
+			LOG.trace("adding op with clock {} to queue", op.getTxnClock());
+
 		this.queues.get(replicatorId).add(op);
 	}
 
-	private boolean canDeliver(ThriftShadowTransaction op)
+	private boolean canDeliver(CRDTCompiledTransaction op)
 	{
-		LogicalClock opClock = new LogicalClock(op.getClock());
+		LogicalClock opClock = new LogicalClock(op.getTxnClock());
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
@@ -111,9 +116,9 @@ public class CausalDeliver implements DeliverAgent
 
 			do
 			{
-				for(Queue<ThriftShadowTransaction> txnQueue : queues.values())
+				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
 				{
-					ThriftShadowTransaction txn = txnQueue.poll();
+					CRDTCompiledTransaction txn = txnQueue.poll();
 
 					if(txn == null)
 						continue;

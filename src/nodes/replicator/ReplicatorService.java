@@ -1,6 +1,10 @@
 package nodes.replicator;
 
 
+import nodes.replicator.dispatcher.DispatcherAgent;
+import nodes.replicator.dispatcher.AggregatorDispatcher;
+import nodes.replicator.deliver.CausalDeliverAgent;
+import nodes.replicator.deliver.DeliverAgent;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,57 +23,61 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorService.class);
 
 	private Replicator replicator;
-	private IReplicatorNetwork network;
 	private DeliverAgent deliver;
+	private DispatcherAgent dispatcher;
 
 	public ReplicatorService(Replicator replicator, IReplicatorNetwork network)
 	{
 		this.replicator = replicator;
-		this.network = network;
-		this.deliver = new CausalDeliver(this.replicator);
+		this.deliver = new CausalDeliverAgent(this.replicator);
+		this.dispatcher = new AggregatorDispatcher(this.replicator.getNetworkInterface());
 	}
 
 	@Override
-	public boolean commitOperation(ThriftShadowTransaction shadowTransaction) throws TException
+	public boolean commitOperation(CRDTTransaction transaction) throws TException
 	{
-		//if we must coordinate then do it here. this is a blocking call
-		if(shadowTransaction.isSetRequestToCoordinator())
-			if(!this.coordinateOperation(shadowTransaction))
-				return false;
-
-		shadowTransaction.setReplicatorId(this.replicator.getConfig().getId());
-
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
+
+		transaction.setReplicatorId(this.replicator.getConfig().getId());
+		transaction.setTxnClock(newClock.getClockValue());
 
 		if(LOG.isTraceEnabled())
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
-		shadowTransaction.setClock(newClock.getClockValue());
+		//if we must coordinate then do it here. this is a blocking call
+		if(transaction.isSetRequestToCoordinator())
+			if(!this.coordinateOperation(transaction))
+				return false;
+
+		CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
+		transaction.setCompiledTxn(compiledTxn);
 
 		// just deliver the operation to own replicator and wait for commit decision.
-		// if it suceeds then async deliver the operation to other replicators
-		boolean localCommit;
-		localCommit = this.replicator.commitOperation(shadowTransaction);
+		// if it suceeds then dispatch this transaction to the dispatcher agent for later propagation
+		boolean localCommit = this.replicator.commitOperation(compiledTxn);
 
 		if(localCommit)
-			network.sendOperationToRemote(shadowTransaction);
+			this.dispatcher.dispatchTransaction(transaction);
 
 		return localCommit;
 	}
 
 	@Override
-	public void commitOperationAsync(ThriftShadowTransaction shadowTransaction) throws TException
+	public void commitOperationAsync(CRDTCompiledTransaction txn) throws TException
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("received txn from other replicator");
 
-		this.deliver.dispatchOperation(shadowTransaction);
+		this.deliver.deliverTransaction(txn);
 	}
 
-	private boolean coordinateOperation(ThriftShadowTransaction shadowTransaction)
+	private boolean coordinateOperation(CRDTTransaction txn)
 	{
-		CoordinatorRequest request = shadowTransaction.getRequestToCoordinator();
+		//TODO implementation
+
+		/*
+		CoordinatorRequest request = txn.getRequestToCoordinator();
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(!response.isSuccess())
@@ -82,14 +90,14 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		List<RequestValue> requestValues = response.getRequestedValues();
 
 		if(requestValues != null && requestValues.size() > 0)
-			this.updateShadowTransaction(shadowTransaction, requestValues);
+			this.updateShadowTransaction(txn, requestValues);
 
+		return true;    */
 		return true;
 	}
 
 	private void updateShadowTransaction(ThriftShadowTransaction shadowTransaction, List<RequestValue> reqValues)
 	{
-		//TODO: is this correct?
 		for(RequestValue reqValue : reqValues)
 		{
 			String newValue = reqValue.getRequestedValue();

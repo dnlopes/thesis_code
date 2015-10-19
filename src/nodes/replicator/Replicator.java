@@ -14,7 +14,7 @@ import util.ExitCode;
 import util.ObjectPool;
 import util.Configuration;
 import util.defaults.ReplicatorDefaults;
-import util.thrift.ThriftShadowTransaction;
+import util.thrift.CRDTCompiledTransaction;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,7 +74,7 @@ public class Replicator extends AbstractNode
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public boolean commitOperation(ThriftShadowTransaction shadowTransaction)
+	public boolean commitOperation(CRDTCompiledTransaction txn)
 	{
 		DBCommitter pad = this.agentsPool.borrowObject();
 
@@ -84,7 +84,7 @@ public class Replicator extends AbstractNode
 			pad = new DBCommitterAgent(this.config);
 		}
 
-		boolean commitDecision = pad.commitShadowTransaction(shadowTransaction);
+		boolean commitDecision = pad.commitShadowTransaction(txn);
 
 		if(!commitDecision)
 			LOG.warn("something went very wrong. State will not converge because operation failed to commit");
@@ -115,10 +115,10 @@ public class Replicator extends AbstractNode
 		return newClock;
 	}
 
-	public void deliverShadowTransaction(ThriftShadowTransaction shadowTransaction)
+	public void deliverShadowTransaction(CRDTCompiledTransaction txn)
 	{
-		this.mergeWithRemoteClock(new LogicalClock(shadowTransaction.getClock()));
-		this.commitOperation(shadowTransaction);
+		this.mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
+		this.commitOperation(txn);
 	}
 
 	public LogicalClock getCurrentClock()

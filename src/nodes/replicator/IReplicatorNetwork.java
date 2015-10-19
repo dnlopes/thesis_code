@@ -1,5 +1,6 @@
 package nodes.replicator;
 
+import util.thrift.CRDTCompiledTransaction;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.ThriftShadowTransaction;
@@ -13,6 +14,6 @@ import util.thrift.ThriftShadowTransaction;
  */
 public interface IReplicatorNetwork
 {
-	public void sendOperationToRemote(ThriftShadowTransaction thriftOperation);
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
+	void sendOperationToRemote(CRDTCompiledTransaction transaction);
+	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
 }

@@ -38,7 +38,7 @@ public abstract class DatabaseTable
 	private ExecutionPolicy executionPolicy;
 	private boolean isParentTable;
 	private String name;
-	private CrdtTableType tag;
+	private CRDTTableType tag;
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
 	private Set<Constraint> tableInvarists;
@@ -61,7 +61,7 @@ public abstract class DatabaseTable
 
 	protected static LWWField timestampLWW;
 
-	protected DatabaseTable(String name, CrdtTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
+	protected DatabaseTable(String name, CRDTTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
 							ExecutionPolicy policy)
 	{
 		this.executionPolicy = policy;
@@ -78,7 +78,7 @@ public abstract class DatabaseTable
 		this.containsAutoIncrementField = false;
 		this.isParentTable = false;
 
-		if(tableType != CrdtTableType.NONCRDTTABLE)
+		if(tableType != CRDTTableType.NONCRDTTABLE)
 			this.addHiddenFields();
 
 		for(DataField entry : this.fieldsMap.values())
@@ -182,7 +182,7 @@ public abstract class DatabaseTable
 	 *
 	 * @return the _ crd t_ table_ type
 	 */
-	public CrdtTableType getTableType()
+	public CRDTTableType getTableType()
 	{
 		return this.tag;
 	}

@@ -29,7 +29,7 @@ public class AusetTable extends DatabaseTable
 	 */
 	public AusetTable(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.AUSETTABLE, dataFields, policy);
+		super(tableName, CRDTTableType.AUSETTABLE, dataFields, policy);
 	}
 
 	/**

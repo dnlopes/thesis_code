@@ -67,7 +67,7 @@ public class CreateStatementParser
 		{
 			String tableTitleStr = get_Table_Title_String(schemaStr);
 			String bodyStr = get_Table_Body_String(schemaStr);
-			CrdtTableType tableType = get_Table_Type(tableTitleStr);
+			CRDTTableType tableType = get_Table_Type(tableTitleStr);
 			ExecutionPolicy tableExecutionPolicy = getTableExecutionPolicy(tableTitleStr);
 			String tableName = get_Table_Name(tableTitleStr);
 			//create base fields here
@@ -183,14 +183,14 @@ public class CreateStatementParser
 	 *
 	 * @return the _ table_ type
 	 */
-	public static CrdtTableType get_Table_Type(String titleStr)
+	public static CRDTTableType get_Table_Type(String titleStr)
 	{
 
 		String annotStr = get_Table_Type_Annotation(titleStr);
 		if(annotStr.equals(""))
-			return CrdtTableType.NONCRDTTABLE;
+			return CRDTTableType.NONCRDTTABLE;
 		else
-			return CrdtTableType.valueOf(annotStr);
+			return CRDTTableType.valueOf(annotStr);
 
 	}
 

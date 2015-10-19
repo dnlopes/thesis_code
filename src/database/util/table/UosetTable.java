@@ -29,7 +29,7 @@ public class UosetTable extends DatabaseTable
 	 */
 	public UosetTable(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.UOSETTABLE, dataFields, policy);
+		super(tableName, CRDTTableType.UOSETTABLE, dataFields, policy);
 	}
 
 	/**

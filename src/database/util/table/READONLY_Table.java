@@ -29,7 +29,7 @@ public class READONLY_Table extends DatabaseTable
 	 */
 	public READONLY_Table(String tableName, LinkedHashMap<String, DataField> dataFields, ExecutionPolicy policy)
 	{
-		super(tableName, CrdtTableType.NONCRDTTABLE, dataFields, policy);
+		super(tableName, CRDTTableType.NONCRDTTABLE, dataFields, policy);
 		for(Map.Entry<String, DataField> entry : dataFields.entrySet())
 		{
 			DataField df = entry.getValue();

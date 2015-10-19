@@ -1,7 +1,7 @@
 package database.execution.main;
 
 
-import util.thrift.ThriftShadowTransaction;
+import util.thrift.CRDTCompiledTransaction;
 
 
 /**
@@ -16,12 +16,12 @@ public interface DBCommitter
 	 * @param op
 	 * @return true if commit succeeds
 	 */
-	public boolean commitShadowTransaction(ThriftShadowTransaction op);
+	boolean commitShadowTransaction(CRDTCompiledTransaction txn);
 
 
-	public interface Defaults
+	interface Defaults
 	{
-		public static final int NUMBER_OF_RETRIES = 10;
-		public static final int LOG_FREQUENCY = 150;
+		int NUMBER_OF_RETRIES = 10;
+		int LOG_FREQUENCY = 150;
 	}
 }

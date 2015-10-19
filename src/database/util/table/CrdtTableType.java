@@ -3,12 +3,14 @@ package database.util.table;
 /**
  * The Enum CrdtTableType.
  */
-public enum CrdtTableType {
+public enum CRDTTableType
+{
 	
 	/** The noncrdttable. */
 	NONCRDTTABLE, 
  
 	/** The aosettable. */
+	// append only set
 	AOSETTABLE,
 	
 	/** The ausettable. append unique item and plus update*/

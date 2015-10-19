@@ -2,7 +2,7 @@ package nodes.proxy;
 
 
 import nodes.NodeConfig;
-import util.thrift.ThriftShadowTransaction;
+import util.thrift.CRDTTransaction;
 
 
 /**
@@ -14,5 +14,5 @@ import util.thrift.ThriftShadowTransaction;
 public interface IProxyNetwork
 {
 
-	public boolean commitOperation(ThriftShadowTransaction shadowTransaction, NodeConfig node);
+	boolean commitOperation(CRDTTransaction shadowTransaction, NodeConfig node);
 }

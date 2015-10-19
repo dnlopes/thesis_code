@@ -37,7 +37,7 @@ public class PoolProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	}
 
 	@Override
-	public boolean commitOperation(ThriftShadowTransaction shadowTransaction, NodeConfig node)
+	public boolean commitOperation(CRDTTransaction shadowTransaction, NodeConfig node)
 	{
 
 		ReplicatorRPC.Client connection = this.replicatorConnectionPool.borrowObject();

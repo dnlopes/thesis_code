@@ -8,13 +8,10 @@ import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.Transaction;
-import runtime.operation.ShadowOperation;
 import runtime.transformer.DeterministicQuery;
 import util.ExitCode;
 import util.thrift.CRDTTransaction;
 import util.thrift.CoordinatorRequest;
-import util.thrift.ThriftShadowTransaction;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -81,19 +78,10 @@ public class BasicProxy implements Proxy
 
 		CRDTTransaction transaction = this.sandbox.getTransaction();
 
-		CoordinatorRequest request = this.createCoordinatorRequest(transaction);
-
-		//ThriftShadowTransaction shadowTransaction = RuntimeUtils.encodeShadowTransaction(transaction);
-
-		/*if(request.isRequiresCoordination())
-			shadowTransaction.setRequestToCoordinator(request);
-
-		boolean commitDecision = this.network.commitOperation(shadowTransaction,
+		boolean commitDecision = this.network.commitOperation(transaction,
 				this.proxyConfig.getReplicatorConfig());
-                                              */
-		this.sandbox.endTransaction();
 
-		boolean commitDecision = true;
+		this.sandbox.endTransaction();
 
 		if(!commitDecision)
 			throw new SQLException("commit on main storage failed");

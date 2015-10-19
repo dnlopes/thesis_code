@@ -60,8 +60,18 @@ struct CRDTOperation {
 
 struct CRDTTransaction {
     1: required i32 id;
-    2: required string txnClock;
-    3: required list<CRDTOperation> opsList;
+    2: i32 replicatorId;
+    3: required string txnClock;
+    4: required list<CRDTOperation> opsList;
+    5: optional CoordinatorRequest requestToCoordinator;
+    6: optional CRDTCompiledTransaction compiledTxn;
+}
+
+struct CRDTCompiledTransaction {
+    1: required i32 id;
+    2: i32 replicatorId;
+    3: required string txnClock;
+    4: required list<string> opsList;
 }
 
 struct ThriftOperation {
@@ -81,8 +91,8 @@ struct ThriftShadowTransaction {
 }
 
 service ReplicatorRPC {
- bool commitOperation(1:ThriftShadowTransaction op);
- oneway void commitOperationAsync(1:ThriftShadowTransaction op);
+ bool commitOperation(1:CRDTTransaction op);
+ oneway void commitOperationAsync(1:CRDTCompiledTransaction transaction);
 }
 
 
