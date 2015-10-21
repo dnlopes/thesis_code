@@ -1,7 +1,7 @@
 package nodes.replicator;
 
 
-import nodes.replicator.dispatcher.BasicDispatcher;
+import nodes.replicator.dispatcher.BasicBatchDispatcher;
 import nodes.replicator.dispatcher.DispatcherAgent;
 import nodes.replicator.deliver.CausalDeliverAgent;
 import nodes.replicator.deliver.DeliverAgent;
@@ -30,20 +30,37 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		this.replicator = replicator;
 		this.deliver = new CausalDeliverAgent(this.replicator);
-		this.dispatcher = new BasicDispatcher(this.replicator.getNetworkInterface());
+		this.dispatcher = new BasicBatchDispatcher(this.replicator.getNetworkInterface());
 	}
 
 	@Override
 	public boolean commitOperation(CRDTTransaction transaction) throws TException
 	{
+		return this.handleCommitOperation(transaction);
+	}
+
+	@Override
+	public void sendToRemote(CRDTCompiledTransaction txn) throws TException
+	{
+		this.handleReceiveOperation(txn);
+	}
+
+	@Override
+	public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws TException
+	{
+		this.handleTransactionBatch(batch);
+	}
+
+	private boolean handleCommitOperation(CRDTTransaction transaction)
+	{
 		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
 
-		transaction.setReplicatorId(this.replicator.getConfig().getId());
-		transaction.setTxnClock(newClock.getClockValue());
-
 		if(LOG.isTraceEnabled())
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
+
+		transaction.setReplicatorId(this.replicator.getConfig().getId());
+		transaction.setTxnClock(newClock.getClockValue());
 
 		//if we must coordinate then do it here. this is a blocking call
 		if(transaction.isSetRequestToCoordinator())
@@ -53,8 +70,8 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
 		transaction.setCompiledTxn(compiledTxn);
 
-		// just deliver the operation to own replicator and wait for commit decision.
-		// if it suceeds then dispatch this transaction to the dispatcher agent for later propagation
+		// wait for commit decision
+		// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
 		boolean localCommit = this.replicator.commitOperation(compiledTxn);
 
 		if(localCommit)
@@ -63,13 +80,21 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		return localCommit;
 	}
 
-	@Override
-	public void sendToRemote(CRDTCompiledTransaction txn) throws TException
+	private void handleReceiveOperation(CRDTCompiledTransaction op)
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("received txn from other replicator");
 
-		this.deliver.deliverTransaction(txn);
+		this.deliver.deliverTransaction(op);
+	}
+
+	private void handleTransactionBatch(List<CRDTCompiledTransaction> batch)
+	{
+		if(LOG.isTraceEnabled())
+			LOG.trace("received batch from other replicator");
+
+		for(CRDTCompiledTransaction txn : batch)
+			this.deliver.deliverTransaction(txn);
 	}
 
 	private boolean coordinateOperation(CRDTTransaction txn)

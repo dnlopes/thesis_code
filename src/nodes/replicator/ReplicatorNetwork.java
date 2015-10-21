@@ -21,6 +21,7 @@ import util.zookeeper.EZKCoordinationClient;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -77,7 +78,30 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				client.sendToRemote(transaction);
 			} catch(TException e)
 			{
-				LOG.warn("failed to send shadow transaction to replicator {}", config.getId(), e);
+				LOG.warn("failed to send crdt transaction to replicator {}", config.getId(), e);
+			} finally
+			{
+				newTransport.close();
+			}
+		}
+	}
+
+	@Override
+	public void sendBatchToRemote(List<CRDTCompiledTransaction> transactions)
+	{
+		for(NodeConfig config : this.replicatorsConfigs.values())
+		{
+			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+
+			try
+			{
+				newTransport.open();
+				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
+				client.sendBatchToRemote(transactions);
+			} catch(TException e)
+			{
+				LOG.warn("failed to send batch to replicator {}", config.getId(), e);
 			} finally
 			{
 				newTransport.close();

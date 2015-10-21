@@ -6,27 +6,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.thrift.CRDTCompiledTransaction;
 import util.thrift.CRDTTransaction;
+import util.thrift.ThriftUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 
 /**
- * Created by dnlopes on 08/10/15.
- * AggregatorDispatcher caches incoming transactions and merges some of them when possible (for instance 2
- * consecutives updates to the same @LWW field). Periodically, transactions are sent as a batch to remote replicators
+ * Created by dnlopes on 21/10/15.
+ * A BasicBatchDisptacher simply groups transactions in a batch and, periodically, sends the batch to remote replicators
  */
-public class AggregatorDispatcher implements DispatcherAgent
+public class BasicBatchDispatcher implements DispatcherAgent
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(AggregatorDispatcher.class);
+	
+	private static final Logger LOG = LoggerFactory.getLogger(BasicBatchDispatcher.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
 	private Queue<CRDTTransaction> pendingTransactions;
 
-	public AggregatorDispatcher(IReplicatorNetwork networkInterface)
+	public BasicBatchDispatcher(IReplicatorNetwork networkInterface)
 	{
 		this.networkInterface = networkInterface;
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
@@ -49,11 +51,6 @@ public class AggregatorDispatcher implements DispatcherAgent
 		@Override
 		public void run()
 		{
-			//TODO implement merge
-			// 1) iterate over pending
-			// 2) merge
-			// 3) compile
-			// 4) send
 			Queue<CRDTTransaction> snapshot = pendingTransactions;
 			pendingTransactions = new PriorityBlockingQueue<>();
 
@@ -64,8 +61,12 @@ public class AggregatorDispatcher implements DispatcherAgent
 
 		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTTransaction> transactions)
 		{
-			return null;
+			List<CRDTCompiledTransaction> batchList = new ArrayList<>();
+
+			for(CRDTTransaction txn : transactions)
+				batchList.add(ThriftUtils.compileCRDTTransaction(txn));
+
+			return batchList;
 		}
 	}
-
 }

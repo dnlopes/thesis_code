@@ -4,6 +4,8 @@ import util.thrift.CRDTCompiledTransaction;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 
+import java.util.List;
+
 
 /**
  * @author dnlopes
@@ -14,5 +16,7 @@ import util.thrift.CoordinatorResponse;
 public interface IReplicatorNetwork
 {
 	void sendOperationToRemote(CRDTCompiledTransaction transaction);
+	void sendBatchToRemote(List<CRDTCompiledTransaction> transactions);
+
 	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
 }

@@ -11,6 +11,7 @@ import util.thrift.ThriftUtils;
 
 /**
  * Created by dnlopes on 08/10/15.
+ * Basic dispatcher immediately forwards incoming transactions to remote replicators.
  */
 public class BasicDispatcher implements DispatcherAgent
 {

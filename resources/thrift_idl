@@ -94,6 +94,7 @@ struct ThriftShadowTransaction {
 service ReplicatorRPC {
  bool commitOperation(1:CRDTTransaction op);
  oneway void sendToRemote(1:CRDTCompiledTransaction transaction);
+ oneway void sendBatchToRemote(1:list<CRDTCompiledTransaction> batch);
 }
 
 
