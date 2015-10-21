@@ -15,11 +15,12 @@ public interface OperationsStatements
 	String AND = " AND ";
 	String SET = " SET ";
 
+	String SET_DELETED = " SET _del=1 ";
+	String SET_NOT_DELETED = " SET _del=0 ";
+
 	String VISIBLE_PARENT_OP_SUFFIX = "isConcurrentOrGreaterClock(_dclock,'@clock@')=TRUE";
 	String IS_CONCURRENT_OR_GREATER_DCLOCK = "isConcurrentOrGreaterClock(_dclock,'@clock@')=TRUE";
 
-	String SET_DELETED = " SET _del=1 ";
-	String SET_NOT_DELETED = " SET _del=0 ";
 	String MERGE_DCLOCK_OP = " SET _dclock=maxClock(_dclock,'@clock@')";
 	String MERGE_CCLOCK_OP = " SET _cclock=maxClock(_cclock,'@clock@')";
 

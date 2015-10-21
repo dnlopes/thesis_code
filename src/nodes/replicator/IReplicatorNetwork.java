@@ -3,7 +3,6 @@ package nodes.replicator;
 import util.thrift.CRDTCompiledTransaction;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
-import util.thrift.ThriftShadowTransaction;
 
 
 /**

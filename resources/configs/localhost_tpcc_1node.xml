@@ -2,7 +2,7 @@
 <config>
 	<topology databasesNum="1" replicatorNum="1" executorsNum="1">
 		<databases>
-			<database id="1" dbHost="172.16.249.128" dbPort="3306" dbUser="sa" dbPwd="101010" />
+			<database id="1" dbHost="172.16.249.130" dbPort="3306" dbUser="sa" dbPwd="101010" />
 		</databases>
 		<coordinators>
 			<coordinator id="1" host="localhost" port="50020" refDatabase="1" />

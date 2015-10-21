@@ -1,8 +1,8 @@
 package nodes.replicator;
 
 
+import nodes.replicator.dispatcher.BasicDispatcher;
 import nodes.replicator.dispatcher.DispatcherAgent;
-import nodes.replicator.dispatcher.AggregatorDispatcher;
 import nodes.replicator.deliver.CausalDeliverAgent;
 import nodes.replicator.deliver.DeliverAgent;
 import org.apache.thrift.TException;
@@ -26,11 +26,11 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private DeliverAgent deliver;
 	private DispatcherAgent dispatcher;
 
-	public ReplicatorService(Replicator replicator, IReplicatorNetwork network)
+	public ReplicatorService(Replicator replicator)
 	{
 		this.replicator = replicator;
 		this.deliver = new CausalDeliverAgent(this.replicator);
-		this.dispatcher = new AggregatorDispatcher(this.replicator.getNetworkInterface());
+		this.dispatcher = new BasicDispatcher(this.replicator.getNetworkInterface());
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public void commitOperationAsync(CRDTCompiledTransaction txn) throws TException
+	public void sendToRemote(CRDTCompiledTransaction txn) throws TException
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("received txn from other replicator");

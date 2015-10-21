@@ -25,7 +25,7 @@ public class ReplicatorServerThread implements Runnable
 	public ReplicatorServerThread(Replicator node) throws TTransportException
 	{
 		this.me = node;
-		ReplicatorService handler = new ReplicatorService(this.me, node.getNetworkInterface());
+		ReplicatorService handler = new ReplicatorService(this.me);
 		ReplicatorRPC.Processor processor = new ReplicatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
 		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));

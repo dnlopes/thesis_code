@@ -74,7 +74,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				newTransport.open();
 				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
-				client.commitOperationAsync(transaction);
+				client.sendToRemote(transaction);
 			} catch(TException e)
 			{
 				LOG.warn("failed to send shadow transaction to replicator {}", config.getId(), e);

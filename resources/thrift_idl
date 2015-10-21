@@ -52,17 +52,18 @@ struct CRDTOperation {
     2: required string primaryKey;
     3: required string uniquePkValue;
     4: required CRDTOperationType opType;
-    5: optional map<string,string> newFieldValues;
-    6: optional map<string,string> oldFieldValues;
+    5: optional string pkWhereClause;
+    6: optional map<string,string> newFieldValues;
+    7: optional map<string,string> oldFieldValues;
     //map between constraintId-parentPkValue
-    7: optional map<string,string> parentsMap;
+    8: optional map<string,string> parentsMap;
 }
 
 struct CRDTTransaction {
     1: required i32 id;
     2: i32 replicatorId;
-    3: required string txnClock;
-    4: required list<CRDTOperation> opsList;
+    3: string txnClock;
+    4: list<CRDTOperation> opsList;
     5: optional CoordinatorRequest requestToCoordinator;
     6: optional CRDTCompiledTransaction compiledTxn;
 }
@@ -92,7 +93,7 @@ struct ThriftShadowTransaction {
 
 service ReplicatorRPC {
  bool commitOperation(1:CRDTTransaction op);
- oneway void commitOperationAsync(1:CRDTCompiledTransaction transaction);
+ oneway void sendToRemote(1:CRDTCompiledTransaction transaction);
 }
 
 
