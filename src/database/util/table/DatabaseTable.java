@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
+import database.constraints.unique.UniqueConstraint;
 import database.util.SemanticPolicy;
 import database.util.field.DataField;
 import database.util.ExecutionPolicy;
@@ -42,11 +43,14 @@ public abstract class DatabaseTable
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
 	private Set<Constraint> tableInvarists;
+	private Map<String, AutoIncrementConstraint> autoIncrementConstraintMap;
 	private Map<String, Constraint> constraintsMap;
 	private PrimaryKey primaryKey;
 	private String insertColsString;
 	private Set<ForeignKeyConstraint> childTablesConstraints;
 	private String selectNormalFieldsForQueryString;
+	private Map<String, UniqueConstraint> uniqueConstraintMap;
+
 	protected DataField timestampField;
 
 	protected DataField contentClockField;
@@ -74,11 +78,13 @@ public abstract class DatabaseTable
 		this.childTablesConstraints = new HashSet<>();
 		this.sortedFieldsMap = new HashMap<>();
 		this.hiddenFields = new HashMap<>();
+		this.uniqueConstraintMap = new HashMap<>();
 		this.normalFields = new HashMap<>();
 		this.tableInvarists = new LinkedHashSet<>();
 		this.constraintsMap = new HashMap<>();
 		this.containsAutoIncrementField = false;
 		this.isParentTable = false;
+		this.autoIncrementConstraintMap = new HashMap<>();
 
 		if(tableType != CRDTTableType.NONCRDTTABLE)
 			this.addHiddenFields();
@@ -99,15 +105,19 @@ public abstract class DatabaseTable
 				this.addPrimaryKey(entry);
 			}
 
-			if(entry.isAutoIncrement() && (entry.getSemantic() == SemanticPolicy.SEMANTIC))
+			if(entry.isAutoIncrement())
 			{
-				Constraint autoIncrementConstraint = new AutoIncrementConstraint();
+				boolean requiresCoordination = entry.getSemantic() == SemanticPolicy.SEMANTIC;
+
+				Constraint autoIncrementConstraint = new AutoIncrementConstraint(requiresCoordination);
 				autoIncrementConstraint.setTableName(this.name);
 				autoIncrementConstraint.addField(entry);
 				autoIncrementConstraint.generateIdentifier();
 				this.tableInvarists.add(autoIncrementConstraint);
 				entry.addInvariant(autoIncrementConstraint);
 				this.containsAutoIncrementField = true;
+				this.autoIncrementConstraintMap.put(entry.getFieldName(),
+						(AutoIncrementConstraint) autoIncrementConstraint);
 			}
 		}
 
@@ -125,7 +135,6 @@ public abstract class DatabaseTable
 
 		this.insertColsString = buffer.toString();
 		this.generateSelectFieldsForQuery();
-
 
 		for(Constraint c : this.tableInvarists)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
@@ -552,11 +561,13 @@ public abstract class DatabaseTable
 		this.deletedField.setDefaultValue("1");
 		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
 
-		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(), DatabaseDefaults.CONTENT_CLOCK_COLUMN);
+		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(),
+				DatabaseDefaults.CONTENT_CLOCK_COLUMN);
 		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
 		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
 
-		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(), DatabaseDefaults.DELETED_CLOCK_COLUMN);
+		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(),
+				DatabaseDefaults.DELETED_CLOCK_COLUMN);
 		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
 		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
 
@@ -644,5 +655,15 @@ public abstract class DatabaseTable
 	public String getNormalFieldsSelection()
 	{
 		return this.selectNormalFieldsForQueryString;
+	}
+
+	public Map<String, UniqueConstraint> getUniqueConstraintMap()
+	{
+		return this.uniqueConstraintMap;
+	}
+
+	public AutoIncrementConstraint getAutoIncrementConstraint(String fieldName)
+	{
+		return this.autoIncrementConstraintMap.get(fieldName);
 	}
 }

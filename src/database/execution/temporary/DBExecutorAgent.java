@@ -4,11 +4,9 @@ package database.execution.temporary;
 import database.constraints.Constraint;
 import database.constraints.ConstraintType;
 import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.unique.AutoIncrementConstraint;
 import database.execution.SQLInterface;
-import database.util.DatabaseCommon;
-import database.util.PrimaryKey;
-import database.util.PrimaryKeyValue;
-import database.util.Row;
+import database.util.*;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import database.util.value.DeltaFieldValue;
@@ -28,14 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.operation.*;
+import runtime.SymbolsManager;
 import runtime.transformer.QueryCreator;
 import util.ExitCode;
 import util.Configuration;
 import util.defaults.DatabaseDefaults;
 import util.defaults.ScratchpadDefaults;
-import util.thrift.CRDTOperation;
-import util.thrift.CRDTOperationType;
+import util.thrift.*;
 
 import java.sql.*;
 import java.util.*;
@@ -49,6 +46,7 @@ public class DBExecutorAgent implements IExecutorAgent
 
 	private static final String SP_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=0";
 	private static final Logger LOG = LoggerFactory.getLogger(DBExecutorAgent.class);
+	private static final int TEMPORARY_INTEGER = 10000;
 
 	private SQLInterface sqlInterface;
 
@@ -64,7 +62,6 @@ public class DBExecutorAgent implements IExecutorAgent
 	private FromItem fromItemTemp;
 	private PrimaryKey pk;
 	private List<SelectItem> selectAllItems;
-	private List<ShadowOperation> ops;
 
 	private Set<PrimaryKeyValue> duplicatedRows;
 	private Set<PrimaryKeyValue> deletedRows;
@@ -74,7 +71,6 @@ public class DBExecutorAgent implements IExecutorAgent
 	{
 		this.sandboxId = sandboxId;
 		this.tableId = tableId;
-		this.ops = new ArrayList<>();
 		this.fkConstraints = new ArrayList<>();
 
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
@@ -343,18 +339,18 @@ public class DBExecutorAgent implements IExecutorAgent
 	}
 
 	@Override
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTOperation crdtOperation)
+	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTTransaction transaction)
 			throws SQLException
 	{
 		if(statement instanceof Delete)
-			return executeTempOpDelete((Delete) statement, crdtOperation);
+			return executeTempOpDelete((Delete) statement, transaction);
 
 		else
 		{
 			if(statement instanceof Insert)
-				return executeTempOpInsert((Insert) statement, crdtOperation);
+				return executeTempOpInsert((Insert) statement, transaction);
 			else if(statement instanceof Update)
-				return executeTempOpUpdate((Update) statement, crdtOperation);
+				return executeTempOpUpdate((Update) statement, transaction);
 			else
 				throw new SQLException("update statement not found");
 		}
@@ -370,7 +366,6 @@ public class DBExecutorAgent implements IExecutorAgent
 		this.duplicatedRows.clear();
 		this.recordedPkValues.clear();
 		this.deletedRows.clear();
-		this.ops.clear();
 	}
 
 	protected void addWhere(StringBuilder buffer, Expression e)
@@ -388,9 +383,13 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	private int executeTempOpInsert(Insert insertOp, CRDTOperation crdtOperation) throws SQLException
+	private int executeTempOpInsert(Insert insertOp, CRDTTransaction transaction) throws SQLException
 	{
+		CRDTOperation crdtOperation = new CRDTOperation();
+		crdtOperation.setOpId(transaction.getOpsListSize());
+
 		StringBuilder buffer = new StringBuilder();
+		StringBuilder valuesBuffer = new StringBuilder("(");
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
 
@@ -413,12 +412,20 @@ public class DBExecutorAgent implements IExecutorAgent
 			Iterator colIt = columnsList.iterator();
 			Iterator valIt = valuesList.iterator();
 			boolean first = true;
+
+
 			while(colIt.hasNext())
 			{
 				String col = colIt.next().toString();
 				String val = valIt.next().toString();
-
 				DataField field = this.fields.get(col);
+
+				if(val.contains(SymbolsManager.SYMBOL_PREFIX))
+				{
+					createSymbolEntry(transaction, crdtOperation, val, field);
+					if(field.isNumberField())
+						val = String.valueOf(TEMPORARY_INTEGER);
+				}
 
 				if(!field.isHiddenField())
 				{
@@ -432,25 +439,30 @@ public class DBExecutorAgent implements IExecutorAgent
 				}
 
 				if(!first)
+				{
 					buffer.append(",");
+					valuesBuffer.append(",");
+				}
 
 				first = false;
 				buffer.append(col);
+				valuesBuffer.append(val);
 
 				for(Constraint c : field.getInvariants())
 				{
-					if(c.requiresCoordination())
-						if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType()
-								== ConstraintType.AUTO_INCREMENT)
-							insertedRow.addConstraintToverify(c);
+					if(c.requiresCoordination() && c.getType() == ConstraintType.UNIQUE)
+					{
+
+					}
 				}
 			}
 
 			buffer.append(")");
+			valuesBuffer.append(")");
 		}
 
 		buffer.append(" values ");
-		buffer.append(insertOp.getItemsList());
+		buffer.append(valuesBuffer);
 
 		int result = this.sqlInterface.executeUpdate(buffer.toString());
 
@@ -461,12 +473,16 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setPkWhereClause(insertedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		this.verifyParentsConsistency(crdtOperation, insertedRow, true);
+		transaction.addToOpsList(crdtOperation);
 
 		return result;
 	}
 
-	private int executeTempOpDelete(Delete deleteOp, CRDTOperation crdtOperation) throws SQLException
+	private int executeTempOpDelete(Delete deleteOp, CRDTTransaction transaction) throws SQLException
 	{
+		CRDTOperation crdtOperation = new CRDTOperation();
+		crdtOperation.setOpId(transaction.getOpsListSize());
+
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("(SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
@@ -519,6 +535,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			crdtOperation.setTableName(this.databaseTable.getName());
 			crdtOperation.setUniquePkValue(pkValue.getUniqueValue());
 			crdtOperation.setPrimaryKey(pkValue.getValue());
+			transaction.addToOpsList(crdtOperation);
 
 			if(this.databaseTable.isParentTable())
 			{
@@ -538,8 +555,11 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	private int executeTempOpUpdate(Update updateOp, CRDTOperation crdtOperation) throws SQLException
+	private int executeTempOpUpdate(Update updateOp, CRDTTransaction transaction) throws SQLException
 	{
+		CRDTOperation crdtOperation = new CRDTOperation();
+		crdtOperation.setOpId(transaction.getOpsListSize());
+
 		// before writting in the scratchpad, add the missing rows to the scratchpad
 		this.addMissingRowsToScratchpad(updateOp);
 		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp);
@@ -616,6 +636,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setNewFieldValues(newValuesMap);
 		crdtOperation.setOldFieldValues(oldValuesMap);
 		crdtOperation.setPkWhereClause(updatedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+		transaction.addToOpsList(crdtOperation);
 
 		this.verifyParentsConsistency(crdtOperation, updatedRow, false);
 
@@ -828,7 +849,8 @@ public class DBExecutorAgent implements IExecutorAgent
 				continue;
 
 			Row parent = findParent(childRow, c, sqlInterface);
-			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getPrimaryKeyWhereClause
+					());
 
 			if(parent == null)
 				throw new SQLException("parent row not found. Foreing key violated");
@@ -849,8 +871,7 @@ public class DBExecutorAgent implements IExecutorAgent
 				crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
 			else
 				crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
-			Map<String, String> parentsByConstraint = findParentRows(row, this.fkConstraints,
-					this.sqlInterface);
+			Map<String, String> parentsByConstraint = findParentRows(row, this.fkConstraints, this.sqlInterface);
 
 			if(parentsByConstraint != null)
 				crdtOperation.setParentsMap(parentsByConstraint);
@@ -878,6 +899,57 @@ public class DBExecutorAgent implements IExecutorAgent
 		DbUtils.closeQuietly(rs);
 
 		return new Row(remoteTable, parentPk);
+	}
+
+	private void createSymbolEntry(CRDTTransaction txn, CRDTOperation op, String symbol, DataField dataField)
+	{
+		if(!txn.isSetSymbolsMap())
+			txn.setSymbolsMap(new HashMap<String, SymbolEntry>());
+
+		Map<String, SymbolEntry> symbolsMap = txn.getSymbolsMap();
+
+		if(symbolsMap.containsKey(symbol))
+		{
+			linkSymbolToField(op, symbolsMap.get(symbol), dataField);
+			return;
+		}
+		else //create new symbol entry
+		{
+			SymbolEntry symbolEntry = new SymbolEntry();
+			symbolEntry.setSymbol(symbol);
+			symbolEntry.setRequiresCoordination(false);
+			symbolsMap.put(symbol, symbolEntry);
+			linkSymbolToField(op, symbolEntry, dataField);
+		}
+
+		if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
+		{
+			SymbolEntry symbolEntry = symbolsMap.get(symbol);
+			symbolEntry.setRequiresCoordination(true);
+
+			AutoIncrementConstraint autoIncrementConstraint = this.databaseTable.getAutoIncrementConstraint(
+					dataField.getFieldName());
+			RequestValue request = new RequestValue();
+
+			request.setOpId(op.getOpId());
+			request.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
+			request.setTempSymbol(symbol);
+			request.setFieldName(dataField.getFieldName());
+
+			if(!txn.isSetRequestToCoordinator())
+				txn.setRequestToCoordinator(new CoordinatorRequest());
+
+			txn.getRequestToCoordinator().addToRequests(request);
+		}
+	}
+
+	private void linkSymbolToField(CRDTOperation op, SymbolEntry symbolEntry, DataField dataField)
+	{
+		if(!op.isSetSymbolFieldMap())
+			op.setSymbolFieldMap(new HashMap<String, String>());
+
+		Map<String, String> symbolFieldMap = op.getSymbolFieldMap();
+		symbolFieldMap.put(symbolEntry.getSymbol(), dataField.getFieldName());
 	}
 
 	private class MyValueExpression implements Expression

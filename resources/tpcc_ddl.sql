@@ -22,7 +22,7 @@
 	@NORMALSTRING d_zip char(9), 
 	@LWWINTEGER d_tax decimal(4,2), 
 	@NUMDELTAINTEGER d_ytd decimal(12,2), 
-	@LWWINTEGER d_next_o_id int,
+	@NUMDELTAINTEGER d_next_o_id int,
 	PRIMARY KEY (d_w_id, d_id),
 	FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id)
 )Engine=InnoDB;
@@ -54,7 +54,7 @@
 )Engine=InnoDB;
 
 @AUSETTABLE create table history (
-	@LWWINTEGER h_id int AUTO_INCREMENT not null, 
+	@LWWINTEGER @NOSEMANTIC h_id int AUTO_INCREMENT not null,
 	@LWWINTEGER h_c_id int, 
 	@LWWINTEGER h_c_d_id tinyint, 
 	@LWWINTEGER h_c_w_id smallint,
@@ -68,7 +68,7 @@
 )Engine=InnoDB;
 
 @AUSETTABLE create table orders (
-	@LWWINTEGER o_id int AUTO_INCREMENT not null, 
+	@LWWINTEGER @SEMANTIC o_id int AUTO_INCREMENT not null,
 	@LWWINTEGER o_d_id tinyint not null, 
 	@LWWINTEGER o_w_id smallint not null,
 	@LWWINTEGER o_c_id int,

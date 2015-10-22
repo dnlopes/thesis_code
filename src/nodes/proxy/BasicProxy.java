@@ -11,7 +11,6 @@ import runtime.RuntimeUtils;
 import runtime.transformer.DeterministicQuery;
 import util.ExitCode;
 import util.thrift.CRDTTransaction;
-import util.thrift.CoordinatorRequest;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,6 +31,7 @@ public class BasicProxy implements Proxy
 	private Sandbox sandbox;
 	private Connection dbConnection;
 	private CCJSqlParserManager sqlParser;
+
 
 	public BasicProxy(final ProxyConfig proxyConfig, int proxyId)
 	{
@@ -123,18 +123,6 @@ public class BasicProxy implements Proxy
 		}
 
 		return result;
-	}
-
-	private CoordinatorRequest createCoordinatorRequest(CRDTTransaction transaction) throws SQLException
-	{
-		CoordinatorRequest req = new CoordinatorRequest();
-
-		req.setRequiresCoordination(false);
-
-		//for(ShadowOperation op : transaction.getShadowOperations())
-		//	op.createRequestsToCoordinate(req);
-
-		return req;
 	}
 
 }

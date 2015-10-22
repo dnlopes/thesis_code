@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import runtime.RuntimeUtils;
-import util.defaults.ZookeeperDefaults;
 import util.exception.ConfigurationLoadException;
 import util.parser.DDLParser;
+import util.zookeeper.EZKCoordinationExtension;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,7 +45,8 @@ public final class Configuration
 	private String databaseName;
 	private String extensionCodeDir;
 	private String schemaFile;
-	private int scratchpadPoolSize;
+	private int commitPadPoolSize;
+	private int ezkClientsPoolSize;
 	private boolean useSharedProxy;
 
 	private Configuration(String configFilePath)
@@ -144,17 +145,23 @@ public final class Configuration
 		}
 	}
 
+	public int getEzkClientsPoolSize()
+	{
+		return this.ezkClientsPoolSize;
+	}
+
 	private void parseVariables(Node n)
 	{
 		NamedNodeMap map = n.getAttributes();
-		this.scratchpadPoolSize = Integer.parseInt(map.getNamedItem("padPoolSize").getNodeValue());
+		this.commitPadPoolSize = Integer.parseInt(map.getNamedItem("commitPadPoolSize").getNodeValue());
+		this.ezkClientsPoolSize= Integer.parseInt(map.getNamedItem("ezkClientsPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
 		this.extensionCodeDir = map.getNamedItem("extensionCode").getNodeValue();
 
 		if(LOG.isInfoEnabled())
 		{
-			LOG.info("Scratchpad pool size: {}", this.scratchpadPoolSize);
+			LOG.info("Scratchpad pool size: {}", this.commitPadPoolSize);
 			LOG.info("Database name: {}", this.databaseName);
 			LOG.info("DDL file: {}", this.schemaFile);
 		}
@@ -267,7 +274,8 @@ public final class Configuration
 			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host, Integer.parseInt(port),
 					null);
 		else
-			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host, ZookeeperDefaults.ZOOKEEPER_DEFAULT_PORT,null);
+			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host,
+					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_DEFAULT_PORT ,null);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -348,9 +356,9 @@ public final class Configuration
 		return this.databaseMetadata;
 	}
 
-	public int getScratchpadPoolSize()
+	public int getCommitPadPoolSize()
 	{
-		return this.scratchpadPoolSize;
+		return this.commitPadPoolSize;
 	}
 
 	public int getReplicatorsCount()
@@ -360,7 +368,8 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.scratchpadPoolSize == 0 || this.extensionCodeDir == null || this.databaseName == null || this
+		return !(this.ezkClientsPoolSize == 0 || this.commitPadPoolSize == 0 || this.extensionCodeDir == null || this.databaseName ==
+				null || this
 				.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators
 				.size() == 0);
 	}

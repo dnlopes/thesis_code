@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ObjectPool<T>
 {
 	
-	public ConcurrentLinkedQueue<T> objectList;
+	private ConcurrentLinkedQueue<T> objectList;
 	
 	public ObjectPool()
 	{
-		objectList = new ConcurrentLinkedQueue<>();
+		this.objectList = new ConcurrentLinkedQueue<>();
 	}
 	
 	public void addObject(T obj)

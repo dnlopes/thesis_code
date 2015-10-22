@@ -2,6 +2,7 @@ package nodes.replicator.dispatcher;
 
 
 import nodes.replicator.IReplicatorNetwork;
+import nodes.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.thrift.CRDTCompiledTransaction;
@@ -28,9 +29,9 @@ public class BasicBatchDispatcher implements DispatcherAgent
 	private final ScheduledExecutorService scheduleService;
 	private Queue<CRDTTransaction> pendingTransactions;
 
-	public BasicBatchDispatcher(IReplicatorNetwork networkInterface)
+	public BasicBatchDispatcher(Replicator replicator)
 	{
-		this.networkInterface = networkInterface;
+		this.networkInterface = replicator.getNetworkInterface();
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
 
 		DispatcherThread deliveryThread = new DispatcherThread();

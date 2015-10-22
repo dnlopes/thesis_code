@@ -17,8 +17,8 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
+import runtime.SymbolsManager;
 import util.ExitCode;
 import util.debug.Debug;
 import util.Configuration;
@@ -167,39 +167,26 @@ public class DeterministicQuery
 
 		colList.add(DatabaseDefaults.DELETED_COLUMN);
 		valueList.add(DatabaseDefaults.NOT_DELETED_VALUE);
+
 		// fill in the missing tuples
 		if(missFields != null)
 		{
 			for(String missingDfName : missFields)
 			{
 				DataField dataField = databaseTable.getField(missingDfName);
-				//FieldValue defaultValue = dataField.getDefaultFieldValue();
-						/*
-				if(defaultValue != null)
-				{
-					colList.add(missingDfName);
-					valueList.add(defaultValue.getFormattedValue());
-					continue;
-				}       */
 
 				colList.add(missingDfName);
-				        /*
-				if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
-					RuntimeUtils.throwRunTimeException("non-semantic columns must be assigned earlier",
-							ExitCode.ERRORTRANSFORM);
 
-				if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && !dataField.isAutoIncrement())
-					throw new SQLException("missing a non-auto_increment column value that has semantic");
-
-				if(dataField.isForeignKey())
-					throw new SQLException("foreign key is missing from sql query");
-                 */
-				// if is auto_increment, assign a unique ID
-				// does not matter if it has semantic or not, because the generated id will be globally unique
-				if(dataField.isAutoIncrement())
-					valueList.add(String.valueOf(IdentifierFactory.getNextId(dataField)));
-				else if(dataField.getDefaultFieldValue() != null)
+				if(dataField.getDefaultFieldValue() != null)
 					valueList.add(dataField.getDefaultFieldValue().getFormattedValue());
+				else if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && !dataField.isAutoIncrement())
+					RuntimeUtils.throwRunTimeException(
+							"missing a column value with semantic value which is not an " + "auto_increment field",
+							ExitCode.ERRORTRANSFORM);
+				else if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
+					valueList.add(SymbolsManager.getNextSymbol());
+				else if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && dataField.isAutoIncrement())
+					valueList.add(SymbolsManager.getNextSymbol());
 				else
 					RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
 

@@ -4,6 +4,7 @@ package applications.tpcc.txn;
 import applications.BaseBenchmarkOptions;
 import applications.Transaction;
 import applications.tpcc.TpccAbortedTransactionException;
+import applications.tpcc.TpccBenchmarkOptions;
 import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
 import applications.tpcc.metadata.NewOrderMetadata;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
+import runtime.SymbolsManager;
 import util.ExitCode;
 
 import java.sql.*;
@@ -38,14 +40,14 @@ public class NewOrderTransaction implements Transaction
 	private String s_dist_09 = null;
 	private String s_dist_10 = null;
 
-	private final BaseBenchmarkOptions options;
+	private final TpccBenchmarkOptions options;
 	private final NewOrderMetadata metadata;
 	private String lastError;
 
 	public NewOrderTransaction(NewOrderMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
-		this.options = options;
+		this.options = (TpccBenchmarkOptions) options;
 
 		if(this.metadata == null)
 			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
@@ -70,6 +72,8 @@ public class NewOrderTransaction implements Transaction
 		String c_last = null, c_credit = null;
 		float c_discount = 0, w_tax = 0, d_tax = 0;
 		int d_next_o_id = 0, o_id = 0, tmp = 0, swp = 0, min_num = 0;
+		String o_id_string = null;
+		String d_next_o_id_string = null;
 		int ol_number = 0;
 		float i_price = 0, ol_amount = 0;
 		String i_name = null;
@@ -220,40 +224,45 @@ public class NewOrderTransaction implements Transaction
 				return false;
 			}
 
+			d_next_o_id_string = SymbolsManager.getNextSymbol();
+
 			if(this.options.isCRDTDriver())
 				d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
 
-			try
+			if(this.options.useSequentialOrderIds())
 			{
+				try
+				{
 
-				ps = statements.createPreparedStatement(con, 2);
-				ps.setInt(1, d_next_o_id);
-				ps.setInt(2, this.metadata.getDistrictId());
-				ps.setInt(3, this.metadata.getWarehouseId());
-				if(logger.isTraceEnabled())
-					logger.trace(
-							"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + this.metadata
-									.getDistrictId() + " AND" +
-									" " +
-									"d_w_id = " + this.metadata.getWarehouseId());
-				ps.executeUpdate();
+					ps = statements.createPreparedStatement(con, 2);
+					ps.setString(1, d_next_o_id_string);
+					ps.setInt(2, this.metadata.getDistrictId());
+					ps.setInt(3, this.metadata.getWarehouseId());
+					if(logger.isTraceEnabled())
+						logger.trace(
+								"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + this.metadata.getDistrictId() + " AND" +
 
-			} catch(SQLException e)
-			{
-				lastError = e.getMessage();
-				DbUtils.closeQuietly(rs);
-				DbUtils.closeQuietly(ps);
-				this.rollbackQuietly(con);
-				return false;
+										" " +
+										"d_w_id = " + this.metadata.getWarehouseId());
+					ps.executeUpdate();
+
+				} catch(SQLException e)
+				{
+					lastError = e.getMessage();
+					DbUtils.closeQuietly(rs);
+					DbUtils.closeQuietly(ps);
+					this.rollbackQuietly(con);
+					return false;
+				}
 			}
-
 			o_id = d_next_o_id;
+			o_id_string = d_next_o_id_string;
 
 			try
 			{
 
 				ps = statements.createPreparedStatement(con, 3);
-				ps.setInt(1, o_id);
+				ps.setString(1, o_id_string);
 				ps.setInt(2, this.metadata.getDistrictId());
 				ps.setInt(3, this.metadata.getWarehouseId());
 				ps.setInt(4, this.metadata.getCustomerId());
@@ -287,7 +296,7 @@ public class NewOrderTransaction implements Transaction
 			{
 
 				ps = statements.createPreparedStatement(con, 4);
-				ps.setInt(1, o_id);
+				ps.setString(1, o_id_string);
 				ps.setInt(2, this.metadata.getDistrictId());
 				ps.setInt(3, this.metadata.getWarehouseId());
 
@@ -473,7 +482,7 @@ public class NewOrderTransaction implements Transaction
 				{
 					//final PreparedStatement pstmt8 = pStmts.getStatement(8);
 					ps = statements.createPreparedStatement(con, 8);
-					ps.setInt(1, o_id);
+					ps.setString(1, o_id_string);
 					ps.setInt(2, this.metadata.getDistrictId());
 					ps.setInt(3, this.metadata.getWarehouseId());
 					ps.setInt(4, ol_number);

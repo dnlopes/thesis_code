@@ -8,7 +8,6 @@ import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
-import util.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,14 +23,16 @@ public class IDGenerator
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IDGenerator.class);
-	private static final int DELTA = Configuration.getInstance().getProxies().size();
+
+	private final int delta;
 	private AtomicInteger currentValue;
 	private DataField field;
 
-	public IDGenerator(DataField field, NodeConfig config)
+	public IDGenerator(DataField field, NodeConfig config, int delta)
 	{
 		this.field = field;
 		this.currentValue = new AtomicInteger();
+		this.delta = delta;
 
 		this.setupGenerator(config);
 	}
@@ -79,7 +80,7 @@ public class IDGenerator
 
 	public int getNextId()
 	{
-		int newValue = this.currentValue.addAndGet(DELTA);
+		int newValue = this.currentValue.addAndGet(this.delta);
 		LOG.debug("new id generated for field {}: {}", this.field.getFieldName(), newValue);
 
 		return newValue;

@@ -33,4 +33,9 @@ public final class TpccBenchmarkOptions extends BaseBenchmarkOptions
 	{
 		return this.databaseName;
 	}
+
+	public boolean useSequentialOrderIds()
+	{
+		return false;
+	}
 }

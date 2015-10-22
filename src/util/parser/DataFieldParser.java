@@ -31,11 +31,6 @@ public class DataFieldParser
 		boolean isPrimaryKey = isPrimaryKey(attributeDef);
 		boolean isAutoIncremantal = isAutoIncremental(attributeDef);
 
-
-		// if it is an auto_increment field, then it has no semantic, for sure
-		if(isAutoIncremantal)
-			semanticPolicy = SemanticPolicy.NOSEMANTIC;
-
 		DataField field = null;
 		switch(crdtType)
 		{

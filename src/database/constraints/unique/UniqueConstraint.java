@@ -14,12 +14,12 @@ public class UniqueConstraint extends AbstractConstraint
 	private final boolean isPrimaryKey;
 	private final boolean isAutoIncrement;
 
-	public UniqueConstraint(boolean isPrimaryKey, boolean requiresCoordination)
+	public UniqueConstraint(boolean isPrimaryKey, boolean requiresCoordination, boolean isAutoIncrement)
 	{
 		super(ConstraintType.UNIQUE, requiresCoordination);
 
 		this.isPrimaryKey = isPrimaryKey;
-		this.isAutoIncrement = false;
+		this.isAutoIncrement = isAutoIncrement;
 	}
 
 	public boolean isPrimaryKey()

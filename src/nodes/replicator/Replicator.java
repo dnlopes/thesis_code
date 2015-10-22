@@ -5,6 +5,12 @@ import database.execution.main.DBCommitterAgent;
 import database.execution.main.DBCommitter;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
+import nodes.replicator.coordination.BasicCoordinationAgent;
+import nodes.replicator.coordination.CoordinationAgent;
+import nodes.replicator.deliver.CausalDeliverAgent;
+import nodes.replicator.deliver.DeliverAgent;
+import nodes.replicator.dispatcher.BasicBatchDispatcher;
+import nodes.replicator.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +41,12 @@ public class Replicator extends AbstractNode
 	private final IReplicatorNetwork networkInterface;
 	private final ObjectPool<DBCommitter> agentsPool;
 	private final Lock clockLock;
+
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
-
+	private final DeliverAgent deliver;
+	private final DispatcherAgent dispatcher;
+	private final CoordinationAgent coordAgent;
 
 	public Replicator(NodeConfig config)
 	{
@@ -46,12 +55,18 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
+		this.networkInterface = new ReplicatorNetwork(this.config);
+
+		this.deliver = new CausalDeliverAgent(this);
+		this.dispatcher = new BasicBatchDispatcher(this);
+		this.coordAgent = new BasicCoordinationAgent(this);
+
 		this.scheduleService = Executors.newScheduledThreadPool(1);
 		this.garbageCollector = new GarbageCollector(this);
+		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
+				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 
-		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0, ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
-
-		this.networkInterface = new ReplicatorNetwork(this.config);
+		this.createCommiterAgents();
 
 		try
 		{
@@ -61,8 +76,6 @@ public class Replicator extends AbstractNode
 			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
-
-		this.createCommiterAgents();
 
 		System.out.println("replicator " + this.config.getId() + " online");
 	}
@@ -126,6 +139,21 @@ public class Replicator extends AbstractNode
 		return this.clock;
 	}
 
+	public DispatcherAgent getDispatcher()
+	{
+		return this.dispatcher;
+	}
+
+	public DeliverAgent getDeliver()
+	{
+		return this.deliver;
+	}
+
+	public CoordinationAgent getCoordAgent()
+	{
+		return this.coordAgent;
+	}
+
 	private void mergeWithRemoteClock(LogicalClock clock)
 	{
 		if(LOG.isDebugEnabled())
@@ -141,12 +169,14 @@ public class Replicator extends AbstractNode
 
 	private void createCommiterAgents()
 	{
-		int agentsNumber = Configuration.getInstance().getScratchpadPoolSize();
+		int agentsNumber = Configuration.getInstance().getCommitPadPoolSize();
 
 		for(int i = 0; i < agentsNumber; i++)
 		{
 			DBCommitter agent = new DBCommitterAgent(this.getConfig());
-			this.agentsPool.addObject(agent);
+
+			if(agent != null)
+				this.agentsPool.addObject(agent);
 		}
 
 		if(LOG.isInfoEnabled())

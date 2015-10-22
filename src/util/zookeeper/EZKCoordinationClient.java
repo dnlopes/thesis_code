@@ -7,7 +7,6 @@ import org.apache.zookeeper.extension.EZKExtensionRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import util.defaults.ZookeeperDefaults;
 import util.thrift.CoordinatorRequest;
 import util.thrift.CoordinatorResponse;
 import util.thrift.ThriftUtils;
@@ -30,8 +29,9 @@ public class EZKCoordinationClient implements EZKCoordinationService
 	public EZKCoordinationClient(ZooKeeper zooKeeper, int id)
 	{
 		this.id = id;
-		this.privateNode = ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp" + File
-				.separatorChar + this.id;
+		this.privateNode = EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp"
+				+ File.separatorChar +
+				this.id;
 		this.zooKeeper = zooKeeper;
 	}
 
@@ -50,22 +50,22 @@ public class EZKCoordinationClient implements EZKCoordinationService
 	}
 
 	@Override
-	public CoordinatorResponse coordinate(CoordinatorRequest request)
+	public CoordinatorResponse sendRequest(CoordinatorRequest request)
 	{
 		boolean singleRpc = !request.isSetRequests() || request.getRequestsSize() == 0;
+
+		request.setTempNodePath(this.privateNode);
 
 		if(singleRpc)
 			return this.singleRpcCoordination(request);
 		else
 			return this.twoRpcCoordination(request);
-
 	}
 
 	@Override
 	public void cleanupDatabase() throws KeeperException, InterruptedException
 	{
-		//this.zooKeeper.setACL(EZKCoordinationExtension.CLEANUP_OP_CODE, ZooDefs.Ids.OPEN_ACL_UNSAFE, -1);
-		this.zooKeeper.setData(EZKCoordinationExtension.CLEANUP_OP_CODE, new byte[0], -1);
+		this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.CLEANUP_OP_CODE, new byte[0], -1);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 		try
 		{
 			// sync call to reserve unique values
-			Stat stat = this.zooKeeper.setData(this.privateNode, bytesRequest, -1);
+			Stat stat = this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.REQUEST_OP_CODE, bytesRequest, -1);
 
 			if(stat.getVersion() == 0)
 				response.setSuccess(true);
@@ -106,21 +106,23 @@ public class EZKCoordinationClient implements EZKCoordinationService
 		response.setSuccess(false);
 
 		// async call to reserve unique values
-		this.zooKeeper.setData(this.privateNode, bytesRequest, -1, null, null);
-		// then, call getData to get the requested values
-		this.getRequestedValues(response);
+		this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.REQUEST_OP_CODE, bytesRequest, -1, null, null);
+
+		// then, read privateNode data to get the requested values
+		this.readPrivateNode(response);
 
 		return response;
 	}
 
-	private void getRequestedValues(CoordinatorResponse response)
+	private void readPrivateNode(CoordinatorResponse response)
 	{
 		try
 		{
-			byte[] responseByteArray = this.zooKeeper.getData(privateNode, false, null);
+			byte[] responseByteArray = this.zooKeeper.getData(this.privateNode, false, null);
 			CoordinatorResponse tmpResponse = RuntimeUtils.decodeCoordinatorResponse(responseByteArray);
 			response.setSuccess(tmpResponse.isSuccess());
 			response.setRequestedValues(tmpResponse.getRequestedValues());
+
 		} catch(KeeperException | InterruptedException e)
 		{
 			response.setSuccess(false);

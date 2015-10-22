@@ -17,7 +17,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.defaults.ScratchpadDefaults;
-import util.thrift.CRDTOperation;
 import util.thrift.CRDTTransaction;
 
 import java.io.StringReader;
@@ -120,7 +119,6 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 	@Override
 	public int executeUpdate(String op) throws SQLException
 	{
-		CRDTOperation crdtOperation = new CRDTOperation();
 		net.sf.jsqlparser.statement.Statement statement;
 
 		try
@@ -144,11 +142,7 @@ public class AllOperationsScratchpad implements ReadWriteScratchpad
 			LOG.error("executor agent for table {} not found", tableName);
 			throw new SQLException("executor agent not found");
 		} else
-		{
-			int result = agent.executeTemporaryUpdate(statement, crdtOperation);
-			this.transaction.addToOpsList(crdtOperation);
-			return result;
-		}
+			return agent.executeTemporaryUpdate(statement, this.transaction);
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package database.execution.temporary;
 
 
 import net.sf.jsqlparser.statement.select.Select;
-import util.thrift.CRDTOperation;
+import util.thrift.CRDTTransaction;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -18,19 +18,19 @@ import java.util.Date;
  */
 public interface IExecutorAgent
 {
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTOperation crdtOperation)
+	int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTTransaction transaction)
 			throws SQLException;
 
-	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException;
+	ResultSet executeTemporaryQuery(Select selectOp) throws SQLException;
 
-	public void resetExecuter() throws SQLException;
+	void resetExecuter() throws SQLException;
 
-	public void setup(DatabaseMetaData metadata, int scratchpadId);
+	void setup(DatabaseMetaData metadata, int scratchpadId);
 
-	public interface Defaults
+	interface Defaults
 	{
 
-		public static final String DEFAULT_DATE_VALUE = new SimpleDateFormat("yyyy-MM-dd").format(
+		String DEFAULT_DATE_VALUE = new SimpleDateFormat("yyyy-MM-dd").format(
 				new Date());
 
 	}

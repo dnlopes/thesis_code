@@ -64,7 +64,7 @@ public class ZookeeperExtenstionTest
 		//request.addToUniqueValues(u4);
 		//request.addToUniqueValues(u3);
 
-		CoordinatorResponse response = coordinationExtenstion.coordinate(request);
+		CoordinatorResponse response = coordinationExtenstion.sendRequest(request);
 
 		coordinationExtenstion.closeExtension();
 		System.out.println("finished");

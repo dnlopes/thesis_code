@@ -18,7 +18,7 @@ public class ProxyFactory
 	private static boolean USE_SHARED_PROXY;
 	private static ProxyConfig PROXY_CONFIG;
 
-	private static Object sharedProxy;
+	private static Proxy sharedProxy;
 	private static int proxiesCounter;
 
 	public static ProxyFactory getInstance()

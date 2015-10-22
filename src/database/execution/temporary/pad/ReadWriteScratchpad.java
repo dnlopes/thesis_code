@@ -1,7 +1,6 @@
 package database.execution.temporary.pad;
 
 
-import runtime.Transaction;
 import util.thrift.CRDTTransaction;
 
 import java.sql.SQLException;

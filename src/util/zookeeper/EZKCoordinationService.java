@@ -11,10 +11,10 @@ import util.thrift.CoordinatorResponse;
 public interface EZKCoordinationService
 {
 
-	public void init(String codeBasePath) throws KeeperException, InterruptedException;
-	public void closeExtension() throws InterruptedException;
+	void init(String codeBasePath) throws KeeperException, InterruptedException;
+	void closeExtension() throws InterruptedException;
 
-	public void cleanupDatabase() throws KeeperException, InterruptedException;
-	public CoordinatorResponse coordinate(CoordinatorRequest request);
+	void cleanupDatabase() throws KeeperException, InterruptedException;
+	CoordinatorResponse sendRequest(CoordinatorRequest request);
 
 }

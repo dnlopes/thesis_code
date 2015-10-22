@@ -11,8 +11,8 @@ import database.constraints.ConstraintType;
 public class AutoIncrementConstraint extends AbstractConstraint
 {
 
-	public AutoIncrementConstraint()
+	public AutoIncrementConstraint(boolean requiresCoordination)
 	{
-		super(ConstraintType.AUTO_INCREMENT, false);
+		super(ConstraintType.AUTO_INCREMENT, requiresCoordination);
 	}
 }

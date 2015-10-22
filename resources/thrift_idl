@@ -13,8 +13,15 @@ struct RequestValue
     1: required string constraintId;
     2: required i32 opId;
     3: required string fieldName;
-    4: string requestedValue;
-    5: string tempSymbol;
+    4: required string tempSymbol;
+    5: string requestedValue;
+}
+
+struct SymbolEntry
+{
+    1: required string symbol;
+    2: required bool requiresCoordination;
+    3: string realValue;
 }
 
 struct UniqueValue
@@ -35,7 +42,7 @@ struct CoordinatorRequest
     1: list<RequestValue> requests;
     2: list<UniqueValue> uniqueValues;
     3: list<ApplyDelta> deltaValues;
-    4: required bool requiresCoordination;
+    4: string tempNodePath;
 }
 
 enum CRDTOperationType {
@@ -55,17 +62,20 @@ struct CRDTOperation {
     5: optional string pkWhereClause;
     6: optional map<string,string> newFieldValues;
     7: optional map<string,string> oldFieldValues;
-    //map between constraintId-parentPkValue
     8: optional map<string,string> parentsMap;
+    9: required i32 opId;
+    10: optional map<string,string> symbolFieldMap;
 }
 
 struct CRDTTransaction {
     1: required i32 id;
     2: i32 replicatorId;
     3: string txnClock;
-    4: list<CRDTOperation> opsList;
-    5: optional CoordinatorRequest requestToCoordinator;
-    6: optional CRDTCompiledTransaction compiledTxn;
+    4: bool readyToCommit;
+    5: list<CRDTOperation> opsList;
+    6: optional CoordinatorRequest requestToCoordinator;
+    7: optional CRDTCompiledTransaction compiledTxn;
+    8: map<string,SymbolEntry> symbolsMap;
 }
 
 struct CRDTCompiledTransaction {

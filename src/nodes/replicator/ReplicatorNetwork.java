@@ -15,9 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import util.Configuration;
 
-import util.defaults.ZookeeperDefaults;
+import util.ObjectPool;
 import util.thrift.*;
 import util.zookeeper.EZKCoordinationClient;
+import util.zookeeper.EZKCoordinationExtension;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,36 +32,21 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorNetwork.class);
 
 	private Map<Integer, NodeConfig> replicatorsConfigs;
-	private EZKCoordinationClient ezkClient;
+	private ObjectPool<EZKCoordinationClient> ezkClientsPool;
+	private int clientsCount;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
-
-		ZooKeeper zooKeeper = null;
-		try
-		{
-			zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
-					ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
-		} catch(IOException e)
-		{
-			LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
-		}
-
-		this.ezkClient = new EZKCoordinationClient(zooKeeper, this.me.getId());
-
-		try
-		{
-			this.ezkClient.init(Configuration.getInstance().getExtensionCodeDir());
-		} catch(KeeperException | InterruptedException e)
-		{
-			LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
-		}
+		this.clientsCount = 0;
+		this.ezkClientsPool = new ObjectPool<>();
 
 		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
+
+		this.createZookeeperClientsPool();
 	}
 
 	@Override
@@ -112,9 +98,70 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	@Override
 	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req)
 	{
-		CoordinatorResponse response = new CoordinatorResponse();
-		response.setSuccess(false);
+		CoordinatorResponse dummyResponse = new CoordinatorResponse();
+		dummyResponse.setSuccess(false);
 
-		return this.ezkClient.coordinate(req);
+		EZKCoordinationClient client = this.ezkClientsPool.borrowObject();
+
+		if(client == null)
+		{
+			if(LOG.isWarnEnabled())
+				LOG.warn("ezk clients pool empty. creating new session");
+
+			client = this.createEZKClient();
+
+			if(client == null)
+			{
+				if(LOG.isErrorEnabled())
+					LOG.error("failed to create new ezk client session");
+
+				return dummyResponse;
+			}
+		}
+
+		CoordinatorResponse response = client.sendRequest(req);
+		this.ezkClientsPool.returnObject(client);
+
+		return response;
+	}
+
+	private void createZookeeperClientsPool()
+	{
+		for(int i = 0; i < Configuration.getInstance().getEzkClientsPoolSize(); i++)
+		{
+			EZKCoordinationClient newClient = this.createEZKClient();
+
+			if(newClient != null)
+				this.ezkClientsPool.addObject(newClient);
+		}
+	}
+
+	private EZKCoordinationClient createEZKClient()
+	{
+		ZooKeeper zooKeeper;
+		try
+		{
+			zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
+					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
+		} catch(IOException e)
+		{
+			if(LOG.isErrorEnabled())
+				LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
+			return null;
+		}
+
+		EZKCoordinationClient client = new EZKCoordinationClient(zooKeeper, this.clientsCount++);
+
+		try
+		{
+			client.init(Configuration.getInstance().getExtensionCodeDir());
+		} catch(KeeperException | InterruptedException e)
+		{
+			if(LOG.isErrorEnabled())
+				LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
+			return null;
+		}
+
+		return client;
 	}
 }

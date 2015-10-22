@@ -106,7 +106,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 				request.addToUniqueValues(uniqueValue);
 				if(LOG.isTraceEnabled())
 					LOG.trace("new unique check entry added for constraint {}", c.getConstraintIdentifier());
-				request.setRequiresCoordination(true);
+				//request.setRequiresCoordination(true);
 				break;
 			case CHECK:
 				DataField currField = c.getFields().get(0);
@@ -123,7 +123,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 
 				if(LOG.isTraceEnabled())
 					LOG.trace("new delta check entry added");
-				request.setRequiresCoordination(true);
+				//request.setRequiresCoordination(true);
 				break;
 			case FOREIGN_KEY:
 				break;
@@ -149,6 +149,7 @@ public class InsertOperation extends AbstractOperation implements ShadowOperatio
 			{
 				if(dataField.isStringField())
 					fieldValue.setValue(IdentifierFactory.appendReplicaPrefix(fieldValue.getValue()));
+
 				else if(dataField.isNumberField())
 				{
 					// does not matter if it has semantic or not, because the generated id will be globally

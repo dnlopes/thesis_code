@@ -1,9 +1,8 @@
 package nodes.replicator;
 
 
-import nodes.replicator.dispatcher.BasicBatchDispatcher;
+import nodes.replicator.coordination.CoordinationAgent;
 import nodes.replicator.dispatcher.DispatcherAgent;
-import nodes.replicator.deliver.CausalDeliverAgent;
 import nodes.replicator.deliver.DeliverAgent;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -22,15 +21,19 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorService.class);
 
-	private Replicator replicator;
-	private DeliverAgent deliver;
-	private DispatcherAgent dispatcher;
+	private final Replicator replicator;
+	private final DeliverAgent deliver;
+	private final DispatcherAgent dispatcher;
+	private final CoordinationAgent coordAgent;
+	private final int replicatorId;
 
 	public ReplicatorService(Replicator replicator)
 	{
 		this.replicator = replicator;
-		this.deliver = new CausalDeliverAgent(this.replicator);
-		this.dispatcher = new BasicBatchDispatcher(this.replicator.getNetworkInterface());
+		this.replicatorId = replicator.getConfig().getId();
+		this.deliver = this.replicator.getDeliver();
+		this.dispatcher = this.replicator.getDispatcher();
+		this.coordAgent = this.replicator.getCoordAgent();
 	}
 
 	@Override
@@ -53,31 +56,31 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private boolean handleCommitOperation(CRDTTransaction transaction)
 	{
-		//synchronized call
 		LogicalClock newClock = this.replicator.getNextClock();
 
 		if(LOG.isTraceEnabled())
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
-		transaction.setReplicatorId(this.replicator.getConfig().getId());
+		transaction.setReplicatorId(replicatorId);
 		transaction.setTxnClock(newClock.getClockValue());
 
-		//if we must coordinate then do it here. this is a blocking call
-		if(transaction.isSetRequestToCoordinator())
-			if(!this.coordinateOperation(transaction))
-				return false;
+		this.coordAgent.handleCoordination(transaction);
 
-		CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
-		transaction.setCompiledTxn(compiledTxn);
+		if(transaction.isReadyToCommit())
+		{
+			CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
+			transaction.setCompiledTxn(compiledTxn);
 
-		// wait for commit decision
-		// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
-		boolean localCommit = this.replicator.commitOperation(compiledTxn);
+			// wait for commit decision
+			// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
+			boolean localCommit = this.replicator.commitOperation(compiledTxn);
 
-		if(localCommit)
-			this.dispatcher.dispatchTransaction(transaction);
+			if(localCommit)
+				this.dispatcher.dispatchTransaction(transaction);
 
-		return localCommit;
+			return localCommit;
+		} else
+			return false;
 	}
 
 	private void handleReceiveOperation(CRDTCompiledTransaction op)
@@ -97,40 +100,4 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 			this.deliver.deliverTransaction(txn);
 	}
 
-	private boolean coordinateOperation(CRDTTransaction txn)
-	{
-		//TODO implementation
-
-		/*
-		CoordinatorRequest request = txn.getRequestToCoordinator();
-		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
-
-		if(!response.isSuccess())
-		{
-			if(LOG.isTraceEnabled())
-				LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
-			return false;
-		}
-
-		List<RequestValue> requestValues = response.getRequestedValues();
-
-		if(requestValues != null && requestValues.size() > 0)
-			this.updateShadowTransaction(txn, requestValues);
-
-		return true;    */
-		return true;
-	}
-
-	private void updateShadowTransaction(ThriftShadowTransaction shadowTransaction, List<RequestValue> reqValues)
-	{
-		for(RequestValue reqValue : reqValues)
-		{
-			String newValue = reqValue.getRequestedValue();
-			int opId = reqValue.getOpId();
-
-			String op = shadowTransaction.getOperations().get(opId);
-			op = op.replaceAll(reqValue.getTempSymbol(), newValue);
-			shadowTransaction.getOperations().put(opId, op);
-		}
-	}
 }

@@ -439,19 +439,17 @@ public class CreateStatementParser
 
 					DataField field = fieldsMap.get(pKeys[k]);
 					field.setIsUnique();
+
 					if(isPrimaryKey)
 						field.setPrimaryKey();
 
-					// if at least one of the tuples present in the unique have no semantic, then we can generate a
+					// if at least one of the tuples present in the unique key have no semantic, then we can generate a
 					// unique value for that column, meaning that the unique constraint will hold at any time
 					if(field.getSemantic() == SemanticPolicy.NOSEMANTIC)
 						requiresCoordination = false;
 				}
 
-				if(!requiresCoordination)
-					continue;
-
-				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey, requiresCoordination);
+				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey, requiresCoordination, false);
 
 				for(int j = 0; j < pKeys.length; j++)
 				{

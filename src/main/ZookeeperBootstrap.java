@@ -72,7 +72,7 @@ public class ZookeeperBootstrap
 	public ZookeeperBootstrap() throws IOException, SQLException
 	{
 		this.databaseMetadata = CONFIG.getDatabaseMetadata();
-		this.zookeeper= new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
+		this.zookeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 		this.ezkClient = new EZKCoordinationClient(this.zookeeper, 1);
 		this.connection = ConnectionFactory.getDefaultConnection(CONFIG.getReplicatorConfigWithIndex(1));
 	}
@@ -91,8 +91,10 @@ public class ZookeeperBootstrap
 				if(constraint.getType() == ConstraintType.UNIQUE)
 					this.treatUniqueConstraint((UniqueConstraint) constraint, request);
 				else if(constraint.getType() == ConstraintType.AUTO_INCREMENT)
-					this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
-				else if(constraint.getType() == ConstraintType.CHECK)
+				{
+					if(constraint.requiresCoordination())
+						this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
+				} else if(constraint.getType() == ConstraintType.CHECK)
 					LOG.warn("check constraints not yet supported");
 				else if(constraint.getType() != ConstraintType.FOREIGN_KEY)
 					RuntimeUtils.throwRunTimeException("unkown constraint type", ExitCode.UNKNOWN_INVARIANT);
@@ -154,23 +156,22 @@ public class ZookeeperBootstrap
 						pkBuffer.append(rs.getObject(i + 1).toString());
 					else
 					{
-						pkBuffer.append(",");
+						pkBuffer.append("_");
 						pkBuffer.append(rs.getObject(i + 1).toString());
 					}
 				}
 
 				String unique = pkBuffer.toString();
 
-				//String nodePath = prefix + File.separatorChar + unique;
-				//this.createNode(nodePath);
 				UniqueValue uniqueValue = new UniqueValue(uniqueConstraint.getConstraintIdentifier(), unique);
 				req.addToUniqueValues(uniqueValue);
 				counter++;
-				if(counter == 1000)
+
+				if(counter == 200)
 				{
-					CoordinatorResponse response = this.ezkClient.coordinate(req);
+					CoordinatorResponse response = this.ezkClient.sendRequest(req);
 					if(!response.isSuccess())
-						RuntimeUtils.throwRunTimeException("failed to reserve values", ExitCode.DUPLICATED_FIELD);
+						RuntimeUtils.throwRunTimeException("failed to lock nodes", ExitCode.DUPLICATED_FIELD);
 
 					req.setUniqueValues(new ArrayList<UniqueValue>());
 					counter = 0;
