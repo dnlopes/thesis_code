@@ -6,7 +6,7 @@ import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import runtime.operation.crdt.CRDTDatabaseSet;
+import runtime.CRDTDatabaseSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;

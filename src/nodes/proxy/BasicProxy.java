@@ -8,7 +8,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.transformer.DeterministicQuery;
+import runtime.DeterministicQuery;
 import util.ExitCode;
 import util.thrift.CRDTTransaction;
 

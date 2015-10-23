@@ -15,14 +15,9 @@ public class CausalityTest
 		LogicalClock r1_clock1 = new LogicalClock("1-0-0");
 		LogicalClock r1_clock2 = new LogicalClock("2-0-0");
 
-
-
-
-
 		LogicalClock r3_clock1 = new LogicalClock("0-0-1");
 		LogicalClock r3_clock2 = new LogicalClock("0-0-2");
 		LogicalClock r3_clock3 = new LogicalClock("1-0-3");
-
 
 		LogicalClock r2_clock1 = new LogicalClock(r1_clock1.getDcEntries());
 		LogicalClock r2_clock2 = null;

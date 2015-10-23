@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
 import applications.util.SymbolsManager;
-import runtime.transformer.QueryCreator;
+import runtime.QueryCreator;
 import util.ExitCode;
 import util.Configuration;
 import util.defaults.DatabaseDefaults;
@@ -549,11 +549,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			if(this.databaseTable.isParentTable())
 			{
 				crdtOperation.setOpType(CRDTOperationType.DELETE_PARENT);
-
 				//TODO: delete parent cascade missing implementation
-				//this.calculateOperationSideEffects((DeleteParentOperation) op, rowToDelete);
-				//rowsDeleted += ((DeleteParentOperation) op).getNumberOfRows();
-
 			} else
 				crdtOperation.setOpType(CRDTOperationType.DELETE);
 
@@ -1005,6 +1001,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			symbolFieldMap.put(symbolEntry.getSymbol(), dataField.getFieldName());
 		}
 	}
+
 
 	private class MyValueExpression implements Expression
 	{

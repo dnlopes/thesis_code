@@ -1,4 +1,4 @@
-package runtime.transformer;
+package runtime;
 
 
 import database.util.*;
@@ -17,7 +17,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeUtils;
 import applications.util.SymbolsManager;
 import util.ExitCode;
 import util.debug.Debug;
