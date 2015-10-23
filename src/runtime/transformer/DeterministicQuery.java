@@ -18,7 +18,7 @@ import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.SymbolsManager;
+import applications.util.SymbolsManager;
 import util.ExitCode;
 import util.debug.Debug;
 import util.Configuration;
@@ -50,6 +50,7 @@ public class DeterministicQuery
 	private static final Logger LOG = LoggerFactory.getLogger(DeterministicQuery.class);
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	private static final String NULL_VALUE = "NULL";
+	private static final String ONE_TIME_SYMBOL = SymbolsManager.SYMBOL_PREFIX + '1';
 
 	// intercepts update operation and make it deterministic
 	public static String[] makeToDeterministic(Connection con, CCJSqlParserManager parser, String sqlQuery)
@@ -184,9 +185,9 @@ public class DeterministicQuery
 							"missing a column value with semantic value which is not an " + "auto_increment field",
 							ExitCode.ERRORTRANSFORM);
 				else if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
-					valueList.add(SymbolsManager.getNextSymbol());
+					valueList.add(ONE_TIME_SYMBOL);
 				else if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && dataField.isAutoIncrement())
-					valueList.add(SymbolsManager.getNextSymbol());
+					valueList.add(ONE_TIME_SYMBOL);
 				else
 					RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
 

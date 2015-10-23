@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
-import runtime.SymbolsManager;
+import applications.util.SymbolsManager;
 import runtime.transformer.QueryCreator;
 import util.ExitCode;
 import util.Configuration;
@@ -48,7 +48,7 @@ public class DBExecutorAgent implements IExecutorAgent
 	private static final int TEMPORARY_INTEGER = 10000;
 
 	private SQLInterface sqlInterface;
-	private AgentHelper agentHelper;
+	private AgentHelper helper;
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
@@ -69,7 +69,7 @@ public class DBExecutorAgent implements IExecutorAgent
 
 	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
 	{
-		this.agentHelper = new AgentHelper();
+		this.helper = new AgentHelper();
 		this.sandboxId = sandboxId;
 		this.tableId = tableId;
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
@@ -297,7 +297,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			whereClauseOrig.append(" AND ");
-			this.agentHelper.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
+			this.helper.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
 		}
 
 		queryToOrigin = plainSelect.toString();
@@ -406,7 +406,7 @@ public class DBExecutorAgent implements IExecutorAgent
 
 				if(val.contains(SymbolsManager.SYMBOL_PREFIX))
 				{
-					this.agentHelper.createSymbolEntry(transaction, crdtOperation, val, field);
+					this.helper.createSymbolEntry(transaction, crdtOperation, val, field);
 
 					if(field.isNumberField())
 						val = String.valueOf(TEMPORARY_INTEGER);
@@ -454,7 +454,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setNewFieldValues(fieldsMap);
 		crdtOperation.setPkWhereClause(insertedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
-		this.agentHelper.verifyParentsConsistency(crdtOperation, insertedRow, true);
+		this.helper.verifyParentsConsistency(crdtOperation, insertedRow, true);
 		transaction.addToOpsList(crdtOperation);
 
 		for(UniqueConstraint uniqueConstraint : toCheckConstraint)
@@ -497,17 +497,17 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
-		this.agentHelper.addWhere(buffer, deleteOp.getWhere());
+		this.helper.addWhere(buffer, deleteOp.getWhere());
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
-			this.agentHelper.generateNotInDeletedAndUpdatedClause(buffer);
+			this.helper.generateNotInDeletedAndUpdatedClause(buffer);
 		}
 		buffer.append(") UNION (SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		this.agentHelper.addWhere(buffer, deleteOp.getWhere());
+		this.helper.addWhere(buffer, deleteOp.getWhere());
 		buffer.append(")");
 		String query = buffer.toString();
 
@@ -570,8 +570,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setOpId(transaction.getOpsListSize());
 
 		// before writting in the scratchpad, add the missing rows to the scratchpad
-		this.agentHelper.addMissingRowsToScratchpad(updateOp);
-		Row updatedRow = this.agentHelper.getUpdatedRowFromDatabase(updateOp);
+		this.helper.addMissingRowsToScratchpad(updateOp);
+		Row updatedRow = this.helper.getUpdatedRowFromDatabase(updateOp);
 
 		Map<String, String> oldValuesMap = new HashMap<>();
 		Map<String, String> newValuesMap = new HashMap<>();
@@ -673,7 +673,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			coordinatorRequest.addToUniqueValues(uniqueRequest);
 		}
 
-		this.agentHelper.verifyParentsConsistency(crdtOperation, updatedRow, false);
+		this.helper.verifyParentsConsistency(crdtOperation, updatedRow, false);
 
 		return affectedRows;
 	}

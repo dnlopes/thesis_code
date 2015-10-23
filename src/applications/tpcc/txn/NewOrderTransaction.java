@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
-import runtime.SymbolsManager;
+import applications.util.SymbolsManager;
 import util.ExitCode;
 
 import java.sql.*;
@@ -43,11 +43,13 @@ public class NewOrderTransaction implements Transaction
 	private final TpccBenchmarkOptions options;
 	private final NewOrderMetadata metadata;
 	private String lastError;
+	private SymbolsManager symbolsManager;
 
 	public NewOrderTransaction(NewOrderMetadata txnMetadata, BaseBenchmarkOptions options)
 	{
 		this.metadata = txnMetadata;
 		this.options = (TpccBenchmarkOptions) options;
+		this.symbolsManager = new SymbolsManager();
 
 		if(this.metadata == null)
 			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
@@ -224,7 +226,7 @@ public class NewOrderTransaction implements Transaction
 				return false;
 			}
 
-			d_next_o_id_string = SymbolsManager.getNextSymbol();
+			d_next_o_id_string = this.symbolsManager.getNextSymbol();
 
 			if(this.options.isCRDTDriver())
 				d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
