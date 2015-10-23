@@ -100,12 +100,4 @@ public class DBCommitterAgent implements DBCommitter
 
 		return success;
 	}
-
-	private String replacePlaceholders(ThriftShadowTransaction op, String statement)
-	{
-		String clockString = op.getClock();
-		statement = statement.replaceAll(DatabaseDefaults.CLOCK_VALUE_PLACEHOLDER, clockString);
-
-		return statement;
-	}
 }

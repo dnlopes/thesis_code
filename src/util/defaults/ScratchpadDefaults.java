@@ -5,15 +5,12 @@ package util.defaults;
  */
 public interface ScratchpadDefaults
 {
+	int RDBMS_H2 = 1;
+	int RDBMS_MYSQL = 2;
+	int SQL_ENGINE = RDBMS_MYSQL;
 
-	public static final int RDBMS_H2 = 1;
-	public static final int RDBMS_MYSQL = 2;
-	public static final int SQL_ENGINE = RDBMS_MYSQL;
-
-	public static final String SCRATCHPAD_TABLE_ALIAS_PREFIX = "_SPT_";
-	public static final String SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX = "_TSPT_";
-	public static final String SCRATCHPAD_COL_PREFIX = "_SP_";
-	public static final String SCRATCHPAD_COL_TS = "_SP_ts";
-	public static final String SCRATCHPAD_COL_CLOCK = "_SP_clock";
-
+	String SCRATCHPAD_TABLE_ALIAS_PREFIX = "_SPT_";
+	String SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX = "_TSPT_";
+	String SCRATCHPAD_COL_PREFIX = "_SP_";
+	String SCRATCHPAD_COL_TS = "_SP_ts";
 }

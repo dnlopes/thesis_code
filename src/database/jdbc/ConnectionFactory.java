@@ -59,7 +59,7 @@ public class ConnectionFactory
 		buffer.append("/");
 		buffer.append(databaseName);
 
-		if(DatabaseDefaults.OPTIMIZE_BATCH)
+		if(Configuration.getInstance().optimizeBatch())
 			buffer.append("?rewriteBatchedStatements=true");
 
 		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
@@ -93,7 +93,7 @@ public class ConnectionFactory
 		url.append("/");
 		url.append(Configuration.getInstance().getDatabaseName());
 
-		if(DatabaseDefaults.OPTIMIZE_BATCH)
+		if(Configuration.getInstance().optimizeBatch())
 			url.append("?rewriteBatchedStatements=true");
 
 		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbProps().getDbUser(),

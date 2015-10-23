@@ -48,6 +48,7 @@ public final class Configuration
 	private int commitPadPoolSize;
 	private int ezkClientsPoolSize;
 	private boolean useSharedProxy;
+	private boolean optimizeBatch;
 
 	private Configuration(String configFilePath)
 	{
@@ -60,6 +61,7 @@ public final class Configuration
 
 		//TODO inject this values on config file
 		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
+		this.optimizeBatch = Defaults.USE_OPTIMIZE_BATCH;
 
 		IS_CONFIGURED = true;
 	}
@@ -154,7 +156,7 @@ public final class Configuration
 	{
 		NamedNodeMap map = n.getAttributes();
 		this.commitPadPoolSize = Integer.parseInt(map.getNamedItem("commitPadPoolSize").getNodeValue());
-		this.ezkClientsPoolSize= Integer.parseInt(map.getNamedItem("ezkClientsPoolSize").getNodeValue());
+		this.ezkClientsPoolSize = Integer.parseInt(map.getNamedItem("ezkClientsPoolSize").getNodeValue());
 		this.databaseName = map.getNamedItem("dbName").getNodeValue();
 		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
 		this.extensionCodeDir = map.getNamedItem("extensionCode").getNodeValue();
@@ -275,7 +277,7 @@ public final class Configuration
 					null);
 		else
 			newCoordinator = new NodeConfig(Role.COORDINATOR, Integer.parseInt(id), host,
-					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_DEFAULT_PORT ,null);
+					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_DEFAULT_PORT, null);
 
 		coordinators.put(Integer.parseInt(id), newCoordinator);
 	}
@@ -368,10 +370,9 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.ezkClientsPoolSize == 0 || this.commitPadPoolSize == 0 || this.extensionCodeDir == null || this.databaseName ==
-				null || this
-				.schemaFile == null || this.proxies.size() == 0 || this.replicators.size() == 0 || this.coordinators
-				.size() == 0);
+		return !(this.ezkClientsPoolSize == 0 || this.commitPadPoolSize == 0 || this.extensionCodeDir == null || this
+				.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size
+				() == 0 || this.coordinators.size() == 0);
 	}
 
 	public String getZookeeperConnectionString()
@@ -394,9 +395,15 @@ public final class Configuration
 		return this.extensionCodeDir;
 	}
 
+	public boolean optimizeBatch()
+	{
+		return this.optimizeBatch;
+	}
+
 	public interface Defaults
 	{
-		public static final boolean USE_SHARED_PROXY = false;
+		boolean USE_SHARED_PROXY = false;
+		boolean USE_OPTIMIZE_BATCH = true;
 	}
 }
 

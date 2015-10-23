@@ -6,5 +6,5 @@ package util.defaults;
  */
 public interface ReplicatorDefaults
 {
-	public static final int GARBAGE_COLLECTOR_THREAD_INTERVAL = 10000;
+	int GARBAGE_COLLECTOR_THREAD_INTERVAL = 10000;
 }

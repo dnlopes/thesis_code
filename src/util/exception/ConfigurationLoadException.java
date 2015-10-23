@@ -6,19 +6,8 @@ package util.exception;
  */
 public class ConfigurationLoadException extends Exception
 {
-	public ConfigurationLoadException()
-	{
-		super("configuration load exception");
-	}
-
 	public ConfigurationLoadException(String arg0)
 	{
 		super(arg0);
 	}
-
-	public ConfigurationLoadException(Throwable arg0)
-	{
-		super(arg0);
-	}
-	
 }
