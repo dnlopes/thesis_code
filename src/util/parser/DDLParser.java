@@ -9,7 +9,6 @@ package util.parser;
 import java.io.*;
 import java.util.Vector;
 
-import database.constraints.Constraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.util.field.DataField;
 import database.util.DatabaseMetadata;
@@ -123,22 +122,18 @@ public class DDLParser
 			{
 				if(field.isForeignKey())
 				{
-					for(Constraint constraint : field.getInvariants())
+					for(ForeignKeyConstraint fkConstraint : field.getFkConstraints())
 					{
-						if(constraint instanceof ForeignKeyConstraint)
-						{
-							((ForeignKeyConstraint) constraint).getParentTable().setParentTable();
-							((ForeignKeyConstraint) constraint).setChildTable(
-									((ForeignKeyConstraint) constraint).getFieldsRelations().get(
-											0).getChild().getTable());
-							String remoteTableString = ((ForeignKeyConstraint) constraint).getParentTable().getName();
+						(fkConstraint).getParentTable().setParentTable();
+						(fkConstraint).setChildTable(
+								(fkConstraint).getFieldsRelations().get(0).getChild().getTable());
+						String remoteTableString = (fkConstraint).getParentTable().getName();
 
-							for(String remoteFieldString : ((ForeignKeyConstraint) constraint).getParentFields())
-							{
-								DataField originField = this.databaseMetadata.getTable(remoteTableString).getField(
-										remoteFieldString);
-								((ForeignKeyConstraint) constraint).addRemoteField(originField);
-							}
+						for(String remoteFieldString : (fkConstraint).getParentFields())
+						{
+							DataField originField = this.databaseMetadata.getTable(remoteTableString).getField(
+									remoteFieldString);
+							(fkConstraint).addRemoteField(originField);
 						}
 					}
 				}

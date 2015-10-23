@@ -1,10 +1,9 @@
 package database.execution.temporary;
 
 
-import database.constraints.Constraint;
-import database.constraints.ConstraintType;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
+import database.constraints.unique.UniqueConstraint;
 import database.execution.SQLInterface;
 import database.util.*;
 import database.util.field.DataField;
@@ -49,6 +48,7 @@ public class DBExecutorAgent implements IExecutorAgent
 	private static final int TEMPORARY_INTEGER = 10000;
 
 	private SQLInterface sqlInterface;
+	private AgentHelper agentHelper;
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
@@ -69,16 +69,15 @@ public class DBExecutorAgent implements IExecutorAgent
 
 	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
 	{
+		this.agentHelper = new AgentHelper();
 		this.sandboxId = sandboxId;
 		this.tableId = tableId;
+		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+
 		this.fkConstraints = new ArrayList<>();
 
-		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
-		for(Constraint c : this.databaseTable.getTableInvarists())
-		{
-			if(c instanceof ForeignKeyConstraint)
-				this.fkConstraints.add((ForeignKeyConstraint) c);
-		}
+		for(ForeignKeyConstraint fkConstraint : this.databaseTable.getFkConstraints())
+			this.fkConstraints.add(fkConstraint);
 
 		this.pk = databaseTable.getPrimaryKey();
 		this.selectAllItems = new ArrayList<>();
@@ -97,7 +96,6 @@ public class DBExecutorAgent implements IExecutorAgent
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.recordedPkValues = new HashMap<>();
-
 		this.sqlInterface = sqlInterface;
 	}
 
@@ -299,7 +297,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			whereClauseOrig.append(" AND ");
-			this.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
+			this.agentHelper.generateNotInDeletedAndUpdatedClause(whereClauseOrig);
 		}
 
 		queryToOrigin = plainSelect.toString();
@@ -368,21 +366,6 @@ public class DBExecutorAgent implements IExecutorAgent
 		this.deletedRows.clear();
 	}
 
-	protected void addWhere(StringBuilder buffer, Expression e)
-	{
-		if(e == null)
-			return;
-		buffer.append(" WHERE (");
-		buffer.append(SP_DELETED_EXPRESSION);
-		buffer.append(")");
-		if(e != null)
-		{
-			buffer.append(" AND ( ");
-			buffer.append(e.toString());
-			buffer.append(" ) ");
-		}
-	}
-
 	private int executeTempOpInsert(Insert insertOp, CRDTTransaction transaction) throws SQLException
 	{
 		CRDTOperation crdtOperation = new CRDTOperation();
@@ -397,6 +380,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
 		Row insertedRow = new Row(this.databaseTable, pkValue);
+
+		Set<UniqueConstraint> toCheckConstraint = new HashSet<>();
 
 		Map<String, String> fieldsMap = new HashMap<>();
 
@@ -413,7 +398,6 @@ public class DBExecutorAgent implements IExecutorAgent
 			Iterator valIt = valuesList.iterator();
 			boolean first = true;
 
-
 			while(colIt.hasNext())
 			{
 				String col = colIt.next().toString();
@@ -422,7 +406,8 @@ public class DBExecutorAgent implements IExecutorAgent
 
 				if(val.contains(SymbolsManager.SYMBOL_PREFIX))
 				{
-					createSymbolEntry(transaction, crdtOperation, val, field);
+					this.agentHelper.createSymbolEntry(transaction, crdtOperation, val, field);
+
 					if(field.isNumberField())
 						val = String.valueOf(TEMPORARY_INTEGER);
 				}
@@ -448,13 +433,10 @@ public class DBExecutorAgent implements IExecutorAgent
 				buffer.append(col);
 				valuesBuffer.append(val);
 
-				for(Constraint c : field.getInvariants())
-				{
-					if(c.requiresCoordination() && c.getType() == ConstraintType.UNIQUE)
-					{
+				for(UniqueConstraint c : field.getUniqueConstraints())
+					if(c.requiresCoordination())
+						toCheckConstraint.add(c);
 
-					}
-				}
 			}
 
 			buffer.append(")");
@@ -472,8 +454,35 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setNewFieldValues(fieldsMap);
 		crdtOperation.setPkWhereClause(insertedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
-		this.verifyParentsConsistency(crdtOperation, insertedRow, true);
+		this.agentHelper.verifyParentsConsistency(crdtOperation, insertedRow, true);
 		transaction.addToOpsList(crdtOperation);
+
+		for(UniqueConstraint uniqueConstraint : toCheckConstraint)
+		{
+			List<DataField> fieldsList = uniqueConstraint.getFields();
+			StringBuilder uniqueBuffer = new StringBuilder();
+
+			for(DataField aField : fieldsList)
+			{
+				uniqueBuffer.append(insertedRow.getFieldValue(aField.getFieldName()));
+				uniqueBuffer.append("_");
+			}
+
+			uniqueBuffer.setLength(uniqueBuffer.length() - 1);
+			UniqueValue uniqueRequest = new UniqueValue();
+			uniqueRequest.setConstraintId(uniqueConstraint.getConstraintIdentifier());
+			uniqueRequest.setValue(uniqueBuffer.toString());
+
+			if(!transaction.isSetRequestToCoordinator())
+				transaction.setRequestToCoordinator(new CoordinatorRequest());
+
+			CoordinatorRequest coordinatorRequest = transaction.getRequestToCoordinator();
+
+			if(!coordinatorRequest.isSetUniqueValues())
+				coordinatorRequest.setUniqueValues(new LinkedList<UniqueValue>());
+
+			coordinatorRequest.addToUniqueValues(uniqueRequest);
+		}
 
 		return result;
 	}
@@ -488,17 +497,17 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
-		addWhere(buffer, deleteOp.getWhere());
+		this.agentHelper.addWhere(buffer, deleteOp.getWhere());
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
-			this.generateNotInDeletedAndUpdatedClause(buffer);
+			this.agentHelper.generateNotInDeletedAndUpdatedClause(buffer);
 		}
 		buffer.append(") UNION (SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		addWhere(buffer, deleteOp.getWhere());
+		this.agentHelper.addWhere(buffer, deleteOp.getWhere());
 		buffer.append(")");
 		String query = buffer.toString();
 
@@ -561,12 +570,12 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setOpId(transaction.getOpsListSize());
 
 		// before writting in the scratchpad, add the missing rows to the scratchpad
-		this.addMissingRowsToScratchpad(updateOp);
-		Row updatedRow = this.getUpdatedRowFromDatabase(updateOp);
+		this.agentHelper.addMissingRowsToScratchpad(updateOp);
+		Row updatedRow = this.agentHelper.getUpdatedRowFromDatabase(updateOp);
 
 		Map<String, String> oldValuesMap = new HashMap<>();
 		Map<String, String> newValuesMap = new HashMap<>();
-
+		Set<UniqueConstraint> toCheckConstraint = new HashSet<>();
 		Map<String, FieldValue> currentRowValues = updatedRow.getFieldsValuesMap();
 
 		for(Map.Entry<String, FieldValue> entry : currentRowValues.entrySet())
@@ -589,7 +598,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			if(field.isHiddenField())
 				continue;
 
-			// currently, we do not allow updates on primary keys, foreign keys and immutable fields
+			// we do not allow updates on primary keys, foreign keys and immutable fields
 			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
 				RuntimeUtils.throwRunTimeException(
 						"trying to modify a primary key, a foreign key or an " + "immutable field",
@@ -600,6 +609,7 @@ public class DBExecutorAgent implements IExecutorAgent
 
 			FieldValue newFieldValue;
 
+			//TODO capture CheckConstraints coordination request logic
 			if(field.isDeltaField())
 				newFieldValue = new DeltaFieldValue(field, newValue,
 						updatedRow.getFieldValue(field.getFieldName()).getValue());
@@ -609,12 +619,9 @@ public class DBExecutorAgent implements IExecutorAgent
 			updatedRow.updateFieldValue(newFieldValue);
 			newValuesMap.put(columnName, newFieldValue.getFormattedValue());
 
-			for(Constraint c : field.getInvariants())
-			{
-				if(c.getType() == ConstraintType.CHECK || c.getType() == ConstraintType.UNIQUE || c.getType() ==
-						ConstraintType.AUTO_INCREMENT)
-					updatedRow.addConstraintToverify(c);
-			}
+			for(UniqueConstraint c : field.getUniqueConstraints())
+				if(c.requiresCoordination())
+					toCheckConstraint.add(c);
 
 			buffer.append(columnName);
 			buffer.append("=");
@@ -638,318 +645,365 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setPkWhereClause(updatedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 		transaction.addToOpsList(crdtOperation);
 
-		this.verifyParentsConsistency(crdtOperation, updatedRow, false);
+		for(UniqueConstraint uniqueConstraint : toCheckConstraint)
+		{
+			List<DataField> fieldsList = uniqueConstraint.getFields();
+			StringBuilder uniqueBuffer = new StringBuilder();
+
+			for(DataField aField : fieldsList)
+			{
+				uniqueBuffer.append(updatedRow.getFieldValue(aField.getFieldName()));
+				uniqueBuffer.append("_");
+			}
+
+			uniqueBuffer.setLength(uniqueBuffer.length() - 1);
+
+			UniqueValue uniqueRequest = new UniqueValue();
+			uniqueRequest.setConstraintId(uniqueConstraint.getConstraintIdentifier());
+			uniqueRequest.setValue(uniqueBuffer.toString());
+
+			if(!transaction.isSetRequestToCoordinator())
+				transaction.setRequestToCoordinator(new CoordinatorRequest());
+
+			CoordinatorRequest coordinatorRequest = transaction.getRequestToCoordinator();
+
+			if(!coordinatorRequest.isSetUniqueValues())
+				coordinatorRequest.setUniqueValues(new LinkedList<UniqueValue>());
+
+			coordinatorRequest.addToUniqueValues(uniqueRequest);
+		}
+
+		this.agentHelper.verifyParentsConsistency(crdtOperation, updatedRow, false);
 
 		return affectedRows;
 	}
 
-	/**
-	 * Inserts missing rows in the temporary table and returns the list of rows
-	 * This must be done before updating rows in the scratchpad.
-	 *
-	 * @param updateOp
-	 * @param pad
-	 *
-	 * @throws java.sql.SQLException
-	 */
-	private void addMissingRowsToScratchpad(Update updateOp) throws SQLException
+	private class AgentHelper
 	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
-		buffer.append(updateOp.getTables().get(0).toString());
-		addWhere(buffer, updateOp.getWhere());
-		//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
-		buffer.append(" AND ");
-		buffer.append(DatabaseDefaults.DELETED_COLUMN);
-		buffer.append("=0) UNION (select *, '" + this.tempTableName + "' as tname FROM ");
-		buffer.append(this.tempTableName);
-		addWhere(buffer, updateOp.getWhere());
-		//buffer.append(");");
-		buffer.append(" AND ");
-		buffer.append(DatabaseDefaults.DELETED_COLUMN);
-		buffer.append("=0)");
 
-		ResultSet res = null;
-		try
+		protected void addWhere(StringBuilder buffer, Expression e)
 		{
-			res = this.sqlInterface.executeQuery(buffer.toString());
-
-			while(res.next())
+			if(e == null)
+				return;
+			buffer.append(" WHERE (");
+			buffer.append(SP_DELETED_EXPRESSION);
+			buffer.append(")");
+			if(e != null)
 			{
-				if(!res.getString("tname").equals(this.tempTableName))
+				buffer.append(" AND ( ");
+				buffer.append(e.toString());
+				buffer.append(" ) ");
+			}
+		}
+
+		/**
+		 * Inserts missing rows in the temporary table and returns the list of rows
+		 * This must be done before updating rows in the scratchpad.
+		 *
+		 * @param updateOp
+		 * @param pad
+		 *
+		 * @throws java.sql.SQLException
+		 */
+		private void addMissingRowsToScratchpad(Update updateOp) throws SQLException
+		{
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
+			buffer.append(updateOp.getTables().get(0).toString());
+			addWhere(buffer, updateOp.getWhere());
+			//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
+			buffer.append(" AND ");
+			buffer.append(DatabaseDefaults.DELETED_COLUMN);
+			buffer.append("=0) UNION (select *, '" + tempTableName + "' as tname FROM ");
+			buffer.append(tempTableName);
+			addWhere(buffer, updateOp.getWhere());
+			//buffer.append(");");
+			buffer.append(" AND ");
+			buffer.append(DatabaseDefaults.DELETED_COLUMN);
+			buffer.append("=0)");
+
+			ResultSet res = null;
+			try
+			{
+				res = sqlInterface.executeQuery(buffer.toString());
+
+				while(res.next())
 				{
-					if(!res.next())
+					if(!res.getString("tname").equals(tempTableName))
 					{
-						//Debug.println("record exists in real table but not temp table");
-						//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
-						res.previous();
-					} else
-					{
-						if(!res.getString("tname").equals(this.tempTableName))
+						if(!res.next())
 						{
 							//Debug.println("record exists in real table but not temp table");
+							//affectedRows.add(res.getInt(ScratchpadDefaults.SCRATCHPAD_COL_IMMUTABLE));
 							res.previous();
 						} else
 						{
-							//Debug.println("record exists in both real and temp table");
-							continue;
+							if(!res.getString("tname").equals(tempTableName))
+							{
+								//Debug.println("record exists in real table but not temp table");
+								res.previous();
+							} else
+							{
+								//Debug.println("record exists in both real and temp table");
+								continue;
+							}
+						}
+					} else
+					{
+						//Debug.println("record exist in temporary table but not real table");
+						continue;
+					}
+
+					buffer.setLength(0);
+					buffer.append("insert into ");
+					buffer.append(tempTableName);
+					buffer.append(" values (");
+
+					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+
+					Iterator<DataField> fieldsIt = fields.values().iterator();
+
+					while(fieldsIt.hasNext())
+					{
+						DataField field = fieldsIt.next();
+
+						String oldContent;
+
+						if(!field.isDeletedFlagField())
+							oldContent = res.getString(field.getFieldName());
+						else
+						{
+							oldContent = Integer.toString(res.getInt(field.getFieldName()));
+							oldContent = String.valueOf(oldContent);
+						}
+
+						if(oldContent == null)
+							if(field.isStringField())
+								oldContent = "NULL";
+							else if(field.isDateField())
+								oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
+
+						if(field.isStringField() || field.isDateField())
+						{
+							buffer.append("'");
+							buffer.append(oldContent);
+							buffer.append("'");
+						} else
+							buffer.append(oldContent);
+
+						if(fieldsIt.hasNext())
+							buffer.append(",");
+
+						if(field.isPrimaryKey())
+						{
+							FieldValue fValue = new FieldValue(field, oldContent);
+							pkValue.addFieldValue(fValue);
 						}
 					}
-				} else
-				{
-					//Debug.println("record exist in temporary table but not real table");
-					continue;
+
+					duplicatedRows.add(pkValue);
+					buffer.append(")");
+					sqlInterface.executeUpdate(buffer.toString());
 				}
-
-				buffer.setLength(0);
-				buffer.append("insert into ");
-				buffer.append(this.tempTableName);
-				buffer.append(" values (");
-
-				PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
-
-				Iterator<DataField> fieldsIt = this.fields.values().iterator();
-
-				while(fieldsIt.hasNext())
-				{
-					DataField field = fieldsIt.next();
-
-					String oldContent;
-
-					if(!field.isDeletedFlagField())
-						oldContent = res.getString(field.getFieldName());
-					else
-					{
-						oldContent = Integer.toString(res.getInt(field.getFieldName()));
-						oldContent = String.valueOf(oldContent);
-					}
-
-					if(oldContent == null)
-						if(field.isStringField())
-							oldContent = "NULL";
-						else if(field.isDateField())
-							oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
-
-					if(field.isStringField() || field.isDateField())
-					{
-						buffer.append("'");
-						buffer.append(oldContent);
-						buffer.append("'");
-					} else
-						buffer.append(oldContent);
-
-					if(fieldsIt.hasNext())
-						buffer.append(",");
-
-					if(field.isPrimaryKey())
-					{
-						FieldValue fValue = new FieldValue(field, oldContent);
-						pkValue.addFieldValue(fValue);
-					}
-				}
-
-				duplicatedRows.add(pkValue);
-				buffer.append(")");
-				this.sqlInterface.executeUpdate(buffer.toString());
+			} finally
+			{
+				DbUtils.closeQuietly(res);
 			}
-		} finally
-		{
-			DbUtils.closeQuietly(res);
 		}
-	}
 
-	private Row getUpdatedRowFromDatabase(Update updateOp) throws SQLException
-	{
-		Expression whereClause = updateOp.getWhere();
-		if(whereClause == null)
-			RuntimeUtils.throwRunTimeException("update operation should specify a primary key in the where " +
-							"clause",
-					ExitCode.INVALIDUSAGE);
-
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("SELECT ");
-		buffer.append(this.databaseTable.getNormalFieldsSelection());
-		buffer.append(" FROM ");
-		buffer.append(this.tempTableName);
-		buffer.append(" WHERE ");
-		buffer.append(whereClause);
-
-		ResultSet rs = null;
-		try
+		private Row getUpdatedRowFromDatabase(Update updateOp) throws SQLException
 		{
-			rs = this.sqlInterface.executeQuery(buffer.toString());
+			Expression whereClause = updateOp.getWhere();
+			if(whereClause == null)
+				RuntimeUtils.throwRunTimeException(
+						"update operation should specify a primary key in the where " + "clause",
+						ExitCode.INVALIDUSAGE);
 
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("SELECT ");
+			buffer.append(databaseTable.getNormalFieldsSelection());
+			buffer.append(" FROM ");
+			buffer.append(tempTableName);
+			buffer.append(" WHERE ");
+			buffer.append(whereClause);
+
+			ResultSet rs = null;
+			try
+			{
+				rs = sqlInterface.executeQuery(buffer.toString());
+
+				if(!rs.isBeforeFirst())
+				{
+					if(LOG.isDebugEnabled())
+						LOG.debug(buffer.toString());
+					throw new SQLException("result set is empty (could not fetch row from main storage)");
+				}
+
+				rs.next();
+
+				Row row = DatabaseCommon.getFullRow(rs, databaseTable);
+				if(row != null)
+					return row;
+
+				RuntimeUtils.throwRunTimeException("error fetching updated row from database",
+						ExitCode.FETCH_RESULTS_ERROR);
+
+				return null;
+
+			} finally
+			{
+				DbUtils.closeQuietly(rs);
+			}
+		}
+
+		private void generateNotInDeletedAndUpdatedClause(StringBuilder buffer)
+		{
+			if(duplicatedRows.size() == 0 && deletedRows.size() == 0)
+				return;
+
+			buffer.append("( ");
+			// remove deleted and updated from select in main table
+			InExpression notInExpression = new InExpression();
+			notInExpression.setNot(true);
+
+			List<Expression> deletedItemsList = new ArrayList<>();
+
+			for(PrimaryKeyValue pkValue : duplicatedRows)
+			{
+				Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
+				deletedItemsList.add(valueExpression);
+			}
+
+			for(PrimaryKeyValue pkValue : deletedRows)
+			{
+				Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
+				deletedItemsList.add(valueExpression);
+			}
+
+			ExpressionList expressionList = new ExpressionList(deletedItemsList);
+
+			notInExpression.setRightItemsList(expressionList);
+			notInExpression.setLeftExpression(new MyValueExpression("(" + pk.getQueryClause() + ")"));
+
+			buffer.append(notInExpression.toString());
+			buffer.append(" )");
+		}
+
+		private Map<String, String> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
+												   SQLInterface sqlInterface) throws SQLException
+		{
+			Map<String, String> parentByConstraint = new HashMap<>();
+
+			for(int i = 0; i < constraints.size(); i++)
+			{
+				ForeignKeyConstraint c = constraints.get(i);
+
+				if(!c.requiresParentConsistency())
+					continue;
+
+				Row parent = findParent(childRow, c, sqlInterface);
+				parentByConstraint.put(c.getConstraintIdentifier(),
+						parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+
+				if(parent == null)
+					throw new SQLException("parent row not found. Foreing key violated");
+			}
+
+			//return null in the case where app never deletes any parent
+			if(parentByConstraint.size() == 0)
+				return null;
+			else
+				return parentByConstraint;
+		}
+
+		private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert)
+				throws SQLException
+		{
+			if(fkConstraints.size() > 0) // its a child row
+			{
+				if(isInsert)
+					crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
+				else
+					crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
+				Map<String, String> parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
+
+				if(parentsByConstraint != null)
+					crdtOperation.setParentsMap(parentsByConstraint);
+
+			} else
+				// its a "neutral" or "parent" row
+				crdtOperation.setOpType(CRDTOperationType.INSERT);
+		}
+
+		private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface)
+				throws SQLException
+		{
+			String query = QueryCreator.findParent(childRow, constraint, sandboxId);
+
+			ResultSet rs = sqlInterface.executeQuery(query);
 			if(!rs.isBeforeFirst())
 			{
-				if(LOG.isDebugEnabled())
-					LOG.debug(buffer.toString());
-				throw new SQLException("result set is empty (could not fetch row from main storage)");
+				DbUtils.closeQuietly(rs);
+				throw new SQLException("parent row not found. Foreing key violated");
 			}
 
 			rs.next();
-
-			Row row = DatabaseCommon.getFullRow(rs, this.databaseTable);
-			if(row != null)
-				return row;
-
-			RuntimeUtils.throwRunTimeException("error fetching updated row from database",
-					ExitCode.FETCH_RESULTS_ERROR);
-
-			return null;
-
-		} finally
-		{
+			DatabaseTable remoteTable = constraint.getParentTable();
+			PrimaryKeyValue parentPk = DatabaseCommon.getPrimaryKeyValue(rs, remoteTable);
 			DbUtils.closeQuietly(rs);
-		}
-	}
 
-	private void generateNotInDeletedAndUpdatedClause(StringBuilder buffer)
-	{
-		if(this.duplicatedRows.size() == 0 && this.deletedRows.size() == 0)
-			return;
-
-		buffer.append("( ");
-		// remove deleted and updated from select in main table
-		InExpression notInExpression = new InExpression();
-		notInExpression.setNot(true);
-
-		List<Expression> deletedItemsList = new ArrayList<>();
-
-		for(PrimaryKeyValue pkValue : this.duplicatedRows)
-		{
-			Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
-			deletedItemsList.add(valueExpression);
+			return new Row(remoteTable, parentPk);
 		}
 
-		for(PrimaryKeyValue pkValue : this.deletedRows)
+		private void createSymbolEntry(CRDTTransaction txn, CRDTOperation op, String symbol, DataField dataField)
 		{
-			Expression valueExpression = new MyValueExpression("(" + pkValue.getValue() + ")");
-			deletedItemsList.add(valueExpression);
+			if(!txn.isSetSymbolsMap())
+				txn.setSymbolsMap(new HashMap<String, SymbolEntry>());
+
+			Map<String, SymbolEntry> symbolsMap = txn.getSymbolsMap();
+
+			if(symbolsMap.containsKey(symbol))
+			{
+				linkSymbolToField(op, symbolsMap.get(symbol), dataField);
+				return;
+			} else //create new symbol entry
+			{
+				SymbolEntry symbolEntry = new SymbolEntry();
+				symbolEntry.setSymbol(symbol);
+				symbolEntry.setRequiresCoordination(false);
+				symbolsMap.put(symbol, symbolEntry);
+				linkSymbolToField(op, symbolEntry, dataField);
+			}
+
+			if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
+			{
+				SymbolEntry symbolEntry = symbolsMap.get(symbol);
+				symbolEntry.setRequiresCoordination(true);
+
+				AutoIncrementConstraint autoIncrementConstraint = databaseTable.getAutoIncrementConstraint(
+						dataField.getFieldName());
+				RequestValue request = new RequestValue();
+
+				request.setOpId(op.getOpId());
+				request.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
+				request.setTempSymbol(symbol);
+				request.setFieldName(dataField.getFieldName());
+
+				if(!txn.isSetRequestToCoordinator())
+					txn.setRequestToCoordinator(new CoordinatorRequest());
+
+				txn.getRequestToCoordinator().addToRequests(request);
+			}
 		}
 
-		ExpressionList expressionList = new ExpressionList(deletedItemsList);
-
-		notInExpression.setRightItemsList(expressionList);
-		notInExpression.setLeftExpression(new MyValueExpression("(" + this.pk.getQueryClause() + ")"));
-
-		buffer.append(notInExpression.toString());
-		buffer.append(" )");
-	}
-
-	private Map<String, String> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
-											   SQLInterface sqlInterface) throws SQLException
-	{
-		Map<String, String> parentByConstraint = new HashMap<>();
-
-		for(int i = 0; i < constraints.size(); i++)
+		private void linkSymbolToField(CRDTOperation op, SymbolEntry symbolEntry, DataField dataField)
 		{
-			ForeignKeyConstraint c = constraints.get(i);
+			if(!op.isSetSymbolFieldMap())
+				op.setSymbolFieldMap(new HashMap<String, String>());
 
-			if(!c.requiresParentConsistency())
-				continue;
-
-			Row parent = findParent(childRow, c, sqlInterface);
-			parentByConstraint.put(c.getConstraintIdentifier(), parent.getPrimaryKeyValue().getPrimaryKeyWhereClause
-					());
-
-			if(parent == null)
-				throw new SQLException("parent row not found. Foreing key violated");
+			Map<String, String> symbolFieldMap = op.getSymbolFieldMap();
+			symbolFieldMap.put(symbolEntry.getSymbol(), dataField.getFieldName());
 		}
-
-		//return null in the case where app never deletes any parent
-		if(parentByConstraint.size() == 0)
-			return null;
-		else
-			return parentByConstraint;
-	}
-
-	private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert) throws SQLException
-	{
-		if(this.fkConstraints.size() > 0) // its a child row
-		{
-			if(isInsert)
-				crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
-			else
-				crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
-			Map<String, String> parentsByConstraint = findParentRows(row, this.fkConstraints, this.sqlInterface);
-
-			if(parentsByConstraint != null)
-				crdtOperation.setParentsMap(parentsByConstraint);
-
-		} else
-			// its a "neutral" or "parent" row
-			crdtOperation.setOpType(CRDTOperationType.INSERT);
-	}
-
-	private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface) throws
-			SQLException
-	{
-		String query = QueryCreator.findParent(childRow, constraint, this.sandboxId);
-
-		ResultSet rs = sqlInterface.executeQuery(query);
-		if(!rs.isBeforeFirst())
-		{
-			DbUtils.closeQuietly(rs);
-			throw new SQLException("parent row not found. Foreing key violated");
-		}
-
-		rs.next();
-		DatabaseTable remoteTable = constraint.getParentTable();
-		PrimaryKeyValue parentPk = DatabaseCommon.getPrimaryKeyValue(rs, remoteTable);
-		DbUtils.closeQuietly(rs);
-
-		return new Row(remoteTable, parentPk);
-	}
-
-	private void createSymbolEntry(CRDTTransaction txn, CRDTOperation op, String symbol, DataField dataField)
-	{
-		if(!txn.isSetSymbolsMap())
-			txn.setSymbolsMap(new HashMap<String, SymbolEntry>());
-
-		Map<String, SymbolEntry> symbolsMap = txn.getSymbolsMap();
-
-		if(symbolsMap.containsKey(symbol))
-		{
-			linkSymbolToField(op, symbolsMap.get(symbol), dataField);
-			return;
-		}
-		else //create new symbol entry
-		{
-			SymbolEntry symbolEntry = new SymbolEntry();
-			symbolEntry.setSymbol(symbol);
-			symbolEntry.setRequiresCoordination(false);
-			symbolsMap.put(symbol, symbolEntry);
-			linkSymbolToField(op, symbolEntry, dataField);
-		}
-
-		if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
-		{
-			SymbolEntry symbolEntry = symbolsMap.get(symbol);
-			symbolEntry.setRequiresCoordination(true);
-
-			AutoIncrementConstraint autoIncrementConstraint = this.databaseTable.getAutoIncrementConstraint(
-					dataField.getFieldName());
-			RequestValue request = new RequestValue();
-
-			request.setOpId(op.getOpId());
-			request.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
-			request.setTempSymbol(symbol);
-			request.setFieldName(dataField.getFieldName());
-
-			if(!txn.isSetRequestToCoordinator())
-				txn.setRequestToCoordinator(new CoordinatorRequest());
-
-			txn.getRequestToCoordinator().addToRequests(request);
-		}
-	}
-
-	private void linkSymbolToField(CRDTOperation op, SymbolEntry symbolEntry, DataField dataField)
-	{
-		if(!op.isSetSymbolFieldMap())
-			op.setSymbolFieldMap(new HashMap<String, String>());
-
-		Map<String, String> symbolFieldMap = op.getSymbolFieldMap();
-		symbolFieldMap.put(symbolEntry.getSymbol(), dataField.getFieldName());
 	}
 
 	private class MyValueExpression implements Expression

@@ -84,9 +84,9 @@ public class ZookeeperBootstrap
 
 		for(DatabaseTable table : this.databaseMetadata.getAllTables())
 		{
-			Set<Constraint> invariants = table.getTableInvarists();
+			Set<Constraint> constraints = table.getTableConstraints();
 
-			for(Constraint constraint : invariants)
+			for(Constraint constraint : constraints)
 			{
 				if(constraint.getType() == ConstraintType.UNIQUE)
 					this.treatUniqueConstraint((UniqueConstraint) constraint, request);

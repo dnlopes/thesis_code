@@ -6,10 +6,10 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import database.constraints.Constraint;
+import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
 import database.constraints.unique.UniqueConstraint;
-import database.util.SemanticPolicy;
 import database.util.field.DataField;
 import database.util.ExecutionPolicy;
 import database.util.PrimaryKey;
@@ -18,6 +18,7 @@ import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 
@@ -42,14 +43,16 @@ public abstract class DatabaseTable
 	private CRDTTableType tag;
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
-	private Set<Constraint> tableInvarists;
+	private Set<Constraint> tableConstraints;
+	private List<CheckConstraint> checkConstraints;
+	private List<UniqueConstraint> uniqueConstraints;
+	private List<ForeignKeyConstraint> fkConstraints;
+	private List<AutoIncrementConstraint> autoIncrementConstraints;
 	private Map<String, AutoIncrementConstraint> autoIncrementConstraintMap;
 	private Map<String, Constraint> constraintsMap;
 	private PrimaryKey primaryKey;
-	private String insertColsString;
 	private Set<ForeignKeyConstraint> childTablesConstraints;
 	private String selectNormalFieldsForQueryString;
-	private Map<String, UniqueConstraint> uniqueConstraintMap;
 
 	protected DataField timestampField;
 
@@ -78,145 +81,85 @@ public abstract class DatabaseTable
 		this.childTablesConstraints = new HashSet<>();
 		this.sortedFieldsMap = new HashMap<>();
 		this.hiddenFields = new HashMap<>();
-		this.uniqueConstraintMap = new HashMap<>();
 		this.normalFields = new HashMap<>();
-		this.tableInvarists = new LinkedHashSet<>();
+		this.tableConstraints = new LinkedHashSet<>();
 		this.constraintsMap = new HashMap<>();
+		this.checkConstraints = new LinkedList<>();
+		this.uniqueConstraints = new LinkedList<>();
+		this.fkConstraints = new LinkedList<>();
+		this.autoIncrementConstraints = new LinkedList<>();
+		this.autoIncrementConstraintMap = new HashMap<>();
 		this.containsAutoIncrementField = false;
 		this.isParentTable = false;
-		this.autoIncrementConstraintMap = new HashMap<>();
 
 		if(tableType != CRDTTableType.NONCRDTTABLE)
 			this.addHiddenFields();
 
-		for(DataField entry : this.fieldsMap.values())
+		for(DataField aDataField : this.fieldsMap.values())
 		{
-			this.sortedFieldsMap.put(entry.getPosition(), entry);
-			this.tableInvarists.addAll(entry.getInvariants());
+			this.sortedFieldsMap.put(aDataField.getPosition(), aDataField);
 
-			if(entry.isHiddenField())
-				this.hiddenFields.put(entry.getFieldName(), entry);
+			this.uniqueConstraints.addAll(aDataField.getUniqueConstraints());
+			this.fkConstraints.addAll(aDataField.getFkConstraints());
+			this.checkConstraints.addAll(aDataField.getCheckConstraints());
+			this.tableConstraints.addAll(aDataField.getAllConstraints());
+
+			if(aDataField.isHiddenField())
+				this.hiddenFields.put(aDataField.getFieldName(), aDataField);
 			else
-				this.normalFields.put(entry.getFieldName(), entry);
+				this.normalFields.put(aDataField.getFieldName(), aDataField);
 
-			if(entry.isPrimaryKey())
+			if(aDataField.isPrimaryKey())
+				this.addToPrimaryKey(aDataField);
+
+			if(aDataField.isAutoIncrement())
 			{
-				this.primaryKey.addField(entry);
-				this.addPrimaryKey(entry);
-			}
-
-			if(entry.isAutoIncrement())
-			{
-				boolean requiresCoordination = entry.getSemantic() == SemanticPolicy.SEMANTIC;
-
-				Constraint autoIncrementConstraint = new AutoIncrementConstraint(requiresCoordination);
-				autoIncrementConstraint.setTableName(this.name);
-				autoIncrementConstraint.addField(entry);
-				autoIncrementConstraint.generateIdentifier();
-				this.tableInvarists.add(autoIncrementConstraint);
-				entry.addInvariant(autoIncrementConstraint);
+				this.autoIncrementConstraints.add(aDataField.getAutoIncrementConstraint());
 				this.containsAutoIncrementField = true;
-				this.autoIncrementConstraintMap.put(entry.getFieldName(),
-						(AutoIncrementConstraint) autoIncrementConstraint);
+				this.autoIncrementConstraintMap.put(aDataField.getFieldName(), aDataField.getAutoIncrementConstraint
+						());
 			}
 		}
 
-		this.setPrimaryKeyString(this.assemblePrimaryKeyString());
+		setPrimaryKeyString(assemblePrimaryKeyString());
+		generateSelectFieldsForQuery();
 
-		StringBuffer buffer = new StringBuffer();
-
-		Iterator<DataField> fieldsIt = this.sortedFieldsMap.values().iterator();
-		while(fieldsIt.hasNext())
-		{
-			buffer.append(fieldsIt.next().getFieldName());
-			if(fieldsIt.hasNext())
-				buffer.append(",");
-		}
-
-		this.insertColsString = buffer.toString();
-		this.generateSelectFieldsForQuery();
-
-		for(Constraint c : this.tableInvarists)
+		for(Constraint c : this.tableConstraints)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
 	}
-
-	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
-
-	public abstract String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
-			throws JSQLParserException;
-
-	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
 
 	public PrimaryKey getPrimaryKey()
 	{
 		return this.primaryKey;
 	}
 
-	public void addPrimaryKey(DataField field)
+	public void addToPrimaryKey(DataField field)
 	{
-		if(this.primaryKeyMap == null)
-		{
-			try
-			{
-				throw new RuntimeException("primary key map has not been initialized!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.NOINITIALIZATION);
-			}
-		}
 		if(this.primaryKeyMap.containsKey(field.getFieldName()))
-		{
-			try
-			{
-				throw new RuntimeException("primary key map has duplication!");
-			} catch(RuntimeException e)
-			{
-				System.exit(ExitCode.HASHMAPDUPLICATE);
-			}
-		}
+			RuntimeUtils.throwRunTimeException("duplicated field for primary key", ExitCode.DUPLICATED_FIELD);
 
 		this.primaryKeyMap.put(field.getFieldName(), field);
+		this.primaryKey.addField(field);
+
 		if(field.isAutoIncrement())
-		{
 			this.containsAutoIncrementField = true;
-		}
 	}
 
-	/**
-	 * Gets the _ table_ name.
-	 *
-	 * @return the _ table_ name
-	 */
 	public String getName()
 	{
 		return this.name;
 	}
 
-	/**
-	 * Gets the _ crd t_ table_ type.
-	 *
-	 * @return the _ crd t_ table_ type
-	 */
 	public CRDTTableType getTableType()
 	{
 		return this.tag;
 	}
 
-	/**
-	 * Gets the _ data_ field_ list.
-	 *
-	 * @return the _ data_ field_ list
-	 */
 	public Map<String, DataField> getFieldsMap()
 	{
 		return this.fieldsMap;
 	}
 
-	/**
-	 * Gets the data field list.
-	 *
-	 * @return the data field list
-	 */
 	public List<DataField> getFieldsList()
 	{
 		Collection<DataField> dataFields = this.fieldsMap.values();
@@ -229,48 +172,16 @@ public abstract class DatabaseTable
 		}
 	}
 
-	/**
-	 * Gets the _ primary_ key_ list.
-	 *
-	 * @return the _ primary_ key_ list
-	 */
 	public HashMap<String, DataField> getPrimaryKeysMap()
 	{
 		return this.primaryKeyMap;
 	}
 
-	/**
-	 * Gets the primary key data field list.
-	 *
-	 * @return the primary key data field list
-	 */
-	public List<DataField> getPrimaryKeysList()
-	{
-		Collection<DataField> dataFields = this.primaryKeyMap.values();
-		if(dataFields instanceof List)
-		{
-			return (List<DataField>) dataFields;
-		} else
-		{
-			return new ArrayList<>(dataFields);
-		}
-	}
-
-	/**
-	 * Gets the _ primary_ key_ name_ list.
-	 *
-	 * @return the _ primary_ key_ name_ list
-	 */
 	public Set<String> getPrimaryKeysNamesList()
 	{
 		return this.primaryKeyMap.keySet();
 	}
 
-	/**
-	 * Gets the _ data_ field_ count.
-	 *
-	 * @return the _ data_ field_ count
-	 */
 	public int getFieldCount()
 	{
 		int tempCount = fieldsMap.size() - this.getNumOfHiddenFields();
@@ -281,14 +192,6 @@ public abstract class DatabaseTable
 		return tempCount;
 	}
 
-	/**
-	 * Gets the _ data_ field.
-	 *
-	 * @param name
-	 * 		the d tn
-	 *
-	 * @return the _ data_ field
-	 */
 	public DataField getField(String name)
 	{
 
@@ -318,14 +221,6 @@ public abstract class DatabaseTable
 
 	}
 
-	/**
-	 * Gets the _ data_ field.
-	 *
-	 * @param dfIndex
-	 * 		the df index
-	 *
-	 * @return the _ data_ field
-	 */
 	public DataField getField(int index)
 	{
 
@@ -351,7 +246,7 @@ public abstract class DatabaseTable
 			}
 		}
 
-		if(!this.sortedFieldsMap.containsKey(new Integer(index)))
+		if(!this.sortedFieldsMap.containsKey(index))
 		{
 			try
 			{
@@ -362,20 +257,10 @@ public abstract class DatabaseTable
 			}
 		}
 
-		return this.sortedFieldsMap.get(new Integer(index));
+		return this.sortedFieldsMap.get(index);
 
 	}
 
-	/**
-	 * Find mising data field.
-	 *
-	 * @param colList
-	 * 		the col list
-	 * @param valueList
-	 * 		the value list
-	 *
-	 * @return the sets the
-	 */
 	public Set<String> findMisingDataField(List<String> colList, List<String> valueList)
 	{
 		if(getFieldCount() == colList.size() || getFieldCount() == valueList.size())
@@ -411,14 +296,6 @@ public abstract class DatabaseTable
 		}
 	}
 
-	/**
-	 * Checks if is primary key missing from where clause.
-	 *
-	 * @param whereClauseStr
-	 * 		the where clause str
-	 *
-	 * @return true, if is primary key missing from where clause
-	 */
 	public boolean isPrimaryKeyMissingFromWhereClause(String whereClauseStr)
 	{
 		HashMap<String, DataField> primaryKeysMap = this.getPrimaryKeysMap();
@@ -436,14 +313,6 @@ public abstract class DatabaseTable
 		return false;
 	}
 
-	/**
-	 * Generated primary key query.
-	 *
-	 * @param whereClauseStr
-	 * 		the where clause str
-	 *
-	 * @return the string
-	 */
 	public String generatedPrimaryKeyQuery(String whereClauseStr)
 	{
 		StringBuilder selectStr = new StringBuilder("select ");
@@ -457,138 +326,32 @@ public abstract class DatabaseTable
 		return selectStr.toString();
 	}
 
-	/**
-	 * To string.
-	 *
-	 * @return the string
-	 *
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString()
-	{
-		String myString = "TableName: " + this.name + " \n";
-		myString += "primary key maps --> \n";
-
-		for(Entry<String, DataField> entry : this.primaryKeyMap.entrySet())
-		{
-			myString += entry.getValue().toString() + " \n ";
-		}
-
-		myString += "data field maps -------->\n";
-
-		for(Entry<String, DataField> entry : fieldsMap.entrySet())
-		{
-			myString += entry.getValue().toString() + " \n ";
-		}
-
-		myString += " is contained AutoIncremental fields: " + this.containsAutoIncrementField + "\n";
-		if(this.timestampField != null)
-		{
-			myString += " logicalTimestamp: " + timestampField.toString() + "\n";
-		}
-
-		return myString;
-
-	}
-
-	/**
-	 * Gets the num of hidden fields.
-	 *
-	 * @return the numOfHiddenFields
-	 */
 	public int getNumOfHiddenFields()
 	{
 		return this.hiddenFields.size();
 	}
 
-	/**
-	 * Sets the primary key string.
-	 *
-	 * @param primaryKeyString
-	 * 		the primaryKeyString to set
-	 */
 	public void setPrimaryKeyString(String primaryKeyString)
 	{
 		this.primaryKeyString = primaryKeyString;
 	}
 
-	/**
-	 * Gets the primary key string.
-	 *
-	 * @return the primaryKeyString
-	 */
 	public String getPrimaryKeyString()
 	{
 		if(this.primaryKeyString.equals(""))
-		{
-			this.setPrimaryKeyString(this.assemblePrimaryKeyString());
-		}
+			setPrimaryKeyString(assemblePrimaryKeyString());
+
 		return this.primaryKeyString;
 	}
 
-	/**
-	 * Assemble primary key string.
-	 *
-	 * @return the string
-	 */
-	public String assemblePrimaryKeyString()
+	public Set<Constraint> getTableConstraints()
 	{
-		StringBuilder pkStrBuilder = new StringBuilder("");
-		Iterator<String> it = this.getPrimaryKeysNamesList().iterator();
-		int index = 0;
-
-		while(it.hasNext())
-		{
-			String singlePkStr = it.next();
-			if(index == 0)
-			{
-				pkStrBuilder.append(singlePkStr);
-			} else
-			{
-				pkStrBuilder.append(",");
-				pkStrBuilder.append(singlePkStr);
-			}
-			index++;
-		}
-		return pkStrBuilder.toString();
-	}
-
-	private void addHiddenFields()
-	{
-		DataField deletedField = new DeletedField(this.name, fieldsMap.size());
-		this.fieldsMap.put(deletedField.getFieldName(), deletedField);
-		this.deletedField = deletedField;
-		this.deletedField.setDefaultValue("1");
-		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
-
-		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(),
-				DatabaseDefaults.CONTENT_CLOCK_COLUMN);
-		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
-		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
-
-		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(),
-				DatabaseDefaults.DELETED_CLOCK_COLUMN);
-		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
-		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
-
-		this.contentClockField = contentClock;
-		this.deletedClockField = deletedClock;
-
-	}
-
-	public Set<Constraint> getTableInvarists()
-	{
-		return this.tableInvarists;
+		return this.tableConstraints;
 	}
 
 	public Constraint getConstraint(String constraintId)
 	{
 		return this.constraintsMap.get(constraintId);
-	}
-
-	public String getInsertColsString()
-	{
-		return this.insertColsString;
 	}
 
 	public DataField getDeletedField()
@@ -626,11 +389,6 @@ public abstract class DatabaseTable
 		this.childTablesConstraints.add(fkConstraint);
 	}
 
-	public Set<ForeignKeyConstraint> getChildTablesConstraints()
-	{
-		return this.childTablesConstraints;
-	}
-
 	public DataField getDeletedClockField()
 	{
 		return this.deletedClockField;
@@ -657,13 +415,104 @@ public abstract class DatabaseTable
 		return this.selectNormalFieldsForQueryString;
 	}
 
-	public Map<String, UniqueConstraint> getUniqueConstraintMap()
-	{
-		return this.uniqueConstraintMap;
-	}
-
 	public AutoIncrementConstraint getAutoIncrementConstraint(String fieldName)
 	{
 		return this.autoIncrementConstraintMap.get(fieldName);
 	}
+
+	public List<CheckConstraint> getCheckConstraints()
+	{
+		return this.checkConstraints;
+	}
+
+	public List<UniqueConstraint> getUniqueConstraints()
+	{
+		return this.uniqueConstraints;
+	}
+
+	public List<ForeignKeyConstraint> getFkConstraints()
+	{
+		return this.fkConstraints;
+	}
+
+	private String assemblePrimaryKeyString()
+	{
+		StringBuilder pkStrBuilder = new StringBuilder("");
+		Iterator<String> it = this.getPrimaryKeysNamesList().iterator();
+		int index = 0;
+
+		while(it.hasNext())
+		{
+			String singlePkStr = it.next();
+			if(index == 0)
+			{
+				pkStrBuilder.append(singlePkStr);
+			} else
+			{
+				pkStrBuilder.append(",");
+				pkStrBuilder.append(singlePkStr);
+			}
+			index++;
+		}
+
+		return pkStrBuilder.toString();
+	}
+
+	private void addHiddenFields()
+	{
+		DataField deletedField = new DeletedField(this.name, fieldsMap.size());
+		this.fieldsMap.put(deletedField.getFieldName(), deletedField);
+		this.deletedField = deletedField;
+		this.deletedField.setDefaultValue("1");
+		this.hiddenFields.put(deletedField.getFieldName(), deletedField);
+
+		DataField contentClock = new LogicalClockField(this.name, fieldsMap.size(),
+				DatabaseDefaults.CONTENT_CLOCK_COLUMN);
+		this.fieldsMap.put(contentClock.getFieldName(), contentClock);
+		this.hiddenFields.put(contentClock.getFieldName(), contentClock);
+
+		DataField deletedClock = new LogicalClockField(this.name, fieldsMap.size(),
+				DatabaseDefaults.DELETED_CLOCK_COLUMN);
+		this.fieldsMap.put(deletedClock.getFieldName(), deletedClock);
+		this.hiddenFields.put(deletedClock.getFieldName(), deletedClock);
+
+		this.contentClockField = contentClock;
+		this.deletedClockField = deletedClock;
+
+	}
+
+	public String toString()
+	{
+		String myString = "TableName: " + this.name + " \n";
+		myString += "primary key maps --> \n";
+
+		for(Entry<String, DataField> entry : this.primaryKeyMap.entrySet())
+		{
+			myString += entry.getValue().toString() + " \n ";
+		}
+
+		myString += "data field maps -------->\n";
+
+		for(Entry<String, DataField> entry : fieldsMap.entrySet())
+		{
+			myString += entry.getValue().toString() + " \n ";
+		}
+
+		myString += " is contained AutoIncremental fields: " + this.containsAutoIncrementField + "\n";
+		if(this.timestampField != null)
+		{
+			myString += " logicalTimestamp: " + timestampField.toString() + "\n";
+		}
+
+		return myString;
+
+	}
+
+	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
+
+	public abstract String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
+			throws JSQLParserException;
+
+	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
+
 }

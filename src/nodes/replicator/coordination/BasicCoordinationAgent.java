@@ -96,7 +96,7 @@ public class BasicCoordinationAgent implements CoordinationAgent
 			{
 			case INSERT:
 			case INSERT_CHILD:
-				for(Constraint c : dbTable.getTableInvarists())
+				for(Constraint c : dbTable.getTableConstraints())
 				{
 					if(!c.requiresCoordination())
 						continue;
@@ -118,7 +118,7 @@ public class BasicCoordinationAgent implements CoordinationAgent
 
 			case UPDATE:
 			case UPDATE_CHILD:
-				for(Constraint c : dbTable.getTableInvarists())
+				for(Constraint c : dbTable.getTableConstraints())
 				{
 					if(!c.requiresCoordination())
 						continue;

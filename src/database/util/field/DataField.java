@@ -8,9 +8,15 @@ import java.util.List;
 import java.util.Set;
 
 import database.constraints.Constraint;
+import database.constraints.check.CheckConstraint;
+import database.constraints.fk.ForeignKeyConstraint;
+import database.constraints.unique.AutoIncrementConstraint;
+import database.constraints.unique.UniqueConstraint;
 import database.util.SemanticPolicy;
 import database.util.table.DatabaseTable;
 import database.util.value.FieldValue;
+import runtime.RuntimeUtils;
+import util.ExitCode;
 
 
 /**
@@ -20,6 +26,10 @@ public abstract class DataField
 {
 
 	private List<Constraint> invariants;
+	private List<CheckConstraint> checkConstraints;
+	private List<UniqueConstraint> uniqueConstraints;
+	private List<ForeignKeyConstraint> fkConstraints;
+	private AutoIncrementConstraint autoIncrementConstraint;
 	private Set<DataField> childFields;
 	private Set<DataField> parentsFields;
 	private CrdtDataFieldType crdtDataType;
@@ -42,10 +52,11 @@ public abstract class DataField
 	{
 
 		this.invariants = new LinkedList<>();
+		this.checkConstraints = new LinkedList<>();
+		this.uniqueConstraints = new LinkedList<>();
+		this.fkConstraints = new LinkedList<>();
 		this.childFields = new HashSet<>();
 		this.parentsFields = new HashSet<>();
-
-		this.defaultValue = null;
 		this.isAllowedNULL = false;
 		this.isUnique = false;
 		this.position = -1;
@@ -58,24 +69,26 @@ public abstract class DataField
 		this.position = pos;
 		this.semantic = semanticPolicy;
 
+		this.autoIncrementConstraint = null;
+		this.defaultValue = null;
+
 		if(this.isAutoIncremental)
+		{
 			this.isUnique = true;
+
+			boolean requiresCoordination = this.semantic == SemanticPolicy.SEMANTIC;
+
+			Constraint autoIncrementConstraint = new AutoIncrementConstraint(requiresCoordination);
+			autoIncrementConstraint.setTableName(this.dbTable.getName());
+			autoIncrementConstraint.addField(this);
+			autoIncrementConstraint.generateIdentifier();
+			addConstraint(autoIncrementConstraint);
+		}
 	}
-
-	public abstract String get_Crdt_Form(ResultSet rs, String Value);
-
-	public abstract String get_Crdt_Form(String Value);
-
-	public abstract String get_Value_In_Correct_Format(String Value);
 
 	public CrdtDataFieldType getCrdtType()
 	{
 		return this.crdtDataType;
-	}
-
-	public String getFieldName()
-	{
-		return this.fieldName;
 	}
 
 	public String getTableName()
@@ -86,11 +99,6 @@ public abstract class DataField
 	public void setDefaultValue(String value)
 	{
 		this.defaultValue = value;
-	}
-
-	public String getDefaultValue()
-	{
-		return this.defaultValue;
 	}
 
 	public boolean isPrimaryKey()
@@ -113,11 +121,6 @@ public abstract class DataField
 		this.isForeignKey = true;
 	}
 
-	public boolean isStringField()
-	{
-		return false;
-	}
-
 	public boolean isAutoIncrement()
 	{
 		return this.isAutoIncremental;
@@ -128,13 +131,29 @@ public abstract class DataField
 		return this.position;
 	}
 
-	public List<Constraint> getInvariants()
+	public List<Constraint> getAllConstraints()
 	{
 		return this.invariants;
 	}
 
-	public void addInvariant(Constraint inv)
+	public void addConstraint(Constraint inv)
 	{
+		if(inv instanceof CheckConstraint)
+			this.checkConstraints.add((CheckConstraint) inv);
+		else if(inv instanceof UniqueConstraint)
+			this.uniqueConstraints.add((UniqueConstraint) inv);
+		else if(inv instanceof ForeignKeyConstraint)
+			this.fkConstraints.add((ForeignKeyConstraint) inv);
+		else if(inv instanceof AutoIncrementConstraint)
+		{
+			if(autoIncrementConstraint != null)
+				RuntimeUtils.throwRunTimeException(
+						"multiple auto_increment constraints on the same field now " + "allowed",
+						ExitCode.DUPLICATED_FIELD);
+
+			this.autoIncrementConstraint = (AutoIncrementConstraint) inv;
+		}
+
 		this.invariants.add(inv);
 	}
 
@@ -145,21 +164,6 @@ public abstract class DataField
 				CrdtDataFieldType.NORMALDOUBLE || this.crdtDataType == CrdtDataFieldType.NORMALFLOAT || this
 				.crdtDataType == CrdtDataFieldType.NORMALINTEGER || this.crdtDataType == CrdtDataFieldType
 				.NORMALSTRING;
-	}
-
-	public boolean isDeletedFlagField()
-	{
-		return false;
-	}
-
-	public boolean isDeltaField()
-	{
-		return false;
-	}
-
-	public boolean isHiddenField()
-	{
-		return false;
 	}
 
 	public void setDatabaseTable(DatabaseTable table)
@@ -182,14 +186,54 @@ public abstract class DataField
 		return this.childFields.size() > 0;
 	}
 
-	public boolean hasParent()
-	{
-		return this.parentsFields.size() > 0;
-	}
-
 	public void addParentField(DataField parent)
 	{
 		this.parentsFields.add(parent);
+	}
+
+	public void setIsUnique()
+	{
+		this.isUnique = true;
+	}
+
+	public SemanticPolicy getSemantic()
+	{
+		return this.semantic;
+	}
+
+	public boolean isUnique()
+	{
+		return this.isUnique;
+	}
+
+	public FieldValue getDefaultFieldValue()
+	{
+		return this.defaultFieldValue;
+	}
+
+	public void setDefaultFieldValue(FieldValue defaultFieldValue)
+	{
+		this.defaultFieldValue = defaultFieldValue;
+	}
+
+	public List<CheckConstraint> getCheckConstraints()
+	{
+		return this.checkConstraints;
+	}
+
+	public List<UniqueConstraint> getUniqueConstraints()
+	{
+		return this.uniqueConstraints;
+	}
+
+	public List<ForeignKeyConstraint> getFkConstraints()
+	{
+		return this.fkConstraints;
+	}
+
+	public AutoIncrementConstraint getAutoIncrementConstraint()
+	{
+		return this.autoIncrementConstraint;
 	}
 
 	@Override
@@ -211,9 +255,34 @@ public abstract class DataField
 		return status;
 	}
 
-	public void setIsUnique()
+	public String getFieldName()
 	{
-		this.isUnique = true;
+		return this.fieldName;
+	}
+
+	public boolean isStringField()
+	{
+		return false;
+	}
+
+	public String getDefaultValue()
+	{
+		return this.defaultValue;
+	}
+
+	public boolean isDeletedFlagField()
+	{
+		return false;
+	}
+
+	public boolean isDeltaField()
+	{
+		return false;
+	}
+
+	public boolean isHiddenField()
+	{
+		return false;
 	}
 
 	public boolean isDateField()
@@ -221,28 +290,15 @@ public abstract class DataField
 		return false;
 	}
 
-	public SemanticPolicy getSemantic()
-	{
-		return this.semantic;
-	}
-
 	public boolean isNumberField()
 	{
 		return false;
 	}
 
-	public boolean isUnique()
-	{
-		return this.isUnique;
-	}
+	public abstract String get_Crdt_Form(ResultSet rs, String Value);
 
-	public FieldValue getDefaultFieldValue()
-	{
-		return this.defaultFieldValue;
-	}
+	public abstract String get_Crdt_Form(String Value);
 
-	public void setDefaultFieldValue(FieldValue defaultFieldValue)
-	{
-		this.defaultFieldValue = defaultFieldValue;
-	}
+	public abstract String get_Value_In_Correct_Format(String Value);
+
 }

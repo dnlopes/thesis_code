@@ -459,7 +459,7 @@ public class CreateStatementParser
 					DataField field = fieldsMap.get(pKeys[j]);
 					uniqueConstraint.addField(field);
 					uniqueConstraint.setTableName(field.getTableName());
-					field.addInvariant(uniqueConstraint);
+					field.addConstraint(uniqueConstraint);
 				}
 
 				uniqueConstraint.generateIdentifier();
@@ -531,7 +531,7 @@ public class CreateStatementParser
 					fkConstraint.setParentTable(parentField.getTable());
 					fkConstraint.setTableName(childField.getTableName());
 					childField.setForeignKey();
-					childField.addInvariant(fkConstraint);
+					childField.addConstraint(fkConstraint);
 				}
 
 				fkConstraint.generateIdentifier();
@@ -570,7 +570,7 @@ public class CreateStatementParser
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
 					checkConstraint.generateIdentifier();
-					field.addInvariant(checkConstraint);
+					field.addConstraint(checkConstraint);
 
 				} else if(conditionStr.contains("<"))
 				{
@@ -596,7 +596,7 @@ public class CreateStatementParser
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
 					checkConstraint.generateIdentifier();
-					field.addInvariant(checkConstraint);
+					field.addConstraint(checkConstraint);
 
 				} else if(conditionStr.contains(">="))
 				{
@@ -620,7 +620,7 @@ public class CreateStatementParser
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
 					checkConstraint.generateIdentifier();
-					field.addInvariant(checkConstraint);
+					field.addConstraint(checkConstraint);
 
 				} else if(conditionStr.contains(">"))
 				{
@@ -644,7 +644,7 @@ public class CreateStatementParser
 					checkConstraint.addField(field);
 					checkConstraint.setTableName(field.getTableName());
 					checkConstraint.generateIdentifier();
-					field.addInvariant(checkConstraint);
+					field.addConstraint(checkConstraint);
 
 				} else
 					throw_Wrong_Format_Exception(constraintStrs.elementAt(i));
