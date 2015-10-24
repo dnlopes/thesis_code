@@ -1,6 +1,7 @@
 package com.codefutures.tpcc;
 
 import com.codefutures.tpcc.load.Record;
+import com.codefutures.tpcc.TpccLoad;
 import com.codefutures.tpcc.load.RecordLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -543,11 +544,24 @@ public class Load implements TpccConstants {
         final Record customerRecord = new Record(21);
         final RecordLoader customerLoader = loadConfig.createLoader("customer", CUSTOMER_COLUMNS);
 
-        final String[] HISTORY_COLUMN_NAME = {
-                "h_c_id", "h_c_d_id", "h_c_w_id", "h_d_id", "h_w_id", "h_date", "h_amount", "h_data", "h_id"
-        };
-        final Record historyRecord = new Record(9);
-        final RecordLoader historyLoader = loadConfig.createLoader("history", HISTORY_COLUMN_NAME);
+
+		String[] HISTORY_COLUMN_NAME = {
+				"h_c_id", "h_c_d_id", "h_c_w_id", "h_d_id", "h_w_id", "h_date", "h_amount", "h_data"};
+
+		String[] HISTORY_COLUMN_NAME_CRDT = {
+					"h_c_id", "h_c_d_id", "h_c_w_id", "h_d_id", "h_w_id", "h_date", "h_amount", "h_data", "h_id"
+			};
+
+
+        Record historyRecord = new Record(8);
+
+		if(TpccLoad.IS_CRDT)
+			historyRecord = new Record(9);
+
+        RecordLoader historyLoader = loadConfig.createLoader("history", HISTORY_COLUMN_NAME);
+
+		if(TpccLoad.IS_CRDT)
+			historyLoader = loadConfig.createLoader("history", HISTORY_COLUMN_NAME_CRDT);
 
         if ((currentShard == shardId) || (shardId == 0)) {
             //retry:
@@ -656,7 +670,9 @@ public class Load implements TpccConstants {
                     historyRecord.add(date);
                     historyRecord.add(h_amount);
                     historyRecord.add(h_data);
-					historyRecord.add(historyId++);
+
+					if(TpccLoad.IS_CRDT)
+					    historyRecord.add(historyId++);
 
                     historyLoader.load(historyRecord);
 					historyLoader.commit();

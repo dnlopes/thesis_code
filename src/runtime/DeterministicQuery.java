@@ -189,7 +189,6 @@ public class DeterministicQuery
 					valueList.add(ONE_TIME_SYMBOL);
 				else
 					RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
-
 			}
 		}
 	}

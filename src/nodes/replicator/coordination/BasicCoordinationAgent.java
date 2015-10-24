@@ -1,14 +1,14 @@
 package nodes.replicator.coordination;
 
 
-import database.constraints.Constraint;
-import database.constraints.unique.UniqueConstraint;
 import database.util.DatabaseMetadata;
+import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import nodes.replicator.IReplicatorNetwork;
 import nodes.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.IDsManager;
 import runtime.RuntimeUtils;
 import util.Configuration;
 import util.ExitCode;
@@ -25,47 +25,45 @@ public class BasicCoordinationAgent implements CoordinationAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BasicCoordinationAgent.class);
+	private static final DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
 
 	private final Replicator replicator;
+	private final IDsManager idsManager;
 	private final IReplicatorNetwork network;
-	private final DatabaseMetadata metadata;
 
 	public BasicCoordinationAgent(Replicator replicator)
 	{
 		this.replicator = replicator;
 		this.network = this.replicator.getNetworkInterface();
-		this.metadata = Configuration.getInstance().getDatabaseMetadata();
+		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
 	}
 
 	@Override
 	public void handleCoordination(CRDTTransaction transaction)
 	{
-		//TODO implementation
-		if(transaction.isSetRequestToCoordinator())
+		if(!transaction.isSetRequestToCoordinator())
 		{
-			CoordinatorRequest request = transaction.getRequestToCoordinator();
-			CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
-			handleCoordinatorResponse(response, transaction);
-
-			if(!transaction.isReadyToCommit())
-			{
-				if(LOG.isTraceEnabled())
-					LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
-			}
-		} else
 			transaction.setReadyToCommit(true);
+			return;
+		}
+
+		CoordinatorRequest request = transaction.getRequestToCoordinator();
+		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
+
+		if(response.isSuccess())
+		{
+			handleCoordinatorResponse(response, transaction);
+			transaction.setReadyToCommit(true);
+		} else
+		{
+			transaction.setReadyToCommit(false);
+			if(LOG.isTraceEnabled())
+				LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+		}
 	}
 
 	private void handleCoordinatorResponse(CoordinatorResponse response, CRDTTransaction transaction)
 	{
-		if(response.isSuccess())
-			transaction.setReadyToCommit(true);
-		else
-		{
-			transaction.setReadyToCommit(false);
-			return;
-		}
-
 		if(response.isSetRequestedValues())
 		{
 			List<RequestValue> requestedValues = response.getRequestedValues();
@@ -77,77 +75,35 @@ public class BasicCoordinationAgent implements CoordinationAgent
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 
+		// first lets replace the symbols got from coordinator
 		for(RequestValue requestValue : requestedValues)
 		{
-			SymbolEntry symbolEntry = symbols.get(requestValue.getTempSymbol());
-			symbolEntry.setRealValue(requestValue.getRequestedValue());
-		}
-	}
-
-	private CoordinatorRequest createRequest(CRDTTransaction transaction)
-	{
-		CoordinatorRequest request = new CoordinatorRequest();
-
-		for(CRDTOperation op : transaction.getOpsList())
-		{
-			DatabaseTable dbTable = this.metadata.getTable(op.getTableName());
-
-			switch(op.getOpType())
+			if(requestValue.isSetRequestedValue())
 			{
-			case INSERT:
-			case INSERT_CHILD:
-				for(Constraint c : dbTable.getTableConstraints())
-				{
-					if(!c.requiresCoordination())
-						continue;
-					switch(c.getType())
-					{
-					case UNIQUE:
-						String unique = this.createUniqueValue((UniqueConstraint) c, op.getNewFieldValues());
-						UniqueValue uniqueValue = new UniqueValue(c.getConstraintIdentifier(), unique);
-						request.addToUniqueValues(uniqueValue);
-						break;
-					case CHECK:
-						break;
-					case FOREIGN_KEY:
-						break;
-					default:
-						RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
-					}
-				}
-
-			case UPDATE:
-			case UPDATE_CHILD:
-				for(Constraint c : dbTable.getTableConstraints())
-				{
-					if(!c.requiresCoordination())
-						continue;
-
-					switch(c.getType())
-					{
-					case UNIQUE:
-						Map<String, String> touchedFields = op.getNewFieldValues();
-						break;
-					case CHECK:
-						//TODO
-						break;
-					case FOREIGN_KEY:
-						break;
-					default:
-						RuntimeUtils.throwRunTimeException("unexpected constraint", ExitCode.UNEXPECTED_OP);
-					}
-				}
-				break;
-			default:
-				break;
+				SymbolEntry symbolEntry = symbols.get(requestValue.getTempSymbol());
+				symbolEntry.setRealValue(requestValue.getRequestedValue());
 			}
 		}
 
-		return request;
-	}
+		// then, lets generate unique values locally
+		for(SymbolEntry symbolEntry : symbols.values())
+		{
+			// already got value from coordinator
+			if(symbolEntry.isSetRealValue())
+				continue;
 
-	private String createUniqueValue(UniqueConstraint constraint, Map<String, String> fieldsValuesMap)
-	{
-		return null;
+			// lets generate a unique value locally
+			DatabaseTable dbTable = metadata.getTable(symbolEntry.getTableName());
+			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
+
+			if(dataField.isStringField())
+				symbolEntry.setRealValue(
+						idsManager.getNextString(symbolEntry.getTableName(), symbolEntry.getFieldName()));
+			else if(dataField.isNumberField())
+				symbolEntry.setRealValue(
+						String.valueOf(idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
+			else
+				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
+		}
 	}
 }

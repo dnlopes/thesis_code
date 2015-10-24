@@ -1,7 +1,6 @@
 package nodes.proxy;
 
 
-import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.Configuration;
@@ -40,7 +39,6 @@ public class ProxyFactory
 			sharedProxy = new SharedProxy(PROXY_CONFIG);
 		else*/
 
-		IdentifierFactory.setup(PROXY_CONFIG);
 	}
 
 	public static Proxy getProxyInstance()

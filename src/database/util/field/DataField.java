@@ -46,6 +46,7 @@ public abstract class DataField
 	private DatabaseTable dbTable;
 	private boolean isUnique;
 	private FieldValue defaultFieldValue;
+	private boolean internallyChanged;
 
 	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
 						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
@@ -68,6 +69,7 @@ public abstract class DataField
 		this.isAutoIncremental = isAutoIncremental;
 		this.position = pos;
 		this.semantic = semanticPolicy;
+		this.internallyChanged = false;
 
 		this.autoIncrementConstraint = null;
 		this.defaultValue = null;
@@ -79,9 +81,9 @@ public abstract class DataField
 			boolean requiresCoordination = this.semantic == SemanticPolicy.SEMANTIC;
 
 			Constraint autoIncrementConstraint = new AutoIncrementConstraint(requiresCoordination);
-			autoIncrementConstraint.setTableName(this.dbTable.getName());
 			autoIncrementConstraint.addField(this);
 			autoIncrementConstraint.generateIdentifier();
+			autoIncrementConstraint.setTableName(tableName);
 			addConstraint(autoIncrementConstraint);
 		}
 	}
@@ -234,6 +236,16 @@ public abstract class DataField
 	public AutoIncrementConstraint getAutoIncrementConstraint()
 	{
 		return this.autoIncrementConstraint;
+	}
+
+	public boolean isInternallyChanged()
+	{
+		return this.internallyChanged;
+	}
+
+	public void setInternallyChanged(boolean internallyChanged)
+	{
+		this.internallyChanged = internallyChanged;
 	}
 
 	@Override

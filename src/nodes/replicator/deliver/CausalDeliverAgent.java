@@ -58,7 +58,7 @@ public class CausalDeliverAgent implements DeliverAgent
 	public void deliverTransaction(CRDTCompiledTransaction op)
 	{
 		if(canDeliver(op))
-			replicator.deliverShadowTransaction(op);
+			replicator.deliverTransaction(op);
 		else
 			addToQueue(op);
 	}
@@ -123,7 +123,7 @@ public class CausalDeliverAgent implements DeliverAgent
 					if(txn == null)
 						continue;
 
-					replicator.deliverShadowTransaction(txn);
+					replicator.deliverTransaction(txn);
 					hasDelivered = true;
 				}
 			} while(hasDelivered);

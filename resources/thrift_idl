@@ -22,6 +22,8 @@ struct SymbolEntry
     1: required string symbol;
     2: required bool requiresCoordination;
     3: string realValue;
+    4: string tableName;
+    5: string fieldName;
 }
 
 struct UniqueValue

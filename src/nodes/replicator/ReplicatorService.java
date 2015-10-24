@@ -68,6 +68,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 		if(transaction.isReadyToCommit())
 		{
+			this.replicator.replaceSymbols(transaction);
 			CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
 			transaction.setCompiledTxn(compiledTxn);
 

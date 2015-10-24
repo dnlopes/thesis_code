@@ -22,6 +22,7 @@ public class TpccLoad implements TpccConstants {
     private String jdbcUrl = null;
     private String javaDriver = null;
     private int shardId = -1;
+    public static boolean IS_CRDT = false;
 
 
     /* Global SQL Variables */
@@ -333,6 +334,9 @@ public class TpccLoad implements TpccConstants {
 
 		System.setProperty("dbhost", dbHost);
 		System.setProperty("dbname", dbName);
+
+        if(dbName.contains("crdt"))
+            TpccLoad.IS_CRDT = true;
 
         // dump information about the environment we are running in
         String sysProp[] = {

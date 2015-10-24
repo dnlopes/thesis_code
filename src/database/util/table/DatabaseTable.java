@@ -38,6 +38,7 @@ public abstract class DatabaseTable
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseTable.class);
 
 	private ExecutionPolicy executionPolicy;
+	private TablePolicy tablePolicy;
 	private boolean isParentTable;
 	private String name;
 	private CRDTTableType tag;
@@ -94,6 +95,8 @@ public abstract class DatabaseTable
 
 		if(tableType != CRDTTableType.NONCRDTTABLE)
 			this.addHiddenFields();
+
+		this.tablePolicy = new TablePolicy(this.tag);
 
 		for(DataField aDataField : this.fieldsMap.values())
 		{
@@ -433,6 +436,11 @@ public abstract class DatabaseTable
 	public List<ForeignKeyConstraint> getFkConstraints()
 	{
 		return this.fkConstraints;
+	}
+
+	public List<AutoIncrementConstraint> getAutoIncrementConstraints()
+	{
+		return this.autoIncrementConstraints;
 	}
 
 	private String assemblePrimaryKeyString()

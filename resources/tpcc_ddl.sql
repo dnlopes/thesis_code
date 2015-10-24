@@ -1,4 +1,4 @@
-@AUSETTABLE create table warehouse (
+@UOSETTABLE create table warehouse (
 	@LWWINTEGER w_id smallint not null,
 	@NORMALSTRING w_name varchar(10), 
 	@NORMALSTRING w_street_1 varchar(20), 
@@ -11,7 +11,7 @@
 	PRIMARY KEY (w_id) 
 )Engine=InnoDB;
 
-@AUSETTABLE create table district (
+@UOSETTABLE create table district (
 	@LWWINTEGER d_id tinyint not null, 
 	@LWWINTEGER d_w_id smallint not null, 
 	@NORMALSTRING d_name varchar(10), 
@@ -27,7 +27,7 @@
 	FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id)
 )Engine=InnoDB;
 
-@AUSETTABLE create table customer (
+@UOSETTABLE create table customer (
 	@LWWINTEGER c_id int not null, 
 	@LWWINTEGER c_d_id tinyint not null,
 	@LWWINTEGER c_w_id smallint not null, 
@@ -53,7 +53,7 @@
 	FOREIGN KEY(c_w_id,c_d_id) REFERENCES district(d_w_id,d_id)
 )Engine=InnoDB;
 
-@AUSETTABLE create table history (
+@AOSETTABLE create table history (
 	@LWWINTEGER @NOSEMANTIC h_id int AUTO_INCREMENT not null,
 	@LWWINTEGER h_c_id int, 
 	@LWWINTEGER h_c_d_id tinyint, 
@@ -88,7 +88,7 @@
 	FOREIGN KEY(no_w_id,no_d_id,no_o_id) REFERENCES orders(o_w_id,o_d_id,o_id)	
 )Engine=InnoDB;
 
-@AUSETTABLE create table item (
+@READ_ONLY_TABLE create table item (
 	@LWWINTEGER i_id int not null, 
 	@LWWINTEGER i_im_id int, 
 	@LWWSTRING i_name varchar(24), 
@@ -97,7 +97,7 @@
 	PRIMARY KEY(i_id)
 )Engine=InnoDB;
 
-@AUSETTABLE create table stock (
+@UOSETTABLE create table stock (
 	@LWWINTEGER s_i_id int not null, 
 	@LWWINTEGER s_w_id smallint not null, 
 	@LWWINTEGER s_quantity smallint, 

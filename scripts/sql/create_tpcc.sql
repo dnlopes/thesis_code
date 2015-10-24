@@ -51,7 +51,7 @@ CREATE TABLE customer (
 -- TOC entry 17 (OID 17158)
 -- Name: district; Type: TABLE; Schema: public; Owner: tpcc
 --
-
+I
 CREATE TABLE district (    
     d_id tinyint not null, 
     d_w_id smallint not null, 

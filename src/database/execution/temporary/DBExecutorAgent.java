@@ -1,6 +1,7 @@
 package database.execution.temporary;
 
 
+import database.constraints.check.CheckConstraint;
 import database.constraints.fk.ForeignKeyConstraint;
 import database.constraints.unique.AutoIncrementConstraint;
 import database.constraints.unique.UniqueConstraint;
@@ -412,6 +413,11 @@ public class DBExecutorAgent implements IExecutorAgent
 						val = String.valueOf(TEMPORARY_INTEGER);
 				}
 
+				for(CheckConstraint checkConstraint : field.getCheckConstraints())
+				{
+					//TODO verify if value is valid under these check constraints
+				}
+
 				if(!field.isHiddenField())
 				{
 					FieldValue newContentField = new FieldValue(field, val);
@@ -594,6 +600,11 @@ public class DBExecutorAgent implements IExecutorAgent
 			if(field.isHiddenField())
 				continue;
 
+			for(CheckConstraint checkConstraint : field.getCheckConstraints())
+			{
+				//TODO verify if value is valid under these check constraints
+			}
+
 			// we do not allow updates on primary keys, foreign keys and immutable fields
 			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
 				RuntimeUtils.throwRunTimeException(
@@ -605,7 +616,6 @@ public class DBExecutorAgent implements IExecutorAgent
 
 			FieldValue newFieldValue;
 
-			//TODO capture CheckConstraints coordination request logic
 			if(field.isDeltaField())
 				newFieldValue = new DeltaFieldValue(field, newValue,
 						updatedRow.getFieldValue(field.getFieldName()).getValue());
@@ -973,6 +983,10 @@ public class DBExecutorAgent implements IExecutorAgent
 
 			if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
 			{
+				if(!dataField.isAutoIncrement())
+					RuntimeUtils.throwRunTimeException("field with semantic value must either be auto_increment or " +
+							"given by the application level", ExitCode.INVALIDUSAGE);
+
 				SymbolEntry symbolEntry = symbolsMap.get(symbol);
 				symbolEntry.setRequiresCoordination(true);
 
@@ -989,7 +1003,16 @@ public class DBExecutorAgent implements IExecutorAgent
 					txn.setRequestToCoordinator(new CoordinatorRequest());
 
 				txn.getRequestToCoordinator().addToRequests(request);
-			}
+			} else if(dataField.isInternallyChanged())
+			{
+				SymbolEntry symbolEntry = symbolsMap.get(symbol);
+				symbolEntry.setRequiresCoordination(false);
+				symbolEntry.setFieldName(dataField.getFieldName());
+				symbolEntry.setTableName(dataField.getTableName());
+			} else
+				RuntimeUtils.throwRunTimeException(
+						"field must be auto_incremental or must be internally changed, but" + " none happened",
+						ExitCode.INVALIDUSAGE);
 		}
 
 		private void linkSymbolToField(CRDTOperation op, SymbolEntry symbolEntry, DataField dataField)

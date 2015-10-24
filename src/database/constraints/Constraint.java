@@ -12,22 +12,22 @@ import java.util.List;
 public interface Constraint
 {
 
-	public List<DataField> getFields();
+	List<DataField> getFields();
 
-	public ConstraintType getType();
+	ConstraintType getType();
 
-	public void addField(DataField field);
+	void addField(DataField field);
 
-	public String getConstraintIdentifier();
+	String getConstraintIdentifier();
 
-	public void generateIdentifier();
+	void generateIdentifier();
 
-	public void setTableName(String name);
+	void setTableName(String name);
 
-	public String getTableName();
+	String getTableName();
 
-	public boolean constainsField(DataField field);
+	boolean constainsField(DataField field);
 
-	public boolean requiresCoordination();
+	boolean requiresCoordination();
 
 }

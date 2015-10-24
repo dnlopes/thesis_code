@@ -5,20 +5,11 @@ package database.util.table;
  */
 public enum CRDTTableType
 {
-	
-	/** The noncrdttable. */
-	NONCRDTTABLE, 
- 
-	/** The aosettable. */
-	// append only set
-	AOSETTABLE,
-	
-	/** The ausettable. append unique item and plus update*/
-	AUSETTABLE,
- 
-	/** The arsettable. */
-	ARSETTABLE,
-	
-	/** The uosettable. update only*/
-	UOSETTABLE
+	NONCRDTTABLE,
+	READ_ONLY_TABLE, // read-only table
+	AOSETTABLE, // insert only table
+	UOSETTABLE, // update only table
+	AUSETTABLE, // insert and update table
+	ARSETTABLE, // insert, delete and update table
+
 }

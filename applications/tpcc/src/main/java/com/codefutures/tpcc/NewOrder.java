@@ -1,12 +1,15 @@
 package com.codefutures.tpcc;
 
 
-import java.sql.*;
-
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import runtime.IdentifierFactory;
+
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 
 
 public class NewOrder implements TpccConstants
@@ -294,8 +297,8 @@ public class NewOrder implements TpccConstants
 			//Get prepared statement
 			//"UPDATE district SET d_next_o_id = ? + 1 WHERE d_id = ? AND d_w_id = ?"
 
-			if(Tpcc.CUSTOM_JDBC)
-				d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
+			//if(Tpcc.CUSTOM_JDBC)
+				//d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
 
 			try
 			{

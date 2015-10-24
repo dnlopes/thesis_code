@@ -78,6 +78,7 @@ CREATE TABLE district (
 --
 
 CREATE TABLE history (
+    h_id int,
     h_c_id int, 
     h_c_d_id tinyint, 
     h_c_w_id smallint,
@@ -268,6 +269,9 @@ ALTER TABLE stock
 
 ALTER TABLE warehouse
     ADD CONSTRAINT pk_warehouse PRIMARY KEY (w_id);
+
+ALTER TABLE history
+    ADD CONSTRAINT pk_history PRIMARY KEY (h_id);
 
 commit;
 

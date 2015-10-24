@@ -21,7 +21,11 @@ import util.ObjectPool;
 import util.Configuration;
 import util.defaults.ReplicatorDefaults;
 import util.thrift.CRDTCompiledTransaction;
+import util.thrift.CRDTOperation;
+import util.thrift.CRDTTransaction;
+import util.thrift.SymbolEntry;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,11 +40,13 @@ public class Replicator extends AbstractNode
 {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
+	private static final String SUBPREFIX = "r";
 
 	private LogicalClock clock;
 	private final IReplicatorNetwork networkInterface;
 	private final ObjectPool<DBCommitter> agentsPool;
 	private final Lock clockLock;
+	private final String prefix;
 
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
@@ -51,6 +57,7 @@ public class Replicator extends AbstractNode
 	public Replicator(NodeConfig config)
 	{
 		super(config);
+		this.prefix = SUBPREFIX + this.config.getId() + "_";
 
 		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
@@ -66,7 +73,7 @@ public class Replicator extends AbstractNode
 		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
 				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 
-		this.createCommiterAgents();
+		createCommiterAgents();
 
 		try
 		{
@@ -128,10 +135,39 @@ public class Replicator extends AbstractNode
 		return newClock;
 	}
 
-	public void deliverShadowTransaction(CRDTCompiledTransaction txn)
+	public void deliverTransaction(CRDTCompiledTransaction txn)
 	{
 		this.mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
 		this.commitOperation(txn);
+	}
+
+	public void replaceSymbols(CRDTTransaction transaction)
+	{
+		if(!transaction.isSetSymbolsMap())
+			return;
+
+		Map<String, SymbolEntry> symbolsMap = transaction.getSymbolsMap();
+
+		for(CRDTOperation op : transaction.getOpsList())
+		{
+			if(op.isSetSymbolFieldMap())
+			{
+				Map<String, String> opSymbolsMap = op.getSymbolFieldMap();
+				for(Map.Entry<String, String> entry : opSymbolsMap.entrySet())
+				{
+					SymbolEntry symbolEntry = symbolsMap.get(entry.getKey());
+					if(!symbolEntry.isSetRealValue())
+						RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
+
+					op.getNewFieldValues().put(symbolEntry.getFieldName(), symbolEntry.getRealValue());
+				}
+			}
+		}
+	}
+
+	public String getPrefix()
+	{
+		return this.prefix;
 	}
 
 	public LogicalClock getCurrentClock()

@@ -449,7 +449,7 @@ public class CreateStatementParser
 						requiresCoordination = false;
 				}
 
-				Constraint uniqueConstraint = new UniqueConstraint(isPrimaryKey, requiresCoordination, false);
+				Constraint uniqueConstraint = new UniqueConstraint(requiresCoordination);
 
 				for(int j = 0; j < pKeys.length; j++)
 				{

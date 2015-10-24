@@ -21,6 +21,6 @@ public class NoOrderDeliverAgent implements DeliverAgent
 	@Override
 	public void deliverTransaction(CRDTCompiledTransaction op)
 	{
-		this.replicator.deliverShadowTransaction(op);
+		this.replicator.deliverTransaction(op);
 	}
 }

@@ -35,7 +35,7 @@ public final class Configuration
 	private volatile static boolean IS_CONFIGURED = false;
 
 	private static String CONFIG_FILE;
-	private static Configuration SINGLETON;
+	private static Configuration instance;
 
 	private Map<Integer, NodeConfig> replicators;
 	private Map<Integer, ProxyConfig> proxies;
@@ -59,7 +59,7 @@ public final class Configuration
 
 		loadConfiguration();
 
-		//TODO inject this values on config file
+		//TODO inject these values on config file
 		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
 		this.optimizeBatch = Defaults.USE_OPTIMIZE_BATCH;
 
@@ -71,7 +71,7 @@ public final class Configuration
 		if(IS_CONFIGURED)
 			LOG.warn("setupConfiguration called twice");
 		else
-			SINGLETON = new Configuration(configFilePath);
+			instance = new Configuration(configFilePath);
 	}
 
 	private void loadConfiguration()
@@ -109,7 +109,7 @@ public final class Configuration
 
 	public static Configuration getInstance()
 	{
-		return SINGLETON;
+		return instance;
 	}
 
 	private void loadConfigurationFile() throws ConfigurationLoadException

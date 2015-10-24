@@ -3,6 +3,7 @@ package database.constraints.unique;
 
 import database.constraints.AbstractConstraint;
 import database.constraints.ConstraintType;
+import database.util.field.DataField;
 
 
 /**
@@ -11,24 +12,31 @@ import database.constraints.ConstraintType;
 public class UniqueConstraint extends AbstractConstraint
 {
 
-	private final boolean isPrimaryKey;
-	private final boolean isAutoIncrement;
+	private DataField fieldToChange;
 
-	public UniqueConstraint(boolean isPrimaryKey, boolean requiresCoordination, boolean isAutoIncrement)
+	public UniqueConstraint(boolean requiresCoordination)
 	{
 		super(ConstraintType.UNIQUE, requiresCoordination);
-
-		this.isPrimaryKey = isPrimaryKey;
-		this.isAutoIncrement = isAutoIncrement;
+		this.fieldToChange = null;
 	}
 
-	public boolean isPrimaryKey()
+	@Override
+	public void addField(DataField field)
 	{
-		return this.isPrimaryKey;
+		this.fields.add(field);
+		this.fieldsMap.put(field.getFieldName(), field);
+
+		if(fieldToChange == null)
+			if(field.isStringField() || field.isNumberField())
+			{
+				this.fieldToChange = field;
+				this.fieldToChange.setInternallyChanged(true);
+			}
 	}
 
-	public boolean isAutoIncrement()
+	public DataField getFieldToChange()
 	{
-		return this.isAutoIncrement;
+		return this.fieldToChange;
 	}
+
 }

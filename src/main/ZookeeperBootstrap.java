@@ -88,16 +88,12 @@ public class ZookeeperBootstrap
 
 			for(Constraint constraint : constraints)
 			{
-				if(constraint.getType() == ConstraintType.UNIQUE)
+				if(constraint.getType() == ConstraintType.UNIQUE && constraint.requiresCoordination())
 					this.treatUniqueConstraint((UniqueConstraint) constraint, request);
-				else if(constraint.getType() == ConstraintType.AUTO_INCREMENT)
-				{
-					if(constraint.requiresCoordination())
-						this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
-				} else if(constraint.getType() == ConstraintType.CHECK)
-					LOG.warn("check constraints not yet supported");
-				else if(constraint.getType() != ConstraintType.FOREIGN_KEY)
-					RuntimeUtils.throwRunTimeException("unkown constraint type", ExitCode.UNKNOWN_INVARIANT);
+				else if(constraint.getType() == ConstraintType.AUTO_INCREMENT && constraint.requiresCoordination())
+					this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
+				else if(constraint.getType() == ConstraintType.CHECK)
+						LOG.warn("check constraints not yet supported");
 			}
 		}
 	}
@@ -205,7 +201,6 @@ public class ZookeeperBootstrap
 		int maxId = 0;
 		try
 		{
-
 			Statement stmt = this.connection.createStatement();
 			ResultSet rs = stmt.executeQuery(buffer.toString());
 

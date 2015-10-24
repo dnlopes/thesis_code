@@ -11,7 +11,6 @@ import applications.tpcc.metadata.NewOrderMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.IdentifierFactory;
 import runtime.RuntimeUtils;
 import applications.util.SymbolsManager;
 import util.ExitCode;
@@ -228,9 +227,6 @@ public class NewOrderTransaction implements Transaction
 
 			d_next_o_id_string = this.symbolsManager.getNextSymbol();
 
-			if(this.options.isCRDTDriver())
-				d_next_o_id = IdentifierFactory.getNextId("orders", "o_id");
-
 			if(this.options.useSequentialOrderIds())
 			{
 				try
@@ -242,7 +238,8 @@ public class NewOrderTransaction implements Transaction
 					ps.setInt(3, this.metadata.getWarehouseId());
 					if(logger.isTraceEnabled())
 						logger.trace(
-								"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + this.metadata.getDistrictId() + " AND" +
+								"UPDATE district SET d_next_o_id = " + d_next_o_id_string + " + 1 WHERE d_id = " + this
+										.metadata.getDistrictId() + " AND" +
 
 										" " +
 										"d_w_id = " + this.metadata.getWarehouseId());
@@ -275,7 +272,7 @@ public class NewOrderTransaction implements Transaction
 				if(logger.isTraceEnabled())
 					logger.trace(
 							"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
-									"VALUES(" + o_id + "," + this.metadata.getDistrictId() + "," + this.metadata
+									"VALUES(" + o_id_string + "," + this.metadata.getDistrictId() + "," + this.metadata
 									.getWarehouseId() +
 									"," + this.metadata.getCustomerId() +
 									"," +
@@ -304,7 +301,7 @@ public class NewOrderTransaction implements Transaction
 
 				if(logger.isTraceEnabled())
 					logger.trace(
-							"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + this.metadata
+							"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id_string + "," + this.metadata
 									.getDistrictId() + "," +
 									this.metadata.getWarehouseId() + ")");
 				ps.executeUpdate();
@@ -497,7 +494,7 @@ public class NewOrderTransaction implements Transaction
 					if(logger.isTraceEnabled())
 						logger.trace("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, " +
 								"ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) " +
-								"VALUES (" + o_id + "," + this.metadata.getDistrictId() + "," + this.metadata
+								"VALUES (" + o_id_string + "," + this.metadata.getDistrictId() + "," + this.metadata
 								.getWarehouseId() + "," +
 								ol_number +
 								"," +

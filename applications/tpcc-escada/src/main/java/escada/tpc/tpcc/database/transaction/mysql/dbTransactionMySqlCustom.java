@@ -19,9 +19,7 @@ package escada.tpc.tpcc.database.transaction.mysql;
 
 import escada.tpc.tpcc.database.transaction.dbTPCCDatabase;
 import org.apache.log4j.Logger;
-import runtime.IdentifierFactory;
 
-import java.sql.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Properties;
@@ -92,8 +90,8 @@ public class dbTransactionMySqlCustom extends dbTPCCDatabase
 				rs = statement.executeQuery();
 				rs.next();
 				_d_tax = rs.getDouble("d_tax");
-				//_o_id = rs.getInt("d_next_o_id");
-				_o_id = IdentifierFactory.getNextId("orders", "o_id");
+				_o_id = rs.getInt("d_next_o_id");
+				//_o_id = IdentifierFactory.getNextId("orders", "o_id");
 				rs.close();
 				statement.close();
 
