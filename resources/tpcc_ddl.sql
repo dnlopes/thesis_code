@@ -81,7 +81,7 @@
 )Engine=InnoDB;
 
 @ARSETTABLE create table new_orders (
-	@LWWINTEGER no_o_id int AUTO_INCREMENT not null,
+	@LWWINTEGER @NOSEMANTIC no_o_id int AUTO_INCREMENT not null,
 	@LWWINTEGER no_d_id tinyint not null,
 	@LWWINTEGER no_w_id smallint not null,
 	PRIMARY KEY(no_w_id, no_d_id, no_o_id),
@@ -121,7 +121,7 @@
 )Engine=InnoDB;
 
 @AUSETTABLE create table order_line (
-	@LWWINTEGER ol_o_id int AUTO_INCREMENT not null,
+	@LWWINTEGER @NOSEMANTIC ol_o_id int AUTO_INCREMENT not null,
 	@LWWINTEGER ol_d_id tinyint not null,
 	@LWWINTEGER ol_w_id smallint not null,
 	@LWWINTEGER ol_number tinyint not null,

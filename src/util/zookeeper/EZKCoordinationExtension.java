@@ -24,9 +24,13 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 
 	private static final Logger LOG = LoggerFactory.getLogger(EZKCoordinationExtension.class);
 
-	public static final String TMP_DIR = ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp";
-	public static final String UNIQUE_DIR = ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "uniques";
-	public static final String COUNTERS_DIR = ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "counters";
+	public static final String ZOOKEEPER_BASE_NODE = "/coordination";
+	public static final String OP_PREFIX = ZOOKEEPER_BASE_NODE;
+	public static final String CLEANUP_OP_CODE = OP_PREFIX + File.separatorChar + "cleanup";
+	public static final String REQUEST_OP_CODE = OP_PREFIX + File.separatorChar + "request";
+	public static final String TMP_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp";
+	public static final String UNIQUE_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "uniques";
+	public static final String COUNTERS_DIR = ZOOKEEPER_BASE_NODE + File.separatorChar + "counters";
 
 	public EZKCoordinationExtension()
 	{
@@ -35,15 +39,15 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	@Override
 	public boolean matchesOperation(int requestType, String path)
 	{
-		return path.startsWith(OP_CODES.OP_PREFIX);
+		return path.startsWith(OP_PREFIX);
 	}
 
 	@Override
 	public void init() throws KeeperException
 	{
-		Stat stat = extensionGate.exists(ZookeeperDefaults.ZOOKEEPER_BASE_NODE, false);
+		Stat stat = extensionGate.exists(ZOOKEEPER_BASE_NODE, false);
 		if(stat == null)
-			this.extensionGate.create(ZookeeperDefaults.ZOOKEEPER_BASE_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
+			this.extensionGate.create(ZOOKEEPER_BASE_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
 					CreateMode.PERSISTENT);
 
 		stat = extensionGate.exists(TMP_DIR, false);
@@ -65,12 +69,12 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 	@Override
 	protected Stat setData(String path, byte[] data, int version) throws KeeperException
 	{
-		if(path.compareTo(OP_CODES.CLEANUP_OP_CODE) == 0)
+		if(path.compareTo(CLEANUP_OP_CODE) == 0)
 		{
 			this.handleCleanupOperation();
 			return EZKExtensionGate.SUCCESS_STAT;
 
-		} else if(path.startsWith(OP_CODES.REQUEST_OP_CODE))
+		} else if(path.startsWith(REQUEST_OP_CODE))
 			return this.handleRequestOperation(path, data);
 		else
 		{
@@ -104,7 +108,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 			return EZKExtensionGate.EXCEPTION_STAT;
 
 		if(request.isSetRequests())
-			this.prepareRequestedValues(path, request);
+			this.prepareRequestedValues(request.getTempNodePath(), request);
 
 		return EZKExtensionGate.SUCCESS_STAT;
 	}
@@ -271,22 +275,12 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		return ByteBuffer.wrap(bytes).getInt();
 	}
 
-	public interface OP_CODES
-	{
-
-		String OP_PREFIX = ZookeeperDefaults.ZOOKEEPER_BASE_NODE;
-		String CLEANUP_OP_CODE = OP_PREFIX + File.separatorChar + "cleanup";
-		String REQUEST_OP_CODE = OP_PREFIX + File.separatorChar + "request";
-
-	}
-
-
 	public interface ZookeeperDefaults
 	{
 
 		int ZOOKEEPER_SESSION_TIMEOUT = 200000;
 		int ZOOKEEPER_DEFAULT_PORT = 2181;
-		String ZOOKEEPER_BASE_NODE = "/coordination";
+
 
 	}
 

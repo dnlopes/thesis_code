@@ -103,7 +103,7 @@ public class CRDTDatabaseSet
 		statements.add(mergeCClockStatement);
 
 		// if @UPDATEWINS, make sure that this row is visible in case some concurrent operation deleted it
-		if(dbTable.getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+		if(dbTable.getExecutionPolicy() == ExecutionPolicy.UPDATEWINS && dbTable.getTablePolicy().allowDeletes())
 		{
 			String insertRowBack = OperationsGenerator.generateInsertRowBack(op.getPkWhereClause(), op.getTableName(),
 					clock);
@@ -375,6 +375,11 @@ public class CRDTDatabaseSet
 			{
 				ForeignKeyConstraint foreignKeyConstraint = (ForeignKeyConstraint) childTable.getConstraint(
 						parentEntry.getKey());
+
+				DatabaseTable parentTable = foreignKeyConstraint.getParentTable();
+
+				if(!parentTable.getTablePolicy().allowDeletes())
+					continue;
 
 				if(foreignKeyConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
 				{

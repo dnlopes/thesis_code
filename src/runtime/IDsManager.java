@@ -91,6 +91,7 @@ public class IDsManager
 
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
+			/*
 			for(UniqueConstraint uniqueConstraint : table.getUniqueConstraints())
 			{
 				if(!uniqueConstraint.requiresCoordination())
@@ -107,7 +108,7 @@ public class IDsManager
 						createStringGenerator(toChangeField, config);
 
 				}
-			}
+			}           */
 
 			for(AutoIncrementConstraint autoIncrementConstraint : table.getAutoIncrementConstraints())
 				if(!autoIncrementConstraint.requiresCoordination())

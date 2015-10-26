@@ -1,7 +1,6 @@
 package database.util.table;
 
 
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -14,7 +13,6 @@ import database.util.field.DataField;
 import database.util.ExecutionPolicy;
 import database.util.PrimaryKey;
 import database.util.field.hidden.DeletedField;
-import database.util.field.hidden.LWWField;
 import database.util.field.hidden.LogicalClockField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,17 +20,13 @@ import runtime.RuntimeUtils;
 import util.ExitCode;
 import util.debug.Debug;
 
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.insert.Insert;
-import net.sf.jsqlparser.statement.update.Update;
 import util.defaults.DatabaseDefaults;
 
 
 /**
  * The Class DatabaseTable.
  */
-public abstract class DatabaseTable
+public class DatabaseTable
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseTable.class);
@@ -66,9 +60,7 @@ public abstract class DatabaseTable
 
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 
-	protected static LWWField timestampLWW;
-
-	protected DatabaseTable(String name, CRDTTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
+	public DatabaseTable(String name, CRDTTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
 							ExecutionPolicy policy)
 	{
 		this.executionPolicy = policy;
@@ -500,12 +492,4 @@ public abstract class DatabaseTable
 		return myString;
 
 	}
-
-	public abstract String[] transform_Insert(Insert insertStatement, String insertQuery) throws JSQLParserException;
-
-	public abstract String[] transform_Update(ResultSet rs, Update updateStatement, String updateQuery)
-			throws JSQLParserException;
-
-	public abstract String[] transform_Delete(Delete deleteStatement, String deleteQuery) throws JSQLParserException;
-
 }

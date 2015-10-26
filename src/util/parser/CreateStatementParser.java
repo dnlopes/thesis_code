@@ -73,33 +73,12 @@ public class CreateStatementParser
 			//create base fields here
 			LinkedHashMap<String, DataField> fieldsMap = createFields(metadata, tableName, bodyStr);
 
-			DatabaseTable dT = null;
+			DatabaseTable dbTable = new DatabaseTable(tableName, tableType, fieldsMap, tableExecutionPolicy);
 
-			switch(tableType)
-			{
-			case NONCRDTTABLE:
-				dT = new READONLY_Table(tableName, fieldsMap, tableExecutionPolicy);
-				break;
-			case AOSETTABLE:
-				dT = new AosetTable(tableName, fieldsMap, tableExecutionPolicy);
-				break;
-			case ARSETTABLE:
-				dT = new ArsetTable(tableName, fieldsMap, tableExecutionPolicy);
-				break;
-			case UOSETTABLE:
-				dT = new UosetTable(tableName, fieldsMap, tableExecutionPolicy);
-				break;
-			case AUSETTABLE:
-				dT = new AusetTable(tableName, fieldsMap, tableExecutionPolicy);
-				break;
-			default:
-				RuntimeUtils.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
-			}
+			for(DataField f : dbTable.getFieldsMap().values())
+				f.setDatabaseTable(dbTable);
 
-			for(DataField f : dT.getFieldsMap().values())
-				f.setDatabaseTable(dT);
-
-			return dT;
+			return dbTable;
 		}
 	}
 
@@ -424,6 +403,7 @@ public class CreateStatementParser
 				String[] pKeys = keyStr.split(",");
 
 				boolean requiresCoordination = true;
+				boolean containsAutoIncrement = false;
 
 				for(int k = 0; k < pKeys.length; k++)
 				{
@@ -435,11 +415,17 @@ public class CreateStatementParser
 					if(isPrimaryKey)
 						field.setPrimaryKey();
 
+					if(field.isAutoIncrement())
+						containsAutoIncrement = true;
+
 					// if at least one of the tuples present in the unique key have no semantic, then we can generate a
 					// unique value for that column, meaning that the unique constraint will hold at any time
 					if(field.getSemantic() == SemanticPolicy.NOSEMANTIC)
 						requiresCoordination = false;
 				}
+
+				if(containsAutoIncrement)
+					requiresCoordination = false;
 
 				Constraint uniqueConstraint = new UniqueConstraint(requiresCoordination, isPrimaryKey);
 

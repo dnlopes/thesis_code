@@ -29,7 +29,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 	public EZKCoordinationClient(ZooKeeper zooKeeper, int id)
 	{
 		this.id = id;
-		this.privateNode = EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp"
+		this.privateNode = EZKCoordinationExtension.ZOOKEEPER_BASE_NODE + File.separatorChar + "tmp"
 				+ File.separatorChar +
 				this.id;
 		this.zooKeeper = zooKeeper;
@@ -65,7 +65,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 	@Override
 	public void cleanupDatabase() throws KeeperException, InterruptedException
 	{
-		this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.CLEANUP_OP_CODE, new byte[0], -1);
+		this.zooKeeper.setData(EZKCoordinationExtension.CLEANUP_OP_CODE, new byte[0], -1);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 		try
 		{
 			// sync call to reserve unique values
-			Stat stat = this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.REQUEST_OP_CODE, bytesRequest, -1);
+			Stat stat = this.zooKeeper.setData(EZKCoordinationExtension.REQUEST_OP_CODE, bytesRequest, -1);
 
 			if(stat.getVersion() == 0)
 				response.setSuccess(true);
@@ -106,7 +106,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 		response.setSuccess(false);
 
 		// async call to reserve unique values
-		this.zooKeeper.setData(EZKCoordinationExtension.OP_CODES.REQUEST_OP_CODE, bytesRequest, -1, null, null);
+		this.zooKeeper.setData(EZKCoordinationExtension.REQUEST_OP_CODE, bytesRequest, -1, null, null);
 
 		// then, read privateNode data to get the requested values
 		this.readPrivateNode(response);

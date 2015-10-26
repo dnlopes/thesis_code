@@ -45,6 +45,7 @@ public class SimpleBatchDispatcher implements DispatcherAgent
 	public void dispatchTransaction(CRDTTransaction op)
 	{
 		this.pendingTransactions.add(op);
+		int a = 0;
 	}
 
 	private class DispatcherThread implements Runnable

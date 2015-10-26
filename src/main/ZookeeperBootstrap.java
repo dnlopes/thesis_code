@@ -17,6 +17,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.RuntimeUtils;
+import util.DatabaseTransformer;
 import util.ExitCode;
 import util.Configuration;
 import util.thrift.CoordinatorRequest;
@@ -93,7 +94,7 @@ public class ZookeeperBootstrap
 			for(Constraint constraint : tableConstraints)
 			{
 				if(constraint.getType() == ConstraintType.UNIQUE && constraint.requiresCoordination())
-					this.treatUniqueConstraint((UniqueConstraint) constraint, request);
+					this.treatUniqueConstraint(table, (UniqueConstraint) constraint, request);
 				else if(constraint.getType() == ConstraintType.AUTO_INCREMENT && constraint.requiresCoordination())
 					this.treatAutoIncrementConstraint((AutoIncrementConstraint) constraint);
 				else if(constraint.getType() == ConstraintType.CHECK)
@@ -108,9 +109,12 @@ public class ZookeeperBootstrap
 		this.ezkClient.cleanupDatabase();
 	}
 
-	private void treatUniqueConstraint(UniqueConstraint uniqueConstraint, CoordinatorRequest req)
+	private void treatUniqueConstraint(DatabaseTable dbTable, UniqueConstraint uniqueConstraint, CoordinatorRequest req)
 	{
 		if(!uniqueConstraint.requiresCoordination())
+			return;
+
+		if(uniqueConstraint.isPrimaryKey() && !dbTable.getTablePolicy().allowInserts())
 			return;
 
 		String prefix = EZKCoordinationExtension.UNIQUE_DIR + File.separatorChar + uniqueConstraint

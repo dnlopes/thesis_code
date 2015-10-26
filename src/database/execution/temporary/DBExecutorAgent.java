@@ -1007,6 +1007,8 @@ public class DBExecutorAgent implements IExecutorAgent
 			{
 				SymbolEntry symbolEntry = new SymbolEntry();
 				symbolEntry.setSymbol(symbol);
+				symbolEntry.setTableName(dataField.getTableName());
+				symbolEntry.setFieldName(dataField.getFieldName());
 				symbolEntry.setRequiresCoordination(false);
 				symbolsMap.put(symbol, symbolEntry);
 				linkSymbolToField(op, symbolEntry, dataField);

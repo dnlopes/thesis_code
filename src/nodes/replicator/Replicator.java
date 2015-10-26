@@ -195,13 +195,15 @@ public class Replicator extends AbstractNode
 		if(op.isSetSymbolFieldMap())
 		{
 			Map<String, String> opSymbolsMap = op.getSymbolFieldMap();
+
 			for(Map.Entry<String, String> entry : opSymbolsMap.entrySet())
 			{
-				SymbolEntry symbolEntry = symbolsMap.get(entry.getKey());
-				if(!symbolEntry.isSetRealValue())
+				String realValue = symbolsMap.get(entry.getKey()).getRealValue();
+
+				if(realValue == null)
 					RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
 
-				op.getNewFieldValues().put(symbolEntry.getFieldName(), symbolEntry.getRealValue());
+				op.getNewFieldValues().put(entry.getValue(), realValue);
 			}
 		}
 	}
