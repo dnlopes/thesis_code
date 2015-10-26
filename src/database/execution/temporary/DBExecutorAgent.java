@@ -9,6 +9,7 @@ import database.execution.SQLInterface;
 import database.util.*;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
+import database.util.table.TablePolicy;
 import database.util.value.DeltaFieldValue;
 import database.util.value.FieldValue;
 import net.sf.jsqlparser.expression.Expression;
@@ -44,15 +45,15 @@ import java.util.*;
 public class DBExecutorAgent implements IExecutorAgent
 {
 
-	private static final String SP_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=0";
 	private static final Logger LOG = LoggerFactory.getLogger(DBExecutorAgent.class);
 	private static final int TEMPORARY_INTEGER = 10000;
 
 	private SQLInterface sqlInterface;
-	private AgentHelper helper;
+	private ExecutionHelper helper;
 
 	private TableDefinition tableDefinition;
 	private DatabaseTable databaseTable;
+	private TablePolicy tablePolicy;
 	private List<ForeignKeyConstraint> fkConstraints;
 	private Map<String, DataField> fields;
 	private String tempTableName;
@@ -70,10 +71,11 @@ public class DBExecutorAgent implements IExecutorAgent
 
 	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
 	{
-		this.helper = new AgentHelper();
+		this.helper = new ExecutionHelper();
 		this.sandboxId = sandboxId;
 		this.tableId = tableId;
 		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+		this.tablePolicy = this.databaseTable.getTablePolicy();
 
 		this.fkConstraints = new ArrayList<>();
 
@@ -292,8 +294,12 @@ public class DBExecutorAgent implements IExecutorAgent
 			whereClauseTemp.append(plainSelect.getWhere());
 
 		StringBuilder whereClauseOrig = new StringBuilder(whereClauseTemp);
-		whereClauseOrig.append(" AND ");
-		whereClauseOrig.append(SP_DELETED_EXPRESSION);
+
+		if(this.tablePolicy.allowDeletes())
+		{
+			whereClauseOrig.append(" AND ");
+			whereClauseOrig.append(ExecutionHelper.NOT_DELETED_EXPRESSION);
+		}
 
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
@@ -413,10 +419,13 @@ public class DBExecutorAgent implements IExecutorAgent
 						val = String.valueOf(TEMPORARY_INTEGER);
 				}
 
+				/*
+
 				for(CheckConstraint checkConstraint : field.getCheckConstraints())
 				{
 					//TODO verify if value is valid under these check constraints
 				}
+				*/
 
 				if(!field.isHiddenField())
 				{
@@ -503,7 +512,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
-		this.helper.addWhere(buffer, deleteOp.getWhere());
+		this.helper.buildWhereClause(buffer, deleteOp.getWhere());
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
@@ -513,7 +522,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		this.helper.addWhere(buffer, deleteOp.getWhere());
+		this.helper.buildWhereClause(buffer, deleteOp.getWhere());
 		buffer.append(")");
 		String query = buffer.toString();
 
@@ -600,10 +609,12 @@ public class DBExecutorAgent implements IExecutorAgent
 			if(field.isHiddenField())
 				continue;
 
+			/*
 			for(CheckConstraint checkConstraint : field.getCheckConstraints())
 			{
 				//TODO verify if value is valid under these check constraints
 			}
+			*/
 
 			// we do not allow updates on primary keys, foreign keys and immutable fields
 			if(field.isImmutableField() || field.isPrimaryKey() || field.hasChilds())
@@ -684,21 +695,41 @@ public class DBExecutorAgent implements IExecutorAgent
 		return affectedRows;
 	}
 
-	private class AgentHelper
+	private class ExecutionHelper
 	{
 
-		protected void addWhere(StringBuilder buffer, Expression e)
+		public static final String WHERE = " WHERE (";
+		public static final String AND = " AND (";
+		public static final String NOT_DELETED_EXPRESSION = DatabaseDefaults.DELETED_COLUMN + "=" + DatabaseDefaults
+				.NOT_DELETED_VALUE;
+
+		private String encloseWhereClauseWithBrackets(String clause)
+		{
+			return "(" + clause + ")";
+		}
+
+		protected void buildWhereClause(StringBuilder buffer, Expression e)
 		{
 			if(e == null)
-				return;
-			buffer.append(" WHERE (");
-			buffer.append(SP_DELETED_EXPRESSION);
-			buffer.append(")");
-			if(e != null)
 			{
-				buffer.append(" AND ( ");
-				buffer.append(e.toString());
-				buffer.append(" ) ");
+				if(tablePolicy.allowDeletes())
+				{
+					buffer.append(WHERE);
+					buffer.append(encloseWhereClauseWithBrackets(NOT_DELETED_EXPRESSION));
+					buffer.append(")");
+				}
+			} else
+			{
+				buffer.append(WHERE);
+				buffer.append(encloseWhereClauseWithBrackets(e.toString()));
+
+				if(tablePolicy.allowDeletes())
+				{
+					buffer.append(AND);
+					buffer.append(encloseWhereClauseWithBrackets(NOT_DELETED_EXPRESSION));
+				}
+
+				buffer.append(")");
 			}
 		}
 
@@ -716,13 +747,13 @@ public class DBExecutorAgent implements IExecutorAgent
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
 			buffer.append(updateOp.getTables().get(0).toString());
-			addWhere(buffer, updateOp.getWhere());
+			buildWhereClause(buffer, updateOp.getWhere());
 			//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
 			buffer.append(" AND ");
 			buffer.append(DatabaseDefaults.DELETED_COLUMN);
 			buffer.append("=0) UNION (select *, '" + tempTableName + "' as tname FROM ");
 			buffer.append(tempTableName);
-			addWhere(buffer, updateOp.getWhere());
+			buildWhereClause(buffer, updateOp.getWhere());
 			//buffer.append(");");
 			buffer.append(" AND ");
 			buffer.append(DatabaseDefaults.DELETED_COLUMN);
@@ -981,12 +1012,15 @@ public class DBExecutorAgent implements IExecutorAgent
 				linkSymbolToField(op, symbolEntry, dataField);
 			}
 
+			if(!dataField.isAutoIncrement())
+				RuntimeUtils.throwRunTimeException(
+						"field with semantic value must either be auto_increment or " + "given by the " +
+								"application" +
+								" " +
+								"level", ExitCode.INVALIDUSAGE);
+
 			if(dataField.getSemantic() == SemanticPolicy.SEMANTIC)
 			{
-				if(!dataField.isAutoIncrement())
-					RuntimeUtils.throwRunTimeException("field with semantic value must either be auto_increment or " +
-							"given by the application level", ExitCode.INVALIDUSAGE);
-
 				SymbolEntry symbolEntry = symbolsMap.get(symbol);
 				symbolEntry.setRequiresCoordination(true);
 
@@ -1003,16 +1037,7 @@ public class DBExecutorAgent implements IExecutorAgent
 					txn.setRequestToCoordinator(new CoordinatorRequest());
 
 				txn.getRequestToCoordinator().addToRequests(request);
-			} else if(dataField.isInternallyChanged())
-			{
-				SymbolEntry symbolEntry = symbolsMap.get(symbol);
-				symbolEntry.setRequiresCoordination(false);
-				symbolEntry.setFieldName(dataField.getFieldName());
-				symbolEntry.setTableName(dataField.getTableName());
-			} else
-				RuntimeUtils.throwRunTimeException(
-						"field must be auto_incremental or must be internally changed, but" + " none happened",
-						ExitCode.INVALIDUSAGE);
+			}
 		}
 
 		private void linkSymbolToField(CRDTOperation op, SymbolEntry symbolEntry, DataField dataField)

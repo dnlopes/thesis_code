@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -84,9 +85,12 @@ public class ZookeeperBootstrap
 
 		for(DatabaseTable table : this.databaseMetadata.getAllTables())
 		{
-			Set<Constraint> constraints = table.getTableConstraints();
+			Set<Constraint> tableConstraints = new HashSet<>();
+			tableConstraints.addAll(table.getAutoIncrementConstraints());
+			tableConstraints.addAll(table.getUniqueConstraints());
+			tableConstraints.addAll(table.getCheckConstraints());
 
-			for(Constraint constraint : constraints)
+			for(Constraint constraint : tableConstraints)
 			{
 				if(constraint.getType() == ConstraintType.UNIQUE && constraint.requiresCoordination())
 					this.treatUniqueConstraint((UniqueConstraint) constraint, request);

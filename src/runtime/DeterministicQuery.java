@@ -49,7 +49,6 @@ public class DeterministicQuery
 	private static final Logger LOG = LoggerFactory.getLogger(DeterministicQuery.class);
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	private static final String NULL_VALUE = "NULL";
-	private static final String ONE_TIME_SYMBOL = SymbolsManager.SYMBOL_PREFIX + '1';
 
 	// intercepts update operation and make it deterministic
 	public static String[] makeToDeterministic(Connection con, CCJSqlParserManager parser, String sqlQuery)
@@ -179,16 +178,12 @@ public class DeterministicQuery
 
 				if(dataField.getDefaultFieldValue() != null)
 					valueList.add(dataField.getDefaultFieldValue().getFormattedValue());
-				else if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && !dataField.isAutoIncrement())
+				else if(!dataField.isAutoIncrement())
 					RuntimeUtils.throwRunTimeException(
-							"missing a column value with semantic value which is not an " + "auto_increment field",
+							"missing a column value which is not an " + "auto_increment field",
 							ExitCode.ERRORTRANSFORM);
-				else if(dataField.getSemantic() == SemanticPolicy.NOSEMANTIC)
-					valueList.add(ONE_TIME_SYMBOL);
-				else if(dataField.getSemantic() == SemanticPolicy.SEMANTIC && dataField.isAutoIncrement())
-					valueList.add(ONE_TIME_SYMBOL);
-				else
-					RuntimeUtils.throwRunTimeException("missing a column value", ExitCode.ERRORTRANSFORM);
+				else // is auto_increment
+					valueList.add(SymbolsManager.ONE_TIME_SYMBOL);
 			}
 		}
 	}

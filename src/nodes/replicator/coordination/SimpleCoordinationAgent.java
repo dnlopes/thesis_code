@@ -21,17 +21,17 @@ import java.util.Map;
 /**
  * Created by dnlopes on 22/10/15.
  */
-public class BasicCoordinationAgent implements CoordinationAgent
+public class SimpleCoordinationAgent implements CoordinationAgent
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(BasicCoordinationAgent.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SimpleCoordinationAgent.class);
 	private static final DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
 
 	private final Replicator replicator;
 	private final IDsManager idsManager;
 	private final IReplicatorNetwork network;
 
-	public BasicCoordinationAgent(Replicator replicator)
+	public SimpleCoordinationAgent(Replicator replicator)
 	{
 		this.replicator = replicator;
 		this.network = this.replicator.getNetworkInterface();
@@ -75,7 +75,7 @@ public class BasicCoordinationAgent implements CoordinationAgent
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 
-		// first lets replace the symbols got from coordinator
+		// first lets replace the symbols for the values received from coordinator
 		for(RequestValue requestValue : requestedValues)
 		{
 			if(requestValue.isSetRequestedValue())
@@ -98,10 +98,10 @@ public class BasicCoordinationAgent implements CoordinationAgent
 
 			if(dataField.isStringField())
 				symbolEntry.setRealValue(
-						idsManager.getNextString(symbolEntry.getTableName(), symbolEntry.getFieldName()));
+						this.idsManager.getNextString(symbolEntry.getTableName(), symbolEntry.getFieldName()));
 			else if(dataField.isNumberField())
 				symbolEntry.setRealValue(
-						String.valueOf(idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
+						String.valueOf(this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
 				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
 		}

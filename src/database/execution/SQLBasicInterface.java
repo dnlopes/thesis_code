@@ -1,6 +1,9 @@
 package database.execution;
 
 
+import database.jdbc.ConnectionFactory;
+import nodes.NodeConfig;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +21,11 @@ public class SQLBasicInterface implements SQLInterface
 	private Statement statU;
 	private Statement statBU;
 	private boolean emptyBatch;
+
+	public SQLBasicInterface(NodeConfig config) throws SQLException
+	{
+		this.dbConnection = ConnectionFactory.getDefaultConnection(config);
+	}
 
 	public SQLBasicInterface(Connection con) throws SQLException
 	{

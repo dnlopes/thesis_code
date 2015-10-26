@@ -6,5 +6,5 @@ package database.execution.util;
  */
 public interface DBEntry
 {
-	public String getKey();
+	String getKey();
 }

@@ -39,19 +39,19 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public boolean commitOperation(CRDTTransaction transaction) throws TException
 	{
-		return this.handleCommitOperation(transaction);
+		return handleCommitOperation(transaction);
 	}
 
 	@Override
 	public void sendToRemote(CRDTCompiledTransaction txn) throws TException
 	{
-		this.handleReceiveOperation(txn);
+		handleReceiveOperation(txn);
 	}
 
 	@Override
 	public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws TException
 	{
-		this.handleTransactionBatch(batch);
+		handleTransactionBatch(batch);
 	}
 
 	private boolean handleCommitOperation(CRDTTransaction transaction)
@@ -61,14 +61,15 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		if(LOG.isTraceEnabled())
 			LOG.trace("new clock assigned: {}", newClock.getClockValue());
 
-		transaction.setReplicatorId(replicatorId);
+		transaction.setReplicatorId(this.replicatorId);
 		transaction.setTxnClock(newClock.getClockValue());
 
 		this.coordAgent.handleCoordination(transaction);
 
 		if(transaction.isReadyToCommit())
 		{
-			this.replicator.replaceSymbols(transaction);
+			// replace symbols for real values and append prefixs when needed
+			this.replicator.prepareToCommit(transaction);
 			CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
 			transaction.setCompiledTxn(compiledTxn);
 

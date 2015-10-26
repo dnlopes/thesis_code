@@ -163,9 +163,13 @@ public class Coordinator extends AbstractNode
 	{
 		for(DatabaseTable table : this.databaseMetadata.getAllTables())
 		{
-			Set<Constraint> invariants = table.getTableConstraints();
+			Set<Constraint> tableConstraints = new HashSet<>();
+			tableConstraints.addAll(table.getAutoIncrementConstraints());
+			tableConstraints.addAll(table.getUniqueConstraints());
+			tableConstraints.addAll(table.getCheckConstraints());
 
-			for(Constraint constraint : invariants)
+
+			for(Constraint constraint : tableConstraints)
 			{
 				String constraintId = constraint.getConstraintIdentifier();
 				List<DataField> fields = constraint.getFields();

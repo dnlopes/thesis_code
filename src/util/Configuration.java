@@ -59,8 +59,9 @@ public final class Configuration
 
 		loadConfiguration();
 
-		//TODO inject these values on config file
+		//@deprecated option
 		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
+		//TODO inject these values on config file
 		this.optimizeBatch = Defaults.USE_OPTIMIZE_BATCH;
 
 		IS_CONFIGURED = true;

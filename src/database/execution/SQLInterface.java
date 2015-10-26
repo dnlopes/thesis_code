@@ -12,10 +12,10 @@ import java.sql.SQLException;
 public interface SQLInterface
 {
 
-	public int executeUpdate(String sql) throws SQLException;
-	public ResultSet executeQuery(String sql) throws SQLException;
-	public int executeBatch() throws SQLException;
-	public void addToBatchUpdate(String sql) throws SQLException;
-	public Connection getConnection();
-	public void commit() throws SQLException;
+	int executeUpdate(String sql) throws SQLException;
+	ResultSet executeQuery(String sql) throws SQLException;
+	int executeBatch() throws SQLException;
+	void addToBatchUpdate(String sql) throws SQLException;
+	Connection getConnection();
+	void commit() throws SQLException;
 }

@@ -44,7 +44,6 @@ public abstract class DatabaseTable
 	private CRDTTableType tag;
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
-	private Set<Constraint> tableConstraints;
 	private List<CheckConstraint> checkConstraints;
 	private List<UniqueConstraint> uniqueConstraints;
 	private List<ForeignKeyConstraint> fkConstraints;
@@ -56,7 +55,6 @@ public abstract class DatabaseTable
 	private String selectNormalFieldsForQueryString;
 
 	protected DataField timestampField;
-
 	protected DataField contentClockField;
 	protected DataField deletedClockField;
 	protected DataField deletedField;
@@ -83,7 +81,6 @@ public abstract class DatabaseTable
 		this.sortedFieldsMap = new HashMap<>();
 		this.hiddenFields = new HashMap<>();
 		this.normalFields = new HashMap<>();
-		this.tableConstraints = new LinkedHashSet<>();
 		this.constraintsMap = new HashMap<>();
 		this.checkConstraints = new LinkedList<>();
 		this.uniqueConstraints = new LinkedList<>();
@@ -105,7 +102,6 @@ public abstract class DatabaseTable
 			this.uniqueConstraints.addAll(aDataField.getUniqueConstraints());
 			this.fkConstraints.addAll(aDataField.getFkConstraints());
 			this.checkConstraints.addAll(aDataField.getCheckConstraints());
-			this.tableConstraints.addAll(aDataField.getAllConstraints());
 
 			if(aDataField.isHiddenField())
 				this.hiddenFields.put(aDataField.getFieldName(), aDataField);
@@ -117,8 +113,8 @@ public abstract class DatabaseTable
 
 			if(aDataField.isAutoIncrement())
 			{
-				this.autoIncrementConstraints.add(aDataField.getAutoIncrementConstraint());
 				this.containsAutoIncrementField = true;
+				this.autoIncrementConstraints.add(aDataField.getAutoIncrementConstraint());
 				this.autoIncrementConstraintMap.put(aDataField.getFieldName(), aDataField.getAutoIncrementConstraint
 						());
 			}
@@ -127,7 +123,11 @@ public abstract class DatabaseTable
 		setPrimaryKeyString(assemblePrimaryKeyString());
 		generateSelectFieldsForQuery();
 
-		for(Constraint c : this.tableConstraints)
+		for(Constraint c : this.uniqueConstraints)
+			this.constraintsMap.put(c.getConstraintIdentifier(), c);
+		for(Constraint c : this.fkConstraints)
+			this.constraintsMap.put(c.getConstraintIdentifier(), c);
+		for(Constraint c : this.checkConstraints)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
 	}
 
@@ -347,24 +347,9 @@ public abstract class DatabaseTable
 		return this.primaryKeyString;
 	}
 
-	public Set<Constraint> getTableConstraints()
-	{
-		return this.tableConstraints;
-	}
-
 	public Constraint getConstraint(String constraintId)
 	{
 		return this.constraintsMap.get(constraintId);
-	}
-
-	public DataField getDeletedField()
-	{
-		return this.deletedField;
-	}
-
-	public DataField getContentClockField()
-	{
-		return this.contentClockField;
 	}
 
 	public ExecutionPolicy getExecutionPolicy()
@@ -392,11 +377,6 @@ public abstract class DatabaseTable
 		this.childTablesConstraints.add(fkConstraint);
 	}
 
-	public DataField getDeletedClockField()
-	{
-		return this.deletedClockField;
-	}
-
 	private void generateSelectFieldsForQuery()
 	{
 		StringBuilder buffer = new StringBuilder();
@@ -416,6 +396,11 @@ public abstract class DatabaseTable
 	public String getNormalFieldsSelection()
 	{
 		return this.selectNormalFieldsForQueryString;
+	}
+
+	public TablePolicy getTablePolicy()
+	{
+		return this.tablePolicy;
 	}
 
 	public AutoIncrementConstraint getAutoIncrementConstraint(String fieldName)

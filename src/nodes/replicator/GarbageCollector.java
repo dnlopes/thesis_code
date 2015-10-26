@@ -1,17 +1,19 @@
 package nodes.replicator;
 
 
-import database.jdbc.ConnectionFactory;
+import database.execution.SQLBasicInterface;
+import database.execution.SQLInterface;
 import database.util.DatabaseMetadata;
+import database.util.table.DatabaseTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import runtime.LogicalClock;
 import util.Configuration;
 import util.defaults.ReplicatorDefaults;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -22,20 +24,18 @@ public class GarbageCollector implements Runnable
 
 	private static final Logger LOG = LoggerFactory.getLogger(GarbageCollector.class);
 
-	private Connection connection;
+	private SQLInterface sqlInterface;
 	private Replicator replicator;
-	private DatabaseMetadata metadata;
-	private Statement statement;
+	private List<DatabaseTable> toCollectTabes;
 
 	public GarbageCollector(Replicator replicator)
 	{
 		this.replicator = replicator;
-		this.metadata = Configuration.getInstance().getDatabaseMetadata();
+		this.toCollectTabes = new ArrayList<>();
 
 		try
 		{
-			this.connection = ConnectionFactory.getDefaultConnection(replicator.getConfig());
-			this.statement = this.connection.createStatement();
+			this.sqlInterface = new SQLBasicInterface(replicator.getConfig());
 
 		} catch(SQLException e)
 		{
@@ -47,15 +47,19 @@ public class GarbageCollector implements Runnable
 			LOG.info("garbage collection agent initialized with schedule interval of {}",
 					ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL);
 
+		DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
+
+		for(DatabaseTable dbTable : metadata.getAllTables())
+		{
+			if(dbTable.getTablePolicy().allowDeletes())
+				toCollectTabes.add(dbTable);
+		}
 	}
 
 	@Override
 	public void run()
 	{
 		LogicalClock clockSnapshot = this.replicator.getCurrentClock().duplicate();
-
 		//TODO: implement
-
-
 	}
 }

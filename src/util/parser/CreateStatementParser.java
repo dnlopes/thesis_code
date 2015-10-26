@@ -93,14 +93,7 @@ public class CreateStatementParser
 				dT = new AusetTable(tableName, fieldsMap, tableExecutionPolicy);
 				break;
 			default:
-				try
-				{
-					throw new RuntimeException("Unknown table annotation type");
-				} catch(RuntimeException e)
-				{
-					LOG.error("table type not recognized: {}", tableType);
-					RuntimeUtils.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
-				}
+				RuntimeUtils.throwRunTimeException("unknown table type", ExitCode.UNKNOWNTABLEANNOTYPE);
 			}
 
 			for(DataField f : dT.getFieldsMap().values())
@@ -438,7 +431,6 @@ public class CreateStatementParser
 						throw_Wrong_Format_Exception(constraint + " " + pKeys[k]);
 
 					DataField field = fieldsMap.get(pKeys[k]);
-					field.setIsUnique();
 
 					if(isPrimaryKey)
 						field.setPrimaryKey();
@@ -449,7 +441,7 @@ public class CreateStatementParser
 						requiresCoordination = false;
 				}
 
-				Constraint uniqueConstraint = new UniqueConstraint(requiresCoordination);
+				Constraint uniqueConstraint = new UniqueConstraint(requiresCoordination, isPrimaryKey);
 
 				for(int j = 0; j < pKeys.length; j++)
 				{

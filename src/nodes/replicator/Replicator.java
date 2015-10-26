@@ -5,11 +5,11 @@ import database.execution.main.DBCommitterAgent;
 import database.execution.main.DBCommitter;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
-import nodes.replicator.coordination.BasicCoordinationAgent;
+import nodes.replicator.coordination.SimpleCoordinationAgent;
 import nodes.replicator.coordination.CoordinationAgent;
 import nodes.replicator.deliver.CausalDeliverAgent;
 import nodes.replicator.deliver.DeliverAgent;
-import nodes.replicator.dispatcher.BasicBatchDispatcher;
+import nodes.replicator.dispatcher.SimpleBatchDispatcher;
 import nodes.replicator.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -20,10 +20,7 @@ import util.ExitCode;
 import util.ObjectPool;
 import util.Configuration;
 import util.defaults.ReplicatorDefaults;
-import util.thrift.CRDTCompiledTransaction;
-import util.thrift.CRDTOperation;
-import util.thrift.CRDTTransaction;
-import util.thrift.SymbolEntry;
+import util.thrift.*;
 
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -65,8 +62,8 @@ public class Replicator extends AbstractNode
 		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		this.deliver = new CausalDeliverAgent(this);
-		this.dispatcher = new BasicBatchDispatcher(this);
-		this.coordAgent = new BasicCoordinationAgent(this);
+		this.dispatcher = new SimpleBatchDispatcher(this);
+		this.coordAgent = new SimpleCoordinationAgent(this);
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
 		this.garbageCollector = new GarbageCollector(this);
@@ -141,7 +138,7 @@ public class Replicator extends AbstractNode
 		this.commitOperation(txn);
 	}
 
-	public void replaceSymbols(CRDTTransaction transaction)
+	public void prepareToCommit(CRDTTransaction transaction)
 	{
 		if(!transaction.isSetSymbolsMap())
 			return;
@@ -150,18 +147,8 @@ public class Replicator extends AbstractNode
 
 		for(CRDTOperation op : transaction.getOpsList())
 		{
-			if(op.isSetSymbolFieldMap())
-			{
-				Map<String, String> opSymbolsMap = op.getSymbolFieldMap();
-				for(Map.Entry<String, String> entry : opSymbolsMap.entrySet())
-				{
-					SymbolEntry symbolEntry = symbolsMap.get(entry.getKey());
-					if(!symbolEntry.isSetRealValue())
-						RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
-
-					op.getNewFieldValues().put(symbolEntry.getFieldName(), symbolEntry.getRealValue());
-				}
-			}
+			replaceSymbols(op, symbolsMap);
+			appendPrefixs(op);
 		}
 	}
 
@@ -188,6 +175,35 @@ public class Replicator extends AbstractNode
 	public CoordinationAgent getCoordAgent()
 	{
 		return this.coordAgent;
+	}
+
+	private void appendPrefixs(CRDTOperation op)
+	{
+		/*
+		TODO: implement
+		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
+
+		for(UniqueConstraint constraint : dbTable.getUniqueConstraints())
+		{
+
+		}
+		*/
+	}
+
+	private void replaceSymbols(CRDTOperation op, Map<String, SymbolEntry> symbolsMap)
+	{
+		if(op.isSetSymbolFieldMap())
+		{
+			Map<String, String> opSymbolsMap = op.getSymbolFieldMap();
+			for(Map.Entry<String, String> entry : opSymbolsMap.entrySet())
+			{
+				SymbolEntry symbolEntry = symbolsMap.get(entry.getKey());
+				if(!symbolEntry.isSetRealValue())
+					RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
+
+				op.getNewFieldValues().put(symbolEntry.getFieldName(), symbolEntry.getRealValue());
+			}
+		}
 	}
 
 	private void mergeWithRemoteClock(LogicalClock clock)

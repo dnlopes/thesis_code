@@ -44,7 +44,6 @@ public abstract class DataField
 	private boolean isAllowedNULL;
 	private int position;
 	private DatabaseTable dbTable;
-	private boolean isUnique;
 	private FieldValue defaultFieldValue;
 	private boolean internallyChanged;
 
@@ -52,14 +51,7 @@ public abstract class DataField
 						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
 	{
 
-		this.invariants = new LinkedList<>();
-		this.checkConstraints = new LinkedList<>();
-		this.uniqueConstraints = new LinkedList<>();
-		this.fkConstraints = new LinkedList<>();
-		this.childFields = new HashSet<>();
-		this.parentsFields = new HashSet<>();
 		this.isAllowedNULL = false;
-		this.isUnique = false;
 		this.position = -1;
 		this.crdtDataType = fieldTag;
 		this.fieldName = name;
@@ -74,16 +66,21 @@ public abstract class DataField
 		this.autoIncrementConstraint = null;
 		this.defaultValue = null;
 
+		this.invariants = new LinkedList<>();
+		this.checkConstraints = new LinkedList<>();
+		this.uniqueConstraints = new LinkedList<>();
+		this.fkConstraints = new LinkedList<>();
+		this.childFields = new HashSet<>();
+		this.parentsFields = new HashSet<>();
+
 		if(this.isAutoIncremental)
 		{
-			this.isUnique = true;
-
 			boolean requiresCoordination = this.semantic == SemanticPolicy.SEMANTIC;
 
 			Constraint autoIncrementConstraint = new AutoIncrementConstraint(requiresCoordination);
 			autoIncrementConstraint.addField(this);
-			autoIncrementConstraint.generateIdentifier();
 			autoIncrementConstraint.setTableName(tableName);
+			autoIncrementConstraint.generateIdentifier();
 			addConstraint(autoIncrementConstraint);
 		}
 	}
@@ -193,19 +190,9 @@ public abstract class DataField
 		this.parentsFields.add(parent);
 	}
 
-	public void setIsUnique()
-	{
-		this.isUnique = true;
-	}
-
 	public SemanticPolicy getSemantic()
 	{
 		return this.semantic;
-	}
-
-	public boolean isUnique()
-	{
-		return this.isUnique;
 	}
 
 	public FieldValue getDefaultFieldValue()
