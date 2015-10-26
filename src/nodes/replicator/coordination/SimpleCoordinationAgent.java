@@ -96,10 +96,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			DatabaseTable dbTable = metadata.getTable(symbolEntry.getTableName());
 			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
 
-			if(dataField.isStringField())
-				symbolEntry.setRealValue(
-						this.idsManager.getNextString(symbolEntry.getTableName(), symbolEntry.getFieldName()));
-			else if(dataField.isNumberField())
+			if(dataField.isNumberField())
 				symbolEntry.setRealValue(
 						String.valueOf(this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else

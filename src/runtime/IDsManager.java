@@ -2,13 +2,11 @@ package runtime;
 
 
 import database.constraints.unique.AutoIncrementConstraint;
-import database.constraints.unique.UniqueConstraint;
 import database.jdbc.ConnectionFactory;
 import database.util.field.DataField;
 import database.util.table.DatabaseTable;
 import nodes.NodeConfig;
 import org.apache.commons.dbutils.DbUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ExitCode;
@@ -30,33 +28,16 @@ public class IDsManager
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IDsManager.class);
+	private static String PREFIX;
 
 	private Map<String, IDGenerator> idsGenerators;
-	private Map<String, StringGenerator> stringGenerators;
-	private static String PREFIX;
 
 	public IDsManager(String prefix, NodeConfig replicatorConfig)
 	{
 		PREFIX = prefix;
 		this.idsGenerators = new HashMap<>();
-		this.stringGenerators = new HashMap<>();
 
 		setup(replicatorConfig);
-	}
-
-	public String getNextString(String tableName, String fieldName)
-	{
-		String key = tableName + "_" + fieldName;
-
-		if(!this.stringGenerators.containsKey(key))
-			RuntimeUtils.throwRunTimeException("id generator not found for key " + key, ExitCode.ID_GENERATOR_ERROR);
-
-		String nextString = this.stringGenerators.get(key).getNextString();
-
-		if(LOG.isTraceEnabled())
-			LOG.trace("new unique string generated for key {}: {}", key, nextString);
-
-		return nextString;
 	}
 
 	public int getNextId(String tableName, String fieldName)
@@ -74,16 +55,6 @@ public class IDsManager
 		return nextId;
 	}
 
-	public static String appendReplicaPrefix(String value)
-	{
-		StringBuilder buffer = new StringBuilder("'");
-		buffer.append(PREFIX);
-		buffer.append(StringUtils.substring(value, 1, value.length() - 1));
-		buffer.append("'");
-
-		return buffer.toString();
-	}
-
 	private void setup(NodeConfig config)
 	{
 		if(LOG.isTraceEnabled())
@@ -91,46 +62,10 @@ public class IDsManager
 
 		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
 		{
-			/*
-			for(UniqueConstraint uniqueConstraint : table.getUniqueConstraints())
-			{
-				if(!uniqueConstraint.requiresCoordination())
-				{
-					DataField toChangeField = uniqueConstraint.getFieldToChange();
-					if(toChangeField == null)
-						RuntimeUtils.throwRunTimeException(
-								"unique constraint without coordination must have " + "toChangeField set",
-								ExitCode.NULLPOINTER);
-
-					if(toChangeField.isNumberField())
-						createIdGenerator(toChangeField, config);
-					else if(toChangeField.isStringField())
-						createStringGenerator(toChangeField, config);
-
-				}
-			}           */
-
 			for(AutoIncrementConstraint autoIncrementConstraint : table.getAutoIncrementConstraints())
 				if(!autoIncrementConstraint.requiresCoordination())
 					createIdGenerator(autoIncrementConstraint.getAutoIncrementField(), config);
 		}
-	}
-
-	private void createStringGenerator(DataField field, NodeConfig config)
-	{
-		String key = field.getTableName() + "_" + field.getFieldName();
-
-		if(this.stringGenerators.containsKey(key))
-		{
-			if(LOG.isWarnEnabled())
-				LOG.warn("string generator already created. Silently ignored");
-			return;
-		}
-
-		StringGenerator newGenerator = new StringGenerator(field);
-
-		this.stringGenerators.put(key, newGenerator);
-
 	}
 
 	private void createIdGenerator(DataField field, NodeConfig config)
@@ -223,7 +158,6 @@ public class IDsManager
 			return this.currentValue.get();
 		}
 	}
-
 
 	private class StringGenerator
 	{
