@@ -68,7 +68,7 @@
 )Engine=InnoDB;
 
 @AUSETTABLE create table orders (
-	@LWWINTEGER @SEMANTIC o_id int AUTO_INCREMENT not null,
+	@LWWINTEGER @NOSEMANTIC o_id int AUTO_INCREMENT not null,
 	@LWWINTEGER o_d_id tinyint not null, 
 	@LWWINTEGER o_w_id smallint not null,
 	@LWWINTEGER o_c_id int,

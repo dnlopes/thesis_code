@@ -3,6 +3,9 @@ package nodes.replicator;
 
 import database.execution.main.DBCommitterAgent;
 import database.execution.main.DBCommitter;
+import database.util.DatabaseMetadata;
+import database.util.field.DataField;
+import database.util.table.DatabaseTable;
 import nodes.AbstractNode;
 import nodes.NodeConfig;
 import nodes.replicator.coordination.SimpleCoordinationAgent;
@@ -14,6 +17,7 @@ import nodes.replicator.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import runtime.IDsManager;
 import runtime.LogicalClock;
 import runtime.RuntimeUtils;
 import util.ExitCode;
@@ -38,12 +42,15 @@ public class Replicator extends AbstractNode
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
 	private static final String SUBPREFIX = "r";
+	private static final DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
 
 	private LogicalClock clock;
 	private final IReplicatorNetwork networkInterface;
 	private final ObjectPool<DBCommitter> agentsPool;
 	private final Lock clockLock;
 	private final String prefix;
+	private final IDsManager idsManager;
+
 
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
@@ -60,6 +67,8 @@ public class Replicator extends AbstractNode
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
 		this.networkInterface = new ReplicatorNetwork(this.config);
+		this.idsManager = new IDsManager(getPrefix(), getConfig());
+
 
 		this.deliver = new CausalDeliverAgent(this);
 		this.dispatcher = new SimpleBatchDispatcher(this);
@@ -142,6 +151,26 @@ public class Replicator extends AbstractNode
 	{
 		if(!transaction.isSetSymbolsMap())
 			return;
+
+		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
+
+		//generate unique values locally
+		for(SymbolEntry symbolEntry : symbols.values())
+		{
+			// already got value from coordinator
+			if(symbolEntry.isSetRealValue())
+				continue;
+
+			// lets generate a unique value locally
+			DatabaseTable dbTable = metadata.getTable(symbolEntry.getTableName());
+			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
+
+			if(dataField.isNumberField() && dataField.isAutoIncrement())
+				symbolEntry.setRealValue(
+						String.valueOf(this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
+			else
+				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
+		}
 
 		Map<String, SymbolEntry> symbolsMap = transaction.getSymbolsMap();
 

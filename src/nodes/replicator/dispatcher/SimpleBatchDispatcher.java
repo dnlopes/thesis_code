@@ -44,8 +44,8 @@ public class SimpleBatchDispatcher implements DispatcherAgent
 	@Override
 	public void dispatchTransaction(CRDTTransaction op)
 	{
+		//TODO fix bug: check concurrency with dispatcher thread
 		this.pendingTransactions.add(op);
-		int a = 0;
 	}
 
 	private class DispatcherThread implements Runnable
