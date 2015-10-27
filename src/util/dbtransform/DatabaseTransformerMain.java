@@ -1,6 +1,5 @@
 package util.dbtransform;
 
-import util.dbtransform.DatabaseTransformer;
 import common.util.ExitCode;
 
 

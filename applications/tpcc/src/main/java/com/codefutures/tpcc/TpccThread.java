@@ -10,14 +10,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import client.jdbc.ConnectionFactory;
 import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
-import database.jdbc.ConnectionFactory;
-import nodes.NodeConfig;
+import common.Configuration;
+import common.nodes.NodeConfig;
+import common.util.DatabaseProperties;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import util.Configuration;
-import util.DatabaseProperties;
 
 
 public class TpccThread extends Thread

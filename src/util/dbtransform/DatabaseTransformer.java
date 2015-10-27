@@ -25,18 +25,10 @@ public class DatabaseTransformer
 	private Connection connection;
 	private DatabaseMetaData metadata;
 
-	public DatabaseTransformer(DatabaseProperties props, String databaseName)
-	{
-		this.dbProps = props;
-		this.databaseName = databaseName;
-
-		this.setup();
-	}
-
 	public DatabaseTransformer(String databaseHost, String databaseName)
 	{
-		this.dbProps = new DatabaseProperties(DatabaseDefaults.DEFAULT_USER, DatabaseDefaults.DEFAULT_PASSWORD, databaseHost,
-				DatabaseDefaults.DEFAULT_MYSQL_PORT);
+		this.dbProps = new DatabaseProperties(DatabaseDefaults.DEFAULT_USER, DatabaseDefaults.DEFAULT_PASSWORD,
+				databaseHost, DatabaseDefaults.DEFAULT_MYSQL_PORT);
 		this.databaseName = databaseName;
 
 		this.setup();

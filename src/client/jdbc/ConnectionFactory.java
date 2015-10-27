@@ -1,8 +1,8 @@
 package client.jdbc;
 
 
-import common.nodes.NodeConfig;
 import common.Configuration;
+import common.nodes.NodeConfig;
 import common.util.defaults.DatabaseDefaults;
 import common.util.DatabaseProperties;
 

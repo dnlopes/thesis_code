@@ -16,13 +16,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.codefutures.tpcc.stats.PerSecondStatistics;
 import com.codefutures.tpcc.stats.PerformanceCounters;
-import com.codefutures.tpcc.stats.Statistics;
 import com.codefutures.tpcc.stats.ThreadStatistics;
-import nodes.NodeConfig;
+
+import common.Configuration;
+import common.nodes.NodeConfig;
+import common.util.DatabaseProperties;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import util.Configuration;
-import util.DatabaseProperties;
 
 
 public class Tpcc implements TpccConstants

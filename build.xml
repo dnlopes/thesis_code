@@ -16,7 +16,6 @@
 	<property name="ezk.base.dir" value="${base.dir}/../ezk" />
 	<property name="ezk-build.file" value="${ezk.base.dir}/build.xml" />
 	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
-	<property name="tomcat.dir" value="/local/dp.lopes/tomcat6" />
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="base.libs.dir" value="${base.dir}/libs" />
 	<property name="weak.libs.dir" value="${base.dir}/libs/weak" />
@@ -26,9 +25,13 @@
 	<property name="jars.dir" value="${dist.dir}/jars" />
 	<property name="resources.dir" value="${base.dir}/resources" />
 	<property name="applications.dir" value="${base.dir}/applications" />
-	<property name="tpcw.dir" value="${applications.dir}/tpcw" />
 	<property name="tpcc.dir" value="${applications.dir}/tpcc" />
-	<property name="tpcc_escada.dir" value="${applications.dir}/tpcc-escada" />
+
+	<!-- Generated JARs names -->
+	<property name="weakdb-common-jar" value="weakdb-common.jar" />
+	<property name="weakdb-server-jar" value="weakdb-server.jar" />
+	<property name="weakdb-client-jar" value="weakdb-client.jar" />
+	<property name="weakdb-thrift-bundled-jar" value="weakdb-thrift-bundled.jar" />
 
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -37,21 +40,10 @@
 		</classpath>
 	</taskdef>
 
-	<!-- TPC-W properties -->
-	<property name="TPCW_NUM_EBS" value="50" />
-	<property name="TPCW_NUM_ITEMS" value="10000" />
-	<property name="tpcw.dist.dir" value="${tpcw.dir}/dist" />
-	<property name="tpcw.web.dir" value="${tpcw.dir}/webapp" />
-	<property name="tpcw.output.dir" value="${tpcw.dir}/output" />
-	<property name="tpcw.src.dir" value="${tpcw.dir}/src" />
-
 	<!-- TPC-C properties -->
 	<property name="tpcc.src.dir" value="${tpcc.dir}/src" />
-	<property name="tpcc_escada.src.dir" value="${tpcc_escada.dir}/src" />
 	<property name="tpcc.dist.dir" value="${tpcc.dir}/dist" />
-	<property name="tpcc_escada.dist.dir" value="${tpcc_escada.dir}/dist" />
 	<property name="tpcc.classes.dir" value="${tpcc.dist.dir}/classes" />
-	<property name="tpcc_escada.classes.dir" value="${tpcc_escada.dist.dir}/classes" />
 
 	<!-- TPC-C resources-->
 	<path id="tpcc.resources.path">
@@ -70,18 +62,6 @@
 		<pathelement path="${classes.dir}" />
 	</path>
 
-	<path id="tpcw.classpath">
-		<fileset dir="${tpcw.dir}/libs">
-			<include name="*.jar" />
-		</fileset>
-		<fileset dir="${tpcw.dir}/">
-			<include name="sql-mysql.properties" />
-		</fileset>
-	</path>
-	<path id="tpcw.runtime.classpath">
-		<pathelement path="${tpcw.dist.dir}" />
-	</path>
-
 	<path id="tpcc.classpath">
 		<fileset dir="${base.dir}/libs/weak">
 			<include name="slf4j-api-1.7.10.jar" />
@@ -90,27 +70,24 @@
 			<include name="commons-cli-1.2.jar" />
 			<include name="commons-dbutils-1.6.jar" />
 			<include name="commons-lang3-3.3.2.jar" />
+			<include name="mysql-connector-java-5.1.17-bin.jar" />
 		</fileset>
-		<fileset dir="${dist.dir}/jars/">
-			<include name="crdt-jdbc.jar" />
+		<fileset dir="${jars.dir}">
+			<include name="weakdb-common.jar" />
+			<include name="weakdb-client.jar" />
 		</fileset>
 	</path>
 	<path id="tpcc.runtime.classpath">
 		<pathelement path="${tpcc.classes.dir}" />
-		<fileset dir="${base.dir}/libs">
-			<!--<include name="slf4j-api-1.7.10.jar" />
-			<include name="log4j-1.2.17.jar" />
-			<include name="slf4j-log4j12-1.7.10.jar" />-->
-		</fileset>
 		<fileset dir="${dist.dir}/jars/">
-			<include name="crdt-jdbc.jar" />
+			<include name="${weakdb-common-jar}" />
+			<include name="${weakdb-client-jar}" />
 		</fileset>
 	</path>
 
 	<!-- WeakDB tasks -->
 	<target name="purge" description="Purges everything">
 		<antcall target="clean" />
-		<antcall target="tpcw-clean" />
 		<antcall target="tpcc-clean" />
 	</target>
 	<target name="init" depends="clean">
@@ -132,22 +109,35 @@
 		</javac>
 	</target>
 	<target name="minimal-jars" depends="compile">
-		<jar destfile="${jars.dir}/crdt-jdbc.jar" basedir="${classes.dir}">
-		</jar>
-		<jar destfile="${jars.dir}/thrift-custom.jar">
+		<jar destfile="${jars.dir}/${weakdb-common-jar}">
 			<fileset dir="${classes.dir}">
-				<include name="util/thrift/*.class" />
+				<include name="common/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weakdb-client-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="client/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weakdb-server-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="server/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weakdb-thrift-bundled-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="common/thrift/*.class" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="libthrift-0.9.2.jar" />
 			</zipgroupfileset>
 		</jar>
 	</target>
-	<target name="dist" depends="minimal-jars,tpcc-init"
-			description="Generates main jars (including their dependencies)">
+	<target name="dist" depends="minimal-jars, tpcc-init"
+			description="Generates Main Jars">
 		<jar destfile="${jars.dir}/zookeeper-bootstrap.jar">
 			<manifest>
-				<attribute name="Main-Class" value="main.ZookeeperBootstrap" />
+				<attribute name="Main-Class" value="server.agents.coordination.zookeeper.ZookeeperBootstrap" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
@@ -159,32 +149,29 @@
 				<include name="slf4j-api-1.7.10.jar" />
 				<include name="commons-lang3-3.3.2.jar" />
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
-				<include name="libthrift-0.9.2.jar" />
 				<include name="ezk-zookeeper.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
+				<include name="${weakdb-thrift-bundled-jar}" />
+				<include name="${weakdb-common-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/db-transform.jar">
 			<manifest>
-				<attribute name="Main-Class" value="main.DatabaseTransformerMain" />
+				<attribute name="Main-Class" value="util.dbtransform.DatabaseTransformerMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
-				<include name="log4j-1.2.17.jar" />
-				<include name="slf4j-log4j12-1.7.10.jar" />
-				<include name="slf4j-api-1.7.10.jar" />
-				<include name="commons-lang3-3.3.2.jar" />
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
+				<include name="${weakdb-common-jar}" />
+				<include name="${weakdb-client-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/zookeeper-server.jar">
@@ -203,7 +190,7 @@
 				<include name="jline-0.9.94.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="thrift-custom.jar" />
+				<include name="${weakdb-thrift-bundled-jar}" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="ezk-zookeeper.jar" />
@@ -211,7 +198,7 @@
 		</jar>
 		<jar destfile="${jars.dir}/replicator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="main.ReplicatorMain" />
+				<attribute name="Main-Class" value="server.replicator.ReplicatorMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
@@ -223,12 +210,13 @@
 				<include name="slf4j-api-1.7.10.jar" />
 				<include name="commons-lang3-3.3.2.jar" />
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
-				<include name="libthrift-0.9.2.jar" />
 				<include name="ezk-zookeeper.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
+				<include name="${weakdb-thrift-bundled-jar}" />
+				<include name="${weakdb-common-jar}" />
+				<include name="${weakdb-server-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/micro-gendb.jar">
@@ -265,6 +253,9 @@
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
 			</fileset>
+			<fileset dir="${classes.dir}/applications">
+				<include name="**/*.class" />
+			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
@@ -272,11 +263,12 @@
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
 				<include name="commons-lang3-3.3.2.jar" />
-				<include name="libthrift-0.9.2.jar" />
 				<include name="jsqlparser-0.9.2.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
+				<include name="${weakdb-thrift-bundled-jar}" />
+				<include name="${weakdb-common-jar}" />
+				<include name="${weakdb-client-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
@@ -289,24 +281,19 @@
 				<attribute name="Class-Path" value="." />
 				<attribute name="Main-Class" value="com.codefutures.tpcc.TpccLoad" />
 			</manifest>
-			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
-			</zipgroupfileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
-				<include name="commons-lang3-3.3.2.jar" />
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
-				<include name="jsqlparser-0.9.2.jar" />
 			</zipgroupfileset>
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
 			</fileset>
 		</jar>
 	</target>
-	<target name="deploy" depends="dist" description="Deploy WeakDB distribution">
+	<target name="deploy" depends="dist" description="Deploy WeakDB Distribution">
 		<delete dir="${deploy.dir}" />
 		<mkdir dir="${deploy.dir}/configs" />
 		<copy todir="${deploy.dir}">
@@ -332,17 +319,17 @@
 	<target name="tpcc-init" depends="tpcc-clean">
 		<tstamp />
 		<mkdir dir="${tpcc.classes.dir}" />
-		<mkdir dir="${tpcc_escada.classes.dir}" />
 	</target>
 	<target name="tpcc-clean">
 		<delete dir="${tpcc.dist.dir}" />
-		<delete dir="${tpcc_escada.dist.dir}" />
 	</target>
+
 	<target name="tpcc-dist" depends="tpcc-init, deploy" description="Compile and ditribute TPC-C benchmarks">
-		<antcall target="tpcc-dist-codefuture" />
+		<!-- <antcall target="tpcc-dist-codefuture" />-->
 		<!--<antcall target="tpcc-dist-escada" />-->
 	</target>
 
+	<!--
 	<target name="tpcc-dist-codefuture">
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
 			   destdir="${tpcc.classes.dir}"
@@ -368,12 +355,12 @@
 				<include name="jsqlparser-0.9.2.jar" />
 			</zipgroupfileset>
 			<fileset dir="${resources.dir}">
-				<include name="client.database.properties" />
+				<include name="client.common.database.properties" />
 				<include name="log4j.properties" />
 				<include name="config.xml" />
-				<include name="tpcc-database.sql" />
-				<include name="tpcw-database.sql" />
-				<include name="micro-database.sql" />
+				<include name="tpcc-common.database.sql" />
+				<include name="tpcw-common.database.sql" />
+				<include name="micro-common.database.sql" />
 			</fileset>
 		</jar>
 		<copy file="${jars.dir}/tpcc-codefuture-client.jar" todir="${deploy.dir}" />
@@ -400,211 +387,7 @@
 		</jar>
 		<copy file="${jars.dir}/tpcc-codefuture-gendb.jar" todir="${deploy.dir}" />
 	</target>
-	<target name="tpcc-dist-escada">
-		<javac srcdir="${tpcc_escada.src.dir}" includes="**/*.java" includeantruntime="false"
-			   destdir="${tpcc_escada.classes.dir}"
-			   debug="true" deprecation="false" nowarn="yes">
-			<classpath refid="tpcc.classpath" />
-		</javac>
-		<jar destfile="${jars.dir}/tpcc-escada-client.jar" basedir="${tpcc_escada.classes.dir}">
-			<manifest>
-				<attribute name="Class-Path" value="." />
-				<attribute name="Main-Class" value="escada.tpc.common.clients.jmx.ClientEmulationStartup" />
-			</manifest>
-			<zipgroupfileset dir="${jars.dir}">
-				<include name="crdt-jdbc.jar" />
-			</zipgroupfileset>
-			<fileset dir="${resources.dir}">
-				<include name="tpcc-config.properties" />
-				<include name="log4j.properties" />
-				<include name="tpcc_ddl.sql" />
-			</fileset>
-		</jar>
-		<copy file="${jars.dir}/tpcc-escada-client.jar" todir="${deploy.dir}" />
-
-		<jar destfile="${jars.dir}/tpcc-escada-gendb.jar" basedir="${tpcc_escada.classes.dir}">
-			<manifest>
-				<attribute name="Class-Path" value="." />
-				<attribute name="Main-Class" value="escada.tpc.tpcc.database.populate.jmx.DatabasePopulate" />
-			</manifest>
-			<zipgroupfileset dir="${weak.libs.dir}">
-				<include name="log4j-1.2.17.jar" />
-				<include name="slf4j-api-1.7.10.jar" />
-				<include name="slf4j-log4j12-1.7.10.jar" />
-				<include name="mysql-connector-java-5.1.17-bin.jar" />
-			</zipgroupfileset>
-			<fileset dir="${resources.dir}">
-				<include name="tpcc-config.properties" />
-				<include name="log4j.properties" />
-			</fileset>
-		</jar>
-		<copy file="${jars.dir}/tpcc-escada-gendb.jar" todir="${deploy.dir}" />
-	</target>
-
-	<!-- TPC-W tasks -->
-	<target name="tpcw-init" depends="tpcw-clean">
-		<tstamp />
-		<mkdir dir="${tpcw.dist.dir}/servlets" />
-		<mkdir dir="${tpcw.dir}/src/servlets" />
-		<mkdir dir="${tpcw.dir}/src/rbe" />
-		<mkdir dir="${tpcw.dir}/src/populate" />
-	</target>
-	<target name="tpcw-clean">
-		<delete dir="${tpcw.dist.dir}" />
-		<delete dir="${tpcw.dir}/src" />
-	</target>
-	<target name="tpcw-dist"
-			depends="tpcw-init, tomcat.dir.check, prepare-tpcw"
-			if="tomcat.dir.exists">
-		<javac srcdir="${tpcw.dir}/src/rbe" includes="**/*.java" includeantruntime="false"
-			   destdir="${tpcw.dist.dir}"
-			   debug="true" deprecation="false" nowarn="yes">
-			<classpath refid="tpcw.classpath" />
-		</javac>
-		<javac srcdir="${tpcw.dir}/src/populate" includeantruntime="false" includes="TPCW_Populate.java"
-			   destdir="${tpcw.dist.dir}" debug="true" depend="yes" deprecation="false" nowarn="yes">
-			<classpath refid="tpcw.classpath" />
-		</javac>
-		<javac srcdir="${tpcw.dir}/src/servlets" includeantruntime="false" includes="*.java"
-			   destdir="${tpcw.dist.dir}/servlets" debug="true" deprecation="false" nowarn="yes">
-			<classpath refid="tpcw.classpath" />
-			<classpath refid="weakdb.runtime.classpath" />
-		</javac>
-		<copy todir="${tpcw.web.dir}/WEB-INF/classes">
-			<fileset dir="${tpcw.dist.dir}/servlets">
-				<include name="**/*.class" />
-			</fileset>
-		</copy>
-		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
-		<copy file="${jars.dir}/crdt-jdbc.jar" todir="${tpcw.web.dir}/WEB-INF/lib" />
-		<copy file="${resources.dir}/database.properties" todir="${tpcw.web.dir}/WEB-INF/classes" />
-		<war destfile="${tpcw.dist.dir}/tpcw.war" webxml="${tpcw.web.dir}/WEB-INF/web.xml" basedir="${tpcw.web.dir}" />
-		<delete dir="${tomcat.dir}/webapps/tpcw" />
-		<delete file="${tomcat.dir}/webapps/tpcw.war" />
-		<copy file="${tpcw.dist.dir}/tpcw.war" todir="${tomcat.dir}/webapps" />
-		<copy file="${base.dir}/dist/jars/crdt-jdbc.jar" todir="${tomcat.dir}/lib" />
-		<copy file="${tpcw.dir}/scripts/run-tpcw.sh" todir="${tpcw.dist.dir}" />
-		<unzip src="${tomcat.dir}/webapps/tpcw.war" dest="${tomcat.dir}/webapps/tpcw" />
-		<copy todir="${tomcat.dir}/webapps/tpcw/tpcw/Images">
-			<fileset dir="${tpcw.dir}/images/" />
-		</copy>
-	</target>
-	<target name="tpcw-gendb" depends="deploy, tpcw-dist, check-mysql">
-		<java classname="populate.TPCW_Populate" fork="true">
-			<arg value="${TPCW_NUM_EBS}" />
-			<arg value="${TPCW_NUM_ITEMS}" />
-			<classpath refid="tpcw.runtime.classpath" />
-			<classpath refid="tpcw.classpath" />
-		</java>
-	</target>
-	<target name="tpcw-run">
-		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tpcw.dist.dir}">
-			<arg value="run-tpcw.sh" />
-		</exec>
-	</target>
-
-	<!-- Utils tasks -->
-	<target name="check-mysql">
-		<fail message="Database is not running">
-			<condition>
-				<not>
-					<socket server="${mysql.host}" port="${mysql.port}" />
-				</not>
-			</condition>
-		</fail>
-	</target>
-	<target name="tomcat.dir.check">
-		<condition property="tomcat.dir.exists">
-			<available file="${tomcat.dir}" type="dir" />
-		</condition>
-	</target>
-	<target name="check-tomcat">
-		<fail message="Database is not running">
-			<condition>
-				<not>
-					<socket server="${mysql.host}" port="${mysql.port}" />
-				</not>
-			</condition>
-		</fail>
-	</target>
-	<target name="test-tomcat">
-		<condition property="tomcat.running">
-			<socket server="${tomcat.host}" port="${tomcat.port}" />
-		</condition>
-	</target>
-	<target name="start-tomcat" unless="tomcat.running" depends="test-tomcat">
-		<delete>
-			<fileset dir="${tomcat.dir}/logs" includes="*" />
-		</delete>
-		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tomcat.dir}/bin">
-			<arg value="startup.sh" />
-		</exec>
-	</target>
-	<target name="stop-tomcat" if="tomcat.running" depends="test-tomcat">
-		<exec failonerror="true" executable="/bin/bash" osfamily="unix" dir="${tomcat.dir}/bin">
-			<arg value="shutdown.sh" />
-		</exec>
-	</target>
-
-	<target name="prepare-tpcw">
-		<condition property="sqlFilter" value="${resources.dir}/sql-mysql.properties">
-			<equals arg1="mysql" arg2="mysql" casesensitive="no" trim="yes" />
-		</condition>
-		<filter filtersFile="${sqlFilter}" />
-		<property name="sql.bigCharType" value="varchar(500)" />
-		<property name="sessionIdString" value="jsessionid=" />
-		<property name="standardUrl" value="http://localhost:8080" />
-		<property name="thinktime" value="1.0" />
-		<property name="servletUrlPath" value="/servlet" />
-		<!-- #servletUrlPath=/servlet -->
-		<property name="tpcwUrlPath" value="/tpcw" />
-		<property name="jdbc.connPoolMax" value="50" />
-
-		<property name="jdbc.actualPath" value="jdbc:mysql://localhost:3306/tpcw" />
-		<property name="jdbc.actualDriver" value="com.mysql.jdbc.Driver" />
-		<property name="jdbc.driver" value="database.jdbc.CRDTDriver" />
-		<property name="jdbc.path" value="jdbc:crdt://localhost:3306/tpcw" />
-
-		<filter token="num.item" value="${TPCW_NUM_ITEMS}" />
-		<filter token="num.eb" value="${TPCW_NUM_EBS}" />
-
-		<filter token="sql.bigCharType" value="${sql.bigCharType}" />
-		<filter token="sessionIdString" value="${sessionIdString}" />
-		<filter token="standardUrl" value="${standardUrl}" />
-		<filter token="thinktime" value="${thinktime}" />
-		<filter token="servletUrlPath" value="${servletUrlPath}" />
-		<filter token="tpcwUrlPath" value="${tpcwUrlPath}" />
-
-		<filter token="tomcat_root" value="${tomcat.dir}" />
-
-		<filter token="txmud.topologyfile" value="tpcw_txmud.xml" />
-		<filter token="jdbc.user" value="${mysql.user}" />
-		<filter token="jdbc.password" value="${mysql.pwd}" />
-		<filter token="jdbc.actualDriver" value="${jdbc.actualDriver}" />
-		<filter token="jdbc.connPoolMax" value="${jdbc.connPoolMax}" />
-		<filter token="jdbc.path" value="${jdbc.path}" />
-		<filter token="jdbc.driver" value="${jdbc.driver}" />
-		<filter token="jdbc.actualPath" value="${jdbc.actualPath}" />
-		<filter filtersFile="${sqlFilter}" />
-
-		<copy todir="${tpcw.src.dir}/rbe" filtering="on" preservelastmodified="false">
-			<fileset dir="${tpcw.dir}/rbe" casesensitive="yes">
-				<include name="**/*.java" />
-			</fileset>
-		</copy>
-		<copy todir="${tpcw.src.dir}/servlets" filtering="on" preservelastmodified="false">
-			<fileset dir="${tpcw.dir}/servlets" casesensitive="yes">
-				<include name="**/*.java" />
-			</fileset>
-		</copy>
-		<copy todir="${tpcw.src.dir}/populate" filtering="on" preservelastmodified="false">
-			<fileset dir="${tpcw.dir}/populate" casesensitive="yes">
-				<include name="**/*.java" />
-			</fileset>
-		</copy>
-	</target>
-
-
+                        -->
 	<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask"
 			 classpath="${base.libs.dir}/one-jar-ant-task-0.97.jar"
 			 onerror="report" />
