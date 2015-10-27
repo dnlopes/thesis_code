@@ -97,8 +97,8 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
 
 			if(dataField.isNumberField())
-				symbolEntry.setRealValue(
-						String.valueOf(this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
+				symbolEntry.setRealValue(String.valueOf(
+						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
 				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
 		}
