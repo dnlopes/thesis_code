@@ -1,7 +1,7 @@
 package applications;
 
 
-import database.jdbc.ConnectionFactory;
+import client.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

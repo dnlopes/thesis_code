@@ -1,8 +1,8 @@
 package tests;
 
 
-import database.jdbc.ConnectionFactory;
-import util.DatabaseProperties;
+import client.jdbc.ConnectionFactory;
+import common.util.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,10 +1,10 @@
 package applications.micro;
 
 
-import database.jdbc.ConnectionFactory;
+import client.jdbc.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.DatabaseProperties;
+import common.util.DatabaseProperties;
 
 import java.sql.*;
 import java.util.Random;

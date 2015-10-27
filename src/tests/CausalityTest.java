@@ -1,7 +1,7 @@
 package tests;
 
 
-import runtime.LogicalClock;
+import server.util.LogicalClock;
 
 
 /**

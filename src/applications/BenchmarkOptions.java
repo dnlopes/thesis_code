@@ -1,7 +1,7 @@
 package applications;
 
 
-import util.DatabaseProperties;
+import common.util.DatabaseProperties;
 
 
 /**

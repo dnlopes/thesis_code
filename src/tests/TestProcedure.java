@@ -2,11 +2,11 @@ package tests;
 
 
 import applications.micro.MicroDatabase;
-import database.jdbc.ConnectionFactory;
+import client.jdbc.ConnectionFactory;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.DatabaseProperties;
+import common.util.DatabaseProperties;
 
 import java.sql.Connection;
 import java.sql.SQLException;

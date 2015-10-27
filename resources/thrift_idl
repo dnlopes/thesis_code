@@ -1,4 +1,4 @@
-namespace java util.thrift
+namespace java common.thrift
 
 struct ApplyDelta
 {

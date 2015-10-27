@@ -1,12 +1,12 @@
 package tests;
 
 import org.apache.zookeeper.ZooKeeper;
-import util.Configuration;
-import util.thrift.CoordinatorRequest;
-import util.thrift.CoordinatorResponse;
-import util.thrift.RequestValue;
-import util.thrift.UniqueValue;
-import util.zookeeper.EZKCoordinationClient;
+import common.Configuration;
+import common.thrift.CoordinatorRequest;
+import common.thrift.CoordinatorResponse;
+import common.thrift.RequestValue;
+import common.thrift.UniqueValue;
+import server.agents.coordination.zookeeper.EZKCoordinationClient;
 
 
 /**

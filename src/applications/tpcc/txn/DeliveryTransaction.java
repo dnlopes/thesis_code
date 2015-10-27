@@ -9,8 +9,8 @@ import applications.tpcc.metadata.DeliveryMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeUtils;
-import util.ExitCode;
+import common.util.RuntimeUtils;
+import common.util.ExitCode;
 
 import java.sql.*;
 import java.util.Calendar;

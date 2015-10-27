@@ -4,7 +4,7 @@ package applications.tpcc;
 import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
 import applications.Workload;
-import util.DatabaseProperties;
+import common.util.DatabaseProperties;
 
 
 /**

@@ -11,9 +11,9 @@ import applications.tpcc.metadata.NewOrderMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import runtime.RuntimeUtils;
+import common.util.RuntimeUtils;
 import applications.util.SymbolsManager;
-import util.ExitCode;
+import common.util.ExitCode;
 
 import java.sql.*;
 

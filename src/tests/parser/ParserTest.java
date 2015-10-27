@@ -1,8 +1,8 @@
 package tests.parser;
 
 
-import util.Configuration;
-import database.util.DatabaseMetadata;
+import common.Configuration;
+import common.database.util.DatabaseMetadata;
 
 /**
  * Created by dnlopes on 06/03/15.
