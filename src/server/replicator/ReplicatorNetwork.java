@@ -3,6 +3,7 @@ package server.replicator;
 
 import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
+import common.util.Environment;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -127,7 +128,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private void createZookeeperClientsPool()
 	{
-		for(int i = 0; i < Configuration.getInstance().getEzkClientsPoolSize(); i++)
+		for(int i = 0; i < Environment.EZK_CLIENTS_POOL_SIZE; i++)
 		{
 			EZKCoordinationClient newClient = this.createEZKClient();
 
@@ -154,7 +155,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 		try
 		{
-			client.init(Configuration.getInstance().getExtensionCodeDir());
+			client.init(Environment.EZK_EXTENSION_CODE);
 		} catch(KeeperException | InterruptedException e)
 		{
 			if(LOG.isErrorEnabled())

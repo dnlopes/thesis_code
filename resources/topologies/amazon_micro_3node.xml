@@ -20,6 +20,4 @@
 			<proxy id="3" host="10.0.0.4" port="50012" refDatabase="3" refReplicator="3" refCoordinator="1" />
 		</proxies>
 	</topology>
-	<variables padPoolSize="300" dbName="tpcc_crdt"
-			   schemaFile="tpcc_ddl.sql" />
 </config>

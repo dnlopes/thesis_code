@@ -1,7 +1,6 @@
 package common.util;
 
 
-import common.Configuration;
 import common.nodes.NodeConfig;
 import common.util.defaults.DatabaseDefaults;
 
@@ -36,7 +35,7 @@ public class ConnectionFactory
 		url.append(":");
 		url.append(nodeInfo.getDbProps().getDbPort());
 		url.append("/");
-		url.append(Configuration.getInstance().getDatabaseName());
+		url.append(Environment.DATABASE_NAME);
 
 		Connection c = DriverManager.getConnection(url.toString(), nodeInfo.getDbProps().getDbUser(),
 				nodeInfo.getDbProps().getDbPwd());

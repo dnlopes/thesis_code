@@ -1,0 +1,5 @@
+dbname=tpcc
+ezk-client-pool-size=50
+commit-pool-size=50
+optimize-batch=true
+ezk-extension-code-dir=/Users/dnlopes/projects/thesis/code/weakdb/src

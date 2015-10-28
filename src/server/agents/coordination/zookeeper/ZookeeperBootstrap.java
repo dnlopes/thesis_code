@@ -9,6 +9,7 @@ import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.util.ConnectionFactory;
+import common.util.Environment;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -39,7 +40,7 @@ import java.util.Set;
 public class ZookeeperBootstrap
 {
 
-	private final Configuration CONFIG = Configuration.getInstance();
+	private static final Configuration CONFIG = Configuration.getInstance();
 	private static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
 
 	private static final int SESSION_TIMEOUT = 2000000;
@@ -50,14 +51,13 @@ public class ZookeeperBootstrap
 
 	public static void main(String args[]) throws Exception
 	{
-		if(args.length != 1)
+		if(args.length != 3)
 		{
-			LOG.error("usage: java -jar <config_file_path>");
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
-		String configFilePath = args[0];
-		Configuration.setupConfiguration(configFilePath);
+		Configuration.setupConfiguration(args[0], args[1], args[2]);
 
 		System.setProperty("jute.maxbuffer", "10M");
 
@@ -101,7 +101,7 @@ public class ZookeeperBootstrap
 
 	public void installExtension() throws Exception
 	{
-		this.ezkClient.init(CONFIG.getExtensionCodeDir());
+		this.ezkClient.init(Environment.EZK_EXTENSION_CODE);
 		this.ezkClient.cleanupDatabase();
 	}
 

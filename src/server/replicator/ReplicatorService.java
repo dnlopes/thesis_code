@@ -51,7 +51,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	@Override
 	public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws TException
 	{
-		handleTransactionBatch(batch);
+		handleReceiveBatch(batch);
 	}
 
 	private boolean handleCommitOperation(CRDTTransaction transaction)
@@ -93,7 +93,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		this.deliver.deliverTransaction(op);
 	}
 
-	private void handleTransactionBatch(List<CRDTCompiledTransaction> batch)
+	private void handleReceiveBatch(List<CRDTCompiledTransaction> batch)
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("received batch from other replicator");

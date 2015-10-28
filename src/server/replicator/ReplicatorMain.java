@@ -16,16 +16,18 @@ public class ReplicatorMain
 
 	public static void main(String args[])
 	{
-		if(args.length != 2)
+		if(args.length != 4)
 		{
-			LOG.error("usage: java -jar <config_file_path> <id>");
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> <id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
-		int id = Integer.parseInt(args[1]);
-		String configFilePath = args[0];
+		String topologyFile = args[0];
+		String annotationsFile = args[1];
+		String environmentFile = args[2];
+		int id = Integer.parseInt(args[3]);
 
-		Configuration.setupConfiguration(configFilePath);
+		Configuration.setupConfiguration(topologyFile, annotationsFile, environmentFile);
 
 		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(id));
 	}

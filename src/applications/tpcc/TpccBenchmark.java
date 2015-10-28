@@ -8,6 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.Configuration;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 
 /**
  * Created by dnlopes on 10/09/15.
@@ -20,20 +24,27 @@ public class TpccBenchmark
 
 	public static void main(String[] args)
 	{
-		if(args.length != 5)
+		if(args.length != 8)
 		{
-			LOG.error("usage: <configFile> <proxyId> <numberClients> <testDuration> <jdbc> [crdt/mysql]");
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> <workloadFile> <proxyId> " +
+					"<numberClients> " +
+					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
 		}
 
-		String configFile = args[0];
-		Configuration.setupConfiguration(configFile);
+		String topologyFile = args[0];
+		String annotationsFile = args[1];
+		String environmentFile = args[2];
+		String workloadFile = args[3];
 
-		int proxyId = Integer.parseInt(args[1]);
-		int numberClients = Integer.parseInt(args[2]);
-		int testDuration = Integer.parseInt(args[3]);
+		Configuration.setupConfiguration(topologyFile, annotationsFile, environmentFile);
+		loadWorkloadFile(workloadFile);
 
-		String jdbc = args[4];
+		int proxyId = Integer.parseInt(args[4]);
+		int numberClients = Integer.parseInt(args[5]);
+		int testDuration = Integer.parseInt(args[6]);
+		String jdbc = args[7];
+
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
 
@@ -56,5 +67,44 @@ public class TpccBenchmark
 		em.shutdownEmulator();
 		LOG.info("Benchmark ended!");
 		System.exit(0);
+	}
+
+	private static void loadWorkloadFile(String workloadFile)
+	{
+		Properties prop = new Properties();
+		boolean missingValue = false;
+
+		try
+		{
+			prop.load(new FileInputStream(workloadFile));
+
+			if(!prop.containsKey("new_order"))
+				missingValue = true;
+			if(!prop.containsKey("payment"))
+				missingValue = true;
+			if(!prop.containsKey("delivery"))
+				missingValue = true;
+			if(!prop.containsKey("order_stat"))
+				missingValue = true;
+			if(!prop.containsKey("stock"))
+				missingValue = true;
+
+		} catch(IOException e)
+		{
+			LOG.error("failed to load workload file. Exiting...");
+			System.exit(1);
+		}
+
+		if(missingValue)
+		{
+			LOG.error("failed to load workload file. Exiting...");
+			System.exit(1);
+		}
+
+		TpccConstants.NEW_ORDER_TXN_RATE = Integer.parseInt(prop.getProperty("new_order"));
+		TpccConstants.PAYMENT_TXN_RATE = Integer.parseInt(prop.getProperty("payment"));
+		TpccConstants.DELIVERY_TXN_RATE = Integer.parseInt(prop.getProperty("delivery"));
+		TpccConstants.ORDER_STAT_TXN_RATE = Integer.parseInt(prop.getProperty("order_stat"));
+		TpccConstants.STOCK_LEVEL_TXN_RATE = Integer.parseInt(prop.getProperty("stock"));
 	}
 }

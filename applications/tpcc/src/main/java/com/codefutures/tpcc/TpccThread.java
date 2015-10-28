@@ -13,7 +13,6 @@ import java.util.Set;
 import client.jdbc.CRDTConnectionFactory;
 import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
-import common.Configuration;
 import common.util.ConnectionFactory;
 import common.util.DatabaseProperties;
 import org.slf4j.LoggerFactory;
@@ -172,7 +171,7 @@ public class TpccThread extends Thread
 			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
 			if(isCustomJDBC)
-				conn = CRDTConnectionFactory.getCRDTConnection(dbProps, Configuration.getInstance().getDatabaseName());
+				conn = CRDTConnectionFactory.getCRDTConnection(dbProps, common.util.Environment.DATABASE_NAME);
 			else
 				conn = ConnectionFactory.getDefaultConnection(dbProps, "tpcc");
 

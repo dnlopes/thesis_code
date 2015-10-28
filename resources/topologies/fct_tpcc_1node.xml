@@ -14,6 +14,4 @@
 			<proxy id="1" host="node10" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
 		</proxies>
 	</topology>
-	<variables padPoolSize="100" dbName="tpcc_crdt"
-			   schemaFile="tpcc_ddl.sql" extensionCode="/home/dp.lopes/code/src"/>
 </config>

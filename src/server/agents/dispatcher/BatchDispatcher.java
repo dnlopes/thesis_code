@@ -20,17 +20,17 @@ import java.util.concurrent.*;
  * A SimpleBatchDisptacher simply groups transactions in a batch and, periodically, sends the batch to remote
  * replicators
  */
-public class SimpleBatchDispatcher implements DispatcherAgent
+public class BatchDispatcher implements DispatcherAgent
 {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(SimpleBatchDispatcher.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BatchDispatcher.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
 	private Queue<CRDTTransaction> pendingTransactions;
 
-	public SimpleBatchDispatcher(Replicator replicator)
+	public BatchDispatcher(Replicator replicator)
 	{
 		this.networkInterface = replicator.getNetworkInterface();
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
@@ -57,7 +57,7 @@ public class SimpleBatchDispatcher implements DispatcherAgent
 			Queue<CRDTTransaction> snapshot = pendingTransactions;
 			pendingTransactions = new ConcurrentLinkedQueue<>();
 
-			List<CRDTCompiledTransaction> batch = this.prepareBatch(snapshot);
+			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
 
 			networkInterface.sendBatchToRemote(batch);
 		}

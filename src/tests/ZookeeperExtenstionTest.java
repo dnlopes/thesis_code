@@ -1,5 +1,6 @@
 package tests;
 
+import common.util.Environment;
 import org.apache.zookeeper.ZooKeeper;
 import common.Configuration;
 import common.thrift.CoordinatorRequest;
@@ -41,7 +42,7 @@ public class ZookeeperExtenstionTest
 		ZooKeeper zooKeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 
 		EZKCoordinationClient coordinationExtenstion = new EZKCoordinationClient(zooKeeper, 1);
-		coordinationExtenstion.init(CONFIG.getExtensionCodeDir());
+		coordinationExtenstion.init(Environment.EZK_EXTENSION_CODE);
 		//coordinationExtenstion.cleanupDatabase();
 
 		//zooKeeper.create("/coordination/uniques/w_id_warehouse_UNIQUE", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,

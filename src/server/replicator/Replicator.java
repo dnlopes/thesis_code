@@ -1,6 +1,7 @@
 package server.replicator;
 
 
+import common.util.Environment;
 import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
@@ -13,7 +14,7 @@ import server.agents.coordination.SimpleCoordinationAgent;
 import server.agents.coordination.CoordinationAgent;
 import server.agents.deliver.CausalDeliverAgent;
 import server.agents.deliver.DeliverAgent;
-import server.agents.dispatcher.SimpleBatchDispatcher;
+import server.agents.dispatcher.BatchDispatcher;
 import server.agents.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public class Replicator extends AbstractNode
 		this.statsCollector = new StatsCollector();
 
 		this.deliver = new CausalDeliverAgent(this);
-		this.dispatcher = new SimpleBatchDispatcher(this);
+		this.dispatcher = new BatchDispatcher(this);
 		this.coordAgent = new SimpleCoordinationAgent(this);
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
@@ -254,7 +255,7 @@ public class Replicator extends AbstractNode
 
 	private void createCommiterAgents()
 	{
-		int agentsNumber = Configuration.getInstance().getCommitPadPoolSize();
+		int agentsNumber = Environment.COMMIT_PAD_POOL_SIZE;
 
 		for(int i = 0; i < agentsNumber; i++)
 		{

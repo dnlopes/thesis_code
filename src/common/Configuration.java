@@ -4,15 +4,13 @@ package common;
 import common.database.util.DatabaseMetadata;
 import common.nodes.NodeConfig;
 import common.nodes.Role;
-import common.util.ExitCode;
+import common.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-import common.util.RuntimeUtils;
 import common.util.exception.ConfigurationLoadException;
 import common.parser.DDLParser;
-import common.util.DatabaseProperties;
 import server.agents.coordination.zookeeper.EZKCoordinationExtension;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,6 +22,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -34,49 +33,52 @@ public final class Configuration
 
 	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 	private volatile static boolean IS_CONFIGURED = false;
-
-	private static String CONFIG_FILE;
 	private static Configuration instance;
+
+	public static String TOPOLOGY_FILE;
+	public static String DDL_ANNOTATIONS_FILE;
+	public static String ENVIRONMENT_FILE;
 
 	private Map<Integer, NodeConfig> replicators;
 	private Map<Integer, NodeConfig> proxies;
 	private Map<Integer, NodeConfig> coordinators;
 	private Map<Integer, DatabaseProperties> databases;
 	private DatabaseMetadata databaseMetadata;
-	private String databaseName;
-	private String extensionCodeDir;
-	private String schemaFile;
-	private int commitPadPoolSize;
-	private int ezkClientsPoolSize;
-	private boolean optimizeBatch;
 
-	private Configuration(String configFilePath)
+	private Configuration(String topologyFile, String annotationsFile, String environmentFile)
 	{
-		if(configFilePath == null)
-			RuntimeUtils.throwRunTimeException("config file path argument is null", ExitCode.NOINITIALIZATION);
-		else
-			CONFIG_FILE = configFilePath;
+		if(topologyFile == null)
+			RuntimeUtils.throwRunTimeException("topology file path not set", ExitCode.NOINITIALIZATION);
+		if(annotationsFile == null)
+			RuntimeUtils.throwRunTimeException("annotations file path not set", ExitCode.NOINITIALIZATION);
+		if(environmentFile == null)
+			RuntimeUtils.throwRunTimeException("configs file path not set", ExitCode.NOINITIALIZATION);
 
-		loadConfiguration();
+		TOPOLOGY_FILE = topologyFile;
+		DDL_ANNOTATIONS_FILE = annotationsFile;
+		ENVIRONMENT_FILE = environmentFile;
 
-		//TODO inject these values on config file
-		this.optimizeBatch = Defaults.USE_OPTIMIZE_BATCH;
-
+		loadEnvironment();
 		IS_CONFIGURED = true;
 	}
 
-	public static synchronized void setupConfiguration(String configFilePath)
+	public static Configuration getInstance()
+	{
+		return instance;
+	}
+
+	public static synchronized void setupConfiguration(String topologyFile, String annotationsFile, String configsFile)
 	{
 		if(IS_CONFIGURED)
 			LOG.warn("setupConfiguration called twice");
 		else
-			instance = new Configuration(configFilePath);
+			instance = new Configuration(topologyFile, annotationsFile, configsFile);
 	}
 
-	private void loadConfiguration()
+	private void loadEnvironment()
 	{
 		if(LOG.isInfoEnabled())
-			LOG.info("loading configuration file: {}", CONFIG_FILE);
+			LOG.info("loading configuration file: {}", TOPOLOGY_FILE);
 
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
@@ -85,40 +87,98 @@ public final class Configuration
 
 		try
 		{
-			loadConfigurationFile();
+			loadTopology();
+			loadAnnotations();
+			loadConfigurations();
 		} catch(ConfigurationLoadException e)
 		{
-			RuntimeUtils.throwRunTimeException("failed to loadConfiguration config file: " + e.getMessage(),
-					ExitCode.XML_ERROR);
+			RuntimeUtils.throwRunTimeException("failed to configuration: " + e.getMessage(), ExitCode.XML_ERROR);
 		}
 
 		if(!this.checkConfig())
 		{
-			LOG.error("configuration variables are not properly set");
-			RuntimeUtils.throwRunTimeException("configuration variables not properly initialized", ExitCode.XML_ERROR);
+			LOG.error("environment configuration is not properly set");
+			RuntimeUtils.throwRunTimeException("environment configuration is not properly set", ExitCode.XML_ERROR);
 
 		}
 
-		DDLParser parser = new DDLParser(this.schemaFile);
-		this.databaseMetadata = parser.parseAnnotations();
-
 		if(LOG.isTraceEnabled())
 			LOG.trace("config file successfully loaded");
+
+		printEnvironment();
 	}
 
-	public static Configuration getInstance()
+	private void printEnvironment()
 	{
-		return instance;
+		if(LOG.isInfoEnabled())
+		{
+			LOG.info("environment:" + EnvironmentDefaults.DATABASE_NAME_VAR + "=" + Environment.DATABASE_NAME);
+			LOG.info(
+					"environment:" + EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR + "=" + Environment
+							.COMMIT_PAD_POOL_SIZE);
+			LOG.info(
+					"environment:" + EnvironmentDefaults.EZK_EXTENSION_CODE_VAR + "=" + Environment
+							.EZK_EXTENSION_CODE);
+			LOG.info(
+					"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
+							.EZK_CLIENTS_POOL_SIZE);
+			LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
+		}
 	}
 
-	private void loadConfigurationFile() throws ConfigurationLoadException
+	private void loadConfigurations() throws ConfigurationLoadException
+	{
+
+		Properties prop = new Properties();
+
+		try
+		{
+			prop.load(new FileInputStream(ENVIRONMENT_FILE));
+
+			if(prop.containsKey(EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR))
+				Environment.COMMIT_PAD_POOL_SIZE = Integer.parseInt(
+						prop.getProperty(EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR));
+			else
+				Environment.COMMIT_PAD_POOL_SIZE = EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_DEFAULT;
+
+			if(prop.containsKey(EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR))
+				Environment.EZK_CLIENTS_POOL_SIZE = Integer.parseInt(
+						prop.getProperty(EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR));
+			else
+				Environment.EZK_CLIENTS_POOL_SIZE = EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_DEFAULT;
+
+			if(prop.containsKey(EnvironmentDefaults.OPTIMIZE_BATCH_VAR))
+				Environment.OPTIMIZE_BATCH = Boolean.parseBoolean(
+						prop.getProperty(EnvironmentDefaults.OPTIMIZE_BATCH_VAR));
+			else
+				Environment.OPTIMIZE_BATCH = EnvironmentDefaults.OPTIMIZE_BATCH_DEFAULT;
+
+			if(prop.containsKey(EnvironmentDefaults.DATABASE_NAME_VAR))
+				Environment.DATABASE_NAME = prop.getProperty(EnvironmentDefaults.DATABASE_NAME_VAR);
+			else
+				RuntimeUtils.throwRunTimeException("missing mandatory database name parameter in environment file",
+						ExitCode.MISSING_IMPLEMENTATION);
+			if(prop.containsKey(EnvironmentDefaults.EZK_EXTENSION_CODE_VAR))
+				Environment.EZK_EXTENSION_CODE = prop.getProperty(EnvironmentDefaults.EZK_EXTENSION_CODE_VAR);
+			else
+				RuntimeUtils.throwRunTimeException("missing mandatory ezk-extension-code-dir in environment file",
+						ExitCode.MISSING_IMPLEMENTATION);
+
+		} catch(IOException e)
+		{
+			LOG.error("failed to load workload file. Exiting...");
+			System.exit(1);
+		}
+	}
+
+	private void loadTopology() throws ConfigurationLoadException
 	{
 		try
 		{
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-			InputStream stream = new FileInputStream(CONFIG_FILE);
+			InputStream stream = new FileInputStream(TOPOLOGY_FILE);
 			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
 			//optional, but recommended
@@ -136,8 +196,6 @@ public final class Configuration
 
 				if(n.getNodeName().compareTo("topology") == 0)
 					parseTopology(n);
-				if(n.getNodeName().compareTo("variables") == 0)
-					parseVariables(n);
 			}
 
 		} catch(ParserConfigurationException | IOException | SAXException e)
@@ -146,26 +204,13 @@ public final class Configuration
 		}
 	}
 
-	public int getEzkClientsPoolSize()
+	private void loadAnnotations()
 	{
-		return this.ezkClientsPoolSize;
-	}
+		DDLParser parser = new DDLParser(DDL_ANNOTATIONS_FILE);
+		this.databaseMetadata = parser.parseAnnotations();
 
-	private void parseVariables(Node n)
-	{
-		NamedNodeMap map = n.getAttributes();
-		this.commitPadPoolSize = Integer.parseInt(map.getNamedItem("commitPadPoolSize").getNodeValue());
-		this.ezkClientsPoolSize = Integer.parseInt(map.getNamedItem("ezkClientsPoolSize").getNodeValue());
-		this.databaseName = map.getNamedItem("dbName").getNodeValue();
-		this.schemaFile = map.getNamedItem("schemaFile").getNodeValue();
-		this.extensionCodeDir = map.getNamedItem("extensionCode").getNodeValue();
-
-		if(LOG.isInfoEnabled())
-		{
-			LOG.info("Scratchpad pool size: {}", this.commitPadPoolSize);
-			LOG.info("Database name: {}", this.databaseName);
-			LOG.info("DDL file: {}", this.schemaFile);
-		}
+		if(LOG.isTraceEnabled())
+			LOG.trace("config file successfully loaded");
 	}
 
 	private void parseTopology(Node node)
@@ -330,19 +375,9 @@ public final class Configuration
 		return replicators;
 	}
 
-	public String getDatabaseName()
-	{
-		return databaseName;
-	}
-
 	public DatabaseMetadata getDatabaseMetadata()
 	{
 		return this.databaseMetadata;
-	}
-
-	public int getCommitPadPoolSize()
-	{
-		return this.commitPadPoolSize;
 	}
 
 	public int getReplicatorsCount()
@@ -352,9 +387,8 @@ public final class Configuration
 
 	private boolean checkConfig()
 	{
-		return !(this.ezkClientsPoolSize == 0 || this.commitPadPoolSize == 0 || this.extensionCodeDir == null || this
-				.databaseName == null || this.schemaFile == null || this.proxies.size() == 0 || this.replicators.size
-				() == 0 || this.coordinators.size() == 0);
+		return !(this.databases.size() == 0 || this.proxies.size() == 0 || this.replicators.size() == 0 || this
+				.coordinators.size() == 0);
 	}
 
 	public String getZookeeperConnectionString()
@@ -372,20 +406,5 @@ public final class Configuration
 		return buffer.toString();
 	}
 
-	public String getExtensionCodeDir()
-	{
-		return this.extensionCodeDir;
-	}
-
-	public boolean optimizeBatch()
-	{
-		return this.optimizeBatch;
-	}
-
-	public interface Defaults
-	{
-
-		boolean USE_OPTIMIZE_BATCH = true;
-	}
 }
 

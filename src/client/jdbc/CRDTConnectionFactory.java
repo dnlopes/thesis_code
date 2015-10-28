@@ -1,8 +1,8 @@
 package client.jdbc;
 
 
-import common.Configuration;
 import common.util.DatabaseProperties;
+import common.util.Environment;
 import common.util.RuntimeUtils;
 
 import java.sql.Connection;
@@ -41,7 +41,7 @@ public class CRDTConnectionFactory
 		buffer.append("/");
 		buffer.append(databaseName);
 
-		if(Configuration.getInstance().optimizeBatch())
+		if(Environment.OPTIMIZE_BATCH)
 			buffer.append("?rewriteBatchedStatements=true");
 
 		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());

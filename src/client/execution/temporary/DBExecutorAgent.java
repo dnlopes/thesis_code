@@ -11,6 +11,7 @@ import common.database.table.DatabaseTable;
 import common.database.table.TablePolicy;
 import common.database.value.DeltaFieldValue;
 import common.database.value.FieldValue;
+import common.util.Environment;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -109,7 +110,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.databaseTable.getName() +
 					"_" +
 					scratchpadId;
-			this.fromItemTemp = new Table(Configuration.getInstance().getDatabaseName(), tempTableName);
+			this.fromItemTemp = new Table(Environment.DATABASE_NAME, tempTableName);
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
 

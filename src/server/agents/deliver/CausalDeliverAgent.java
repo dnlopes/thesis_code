@@ -58,7 +58,7 @@ public class CausalDeliverAgent implements DeliverAgent
 	public void deliverTransaction(CRDTCompiledTransaction op)
 	{
 		if(canDeliver(op))
-			replicator.deliverTransaction(op);
+			this.replicator.deliverTransaction(op);
 		else
 			addToQueue(op);
 	}

@@ -527,7 +527,8 @@ public class Tpcc implements TpccConstants
 		//System.setProperty("configPath", configFile);
 		System.setProperty("proxyid", String.valueOf(proxyId));
 
-		Configuration.setupConfiguration(configFile);
+		//TODO: not compiling atm
+		//Configuration.setupConfiguration(configFile);
 		System.setProperty("usersNum", String.valueOf(usersNum));
 		System.setProperty("customJDBC", String.valueOf(useCustomJDBC));
 		System.setProperty("testDuration", String.valueOf(testDuration));
