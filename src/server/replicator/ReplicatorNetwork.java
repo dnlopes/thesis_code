@@ -47,7 +47,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 
-		this.createZookeeperClientsPool();
+		createZookeeperClientsPool();
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	{
 		for(int i = 0; i < Environment.EZK_CLIENTS_POOL_SIZE; i++)
 		{
-			EZKCoordinationClient newClient = this.createEZKClient();
+			EZKCoordinationClient newClient = createEZKClient();
 
 			if(newClient != null)
 				this.ezkClientsPool.addObject(newClient);

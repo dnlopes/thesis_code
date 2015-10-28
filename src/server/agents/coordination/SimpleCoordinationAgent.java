@@ -56,8 +56,8 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		} else
 		{
 			transaction.setReadyToCommit(false);
-			if(LOG.isTraceEnabled())
-				LOG.trace("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+			if(LOG.isWarnEnabled())
+				LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 		}
 	}
 

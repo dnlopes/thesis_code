@@ -40,7 +40,6 @@ import java.util.Set;
 public class ZookeeperBootstrap
 {
 
-	private static final Configuration CONFIG = Configuration.getInstance();
 	private static final Logger LOG = LoggerFactory.getLogger(ZookeeperBootstrap.class);
 
 	private static final int SESSION_TIMEOUT = 2000000;
@@ -69,10 +68,10 @@ public class ZookeeperBootstrap
 
 	public ZookeeperBootstrap() throws IOException, SQLException
 	{
-		this.databaseMetadata = CONFIG.getDatabaseMetadata();
-		this.zookeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
+		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
+		this.zookeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(), SESSION_TIMEOUT, null);
 		this.ezkClient = new EZKCoordinationClient(this.zookeeper, 1);
-		this.connection = ConnectionFactory.getDefaultConnection(CONFIG.getReplicatorConfigWithIndex(1));
+		this.connection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getReplicatorConfigWithIndex(1));
 	}
 
 	public void readDatabaseState()

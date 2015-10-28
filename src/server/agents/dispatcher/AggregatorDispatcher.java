@@ -1,11 +1,12 @@
 package server.agents.dispatcher;
 
 
+import common.util.ExitCode;
+import common.util.RuntimeUtils;
 import server.replicator.IReplicatorNetwork;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import common.thrift.CRDTCompiledTransaction;
 import common.thrift.CRDTTransaction;
+import server.replicator.Replicator;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -19,16 +20,17 @@ import java.util.concurrent.*;
 public class AggregatorDispatcher implements DispatcherAgent
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AggregatorDispatcher.class);
 	private static final int THREAD_WAKEUP_INTERVAL = 500;
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
 	private Queue<CRDTTransaction> pendingTransactions;
 
-	public AggregatorDispatcher(IReplicatorNetwork networkInterface)
+	public AggregatorDispatcher(Replicator replicator)
 	{
-		this.networkInterface = networkInterface;
+		RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
+
+		this.networkInterface = replicator.getNetworkInterface();
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
 
 		DispatcherThread deliveryThread = new DispatcherThread();

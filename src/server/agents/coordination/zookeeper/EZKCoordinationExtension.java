@@ -277,11 +277,8 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 
 	public interface ZookeeperDefaults
 	{
-
 		int ZOOKEEPER_SESSION_TIMEOUT = 200000;
 		int ZOOKEEPER_DEFAULT_PORT = 2181;
-
-
 	}
 
 }

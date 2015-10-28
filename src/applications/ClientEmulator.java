@@ -1,6 +1,7 @@
 package applications;
 
 
+import applications.util.ClientStatistics;
 import client.jdbc.CRDTConnectionFactory;
 import common.util.ConnectionFactory;
 import org.slf4j.Logger;
@@ -19,18 +20,22 @@ public class ClientEmulator implements Runnable
 	private static final Logger LOG = LoggerFactory.getLogger(ClientEmulator.class);
 
 	private Connection connection;
+	private int id;
 	private final BaseBenchmarkOptions options;
 	private long sumReadLatency, sumWriteLatency;
 	private int successCounterRead, successCounterWrite, abortCounter;
+	private ClientStatistics stats;
 
-	public ClientEmulator(BaseBenchmarkOptions options)
+	public ClientEmulator(int id, BaseBenchmarkOptions options)
 	{
+		this.id = id;
 		this.options = options;
 		this.sumReadLatency = 0;
 		this.sumWriteLatency = 0;
 		this.successCounterRead = 0;
 		this.successCounterWrite = 0;
 		this.abortCounter = 0;
+		this.stats = new ClientStatistics(this.id);
 
 		try
 		{
@@ -65,6 +70,9 @@ public class ClientEmulator implements Runnable
 			{
 				if(Emulator.COUTING)
 				{
+					this.stats.addLatency(latency);
+					this.stats.incrementSuccess();
+
 					if(txn.isReadOnly())
 					{
 						this.sumReadLatency += latency;
@@ -77,8 +85,9 @@ public class ClientEmulator implements Runnable
 				}
 			} else
 			{
+				this.stats.incrementAborts();
 				this.abortCounter++;
-				LOG.error("txn {} failed: {}",txn.getName(), txn.getLastError());
+				LOG.error("txn {} failed: {}", txn.getName(), txn.getLastError());
 			}
 		}
 	}
@@ -130,4 +139,13 @@ public class ClientEmulator implements Runnable
 		return this.abortCounter;
 	}
 
+	public void resetClientStatistics()
+	{
+		this.stats = new ClientStatistics(this.id);
+	}
+
+	public ClientStatistics getStats()
+	{
+		return this.stats;
+	}
 }

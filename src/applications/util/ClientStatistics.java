@@ -1,10 +1,10 @@
-package com.codefutures.tpcc.stats;
+package applications.util;
 
 
 /**
  * Created by dnlopes on 26/05/15.
  */
-public class ThreadStatistics
+public class ClientStatistics
 {
 
 	public int threadId;
@@ -12,7 +12,7 @@ public class ThreadStatistics
 	public int abortsCounter;
 	public long maxLatency, minLatency, avgLatency, latencySum;
 
-	public ThreadStatistics(int id)
+	public ClientStatistics(int id)
 	{
 		this.threadId = id;
 		this.successCounter = 0;
@@ -23,7 +23,7 @@ public class ThreadStatistics
 		this.latencySum = 0;
 	}
 
-	public ThreadStatistics(ThreadStatistics stats)
+	public ClientStatistics(ClientStatistics stats)
 	{
 		this.threadId = stats.threadId;
 		this.successCounter = stats.successCounter;

@@ -141,12 +141,8 @@ def startReplicators(configFile):
     return '1'
 
 def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
-    jarFile = ''
-    if config.TPCC_VERSION == 'escada':
-        jarFile = 'tpcc-escada-client.jar'
-    else:
-        jarFile = 'tpcc-codefuture-client.jar'
-
+    jarFile = 'tpcc-client.jar'
+    
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
         logFile = 'emulator' + str(currentId) + '.log'

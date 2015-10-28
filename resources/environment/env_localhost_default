@@ -3,3 +3,7 @@ ezk-client-pool-size=50
 commit-pool-size=50
 optimize-batch=true
 ezk-extension-code-dir=/Users/dnlopes/projects/thesis/code/weakdb/src
+# 1=BatchDispatcher, 2=BasicDispatcher, 3=AggregatorDispatcher
+dispatcher=2
+# 1=CausalDeliver, 2=NoOrderDeliver
+deliver=1

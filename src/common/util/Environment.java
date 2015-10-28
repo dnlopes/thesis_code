@@ -11,5 +11,6 @@ public class Environment
 	public static boolean OPTIMIZE_BATCH;
 	public static String EZK_EXTENSION_CODE;
 	public static String DATABASE_NAME;
-
+	public static int DISPATCHER_AGENT;
+	public static int DELIVER_AGENT;
 }

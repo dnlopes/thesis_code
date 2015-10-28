@@ -24,10 +24,6 @@ logger.addHandler(ch)
 
 TO_DOWNLOAD_COMMANDS = []
 
-################################################################################################
-#   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
-################################################################################################		
-
 ################################################################################################		
 # LATENCY-THROUGHPUT VARIABLES
 ################################################################################################		
@@ -36,9 +32,7 @@ TO_DOWNLOAD_COMMANDS = []
 JDCBs=['crdt']
 #JDCBs=['crdt','galera']
 #JDCBs=['cluster']
-ENVIRONMENT='fct'
-#ENVIRONMENT='localhost'
-#ENVIRONMENT='amazon'
+
 NUMBER_REPLICAS=[3]
 NUMBER_USERS_LIST_1REPLICA=[1]
 NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
@@ -96,11 +90,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
 		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	
-		CONFIG_FILE = configsFilesBaseDir + '/' + str(ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 
-		#CONFIG_FILE = configsFilesBaseDir +'/amazon_tpcc_cluster_' + str(numberOfReplicas) + 'node.xml'
-		if config.IS_LOCALHOST == True:
-			CONFIG_FILE = configsFilesBaseDir + '/localhost_tpcc_' + str(numberOfReplicas) + 'node.xml' 
-		
+		CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 		
 		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"		
 	  
 		config.parseConfigFile(CONFIG_FILE)
@@ -150,7 +140,7 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 	ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_scalability_experiment
 
 	for numberOfReplicas in SCALABILITY_NUMBER_REPLICAS:
-		CONFIG_FILE = configsFilesBaseDir + '/' + str(ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 		
+		CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 		
 		if config.IS_LOCALHOST == True:
 			CONFIG_FILE = configsFilesBaseDir + '/localhost_tpcc_' + str(numberOfReplicas) + 'node.xml' 
 		
@@ -499,7 +489,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 	logger.info('the experiment has finished!')
 	fab.killRunningProcesses()
 	downloadLogs(outputDir)
-	plots.mergeResultCSVFiles(outputDir, totalUsers, 1)	
+	plots.mergeTemporaryCSVfiles(outputDir, totalUsers, 1)	
 	logger.info('logs can be found at %s', outputDir)
 
 	return True

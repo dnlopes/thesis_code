@@ -1,4 +1,4 @@
-package com.codefutures.tpcc.stats;
+package applications.util;
 
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class PerSecondStatistics
 	private long maxLatency, minLatency, avgLatency;
 
 	private final int iteration;
-	private final List<ThreadStatistics> stats;
+	private final List<ClientStatistics> stats;
 
 	public PerSecondStatistics(int iteration)
 	{
@@ -28,14 +28,14 @@ public class PerSecondStatistics
 		this.avgLatency = 0;
 	}
 
-	public void addThreadStatistic(ThreadStatistics threadStats)
+	public void addThreadStatistic(ClientStatistics threadStats)
 	{
 		this.stats.add(threadStats);
 	}
 
 	public void calculateStats()
 	{
-		for(ThreadStatistics threadStat : this.stats)
+		for(ClientStatistics threadStat : this.stats)
 			threadStat.calculateMissingStats();
 
 		this.mergeStats();
@@ -43,7 +43,7 @@ public class PerSecondStatistics
 
 	private void mergeStats()
 	{
-		for(ThreadStatistics stats : this.stats)
+		for(ClientStatistics stats : this.stats)
 		{
 			successCounter += stats.successCounter;
 			abortsCounter += stats.abortsCounter;

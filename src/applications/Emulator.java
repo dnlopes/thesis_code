@@ -1,6 +1,8 @@
 package applications;
 
 
+import applications.util.ClientStatistics;
+import applications.util.PerSecondStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ public class Emulator
 
 	private ExecutorService threadsService;
 	private List<ClientEmulator> clients;
+	private List<PerSecondStatistics> perSecondStatsList;
 	private int emulatorId;
 	private BaseBenchmarkOptions options;
 
@@ -37,6 +40,7 @@ public class Emulator
 		this.emulatorId = id;
 		this.options = options;
 		this.clients = new ArrayList<>();
+		this.perSecondStatsList = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 	}
 
@@ -54,7 +58,7 @@ public class Emulator
 
 		for(int i = 0; i < this.options.getClientsNumber(); i++)
 		{
-			ClientEmulator client = new ClientEmulator(this.options);
+			ClientEmulator client = new ClientEmulator(i, this.options);
 			this.clients.add(client);
 			this.threadsService.execute(client);
 		}
@@ -78,6 +82,7 @@ public class Emulator
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
+		int iteration = 0;
 
 		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
@@ -85,9 +90,11 @@ public class Emulator
 			try
 			{
 				Thread.sleep(1000);
+				//collectStatistics(iteration++);
+
 			} catch(InterruptedException e)
 			{
-				LOG.error("Benchmark was interrupted: {}", e.getMessage());
+				LOG.error("Benchmark interrupted: {}", e.getMessage());
 				this.shutdownEmulator();
 				return false;
 			}
@@ -153,7 +160,7 @@ public class Emulator
 		PrintWriter out;
 		try
 		{
-			String fileName = this.getPrefix();
+			String fileName = getPrefix();
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
 			out.close();
@@ -165,7 +172,7 @@ public class Emulator
 
 	public String getPrefix()
 	{
-		return "Em" + this.emulatorId + "_" + this.options.getClientsNumber() + "users";
+		return "Em" + this.emulatorId + "_" + this.options.getClientsNumber() + "users.results.temp";
 	}
 
 	public void shutdownEmulator()
@@ -181,6 +188,19 @@ public class Emulator
 		{
 			LOG.error(e.getMessage(), e);
 		}
+	}
+
+	public void collectStatistics(int iteration)
+	{
+		PerSecondStatistics perSecondStat = new PerSecondStatistics(iteration);
+
+		for(ClientEmulator client : this.clients)
+		{
+			ClientStatistics t = new ClientStatistics(client.getStats());
+			perSecondStat.addThreadStatistic(t);
+		}
+
+		this.perSecondStatsList.add(perSecondStat);
 	}
 
 }

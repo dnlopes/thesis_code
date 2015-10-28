@@ -2,6 +2,7 @@ package server.replicator;
 
 
 import common.util.Environment;
+import server.agents.AgentsFactory;
 import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
@@ -12,9 +13,7 @@ import common.nodes.AbstractNode;
 import common.nodes.NodeConfig;
 import server.agents.coordination.SimpleCoordinationAgent;
 import server.agents.coordination.CoordinationAgent;
-import server.agents.deliver.CausalDeliverAgent;
 import server.agents.deliver.DeliverAgent;
-import server.agents.dispatcher.BatchDispatcher;
 import server.agents.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -66,16 +65,16 @@ public class Replicator extends AbstractNode
 		super(config);
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
 
+		this.deliver = AgentsFactory.getDeliverAgent(this);
+		this.dispatcher = AgentsFactory.getDispatcherAgent(this);
+		this.coordAgent = new SimpleCoordinationAgent(this);
+
 		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
 		this.networkInterface = new ReplicatorNetwork(this.config);
 		this.idsManager = new IDsManager(getPrefix(), getConfig());
 		this.statsCollector = new StatsCollector();
-
-		this.deliver = new CausalDeliverAgent(this);
-		this.dispatcher = new BatchDispatcher(this);
-		this.coordAgent = new SimpleCoordinationAgent(this);
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
 		this.garbageCollector = new GarbageCollector(this);

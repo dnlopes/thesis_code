@@ -37,7 +37,7 @@ public class DatabaseMetadata
 		if(tablesMap.containsKey(table.getName()))
 		{
 			LOG.error("table {} already exists", table.getName());
-			RuntimeUtils.throwRunTimeException("duplicated table", ExitCode.UNEXPECTED_TABLE);
+			RuntimeUtils.throwRunTimeException("duplicated table in ddl", ExitCode.UNEXPECTED_TABLE);
 		}
 
 		tablesMap.put(table.getName(), table);

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import common.thrift.CRDTCompiledTransaction;
 import common.thrift.CRDTTransaction;
 import common.thrift.ThriftUtils;
+import server.replicator.Replicator;
 
 
 /**
@@ -20,9 +21,9 @@ public class BasicDispatcher implements DispatcherAgent
 
 	private final IReplicatorNetwork networkInterface;
 
-	public BasicDispatcher(IReplicatorNetwork networkInterface)
+	public BasicDispatcher(Replicator replicator)
 	{
-		this.networkInterface = networkInterface;
+		this.networkInterface = replicator.getNetworkInterface();
 	}
 
 	@Override

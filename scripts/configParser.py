@@ -14,22 +14,25 @@ logger.addHandler(ch)
 
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
-################################################################################################
-
+################################################################################################		
+user='dp.lopes'
+ENVIRONMENT='fct'
+#ENVIRONMENT='localhost'
+#ENVIRONMENT='amazon'
 #IS_LOCALHOST = True
 IS_LOCALHOST = False
 TPCC_TEST_TIME=60
 
 ################################################################################################
-#   PREFIXS AND VARIABLES
+#   PREFIXS AND GLOBAL VARIABLES
 ################################################################################################
 ZOOKEEPER_PORT='2181'
 ZOOKEEPER_CFG_FILE='zoo.cfg'
-user='dp.lopes'   
+  
 MYSQL_PORT='3306'
 TOTAL_USERS=0
 JDCB=''
-TPCC_VERSION='codefuture'
+
 ACTIVE_EXPERIMENT=""
 prefix_latency_throughput_experiment = "latency-throughput"
 prefix_scalability_experiment = "scalability"

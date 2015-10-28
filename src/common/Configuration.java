@@ -11,6 +11,7 @@ import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import common.util.exception.ConfigurationLoadException;
 import common.parser.DDLParser;
+import server.agents.AgentsFactory;
 import server.agents.coordination.zookeeper.EZKCoordinationExtension;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -35,6 +36,7 @@ public final class Configuration
 	private volatile static boolean IS_CONFIGURED = false;
 	private static Configuration instance;
 
+	public static String ZOOKEEPER_CONNECTION_STRING;
 	public static String TOPOLOGY_FILE;
 	public static String DDL_ANNOTATIONS_FILE;
 	public static String ENVIRONMENT_FILE;
@@ -126,8 +128,16 @@ public final class Configuration
 					"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
 							.EZK_CLIENTS_POOL_SIZE);
 			LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
-			LOG.info("topology: {} databases, {} replicators, {} zookeeper nodes", databases.size(), replicators.size
-					(), coordinators.size());
+			LOG.info(
+					"environment:" + EnvironmentDefaults.DELIVER_NAME_VAR + "=" + AgentsFactory
+							.getDeliverAgentClassAsString());
+			LOG.info(
+					"environment:" + EnvironmentDefaults.DISPATCHER_NAME_VAR + "=" + AgentsFactory
+							.getDispatcherAgentClassAsString());
+			LOG.info("environment:zookeeper.connection.string=" + ZOOKEEPER_CONNECTION_STRING);
+			LOG.info("topology: {} databases, {} replicators, {} zookeeper nodes", databases.size(), replicators
+							.size(),
+					coordinators.size());
 		}
 	}
 
@@ -157,6 +167,17 @@ public final class Configuration
 						prop.getProperty(EnvironmentDefaults.OPTIMIZE_BATCH_VAR));
 			else
 				Environment.OPTIMIZE_BATCH = EnvironmentDefaults.OPTIMIZE_BATCH_DEFAULT;
+
+			if(prop.containsKey(EnvironmentDefaults.DISPATCHER_NAME_VAR))
+				Environment.DISPATCHER_AGENT = Integer.parseInt(
+						prop.getProperty(EnvironmentDefaults.DISPATCHER_NAME_VAR));
+			else
+				Environment.DISPATCHER_AGENT = EnvironmentDefaults.DISPATCHER_AGENT_DEFAULT;
+
+			if(prop.containsKey(EnvironmentDefaults.DELIVER_NAME_VAR))
+				Environment.DELIVER_AGENT = Integer.parseInt(prop.getProperty(EnvironmentDefaults.DELIVER_NAME_VAR));
+			else
+				Environment.DELIVER_AGENT = EnvironmentDefaults.DELIVER_AGENT_DEFAULT;
 
 			if(prop.containsKey(EnvironmentDefaults.DATABASE_NAME_VAR))
 				Environment.DATABASE_NAME = prop.getProperty(EnvironmentDefaults.DATABASE_NAME_VAR);
@@ -237,6 +258,22 @@ public final class Configuration
 			if(n.getNodeName().compareTo("databases") == 0)
 				parseDatabases(n);
 		}
+
+		StringBuffer buffer = new StringBuffer();
+
+		Iterator<NodeConfig> coordinatorConfigsIt = this.coordinators.values().iterator();
+		while(coordinatorConfigsIt.hasNext())
+		{
+			NodeConfig zookConfig = coordinatorConfigsIt.next();
+			buffer.append(zookConfig.getHost());
+			buffer.append(":");
+			buffer.append(zookConfig.getPort());
+
+			if(coordinatorConfigsIt.hasNext())
+				buffer.append(",");
+		}
+
+		ZOOKEEPER_CONNECTION_STRING = buffer.toString();
 	}
 
 	private void parseDatabases(Node node)
@@ -398,17 +435,7 @@ public final class Configuration
 
 	public String getZookeeperConnectionString()
 	{
-		StringBuffer buffer = new StringBuffer();
-
-		Iterator<NodeConfig> coordinatorConfigsIt = this.coordinators.values().iterator();
-		while(coordinatorConfigsIt.hasNext())
-		{
-			buffer.append(coordinatorConfigsIt.next().getHost());
-			if(coordinatorConfigsIt.hasNext())
-				buffer.append(",");
-		}
-
-		return buffer.toString();
+		return ZOOKEEPER_CONNECTION_STRING;
 	}
 
 }

@@ -20,6 +20,7 @@ public class NodeConfig
 	private final DatabaseProperties dbProps;
 	private NodeConfig replicatorConfig;
 
+	// use with proxy node
 	public NodeConfig(Role role, int id, String host, int port, DatabaseProperties props, NodeConfig replicatorConfig)
 	{
 		this.role = role;
@@ -33,14 +34,6 @@ public class NodeConfig
 			RuntimeUtils.throwRunTimeException("dbProps not defined", ExitCode.NOINITIALIZATION);
 	}
 
-	public NodeConfig getReplicatorConfig()
-	{
-		if(!(this.role == Role.PROXY))
-			RuntimeUtils.throwRunTimeException("this config obj does not belong to a proxy", ExitCode.INVALIDUSAGE);
-
-		return this.replicatorConfig;
-	}
-
 	public NodeConfig(Role role, int id, String host, int port, DatabaseProperties props)
 	{
 		this.role = role;
@@ -52,6 +45,14 @@ public class NodeConfig
 
 		if(this.dbProps == null && this.role != Role.COORDINATOR)
 			RuntimeUtils.throwRunTimeException("dbProps not defined", ExitCode.NOINITIALIZATION);
+	}
+
+	public NodeConfig getReplicatorConfig()
+	{
+		if(!(this.role == Role.PROXY))
+			RuntimeUtils.throwRunTimeException("this config obj does not belong to a proxy", ExitCode.INVALIDUSAGE);
+
+		return this.replicatorConfig;
 	}
 
 	public int getId()
