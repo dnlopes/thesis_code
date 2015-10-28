@@ -126,6 +126,8 @@ public final class Configuration
 					"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
 							.EZK_CLIENTS_POOL_SIZE);
 			LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
+			LOG.info("topology: {} databases, {} replicators, {} zookeeper nodes", databases.size(), replicators.size
+					(), coordinators.size());
 		}
 	}
 
