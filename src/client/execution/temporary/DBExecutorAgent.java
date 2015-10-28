@@ -469,6 +469,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setPkWhereClause(insertedRow.getPrimaryKeyValue().getPrimaryKeyWhereClause());
 
 		this.helper.verifyParentsConsistency(crdtOperation, insertedRow, true);
+
 		transaction.addToOpsList(crdtOperation);
 
 		for(UniqueConstraint uniqueConstraint : toCheckConstraint)
@@ -934,7 +935,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			{
 				ForeignKeyConstraint c = constraints.get(i);
 
-				if(!c.requiresParentConsistency())
+				if(!c.getParentTable().getTablePolicy().allowDeletes())
 					continue;
 
 				Row parent = findParent(childRow, c, sqlInterface);

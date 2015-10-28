@@ -1,8 +1,9 @@
 package client.proxy;
 
 
-import client.jdbc.ConnectionFactory;
 import client.execution.temporary.Sandbox;
+import common.nodes.NodeConfig;
+import common.util.ConnectionFactory;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
@@ -26,14 +27,14 @@ public class BasicProxy implements Proxy
 	private static final Logger LOG = LoggerFactory.getLogger(BasicProxy.class);
 
 	private final int proxyId;
-	private final ProxyConfig proxyConfig;
+	private final NodeConfig proxyConfig;
 	private final IProxyNetwork network;
 	private Sandbox sandbox;
 	private Connection dbConnection;
 	private CCJSqlParserManager sqlParser;
 
 
-	public BasicProxy(final ProxyConfig proxyConfig, int proxyId)
+	public BasicProxy(final NodeConfig proxyConfig, int proxyId)
 	{
 		this.proxyConfig = proxyConfig;
 		this.proxyId = proxyId;

@@ -1,7 +1,7 @@
 package util.dbtransform;
 
 
-import client.jdbc.ConnectionFactory;
+import common.util.ConnectionFactory;
 import common.util.ExitCode;
 import org.apache.commons.dbutils.DbUtils;
 import common.util.RuntimeUtils;

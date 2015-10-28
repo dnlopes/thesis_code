@@ -2,10 +2,10 @@ package server.agents.coordination;
 
 
 import common.database.constraints.unique.AutoIncrementConstraint;
-import client.jdbc.ConnectionFactory;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.nodes.NodeConfig;
+import common.util.ConnectionFactory;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -10,11 +10,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
 import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 import common.Configuration;
-import common.nodes.NodeConfig;
+import common.util.ConnectionFactory;
 import common.util.DatabaseProperties;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -170,12 +170,9 @@ public class TpccThread extends Thread
 			prop.put("password", db_password);
 
 			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
-			String proxyId = System.getProperty("proxyid");
-
-			NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(Integer.parseInt(proxyId));
 
 			if(isCustomJDBC)
-				conn = ConnectionFactory.getCRDTConnection(dbProps, Configuration.getInstance().getDatabaseName());
+				conn = CRDTConnectionFactory.getCRDTConnection(dbProps, Configuration.getInstance().getDatabaseName());
 			else
 				conn = ConnectionFactory.getDefaultConnection(dbProps, "tpcc");
 

@@ -31,6 +31,7 @@
 	<property name="weakdb-common-jar" value="weakdb-common.jar" />
 	<property name="weakdb-server-jar" value="weakdb-server.jar" />
 	<property name="weakdb-client-jar" value="weakdb-client.jar" />
+	<property name="weakdb-apps-jar" value="weakdb-apps.jar" />
 	<property name="weakdb-thrift-bundled-jar" value="weakdb-thrift-bundled.jar" />
 
 	<!-- Custom ant tasks -->
@@ -132,6 +133,11 @@
 				<include name="libthrift-0.9.2.jar" />
 			</zipgroupfileset>
 		</jar>
+		<jar destfile="${jars.dir}/${weakdb-apps-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="applications/**/*.class" />
+			</fileset>
+		</jar>
 	</target>
 	<target name="dist" depends="minimal-jars, tpcc-init"
 			description="Generates Main Jars">
@@ -155,6 +161,7 @@
 			<zipgroupfileset dir="${jars.dir}">
 				<include name="${weakdb-thrift-bundled-jar}" />
 				<include name="${weakdb-common-jar}" />
+				<include name="${weakdb-server-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/db-transform.jar">
@@ -253,9 +260,6 @@
 			<fileset dir="${resources.dir}">
 				<include name="log4j.properties" />
 			</fileset>
-			<fileset dir="${classes.dir}/applications">
-				<include name="**/*.class" />
-			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
@@ -269,6 +273,7 @@
 				<include name="${weakdb-thrift-bundled-jar}" />
 				<include name="${weakdb-common-jar}" />
 				<include name="${weakdb-client-jar}" />
+				<include name="${weakdb-apps-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"

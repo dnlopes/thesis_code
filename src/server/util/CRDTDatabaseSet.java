@@ -60,7 +60,7 @@ public class CRDTDatabaseSet
 
 		if(op.isSetParentsMap())
 		{
-			//TODO generate setConditionalVisibleChild
+			//TODO later: generate setConditionalVisibleChild
 		}
 
 		return ops;
@@ -200,7 +200,7 @@ public class CRDTDatabaseSet
 
 	public static String[] deleteParentRow(CRDTOperation op, String clock)
 	{
-		//TODO implementation
+		//TODO later: implementation
 		return null;
 	}
 

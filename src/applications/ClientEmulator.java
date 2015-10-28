@@ -1,7 +1,8 @@
 package applications;
 
 
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
+import common.util.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class ClientEmulator implements Runnable
 		try
 		{
 			if(this.options.isCRDTDriver())
-				this.connection = ConnectionFactory.getCRDTConnection(this.options.getDbProps(),
+				this.connection = CRDTConnectionFactory.getCRDTConnection(this.options.getDbProps(),
 						this.options.getDatabaseName());
 			else
 				this.connection = ConnectionFactory.getDefaultConnection(this.options.getDbProps(),

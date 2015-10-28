@@ -1,7 +1,8 @@
 package applications.micro;
 
 
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
+import common.util.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.util.DatabaseProperties;

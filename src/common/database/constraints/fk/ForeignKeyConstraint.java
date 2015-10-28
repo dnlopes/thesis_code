@@ -4,7 +4,6 @@ package common.database.constraints.fk;
 import common.database.constraints.AbstractConstraint;
 import common.database.constraints.ConstraintType;
 import common.database.field.DataField;
-import common.database.table.CRDTTableType;
 import common.database.table.DatabaseTable;
 
 import java.util.ArrayList;
@@ -79,11 +78,6 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 		return this.policy;
 	}
 
-	public DataField getMatchingParent(DataField child)
-	{
-		return this.relationsMap.get(child).getParent();
-	}
-
 	public List<ParentChildRelation> getFieldsRelations()
 	{
 		return this.relationsList;
@@ -92,11 +86,6 @@ public class ForeignKeyConstraint extends AbstractConstraint implements IForeign
 	public DatabaseTable getChildTable()
 	{
 		return this.childTable;
-	}
-
-	public boolean requiresParentConsistency()
-	{
-		return this.parentTable.getTableType() == CRDTTableType.ARSETTABLE;
 	}
 
 }

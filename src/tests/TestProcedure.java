@@ -2,7 +2,8 @@ package tests;
 
 
 import applications.micro.MicroDatabase;
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
+import common.util.ConnectionFactory;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

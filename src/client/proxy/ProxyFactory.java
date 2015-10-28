@@ -2,6 +2,7 @@ package client.proxy;
 
 
 import common.Configuration;
+import common.nodes.NodeConfig;
 
 
 /**
@@ -11,7 +12,7 @@ public class ProxyFactory
 {
 
 	private static final ProxyFactory ourInstance = new ProxyFactory();
-	private static ProxyConfig PROXY_CONFIG;
+	private static NodeConfig PROXY_CONFIG;
 	private static int proxiesCounter;
 
 	public static ProxyFactory getInstance()
@@ -21,7 +22,7 @@ public class ProxyFactory
 
 	private ProxyFactory()
 	{
-		PROXY_CONFIG = (ProxyConfig) Configuration.getInstance().getProxyConfigWithIndex(
+		PROXY_CONFIG = Configuration.getInstance().getProxyConfigWithIndex(
 				Integer.parseInt(System.getProperty("proxyid")));
 
 		proxiesCounter = 0;

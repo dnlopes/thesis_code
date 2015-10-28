@@ -18,6 +18,28 @@ public class NodeConfig
 	private final Role role;
 
 	private final DatabaseProperties dbProps;
+	private NodeConfig replicatorConfig;
+
+	public NodeConfig(Role role, int id, String host, int port, DatabaseProperties props, NodeConfig replicatorConfig)
+	{
+		this.role = role;
+		this.id = id;
+		this.host = host;
+		this.port = port;
+		this.dbProps = props;
+		this.replicatorConfig = replicatorConfig;
+
+		if(this.dbProps == null && this.role != Role.COORDINATOR)
+			RuntimeUtils.throwRunTimeException("dbProps not defined", ExitCode.NOINITIALIZATION);
+	}
+
+	public NodeConfig getReplicatorConfig()
+	{
+		if(!(this.role == Role.PROXY))
+			RuntimeUtils.throwRunTimeException("this config obj does not belong to a proxy", ExitCode.INVALIDUSAGE);
+
+		return this.replicatorConfig;
+	}
 
 	public NodeConfig(Role role, int id, String host, int port, DatabaseProperties props)
 	{
@@ -26,6 +48,7 @@ public class NodeConfig
 		this.host = host;
 		this.port = port;
 		this.dbProps = props;
+		this.replicatorConfig = null;
 
 		if(this.dbProps == null && this.role != Role.COORDINATOR)
 			RuntimeUtils.throwRunTimeException("dbProps not defined", ExitCode.NOINITIALIZATION);

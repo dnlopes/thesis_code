@@ -1,6 +1,7 @@
 package server.replicator;
 
 
+import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
 import common.database.util.DatabaseMetadata;
@@ -49,8 +50,9 @@ public class Replicator extends AbstractNode
 	private final ObjectPool<DBCommitter> agentsPool;
 	private final Lock clockLock;
 	private final String prefix;
-	private final IDsManager idsManager;
 
+	private final IDsManager idsManager;
+	private final StatsCollector statsCollector;
 
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
@@ -68,7 +70,7 @@ public class Replicator extends AbstractNode
 		this.clockLock = new ReentrantLock();
 		this.networkInterface = new ReplicatorNetwork(this.config);
 		this.idsManager = new IDsManager(getPrefix(), getConfig());
-
+		this.statsCollector = new StatsCollector();
 
 		this.deliver = new CausalDeliverAgent(this);
 		this.dispatcher = new SimpleBatchDispatcher(this);
@@ -107,7 +109,7 @@ public class Replicator extends AbstractNode
 		if(pad == null)
 		{
 			LOG.warn("commitpad pool was empty");
-			pad = new DBCommitterAgent(this.config);
+			pad = new DBCommitterAgent(this.config, this.statsCollector);
 		}
 
 		boolean commitDecision = pad.commitShadowTransaction(txn);
@@ -143,8 +145,8 @@ public class Replicator extends AbstractNode
 
 	public void deliverTransaction(CRDTCompiledTransaction txn)
 	{
-		this.mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
-		this.commitOperation(txn);
+		mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
+		commitOperation(txn);
 	}
 
 	public void prepareToCommit(CRDTTransaction transaction)
@@ -166,8 +168,8 @@ public class Replicator extends AbstractNode
 			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
 
 			if(dataField.isNumberField() && dataField.isAutoIncrement())
-				symbolEntry.setRealValue(
-						String.valueOf(this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
+				symbolEntry.setRealValue(String.valueOf(
+						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
 				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
 		}
@@ -209,7 +211,7 @@ public class Replicator extends AbstractNode
 	private void appendPrefixs(CRDTOperation op)
 	{
 		/*
-		TODO: implement
+		TODO later: implement
 		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
 
 		for(UniqueConstraint constraint : dbTable.getUniqueConstraints())
@@ -256,7 +258,7 @@ public class Replicator extends AbstractNode
 
 		for(int i = 0; i < agentsNumber; i++)
 		{
-			DBCommitter agent = new DBCommitterAgent(this.getConfig());
+			DBCommitter agent = new DBCommitterAgent(getConfig(), this.statsCollector);
 
 			if(agent != null)
 				this.agentsPool.addObject(agent);

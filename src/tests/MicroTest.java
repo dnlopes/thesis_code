@@ -2,7 +2,7 @@ package tests;
 
 
 import applications.micro.MicroDatabase;
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
 import common.util.DatabaseProperties;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class MicroTest
 		Statement stat = null;
 		try
 		{
-			conn = ConnectionFactory.getCRDTConnection(props, "micro");
+			conn = CRDTConnectionFactory.getCRDTConnection(props, "micro");
 
 			stat = conn.createStatement();
 		} catch(SQLException e)

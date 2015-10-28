@@ -1,7 +1,7 @@
 package tests;
 
 
-import client.jdbc.ConnectionFactory;
+import client.jdbc.CRDTConnectionFactory;
 import common.util.DatabaseProperties;
 
 import java.sql.Connection;
@@ -26,7 +26,7 @@ public class SQLTester
 				"/Users/dnlopes/devel/thesis/code/weakdb/resources/configs/micro_localhost_1node.xml");
 
 
-		Connection conn = ConnectionFactory.getCRDTConnection(props, "micro");
+		Connection conn = CRDTConnectionFactory.getCRDTConnection(props, "micro");
 		Statement stat = conn.createStatement();
 
 

@@ -1,8 +1,8 @@
 package common.database;
 
 
-import client.jdbc.ConnectionFactory;
 import common.nodes.NodeConfig;
+import common.util.ConnectionFactory;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

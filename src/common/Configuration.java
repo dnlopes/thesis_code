@@ -4,7 +4,6 @@ package common;
 import common.database.util.DatabaseMetadata;
 import common.nodes.NodeConfig;
 import common.nodes.Role;
-import client.proxy.ProxyConfig;
 import common.util.ExitCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,7 @@ public final class Configuration
 	private static Configuration instance;
 
 	private Map<Integer, NodeConfig> replicators;
-	private Map<Integer, ProxyConfig> proxies;
+	private Map<Integer, NodeConfig> proxies;
 	private Map<Integer, NodeConfig> coordinators;
 	private Map<Integer, DatabaseProperties> databases;
 	private DatabaseMetadata databaseMetadata;
@@ -49,7 +48,6 @@ public final class Configuration
 	private String schemaFile;
 	private int commitPadPoolSize;
 	private int ezkClientsPoolSize;
-	private boolean useSharedProxy;
 	private boolean optimizeBatch;
 
 	private Configuration(String configFilePath)
@@ -61,8 +59,6 @@ public final class Configuration
 
 		loadConfiguration();
 
-		//@deprecated option
-		this.useSharedProxy = Defaults.USE_SHARED_PROXY;
 		//TODO inject these values on config file
 		this.optimizeBatch = Defaults.USE_OPTIMIZE_BATCH;
 
@@ -203,7 +199,7 @@ public final class Configuration
 			if(n.getNodeType() != Node.ELEMENT_NODE)
 				continue;
 
-			if(n.getNodeName().compareTo("common/database") == 0)
+			if(n.getNodeName().compareTo("database") == 0)
 				createDatabase(n);
 		}
 	}
@@ -309,31 +305,19 @@ public final class Configuration
 		String port = map.getNamedItem("port").getNodeValue();
 		String refDatabase = map.getNamedItem("refDatabase").getNodeValue();
 		String refReplicator = map.getNamedItem("refReplicator").getNodeValue();
-		String refCoordinator = map.getNamedItem("refCoordinator").getNodeValue();
 
 		NodeConfig replicatorConfig = this.getReplicatorConfigWithIndex(Integer.parseInt(refReplicator));
 		DatabaseProperties props = this.databases.get(Integer.parseInt(refDatabase));
-		NodeConfig coordinatorConfig = this.getCoordinatorConfigWithIndex(Integer.parseInt(refCoordinator));
 
-		ProxyConfig newProxy = new ProxyConfig(Integer.parseInt(id), host, Integer.parseInt(port), props,
-				replicatorConfig, coordinatorConfig);
+		NodeConfig newProxy = new NodeConfig(Role.PROXY, Integer.parseInt(id), host, Integer.parseInt(port), props,
+				replicatorConfig);
 
 		proxies.put(Integer.parseInt(id), newProxy);
-	}
-
-	public boolean useSharedProxy()
-	{
-		return this.useSharedProxy;
 	}
 
 	public NodeConfig getReplicatorConfigWithIndex(int index)
 	{
 		return this.replicators.get(index);
-	}
-
-	public NodeConfig getCoordinatorConfigWithIndex(int index)
-	{
-		return this.coordinators.get(index);
 	}
 
 	public NodeConfig getProxyConfigWithIndex(int index)
@@ -344,11 +328,6 @@ public final class Configuration
 	public Map<Integer, NodeConfig> getAllReplicatorsConfig()
 	{
 		return replicators;
-	}
-
-	public Map<Integer, ProxyConfig> getProxies()
-	{
-		return proxies;
 	}
 
 	public String getDatabaseName()
@@ -405,7 +384,7 @@ public final class Configuration
 
 	public interface Defaults
 	{
-		boolean USE_SHARED_PROXY = false;
+
 		boolean USE_OPTIMIZE_BATCH = true;
 	}
 }

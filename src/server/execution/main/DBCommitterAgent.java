@@ -1,12 +1,13 @@
 package server.execution.main;
 
 
-import client.jdbc.ConnectionFactory;
 import common.nodes.NodeConfig;
+import common.util.ConnectionFactory;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.CRDTCompiledTransaction;
+import server.execution.StatsCollector;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,12 +21,14 @@ public class DBCommitterAgent implements DBCommitter
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitterAgent.class);
-	private static int TXN_COUNT = 0;
 
 	private Connection connection;
+	private StatsCollector collector;
 
-	public DBCommitterAgent(NodeConfig config)
+	public DBCommitterAgent(NodeConfig config, StatsCollector collector)
 	{
+		this.collector = collector;
+
 		try
 		{
 			this.connection = ConnectionFactory.getDefaultConnection(config);
@@ -38,24 +41,36 @@ public class DBCommitterAgent implements DBCommitter
 	@Override
 	public boolean commitShadowTransaction(CRDTCompiledTransaction txn)
 	{
-		TXN_COUNT++;
 
-		if(TXN_COUNT % Defaults.LOG_FREQUENCY == 0)
+		if(this.collector.getCommitsCounter() % Defaults.LOG_FREQUENCY == 0)
 			if(LOG.isInfoEnabled())
 				LOG.info("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
 
 		if(LOG.isTraceEnabled())
 			LOG.trace("commiting op from replicator {}", txn.getReplicatorId());
 
-		for(int i = 0; i < Defaults.NUMBER_OF_RETRIES; i++)
+		int tries = 0;
+		while(true)
 		{
+			tries++;
 			boolean commitDecision = this.tryCommit(txn);
 
 			if(commitDecision)
+			{
+				this.collector.incrementCommits();
 				return true;
-		}
+			}
+			else
+			{
+				this.collector.incrementRetries();
 
-		return false;
+				if(tries % Defaults.LOG_FREQUENCY == 0)
+				{
+					if(LOG.isWarnEnabled())
+						LOG.warn("already tried {} times but still no commit", tries);
+				}
+			}
+		}
 	}
 
 	private boolean tryCommit(CRDTCompiledTransaction op)

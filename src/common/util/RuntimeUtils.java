@@ -18,4 +18,17 @@ public class RuntimeUtils
 		}
 	}
 
+	public static void throwRunTimeException(Exception e)
+
+	{
+		try
+		{
+			throw e;
+		} catch(Exception e1)
+		{
+			e1.printStackTrace();
+			System.exit(1);
+		}
+	}
+
 }

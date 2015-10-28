@@ -26,7 +26,7 @@ public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
 	private final NodeConfig replicatorConfig;
 	private ReplicatorRPC.Client replicatorRpc;
 
-	public ProxyNetwork(ProxyConfig proxyConfig)
+	public ProxyNetwork(NodeConfig proxyConfig)
 	{
 		super(proxyConfig);
 
