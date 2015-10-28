@@ -41,8 +41,6 @@ public class DatabaseMetadata
 		}
 
 		tablesMap.put(table.getName(), table);
-		if(LOG.isTraceEnabled())
-			LOG.trace("table {} added", table.getName());
 	}
 
 	public Collection<DatabaseTable> getAllTables()

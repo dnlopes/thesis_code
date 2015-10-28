@@ -1,8 +1,6 @@
 package server.replicator;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import common.util.ExitCode;
 import common.Configuration;
 
@@ -12,13 +10,13 @@ import common.Configuration;
  */
 public class ReplicatorMain
 {
-	static final Logger LOG = LoggerFactory.getLogger(ReplicatorMain.class);
 
 	public static void main(String args[])
 	{
 		if(args.length != 4)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> <id>");
+			System.err.print("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> " +
+					"<id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 

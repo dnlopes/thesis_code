@@ -77,9 +77,6 @@ public final class Configuration
 
 	private void loadEnvironment()
 	{
-		if(LOG.isInfoEnabled())
-			LOG.info("loading configuration file: {}", TOPOLOGY_FILE);
-
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
@@ -87,23 +84,29 @@ public final class Configuration
 
 		try
 		{
+			if(LOG.isInfoEnabled())
+				LOG.info("loading topology file: {}", TOPOLOGY_FILE);
 			loadTopology();
+			if(LOG.isInfoEnabled())
+				LOG.info("loading annotations file: {}", DDL_ANNOTATIONS_FILE);
 			loadAnnotations();
+			if(LOG.isInfoEnabled())
+				LOG.info("loading environment file: {}", ENVIRONMENT_FILE);
 			loadConfigurations();
 		} catch(ConfigurationLoadException e)
 		{
 			RuntimeUtils.throwRunTimeException("failed to configuration: " + e.getMessage(), ExitCode.XML_ERROR);
 		}
 
-		if(!this.checkConfig())
+		if(!checkConfig())
 		{
 			LOG.error("environment configuration is not properly set");
 			RuntimeUtils.throwRunTimeException("environment configuration is not properly set", ExitCode.XML_ERROR);
 
 		}
 
-		if(LOG.isTraceEnabled())
-			LOG.trace("config file successfully loaded");
+		if(LOG.isInfoEnabled())
+			LOG.info("configuration successfully loaded");
 
 		printEnvironment();
 	}

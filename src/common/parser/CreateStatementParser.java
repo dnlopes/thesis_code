@@ -363,8 +363,6 @@ public class CreateStatementParser
 			}
 
 			fieldsMap.put(field.getFieldName(), field);
-			if(LOG.isTraceEnabled())
-				LOG.trace("field {} from table {} added", field.getFieldName(), field.getTableName());
 		}
 
 		return fieldsMap;

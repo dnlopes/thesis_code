@@ -89,7 +89,7 @@ public class Replicator extends AbstractNode
 			new Thread(new ReplicatorServerThread(this)).start();
 		} catch(TTransportException e)
 		{
-			LOG.error("failed to create background thread on replicator {}: ", this.getConfig().getName(), e);
+			LOG.error("failed to create background thread on replicator {}: ", getConfig().getName(), e);
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
 

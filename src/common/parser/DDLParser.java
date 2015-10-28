@@ -35,14 +35,11 @@ public class DDLParser
 		this.fileName = fileName;
 		this.databaseMetadata = new DatabaseMetadata();
 		if(LOG.isTraceEnabled())
-			LOG.trace("parser created for schema file {}", this.fileName);
+			LOG.trace("parser created for annotations file {}", this.fileName);
 	}
 
 	public DatabaseMetadata parseAnnotations()
 	{
-		if(LOG.isTraceEnabled())
-			LOG.trace("parsing file: {}", this.fileName);
-
 		Vector<String> allTableStrings = this.getAllCreateTableStrings();
 
 		for(int i = 0; i < allTableStrings.size(); i++)
