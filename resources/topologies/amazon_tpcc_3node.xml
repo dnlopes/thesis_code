@@ -7,7 +7,7 @@
 			<database id="3" dbHost="10.0.0.54" dbPort="3306" dbUser="sa" dbPwd="101010" />
 		</databases>
 		<coordinators>
-			<coordinator id="1" host="10.0.0.55" port="50020" refDatabase="1" />
+			<coordinator id="1" host="10.0.0.55" refDatabase="1" />
 		</coordinators>
 		<replicators>
 			<replicator id="1" host="10.0.0.56" port="50000" refDatabase="1" />

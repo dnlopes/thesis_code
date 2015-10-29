@@ -14,7 +14,7 @@ public class DatabaseTransformerMain
 	{
 		if(args.length != 2)
 		{
-			System.out.println("usage: java -jar <databaseHost> <databaseName>");
+			System.out.println("usage: java -jar <jarfile> <databaseHost> <databaseName>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 

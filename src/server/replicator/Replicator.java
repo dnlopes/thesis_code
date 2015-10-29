@@ -108,7 +108,7 @@ public class Replicator extends AbstractNode
 
 		if(pad == null)
 		{
-			LOG.warn("commitpad pool was empty");
+			LOG.warn("commit pad pool was empty");
 			pad = new DBCommitterAgent(this.config, this.statsCollector);
 		}
 

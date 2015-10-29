@@ -29,6 +29,7 @@
 
 	<!-- Generated JARs names -->
 	<property name="weakdb-common-jar" value="weakdb-common.jar" />
+	<property name="weakdb-util-jar" value="weakdb-util.jar" />
 	<property name="weakdb-server-jar" value="weakdb-server.jar" />
 	<property name="weakdb-client-jar" value="weakdb-client.jar" />
 	<property name="weakdb-apps-jar" value="weakdb-apps.jar" />
@@ -108,6 +109,11 @@
 				<include name="common/**/*.class" />
 			</fileset>
 		</jar>
+		<jar destfile="${jars.dir}/${weakdb-util-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="util/**/*.class" />
+			</fileset>
+		</jar>
 		<jar destfile="${jars.dir}/${weakdb-client-jar}">
 			<fileset dir="${classes.dir}">
 				<include name="client/**/*.class" />
@@ -171,7 +177,7 @@
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
 				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-client-jar}" />
+				<include name="${weakdb-util-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/zookeeper-server.jar">
@@ -297,6 +303,7 @@
 		<mkdir dir="${deploy.dir}/annotations" />
 		<mkdir dir="${deploy.dir}/environment" />
 		<mkdir dir="${deploy.dir}/tpcc" />
+		<mkdir dir="${deploy.dir}/src" />
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">
 				<include name="db-transform.jar" />
@@ -310,6 +317,9 @@
 				<include name="zoo.cfg" />
 				<include name="log4j.properties" />
 			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/src" >
+			<fileset dir="${src.dir}" includes="**"/>
 		</copy>
 		<copy todir="${deploy.dir}/topologies">
 			<fileset dir="${resources.dir}/topologies">

@@ -354,7 +354,10 @@ public final class Configuration
 		NamedNodeMap map = n.getAttributes();
 		String id = map.getNamedItem("id").getNodeValue();
 		String host = map.getNamedItem("host").getNodeValue();
-		String port = map.getNamedItem("port").getNodeValue();
+		String port = null;
+
+		if(map.getNamedItem("port") != null)
+			port = map.getNamedItem("port").getNodeValue();
 
 		NodeConfig newCoordinator;
 

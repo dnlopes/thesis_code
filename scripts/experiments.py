@@ -33,7 +33,7 @@ JDCBs=['crdt']
 #JDCBs=['crdt','galera']
 #JDCBs=['cluster']
 
-NUMBER_REPLICAS=[3]
+NUMBER_REPLICAS=[1]
 NUMBER_USERS_LIST_1REPLICA=[1]
 NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
@@ -63,7 +63,6 @@ OVERHEAD_USERS_LIST=[1,5]
 ################################################################################################		
 # MAIN METHODS
 ################################################################################################		
-@task
 def runAllExperiments(configsFilesBaseDir):
 	runFullScalabilityExperiment(configsFilesBaseDir)
 	runFullLatencyThroughputExperiment(configsFilesBaseDir)
@@ -90,8 +89,10 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:		
 		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)	
-		CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml' 		
-		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"		
+		CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
+		config.TOPOLOGY_FILE = CONFIG_FILE
+		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR
+		#REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"		
 	  
 		config.parseConfigFile(CONFIG_FILE)
 		fab.killRunningProcesses()
@@ -104,7 +105,8 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 			# third cycle, use different number of users per run
 			for numberOfUsers in USERS_LIST:
 				config.TOTAL_USERS = numberOfUsers
-				OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
+				OUTPUT_DIR = REPLICA_OUTPUT_DIR
+				#OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
 				with hide('output','running','warnings'),settings(warn_only=True):
 					local("mkdir -p " + OUTPUT_DIR + "/logs")
 
@@ -233,8 +235,8 @@ def runFullOverheadExperiment(configsFilesBaseDir):
 def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	
 	print "\n"
-	logger.info("########################################## starting new Latency-Throughput experiment ##########################################")
-	logger.info('>> CONFIG FILE: %s', configFile)
+	logger.info("########################################## Starting New Latency-Throughput Experiment ##########################################")
+	logger.info('>> TOPOLOGY FILE: %s', config.TOPOLOGY_FILE)
 	logger.info('>> DATABASES: %s', config.database_nodes)
 	logger.info('>> REPLICATORS: %s', config.replicators_nodes)
 	logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
@@ -242,8 +244,13 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 	logger.info('>> TOTAL USERS: %s', totalUsers)
 	logger.info('>> JDBC: %s', config.JDBC)
 	logger.info('>> OUTPUT DIR: %s', outputDir)
+	logger.info('>> WORKLOAD FILE: %s', config.TPCC_WORKLOAD_FILE)
+	logger.info('>> ANNOTATION FILE: %s', config.ANNOTATION_FILE)
+	logger.info('>> ENVIRONMENT FILE: %s', config.ENVIRONMENT_FILE)
 	logger.info("################################################################################################################################")
 	print "\n"
+
+	config.FILES_PREFIX = '{}_replicas_{}_users_{}_jdbc_'.format(len(config.replicators_nodes),totalUsers,config.JDBC)
 
 	success = False
 	for attempt in range(4):
@@ -711,7 +718,7 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 def prepareCode():
 	logger.info('compiling source code')
 	with lcd(config.PROJECT_DIR), hide('output','running'):
-		local('ant purge tpcc-dist')
+		local('ant purge dist')
 	logger.info('uploading distribution to nodes: %s', config.distinct_nodes)
 	logger.info('deploying jars, resources and config files')
 	with hide('output','running'):

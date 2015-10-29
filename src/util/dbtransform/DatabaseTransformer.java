@@ -31,7 +31,7 @@ public class DatabaseTransformer
 				databaseHost, DatabaseDefaults.DEFAULT_MYSQL_PORT);
 		this.databaseName = databaseName;
 
-		this.setup();
+		setup();
 	}
 
 	public void transformDatabase()
@@ -80,12 +80,12 @@ public class DatabaseTransformer
 				if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX))
 					continue;
 
-				this.dropForeignKeyFrom(tableName);
+				dropForeignKeyFrom(tableName);
 			}
 
 		} catch(SQLException e)
 		{
-			this.exitGracefully(e);
+			exitGracefully(e);
 		}
 
 		System.out.println("foreign keys constraints droped");
@@ -143,12 +143,12 @@ public class DatabaseTransformer
 				if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX))
 					continue;
 
-				this.addMetadataForTable(tableName);
+				addMetadataForTable(tableName);
 			}
 
 		} catch(SQLException e)
 		{
-			this.exitGracefully(e);
+			exitGracefully(e);
 		}
 
 		System.out.println("metadata columns added");
@@ -196,9 +196,9 @@ public class DatabaseTransformer
 		{
 			String sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.DELETED_COLUMN + " boolean default 0";
 			stat.execute(sql);
-			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.DELETED_CLOCK_COLUMN + " varchar(50)";
+			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.DELETED_CLOCK_COLUMN + " varchar(100)";
 			stat.execute(sql);
-			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.CONTENT_CLOCK_COLUMN + " varchar(50)";
+			sql = "ALTER TABLE " + tableName + " ADD " + DatabaseDefaults.CONTENT_CLOCK_COLUMN + " varchar(100)";
 			stat.execute(sql);
 
 		} catch(SQLException e)
@@ -217,23 +217,22 @@ public class DatabaseTransformer
 			stat = this.connection.createStatement();
 			stat.execute("use " + this.databaseName);
 
-			stat.execute(Procedures.DROP_COMPARE_CLOCKS);
-			stat.execute(Procedures.COMPARE_CLOCKS);
-
-			stat.execute(Procedures.DROP_ARE_CONCURRENT_CLOCKS);
-			stat.execute(Procedures.ARE_CONCURRENT_CLOCKS);
-
-			stat.execute(Procedures.DROP_CLOCK_IS_GREATER);
-			stat.execute(Procedures.CLOCK_IS_GREATER);
-
-			stat.execute(Procedures.DROP_IS_CONCURRENT_OR_GREATER);
-			stat.execute(Procedures.IS_CONCURRENT_OR_GREATER);
-
 			stat.execute(Procedures.DROP_MAX_CLOCK);
 			stat.execute(Procedures.MAX_CLOCK);
 
 			stat.execute(Procedures.DROP_IS_STRICTLY_GREATER);
 			stat.execute(Procedures.IS_STRICTLY_GREATER);
+
+			stat.execute(Procedures.DROP_IS_CONCURRENT_OR_GREATER);
+			stat.execute(Procedures.IS_CONCURRENT_OR_GREATER);
+
+			stat.execute(Procedures.DROP_CLOCK_IS_GREATER);
+			stat.execute(Procedures.CLOCK_IS_GREATER);
+
+			stat.execute(Procedures.DROP_COMPARE_CLOCKS);
+			//stat.execute(Procedures.COMPARE_CLOCKS);
+			stat.execute(Procedures.DROP_ARE_CONCURRENT_CLOCKS);
+			//stat.execute(Procedures.ARE_CONCURRENT_CLOCKS);
 
 		} catch(SQLException e)
 		{
@@ -247,8 +246,8 @@ public class DatabaseTransformer
 	private interface Procedures
 	{
 
-		static final String DROP_COMPARE_CLOCKS = "DROP FUNCTION IF EXISTS compareClocks";
-		static final String COMPARE_CLOCKS = "CREATE FUNCTION compareClocks" +
+		String DROP_COMPARE_CLOCKS = "DROP FUNCTION IF EXISTS compareClocks";
+		String COMPARE_CLOCKS = "CREATE FUNCTION compareClocks" +
 				"(currentClock CHAR(100), newClock CHAR(100)) RETURNS int DETERMINISTIC BEGIN DECLARE isConcurrent " +
 				"BOOL; DECLARE isLesser BOOL; DECLARE dumbFlag BOOL; DECLARE isGreater BOOL; DECLARE cycleCond BOOL;" +
 				" " +
@@ -272,8 +271,8 @@ public class DatabaseTransformer
 				"IF(@isConcurrent AND @dumbFlag = FALSE) then SELECT 0 INTO @returnValue; ELSEIF(@isLesser) then " +
 				"SELECT 1 INTO @returnValue; ELSE SELECT -1 INTO @returnValue; END IF; RETURN @returnValue; END";
 
-		static final String DROP_ARE_CONCURRENT_CLOCKS = "DROP FUNCTION IF EXISTS areConcurrentClocks";
-		static final String ARE_CONCURRENT_CLOCKS = "CREATE FUNCTION areConcurrentClocks(currentClock CHAR(100), " +
+		String DROP_ARE_CONCURRENT_CLOCKS = "DROP FUNCTION IF EXISTS areConcurrentClocks";
+		String ARE_CONCURRENT_CLOCKS = "CREATE FUNCTION areConcurrentClocks(currentClock CHAR(100), " +
 				"newClock CHAR(100)) RETURNS BOOL DETERMINISTIC BEGIN DECLARE isConcurrent BOOL; DECLARE isLesser " +
 				"BOOL; DECLARE isGreater BOOL; DECLARE cycleCond BOOL; DECLARE returnValue BOOL; SET @returnValue = " +
 				"FALSE; SET @isConcurrent = FALSE; SET @isLesser = FALSE; SET @isGreater = FALSE; IF(currentClock IS" +
@@ -295,8 +294,8 @@ public class DatabaseTransformer
 				"newClock) + 1); END WHILE; IF(@isConcurrent) then SELECT TRUE INTO @returnValue; ELSE SELECT FALSE " +
 				"INTO @returnValue; END IF; RETURN @returnValue; END";
 
-		static final String DROP_CLOCK_IS_GREATER = "DROP FUNCTION IF EXISTS clockIsGreater";
-		static final String CLOCK_IS_GREATER = "CREATE FUNCTION clockIsGreater(currentClock CHAR(100), newClock CHAR" +
+		String DROP_CLOCK_IS_GREATER = "DROP FUNCTION IF EXISTS clockIsGreater";
+		String CLOCK_IS_GREATER = "CREATE FUNCTION clockIsGreater(currentClock CHAR(100), newClock CHAR" +
 				"(100)) RETURNS BOOL DETERMINISTIC BEGIN DECLARE isConcurrent BOOL; DECLARE isLesser BOOL; DECLARE " +
 				"dumbFlag BOOL; DECLARE isGreater BOOL; DECLARE cycleCond BOOL; DECLARE returnValue BOOL; SET " +
 				"@dumbFlag = FALSE; SET @returnValue = FALSE; SET @isConcurrent = FALSE; SET @isLesser = FALSE; SET " +
@@ -320,8 +319,8 @@ public class DatabaseTransformer
 				"@returnValue; ELSEIF(@isLesser) then SELECT TRUE INTO @returnValue; ELSE SELECT FALSE INTO " +
 				"@returnValue; END IF; RETURN @returnValue; END";
 
-		static final String DROP_IS_CONCURRENT_OR_GREATER = "DROP FUNCTION IF EXISTS isConcurrentOrGreaterClock";
-		static final String IS_CONCURRENT_OR_GREATER = "CREATE FUNCTION isConcurrentOrGreaterClock(currentClock CHAR" +
+		String DROP_IS_CONCURRENT_OR_GREATER = "DROP FUNCTION IF EXISTS isConcurrentOrGreaterClock";
+		String IS_CONCURRENT_OR_GREATER = "CREATE FUNCTION isConcurrentOrGreaterClock(currentClock CHAR" +
 				"(100), " +
 				"newClock CHAR(100)) RETURNS BOOL DETERMINISTIC BEGIN DECLARE isConcurrent BOOL; DECLARE isLesser " +
 				"BOOL; DECLARE dumbFlag BOOL; DECLARE isGreater BOOL; DECLARE cycleCond BOOL; DECLARE returnValue " +
@@ -346,8 +345,8 @@ public class DatabaseTransformer
 				"@returnValue; ELSEIF(@isLesser) then SELECT TRUE INTO @returnValue; ELSE SELECT FALSE INTO " +
 				"@returnValue; END IF; RETURN @returnValue; END";
 
-		static final String DROP_IS_STRICTLY_GREATER = "DROP FUNCTION IF EXISTS isStrictlyGreater";
-		static final String IS_STRICTLY_GREATER = "CREATE FUNCTION isStrictlyGreater(currentClock CHAR(100), " +
+		String DROP_IS_STRICTLY_GREATER = "DROP FUNCTION IF EXISTS isStrictlyGreater";
+		String IS_STRICTLY_GREATER = "CREATE FUNCTION isStrictlyGreater(currentClock CHAR(100), " +
 				"newClock" +
 				" " +
 				"CHAR(100)) RETURNS BOOL DETERMINISTIC BEGIN DECLARE isConcurrent BOOL; DECLARE isLesser BOOL; " +
@@ -375,8 +374,8 @@ public class DatabaseTransformer
 				" " +
 				"@returnValue; END";
 
-		static final String DROP_MAX_CLOCK = "DROP FUNCTION IF EXISTS maxClock";
-		static final String MAX_CLOCK = "CREATE FUNCTION maxClock(currentClock CHAR(100), newClock CHAR(100)) " +
+		String DROP_MAX_CLOCK = "DROP FUNCTION IF EXISTS maxClock";
+		String MAX_CLOCK = "CREATE FUNCTION maxClock(currentClock CHAR(100), newClock CHAR(100)) " +
 				"RETURNS" +
 				" " +
 				"CHAR(200) DETERMINISTIC BEGIN DECLARE returnValue CHAR(200); SET @returnValue = ''; IF(currentClock" +

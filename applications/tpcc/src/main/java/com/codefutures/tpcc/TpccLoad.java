@@ -325,7 +325,7 @@ public class TpccLoad implements TpccConstants {
 
 		if(argv.length != 2)
 		{
-			System.out.println("usage: java -jar tpcc-codefuture-gendb.jar <database host> <database name>");
+			System.out.println("usage: java -jar <jarfile> <database host> <database name>");
 			System.exit(1);
 		}
 

@@ -107,15 +107,20 @@ def startDatabases():
 def startCoordinators(configFile):
     currentId = config.coordinators_map.get(env.host_string)    
     port = config.coordinatorsIdToPortMap.get(currentId)
-    logFile = 'coordinator' + str(currentId) + '.log'
+
+    logFile = config.FILES_PREFIX + 'coordinator' + str(currentId) + '.log'
     command = 'java -Xms4000m -Xmx8000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
     if config.IS_LOCALHOST:
         command = 'java -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
 
     logger.info('starting coordinator (zookeeper) at %s', env.host_string)
     logger.info('%s',command)
+
+    with cd(config.ZOOKEEPER_DATA_DIR), hide('running','output'):
+        run('echo ' + str(currentId) + ' > myid')       
     with cd(config.DEPLOY_DIR), hide('running','output'):
         run(command)       
+    
     time.sleep(30)
     if not isPortOpen(config.ZOOKEEPER_PORT):
         return '0'
@@ -125,7 +130,7 @@ def startCoordinators(configFile):
 def startReplicators(configFile):
     currentId = config.replicators_map.get(env.host_string)    
     port = config.replicatorsIdToPortMap.get(currentId)
-    logFile = 'replicator' + str(currentId) + '.log'
+    logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
     command = 'java -Xms4000m -Xmx8000m -jar replicator.jar ' + configFile + ' ' + str(currentId) + ' > ' + logFile + ' &'
     if config.IS_LOCALHOST:
         command = 'java -jar replicator.jar ' + configFile + ' ' + str(currentId) + ' > ' + logFile + ' &'
@@ -145,7 +150,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
     
     for y in xrange(1, proxiesNumber+1):
         currentId = str(y)
-        logFile = 'emulator' + str(currentId) + '.log'
+        logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
         command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         if config.IS_LOCALHOST:
             command = 'java -jar tpcc-client.jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
@@ -164,11 +169,12 @@ def distributeCode():
     with cd(config.BASE_DIR), hide('output','running'), settings(warn_only=True):
         run('rm -rf ' + config.DEPLOY_DIR + '/*')                
         put(config.JARS_DIR + '/*.jar', config.DEPLOY_DIR)
-        put(config.PROJECT_DIR + '/resources/configs', config.DEPLOY_DIR)
-        put(config.PROJECT_DIR + '/experiments', config.DEPLOY_DIR)
-        put(config.PROJECT_DIR + '/resources/*.sql', config.DEPLOY_DIR)
-        put(config.PROJECT_DIR + '/resources/*.properties', config.DEPLOY_DIR)
-        put(config.PROJECT_DIR + '/resources/*.cfg', config.DEPLOY_DIR)
+        put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
+        #put(config.PROJECT_DIR + '/resources/configs', config.DEPLOY_DIR)
+        #put(config.PROJECT_DIR + '/experiments', config.DEPLOY_DIR)
+        #put(config.PROJECT_DIR + '/resources/*.sql', config.DEPLOY_DIR)
+        #put(config.PROJECT_DIR + '/resources/*.properties', config.DEPLOY_DIR)
+        #put(config.PROJECT_DIR + '/resources/*.cfg', config.DEPLOY_DIR)
 
 def downloadLogsTo(outputDir):
     logger.info('downloading log files from %s', env.host_string)    
@@ -255,7 +261,7 @@ def isPortOpen(port):
 def areClientsRunning(emulatorsNumber):
     for y in xrange(1, emulatorsNumber+1):
         currentId = str(y)
-        logFile = 'emulator' + str(currentId) + '.log'
+        logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
         with cd(config.DEPLOY_DIR):
             output = run('tail ' + logFile)
             if 'CLIENT TERMINATED' not in output:

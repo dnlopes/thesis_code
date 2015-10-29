@@ -15,13 +15,20 @@ logger.addHandler(ch)
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################		
-user='dp.lopes'
-ENVIRONMENT='fct'
-#ENVIRONMENT='localhost'
+#user='dp.lopes'
+user='dnl'
+#ENVIRONMENT='fct'
+ENVIRONMENT='localhost'
 #ENVIRONMENT='amazon'
-#IS_LOCALHOST = True
-IS_LOCALHOST = False
+IS_LOCALHOST = True
+#IS_LOCALHOST = False
+
+TPCC_WORKLOAD_FILE='workload1'
+ANNOTATION_FILE = 'tpcc_ddl_no_sequential_ids.sql'
+ENVIRONMENT_FILE= 'env_localhost_default'
+TOPOLOGY_FILE=''
 TPCC_TEST_TIME=60
+FILES_PREFIX=''
 
 ################################################################################################
 #   PREFIXS AND GLOBAL VARIABLES
@@ -46,6 +53,11 @@ MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mys
 MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500'
 BASE_DIR = '/local/' + user
 DEPLOY_DIR = BASE_DIR + '/deploy'
+ENVIRONMENT_DIR = DEPLOY_DIR + '/environment'
+ANNOTATIONS_DIR = DEPLOY_DIR + '/annotations'
+TOPOLOGIES_DIR = DEPLOY_DIR + '/topologies'
+TPCC_WORKLOADS_DIR = DEPLOY_DIR + '/tpcc'
+
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
 GALERA_MYSQL_DIR = BASE_DIR + '/mysql-5.6-galera'
 CLUSTER_MYSQL_DIR = BASE_DIR + '/mysql-cluster'
@@ -55,7 +67,7 @@ BACKUPS_DIR = HOME_DIR + '/backups'
 PROJECT_DIR = HOME_DIR + '/code'
 JARS_DIR = PROJECT_DIR + '/dist/jars'
 EXPERIMENTS_DIR = PROJECT_DIR + '/experiments'
-
+ZOOKEEPER_DATA_DIR = BASE_DIR + '/zookeeper'
 ################################################################################################
 #	DATA STRUCTURES
 ################################################################################################
