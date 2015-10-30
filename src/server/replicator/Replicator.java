@@ -1,7 +1,7 @@
 package server.replicator;
 
 
-import common.util.Environment;
+import common.util.*;
 import server.agents.AgentsFactory;
 import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
@@ -19,11 +19,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.agents.coordination.IDsManager;
-import common.util.RuntimeUtils;
 import server.util.LogicalClock;
-import common.util.ExitCode;
-import common.util.ObjectPool;
-import common.Configuration;
 import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
 
@@ -43,7 +39,7 @@ public class Replicator extends AbstractNode
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
 	private static final String SUBPREFIX = "r";
-	private static final DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
+	private static final DatabaseMetadata metadata = Environment.DB_METADATA;
 
 	private LogicalClock clock;
 	private final IReplicatorNetwork networkInterface;
@@ -69,7 +65,7 @@ public class Replicator extends AbstractNode
 		this.dispatcher = AgentsFactory.getDispatcherAgent(this);
 		this.coordAgent = new SimpleCoordinationAgent(this);
 
-		this.clock = new LogicalClock(Configuration.getInstance().getReplicatorsCount());
+		this.clock = new LogicalClock(Topology.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
 		this.networkInterface = new ReplicatorNetwork(this.config);

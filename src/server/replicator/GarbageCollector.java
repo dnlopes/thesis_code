@@ -5,10 +5,10 @@ import common.database.SQLBasicInterface;
 import common.database.SQLInterface;
 import common.database.util.DatabaseMetadata;
 import common.database.table.DatabaseTable;
+import common.util.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
-import common.Configuration;
 import common.util.defaults.ReplicatorDefaults;
 
 import java.sql.SQLException;
@@ -47,7 +47,7 @@ public class GarbageCollector implements Runnable
 			LOG.info("garbage collection agent initialized with schedule interval of {}",
 					ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL);
 
-		DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
+		DatabaseMetadata metadata = Environment.DB_METADATA;
 
 		for(DatabaseTable dbTable : metadata.getAllTables())
 		{

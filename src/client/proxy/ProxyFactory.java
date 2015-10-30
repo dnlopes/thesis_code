@@ -1,8 +1,8 @@
 package client.proxy;
 
 
-import common.Configuration;
 import common.nodes.NodeConfig;
+import common.util.Topology;
 
 
 /**
@@ -22,8 +22,7 @@ public class ProxyFactory
 
 	private ProxyFactory()
 	{
-		PROXY_CONFIG = Configuration.getInstance().getProxyConfigWithIndex(
-				Integer.parseInt(System.getProperty("proxyid")));
+		PROXY_CONFIG = Topology.getInstance().getProxyConfigWithIndex(Integer.parseInt(System.getProperty("proxyid")));
 
 		proxiesCounter = 0;
 	}

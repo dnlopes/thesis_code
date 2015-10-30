@@ -1,8 +1,8 @@
 package tests;
 
 import common.util.Environment;
+import common.util.Topology;
 import org.apache.zookeeper.ZooKeeper;
-import common.Configuration;
 import common.thrift.CoordinatorRequest;
 import common.thrift.CoordinatorResponse;
 import common.thrift.RequestValue;
@@ -16,22 +16,19 @@ import server.agents.coordination.zookeeper.EZKCoordinationClient;
 public class ZookeeperExtenstionTest
 {
 
-	private final Configuration CONFIG = Configuration.getInstance();
 	private static final int SESSION_TIMEOUT = 200000;
 
 
 	public static void main(String[] args) throws Exception
 	{
-		int a = 0;
-
 		if(args.length != 1)
 		{
-			System.err.println("Usage: <configFileLocation>");
+			System.err.println("Usage: <topologyFile>");
 			System.exit(1);
 		}
 
-		String configFilePath = args[0];
-		System.setProperty("configPath", configFilePath);
+		String topologyFile = args[0];
+		Topology.setupTopology(topologyFile);
 
 		ZookeeperExtenstionTest tester = new ZookeeperExtenstionTest();
 		tester.testExtension();
@@ -39,7 +36,7 @@ public class ZookeeperExtenstionTest
 
 	public void testExtension() throws Exception
 	{
-		ZooKeeper zooKeeper = new ZooKeeper(CONFIG.getZookeeperConnectionString(), SESSION_TIMEOUT, null);
+		ZooKeeper zooKeeper = new ZooKeeper(Topology.ZOOKEEPER_CONNECTION_STRING, SESSION_TIMEOUT, null);
 
 		EZKCoordinationClient coordinationExtenstion = new EZKCoordinationClient(zooKeeper, 1);
 		coordinationExtenstion.init(Environment.EZK_EXTENSION_CODE);

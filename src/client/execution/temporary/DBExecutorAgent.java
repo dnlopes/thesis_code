@@ -30,7 +30,6 @@ import common.util.RuntimeUtils;
 import applications.util.SymbolsManager;
 import client.execution.QueryCreator;
 import common.util.ExitCode;
-import common.Configuration;
 import common.util.defaults.DatabaseDefaults;
 import common.util.defaults.ScratchpadDefaults;
 import common.thrift.*;
@@ -74,7 +73,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		this.helper = new ExecutionHelper();
 		this.sandboxId = sandboxId;
 		this.tableId = tableId;
-		this.databaseTable = Configuration.getInstance().getDatabaseMetadata().getTable(tableName);
+		this.databaseTable = Environment.DB_METADATA.getTable(tableName);
 		this.tablePolicy = this.databaseTable.getTablePolicy();
 
 		this.fkConstraints = new ArrayList<>();

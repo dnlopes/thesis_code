@@ -8,8 +8,7 @@ import common.database.constraints.unique.UniqueConstraint;
 import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
-import common.util.ConnectionFactory;
-import common.util.Environment;
+import common.util.*;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -17,9 +16,6 @@ import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
-import common.Configuration;
 import common.thrift.CoordinatorRequest;
 import common.thrift.CoordinatorResponse;
 import common.thrift.UniqueValue;
@@ -52,13 +48,15 @@ public class ZookeeperBootstrap
 	{
 		if(args.length != 3)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile>");
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <annotationsFile>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
+		String topologyFile = args[0];
+		String environmentFile = args[1];
+		String annotationsFile = args[2];
 
-		Configuration.setupConfiguration(args[0], args[1], args[2]);
-
-		System.setProperty("jute.maxbuffer", "10M");
+		Topology.setupTopology(topologyFile);
+		Environment.setupEnvironment(environmentFile, annotationsFile);
 
 		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap();
 		bootstrap.installExtension();
@@ -68,10 +66,10 @@ public class ZookeeperBootstrap
 
 	public ZookeeperBootstrap() throws IOException, SQLException
 	{
-		this.databaseMetadata = Configuration.getInstance().getDatabaseMetadata();
-		this.zookeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(), SESSION_TIMEOUT, null);
+		this.databaseMetadata = Environment.DB_METADATA;
+		this.zookeeper = new ZooKeeper(Topology.ZOOKEEPER_CONNECTION_STRING, SESSION_TIMEOUT, null);
 		this.ezkClient = new EZKCoordinationClient(this.zookeeper, 1);
-		this.connection = ConnectionFactory.getDefaultConnection(Configuration.getInstance().getReplicatorConfigWithIndex(1));
+		this.connection = ConnectionFactory.getDefaultConnection(Topology.getInstance().getReplicatorConfigWithIndex(1));
 	}
 
 	public void readDatabaseState()

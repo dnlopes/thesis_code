@@ -1,17 +1,16 @@
-package common;
+package common.util;
 
 
-import common.database.util.DatabaseMetadata;
 import common.nodes.NodeConfig;
 import common.nodes.Role;
-import common.util.*;
+import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import common.util.exception.ConfigurationLoadException;
-import common.parser.DDLParser;
-import server.agents.AgentsFactory;
 import server.agents.coordination.zookeeper.EZKCoordinationExtension;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -23,178 +22,53 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 
 
 /**
- * Created by dnlopes on 13/03/15.
+ * Created by dnlopes on 30/10/15.
  */
-public final class Configuration
+public final class Topology
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-	private volatile static boolean IS_CONFIGURED = false;
-	private static Configuration instance;
-
-	public static String ZOOKEEPER_CONNECTION_STRING;
+	private static final Logger LOG = LoggerFactory.getLogger(Topology.class);
 	public static String TOPOLOGY_FILE;
-	public static String DDL_ANNOTATIONS_FILE;
-	public static String ENVIRONMENT_FILE;
+	public static String ZOOKEEPER_CONNECTION_STRING;
+
+	private volatile static boolean IS_CONFIGURED = false;
+	private static Topology instance;
 
 	private Map<Integer, NodeConfig> replicators;
 	private Map<Integer, NodeConfig> proxies;
 	private Map<Integer, NodeConfig> coordinators;
 	private Map<Integer, DatabaseProperties> databases;
-	private DatabaseMetadata databaseMetadata;
 
-	private Configuration(String topologyFile, String annotationsFile, String environmentFile)
+	private Topology(String topologyFile) throws ConfigurationLoadException
 	{
 		if(topologyFile == null)
-			RuntimeUtils.throwRunTimeException("topology file path not set", ExitCode.NOINITIALIZATION);
-		if(annotationsFile == null)
-			RuntimeUtils.throwRunTimeException("annotations file path not set", ExitCode.NOINITIALIZATION);
-		if(environmentFile == null)
-			RuntimeUtils.throwRunTimeException("configs file path not set", ExitCode.NOINITIALIZATION);
+			throw new ConfigurationLoadException("topology file is null");
 
 		TOPOLOGY_FILE = topologyFile;
-		DDL_ANNOTATIONS_FILE = annotationsFile;
-		ENVIRONMENT_FILE = environmentFile;
 
-		loadEnvironment();
-		IS_CONFIGURED = true;
-	}
-
-	public static Configuration getInstance()
-	{
-		return instance;
-	}
-
-	public static synchronized void setupConfiguration(String topologyFile, String annotationsFile, String configsFile)
-	{
-		if(IS_CONFIGURED)
-			LOG.warn("setupConfiguration called twice");
-		else
-			instance = new Configuration(topologyFile, annotationsFile, configsFile);
-	}
-
-	private void loadEnvironment()
-	{
 		this.replicators = new HashMap<>();
 		this.proxies = new HashMap<>();
 		this.coordinators = new HashMap<>();
 		this.databases = new HashMap<>();
 
-		try
-		{
-			if(LOG.isInfoEnabled())
-				LOG.info("loading topology file: {}", TOPOLOGY_FILE);
-			loadTopology();
-			if(LOG.isInfoEnabled())
-				LOG.info("loading annotations file: {}", DDL_ANNOTATIONS_FILE);
-			loadAnnotations();
-			if(LOG.isInfoEnabled())
-				LOG.info("loading environment file: {}", ENVIRONMENT_FILE);
-			loadConfigurations();
-		} catch(ConfigurationLoadException e)
-		{
-			RuntimeUtils.throwRunTimeException("failed to configuration: " + e.getMessage(), ExitCode.XML_ERROR);
-		}
-
-		if(!checkConfig())
-		{
-			LOG.error("environment configuration is not properly set");
-			RuntimeUtils.throwRunTimeException("environment configuration is not properly set", ExitCode.XML_ERROR);
-
-		}
-
-		if(LOG.isInfoEnabled())
-			LOG.info("configuration successfully loaded");
-
-		printEnvironment();
+		loadTopology();
+		IS_CONFIGURED = true;
 	}
 
-	private void printEnvironment()
+	public static Topology getInstance()
 	{
-		if(LOG.isInfoEnabled())
-		{
-			LOG.info("environment:" + EnvironmentDefaults.DATABASE_NAME_VAR + "=" + Environment.DATABASE_NAME);
-			LOG.info(
-					"environment:" + EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR + "=" + Environment
-							.COMMIT_PAD_POOL_SIZE);
-			LOG.info(
-					"environment:" + EnvironmentDefaults.EZK_EXTENSION_CODE_VAR + "=" + Environment
-							.EZK_EXTENSION_CODE);
-			LOG.info(
-					"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
-							.EZK_CLIENTS_POOL_SIZE);
-			LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
-			LOG.info(
-					"environment:" + EnvironmentDefaults.DELIVER_NAME_VAR + "=" + AgentsFactory
-							.getDeliverAgentClassAsString());
-			LOG.info(
-					"environment:" + EnvironmentDefaults.DISPATCHER_NAME_VAR + "=" + AgentsFactory
-							.getDispatcherAgentClassAsString());
-			LOG.info("environment:zookeeper.connection.string=" + ZOOKEEPER_CONNECTION_STRING);
-			LOG.info("topology: {} databases, {} replicators, {} zookeeper nodes", databases.size(), replicators
-							.size(),
-					coordinators.size());
-		}
+		return instance;
 	}
 
-	private void loadConfigurations() throws ConfigurationLoadException
+	public static synchronized void setupTopology(String topologyFile) throws ConfigurationLoadException
 	{
-
-		Properties prop = new Properties();
-
-		try
-		{
-			prop.load(new FileInputStream(ENVIRONMENT_FILE));
-
-			if(prop.containsKey(EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR))
-				Environment.COMMIT_PAD_POOL_SIZE = Integer.parseInt(
-						prop.getProperty(EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR));
-			else
-				Environment.COMMIT_PAD_POOL_SIZE = EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_DEFAULT;
-
-			if(prop.containsKey(EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR))
-				Environment.EZK_CLIENTS_POOL_SIZE = Integer.parseInt(
-						prop.getProperty(EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR));
-			else
-				Environment.EZK_CLIENTS_POOL_SIZE = EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_DEFAULT;
-
-			if(prop.containsKey(EnvironmentDefaults.OPTIMIZE_BATCH_VAR))
-				Environment.OPTIMIZE_BATCH = Boolean.parseBoolean(
-						prop.getProperty(EnvironmentDefaults.OPTIMIZE_BATCH_VAR));
-			else
-				Environment.OPTIMIZE_BATCH = EnvironmentDefaults.OPTIMIZE_BATCH_DEFAULT;
-
-			if(prop.containsKey(EnvironmentDefaults.DISPATCHER_NAME_VAR))
-				Environment.DISPATCHER_AGENT = Integer.parseInt(
-						prop.getProperty(EnvironmentDefaults.DISPATCHER_NAME_VAR));
-			else
-				Environment.DISPATCHER_AGENT = EnvironmentDefaults.DISPATCHER_AGENT_DEFAULT;
-
-			if(prop.containsKey(EnvironmentDefaults.DELIVER_NAME_VAR))
-				Environment.DELIVER_AGENT = Integer.parseInt(prop.getProperty(EnvironmentDefaults.DELIVER_NAME_VAR));
-			else
-				Environment.DELIVER_AGENT = EnvironmentDefaults.DELIVER_AGENT_DEFAULT;
-
-			if(prop.containsKey(EnvironmentDefaults.DATABASE_NAME_VAR))
-				Environment.DATABASE_NAME = prop.getProperty(EnvironmentDefaults.DATABASE_NAME_VAR);
-			else
-				RuntimeUtils.throwRunTimeException("missing mandatory database name parameter in environment file",
-						ExitCode.MISSING_IMPLEMENTATION);
-			if(prop.containsKey(EnvironmentDefaults.EZK_EXTENSION_CODE_VAR))
-				Environment.EZK_EXTENSION_CODE = prop.getProperty(EnvironmentDefaults.EZK_EXTENSION_CODE_VAR);
-			else
-				RuntimeUtils.throwRunTimeException("missing mandatory ezk-extension-code-dir in environment file",
-						ExitCode.MISSING_IMPLEMENTATION);
-
-		} catch(IOException e)
-		{
-			LOG.error("failed to load workload file. Exiting...");
-			System.exit(1);
-		}
+		if(IS_CONFIGURED)
+			LOG.warn("topology configuration already loaded");
+		else
+			instance = new Topology(topologyFile);
 	}
 
 	private void loadTopology() throws ConfigurationLoadException
@@ -205,9 +79,7 @@ public final class Configuration
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
 			InputStream stream = new FileInputStream(TOPOLOGY_FILE);
-			//Document doc = dBuilder.parse(this.getClass().getResourceAsStream(CONFIG_FILE));
 			Document doc = dBuilder.parse(stream);
-			//optional, but recommended
 			doc.getDocumentElement().normalize();
 
 			NodeList rootList = doc.getElementsByTagName("config");
@@ -228,15 +100,6 @@ public final class Configuration
 		{
 			throw new ConfigurationLoadException(e.getMessage());
 		}
-	}
-
-	private void loadAnnotations()
-	{
-		DDLParser parser = new DDLParser(DDL_ANNOTATIONS_FILE);
-		this.databaseMetadata = parser.parseAnnotations();
-
-		if(LOG.isTraceEnabled())
-			LOG.trace("config file successfully loaded");
 	}
 
 	private void parseTopology(Node node)
@@ -405,14 +268,14 @@ public final class Configuration
 		proxies.put(Integer.parseInt(id), newProxy);
 	}
 
-	public NodeConfig getReplicatorConfigWithIndex(int index)
-	{
-		return this.replicators.get(index);
-	}
-
 	public NodeConfig getProxyConfigWithIndex(int index)
 	{
 		return this.proxies.get(index);
+	}
+
+	public NodeConfig getReplicatorConfigWithIndex(int index)
+	{
+		return this.replicators.get(index);
 	}
 
 	public Map<Integer, NodeConfig> getAllReplicatorsConfig()
@@ -420,26 +283,8 @@ public final class Configuration
 		return replicators;
 	}
 
-	public DatabaseMetadata getDatabaseMetadata()
-	{
-		return this.databaseMetadata;
-	}
-
 	public int getReplicatorsCount()
 	{
 		return this.replicators.size();
 	}
-
-	private boolean checkConfig()
-	{
-		return !(this.databases.size() == 0 || this.proxies.size() == 0 || this.replicators.size() == 0 || this
-				.coordinators.size() == 0);
-	}
-
-	public String getZookeeperConnectionString()
-	{
-		return ZOOKEEPER_CONNECTION_STRING;
-	}
-
 }
-

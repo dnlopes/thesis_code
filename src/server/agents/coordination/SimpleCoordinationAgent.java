@@ -4,12 +4,12 @@ package server.agents.coordination;
 import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
+import common.util.Environment;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.util.RuntimeUtils;
-import common.Configuration;
 import common.util.ExitCode;
 import common.thrift.*;
 
@@ -24,7 +24,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleCoordinationAgent.class);
-	private static final DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
+	private static final DatabaseMetadata metadata = Environment.DB_METADATA;
 
 	private final Replicator replicator;
 	private final IDsManager idsManager;

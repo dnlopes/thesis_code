@@ -4,9 +4,11 @@ package applications.tpcc;
 import applications.Emulator;
 import applications.Workload;
 import common.nodes.NodeConfig;
+import common.util.Environment;
+import common.util.Topology;
+import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.Configuration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,22 +24,23 @@ public class TpccBenchmark
 	private static final Logger LOG = LoggerFactory.getLogger(TpccBenchmark.class);
 	private static final String BENCHMARK_NAME = "TPCC Benchmark";
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws ConfigurationLoadException
 	{
-		if(args.length != 8)
+		if(args.length != 7)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> <workloadFile> <proxyId> " +
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <proxyId> " +
 					"<numberClients> " +
 					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
 		}
 
 		String topologyFile = args[0];
-		String annotationsFile = args[1];
 		String environmentFile = args[2];
 		String workloadFile = args[3];
 
-		Configuration.setupConfiguration(topologyFile, annotationsFile, environmentFile);
+		Topology.setupTopology(topologyFile);
+		Environment.setupEnvironment(environmentFile);
+
 		loadWorkloadFile(workloadFile);
 
 		int proxyId = Integer.parseInt(args[4]);
@@ -46,7 +49,7 @@ public class TpccBenchmark
 		String jdbc = args[7];
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
-		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+		NodeConfig nodeConfig = Topology.getInstance().getProxyConfigWithIndex(proxyId);
 
 		Workload workload = new TpccWorkload();
 

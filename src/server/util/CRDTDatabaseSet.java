@@ -6,7 +6,7 @@ import common.database.util.DatabaseMetadata;
 import common.database.util.ExecutionPolicy;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
-import common.Configuration;
+import common.util.Environment;
 import common.util.defaults.DatabaseDefaults;
 import common.thrift.CRDTOperation;
 
@@ -19,7 +19,7 @@ import java.util.*;
 public class CRDTDatabaseSet
 {
 
-	private static final DatabaseMetadata METADATA = Configuration.getInstance().getDatabaseMetadata();
+	private static final DatabaseMetadata METADATA = Environment.DB_METADATA;
 
 	public static String[] insertRow(CRDTOperation op, String clock)
 	{

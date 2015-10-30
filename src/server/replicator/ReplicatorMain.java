@@ -1,8 +1,10 @@
 package server.replicator;
 
 
+import common.util.Environment;
 import common.util.ExitCode;
-import common.Configuration;
+import common.util.Topology;
+import common.util.exception.ConfigurationLoadException;
 
 
 /**
@@ -11,7 +13,7 @@ import common.Configuration;
 public class ReplicatorMain
 {
 
-	public static void main(String args[])
+	public static void main(String args[]) throws ConfigurationLoadException
 	{
 		if(args.length != 4)
 		{
@@ -25,9 +27,11 @@ public class ReplicatorMain
 		String environmentFile = args[2];
 		int id = Integer.parseInt(args[3]);
 
-		Configuration.setupConfiguration(topologyFile, annotationsFile, environmentFile);
+		Topology.setupTopology(topologyFile);
+		Environment.setupEnvironment(environmentFile, annotationsFile);
 
-		Replicator replicator = new Replicator(Configuration.getInstance().getReplicatorConfigWithIndex(id));
+
+		Replicator replicator = new Replicator(Topology.getInstance().getReplicatorConfigWithIndex(id));
 	}
 
 }

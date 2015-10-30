@@ -5,13 +5,10 @@ import common.database.constraints.unique.AutoIncrementConstraint;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.nodes.NodeConfig;
-import common.util.ConnectionFactory;
+import common.util.*;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
-import common.Configuration;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -61,7 +58,7 @@ public class IDsManager
 		if(LOG.isTraceEnabled())
 			LOG.trace("bootstraping id generators for auto increment fields");
 
-		for(DatabaseTable table : Configuration.getInstance().getDatabaseMetadata().getAllTables())
+		for(DatabaseTable table : Environment.DB_METADATA.getAllTables())
 		{
 			for(AutoIncrementConstraint autoIncrementConstraint : table.getAutoIncrementConstraints())
 				if(!autoIncrementConstraint.requiresCoordination())
@@ -79,8 +76,7 @@ public class IDsManager
 				LOG.warn("ids generator already created. Silently ignored");
 			return;
 		}
-
-		IDGenerator newGenerator = new IDGenerator(field, config, Configuration.getInstance().getReplicatorsCount());
+		IDGenerator newGenerator = new IDGenerator(field, config, Topology.getInstance().getReplicatorsCount());
 
 		this.idsGenerators.put(key, newGenerator);
 

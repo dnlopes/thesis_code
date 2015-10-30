@@ -1,4 +1,5 @@
 dbname=tpcc
+ddl-file=/local/dp.lopes/deploy/annotations/tpcc_ddl_sequential_ids.sql
 ezk-client-pool-size=50
 commit-pool-size=50
 optimize-batch=true

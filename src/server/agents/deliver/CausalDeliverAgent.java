@@ -1,11 +1,11 @@
 package server.agents.deliver;
 
 
+import common.util.Topology;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
-import common.Configuration;
 import common.thrift.CRDTCompiledTransaction;
 import common.thrift.ThriftShadowTransaction;
 
@@ -44,7 +44,7 @@ public class CausalDeliverAgent implements DeliverAgent
 
 	private void setup()
 	{
-		int replicatorsNumber = Configuration.getInstance().getAllReplicatorsConfig().size();
+		int replicatorsNumber = Topology.getInstance().getReplicatorsCount();
 
 		for(int i = 0; i < replicatorsNumber; i++)
 		{

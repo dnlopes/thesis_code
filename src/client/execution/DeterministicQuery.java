@@ -1,6 +1,7 @@
 package client.execution;
 
 
+import common.util.Environment;
 import common.util.RuntimeUtils;
 import common.database.util.*;
 import common.database.field.DataField;
@@ -20,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import applications.util.SymbolsManager;
 import common.util.ExitCode;
-import common.Configuration;
 import common.util.defaults.DatabaseDefaults;
 
 import java.io.StringReader;
@@ -45,7 +45,8 @@ import java.util.Set;
 public class DeterministicQuery
 {
 
-	private static final DatabaseMetadata DB_METADATA = Configuration.getInstance().getDatabaseMetadata();
+	private static final DatabaseMetadata DB_METADATA = Environment.DB_METADATA;
+
 	private static final Logger LOG = LoggerFactory.getLogger(DeterministicQuery.class);
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	private static final String NULL_VALUE = "NULL";

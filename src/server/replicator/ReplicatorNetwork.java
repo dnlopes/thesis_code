@@ -4,6 +4,7 @@ package server.replicator;
 import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
 import common.util.Environment;
+import common.util.Topology;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -13,8 +14,6 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import common.Configuration;
 
 import common.util.ObjectPool;
 import common.thrift.*;
@@ -43,7 +42,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		this.clientsCount = 0;
 		this.ezkClientsPool = new ObjectPool<>();
 
-		for(NodeConfig replicatorConfig : Configuration.getInstance().getAllReplicatorsConfig().values())
+		for(NodeConfig replicatorConfig : Topology.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 
@@ -142,7 +141,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		ZooKeeper zooKeeper;
 		try
 		{
-			zooKeeper = new ZooKeeper(Configuration.getInstance().getZookeeperConnectionString(),
+			zooKeeper = new ZooKeeper(Topology.ZOOKEEPER_CONNECTION_STRING,
 					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
 		} catch(IOException e)
 		{

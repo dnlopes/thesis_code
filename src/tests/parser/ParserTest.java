@@ -1,8 +1,9 @@
 package tests.parser;
 
 
-import common.Configuration;
 import common.database.util.DatabaseMetadata;
+import common.util.Environment;
+
 
 /**
  * Created by dnlopes on 06/03/15.
@@ -16,7 +17,7 @@ public class ParserTest
 	public static void main(String args[])
 	{
 		System.setProperty("configPath", SCHEMA_FILE);
-		DatabaseMetadata metadata = Configuration.getInstance().getDatabaseMetadata();
+		DatabaseMetadata metadata = Environment.DB_METADATA;
 
 		int a = 0;
 	}

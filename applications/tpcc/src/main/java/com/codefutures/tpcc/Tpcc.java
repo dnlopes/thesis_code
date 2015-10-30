@@ -18,9 +18,9 @@ import com.codefutures.tpcc.stats.PerSecondStatistics;
 import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 
-import common.Configuration;
 import common.nodes.NodeConfig;
 import common.util.DatabaseProperties;
+import common.util.Topology;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -223,7 +223,7 @@ public class Tpcc implements TpccConstants
 		int proxyId = Integer.parseInt(System.getProperty("proxyid"));
 		this.proxyId = proxyId;
 
-		NodeConfig nodeConfig = Configuration.getInstance().getProxyConfigWithIndex(proxyId);
+		NodeConfig nodeConfig = Topology.getInstance().getProxyConfigWithIndex(proxyId);
 		boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 		DatabaseProperties dbProperties = nodeConfig.getDbProps();
 
