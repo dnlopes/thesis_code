@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from sets import Set
 import logging
 import shlex
+import utils as utils
 
 logger = logging.getLogger('globalVar_logger')
 logger.setLevel(logging.DEBUG)
@@ -11,12 +12,14 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+IS_LOADED = False
 
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
-################################################################################################		
+################################################################################################
 #user='dp.lopes'
 user='dnl'
+
 #ENVIRONMENT='fct'
 ENVIRONMENT='localhost'
 #ENVIRONMENT='amazon'
@@ -33,9 +36,13 @@ FILES_PREFIX=''
 ################################################################################################
 #   PREFIXS AND GLOBAL VARIABLES
 ################################################################################################
-ZOOKEEPER_PORT='2181'
+ZOOKEEPER_CLIENT_PORT='2181'
+ZOOKEEPER_PORT1 ='2888'
+ZOOKEEPER_PORT2 ='3888'
 ZOOKEEPER_CFG_FILE='zoo.cfg'
-  
+ZOOKEEPER_CONNECTION_STRING = ''
+ZOOKEEPER_SERVERS_STRING = ''
+
 MYSQL_PORT='3306'
 TOTAL_USERS=0
 JDCB=''
@@ -94,65 +101,68 @@ coordinatorsIdToPortMap = dict()
 ################################################################################################
 
 # receives full path for config file
-def parseConfigFile(configFile):
-    logger.info('parsing config file: %s', configFile)
-    e = ET.parse(configFile).getroot()
-    distinctNodesSet = Set()
-    #distinctNodesSet.add(emulators_nodes[0])
-    global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
-    global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes
+def parseTopologyFile(topologyFile):
+	logger.info('parsing topology file: %s', topologyFile)
+	e = ET.parse(topologyFile).getroot()
+	distinctNodesSet = Set()
+	#distinctNodesSet.add(emulators_nodes[0])
+	global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
+	global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes
 
-    distinct_nodes = []
-    database_nodes = []
-    replicators_nodes = []
-    coordinators_nodes = []
-    emulators_nodes = []
-    database_map = dict()
-    replicators_map = dict()
-    coordinators_map = dict()
-    emulators_map = dict()
-    replicatorsIdToPortMap = dict()
-    coordinatorsIdToPortMap = dict()
+	distinct_nodes = []
+	database_nodes = []
+	replicators_nodes = []
+	coordinators_nodes = []
+	emulators_nodes = []
+	database_map = dict()
+	replicators_map = dict()
+	coordinators_map = dict()
+	emulators_map = dict()
+	replicatorsIdToPortMap = dict()
+	coordinatorsIdToPortMap = dict()
 
-    for database in e.iter('database'):
-        dbId = database.get('id')
-        dbHost = database.get('dbHost')
-        database_nodes.append(dbHost)
-        distinctNodesSet.add(dbHost)
-        database_map[dbHost] = dbId   
+	for database in e.iter('database'):
+		dbId = database.get('id')
+		dbHost = database.get('dbHost')
+		database_nodes.append(dbHost)
+		distinctNodesSet.add(dbHost)
+		database_map[dbHost] = dbId
 
-    for replicator in e.iter('replicator'):
-        replicatorId = replicator.get('id')
-        host = replicator.get('host')
-        port = replicator.get('port')
-        replicators_nodes.append(host)
-        distinctNodesSet.add(host)
-        replicatorsIdToPortMap[replicatorId] = port
-        replicators_map[host] = replicatorId   
+	for replicator in e.iter('replicator'):
+		replicatorId = replicator.get('id')
+		host = replicator.get('host')
+		port = replicator.get('port')
+		replicators_nodes.append(host)
+		distinctNodesSet.add(host)
+		replicatorsIdToPortMap[replicatorId] = port
+		replicators_map[host] = replicatorId
 
-    for proxy in e.iter('proxy'):
-        proxyId = proxy.get('id')
-        host = proxy.get('host')
-        port = proxy.get('port')
-        emulators_nodes.append(host)
-        distinctNodesSet.add(host)
+	for proxy in e.iter('proxy'):
+		proxyId = proxy.get('id')
+		host = proxy.get('host')
+		port = proxy.get('port')
+		emulators_nodes.append(host)
+		distinctNodesSet.add(host)
 
-    for coordinator in e.iter('coordinator'):
-        coordinatorId = coordinator.get('id')
-        port = coordinator.get('port')
-        host = coordinator.get('host')        
-        coordinators_nodes.append(host)    
-        distinctNodesSet.add(host) 
-        coordinators_map[host] = coordinatorId   
-        coordinatorsIdToPortMap[coordinatorId] = port      
+	for coordinator in e.iter('coordinator'):
+		coordinatorId = coordinator.get('id')
+		port = coordinator.get('port')
+		host = coordinator.get('host')
+		coordinators_nodes.append(host)
+		distinctNodesSet.add(host)
+		coordinators_map[host] = coordinatorId
+		coordinatorsIdToPortMap[coordinatorId] = port
 
-    distinct_nodes = list(distinctNodesSet)
+	distinct_nodes = list(distinctNodesSet)
 
-    logger.info('Databases: %s', database_nodes)    
-    logger.info('Coordinators: %s', coordinators_nodes)
-    logger.info('Replicators: %s', replicators_nodes)
-    logger.info('Emulators: %s', emulators_nodes)
-    logger.info('Distinct nodes: %s', distinct_nodes)
+	logger.info('Databases: %s', database_nodes)
+	logger.info('Coordinators: %s', coordinators_nodes)
+	logger.info('Replicators: %s', replicators_nodes)
+	logger.info('Emulators: %s', emulators_nodes)
+	logger.info('Distinct nodes: %s', distinct_nodes)
+
+	utils.generateZookeeperConnectionString()
+	IS_LOADED = True
 
 
 
