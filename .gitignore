@@ -18,5 +18,5 @@ experiments/final_results/
 scripts/*.pyc
 # IDE
 *.iml
-.idea/*
+**/*.idea
 scripts/*.sublime-workspace

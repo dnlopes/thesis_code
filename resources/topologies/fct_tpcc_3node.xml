@@ -7,7 +7,7 @@
 			<database id="3" dbHost="node3" dbPort="3306" dbUser="sa" dbPwd="101010" />
 		</databases>
 		<coordinators>
-			<coordinator id="1" host="node6" port="50020" refDatabase="1" />
+			<coordinator id="1" host="node6"/>
 		</coordinators>
 		<replicators>
 			<replicator id="1" host="node1" port="50000" refDatabase="1" />
@@ -15,9 +15,9 @@
 			<replicator id="3" host="node3" port="50002" refDatabase="3" />
 		</replicators>
 		<proxies>
-			<proxy id="1" host="node4" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
-			<proxy id="2" host="node4" port="50011" refDatabase="2" refReplicator="2" refCoordinator="1" />
-			<proxy id="3" host="node4" port="50012" refDatabase="3" refReplicator="3" refCoordinator="1" />
+			<proxy id="1" host="node4" port="50010" refDatabase="1" refReplicator="1"/>
+			<proxy id="2" host="node4" port="50011" refDatabase="2" refReplicator="2"/>
+			<proxy id="3" host="node4" port="50012" refDatabase="3" refReplicator="3"/>
 		</proxies>
 	</topology>
 </config>

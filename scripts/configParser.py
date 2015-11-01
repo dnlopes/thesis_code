@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 from sets import Set
 import logging
-import shlex
 import utils as utils
 
 logger = logging.getLogger('globalVar_logger')
@@ -17,6 +16,7 @@ IS_LOADED = False
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
+
 #user='dp.lopes'
 user='dnl'
 
@@ -45,7 +45,7 @@ ZOOKEEPER_SERVERS_STRING = ''
 
 MYSQL_PORT='3306'
 TOTAL_USERS=0
-JDCB=''
+JDBC=''
 
 ACTIVE_EXPERIMENT=""
 prefix_latency_throughput_experiment = "latency-throughput"
@@ -75,6 +75,7 @@ PROJECT_DIR = HOME_DIR + '/code'
 JARS_DIR = PROJECT_DIR + '/dist/jars'
 EXPERIMENTS_DIR = PROJECT_DIR + '/experiments'
 ZOOKEEPER_DATA_DIR = BASE_DIR + '/zookeeper'
+
 ################################################################################################
 #	DATA STRUCTURES
 ################################################################################################
@@ -105,7 +106,7 @@ def parseTopologyFile(topologyFile):
 	logger.info('parsing topology file: %s', topologyFile)
 	e = ET.parse(topologyFile).getroot()
 	distinctNodesSet = Set()
-	#distinctNodesSet.add(emulators_nodes[0])
+
 	global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
 	global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes
 
@@ -162,6 +163,7 @@ def parseTopologyFile(topologyFile):
 	logger.info('Distinct nodes: %s', distinct_nodes)
 
 	utils.generateZookeeperConnectionString()
+	global IS_LOADED
 	IS_LOADED = True
 
 

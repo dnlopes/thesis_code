@@ -1,9 +1,5 @@
-import time
 import sys
 import logging
-import subprocess, signal
-import os
-import plots
 import configParser as config
 
 logger = logging.getLogger('utils')
@@ -14,47 +10,52 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+
 def lineContainsExpression(line, expression):
-	if expression in line:
-		return True
-	else:
-		return False
+    if expression in line:
+        return True
+    else:
+        return False
+
 
 def fabOutputContainsExpression(fabOutput, expression):
-	for line in fabOutput.iteritems():
-		if lineContainsExpression(line, expression):
-			return True
+    for line in fabOutput.iteritems():
+        if lineContainsExpression(line, expression):
+            return True
 
-	return False
+    return False
+
 
 def generateClusterAddress():
-	checkTopologyIsLoaded()
-	clusterAddress = "gcomm://"
-	for i in range(len(config.database_nodes)):
-		nodeName = config.database_nodes[i]
-		clusterAddress += nodeName
+    checkTopologyIsLoaded()
+    clusterAddress = "gcomm://"
+    for i in range(len(config.database_nodes)):
+        nodeName = config.database_nodes[i]
+        clusterAddress += nodeName
 
-		if i < len(config.database_nodes) - 1:
-			clusterAddress += ","
+        if i < len(config.database_nodes) - 1:
+            clusterAddress += ","
 
-	return clusterAddress
+    return clusterAddress
+
 
 def generateZookeeperConnectionString():
-	connectionString = ''
-	serversString = ''
+    connectionString = ''
+    serversString = ''
 
-	for i in range(len(config.coordinators_nodes)):
-		nodeName = config.coordinators_nodes[i]
-		connectionString += '{}:{}'.format(nodeName,config.ZOOKEEPER_CLIENT_PORT)
-		serversString += 'server.{}={}:{}:{}\n'.format(i,nodeName,config.ZOOKEEPER_PORT1,config.ZOOKEEPER_PORT2)
+    for i in range(len(config.coordinators_nodes)):
+        nodeName = config.coordinators_nodes[i]
+        connectionString += '{}:{}'.format(nodeName, config.ZOOKEEPER_CLIENT_PORT)
+        serversString += 'server.{}={}:{}:{}\n'.format(i + 1, nodeName, config.ZOOKEEPER_PORT1, config.ZOOKEEPER_PORT2)
 
-	if connectionString.endswith(','):
-		connectionString = connectionString[:-1]
+    if connectionString.endswith(','):
+        connectionString = connectionString[:-1]
 
-	config.ZOOKEEPER_CONNECTION_STRING = connectionString
-	config.ZOOKEEPER_SERVERS_STRING = serversString
+    config.ZOOKEEPER_CONNECTION_STRING = connectionString
+    config.ZOOKEEPER_SERVERS_STRING = serversString
+
 
 def checkTopologyIsLoaded():
-	if not config.IS_LOADED:
-		logger.error('topology file is not loaded')
-		sys.exit()
+    if not config.IS_LOADED:
+        logger.error('topology file is not loaded')
+        sys.exit()

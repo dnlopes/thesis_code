@@ -6,6 +6,7 @@ import common.parser.DDLParser;
 import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.agents.AgentsFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class Environment
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
+		printEnvironment();
 	}
 
 	private Environment(String envFile, String annotationsFile) throws ConfigurationLoadException
@@ -56,17 +58,38 @@ public class Environment
 			throw new ConfigurationLoadException("ddl annotations file is null");
 
 		ENVIRONMENT_FILE = envFile;
-		loadConfigurations(false);
-
 		DDL_ANNOTATIONS_FILE = annotationsFile;
+
+		loadConfigurations(false);
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
+		printEnvironment();
 	}
 
 	public static Environment getInstance()
 	{
 		return instance;
+	}
+
+	private static void printEnvironment()
+	{
+		LOG.info("environment:" + EnvironmentDefaults.DATABASE_NAME_VAR + "=" + Environment.DATABASE_NAME);
+		LOG.info("environment:" + EnvironmentDefaults.DDL_FILE_VAR + "=" + Environment.DDL_ANNOTATIONS_FILE);
+		LOG.info(
+				"environment:" + EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR + "=" + Environment
+						.COMMIT_PAD_POOL_SIZE);
+		LOG.info("environment:" + EnvironmentDefaults.EZK_EXTENSION_CODE_VAR + "=" + Environment.EZK_EXTENSION_CODE);
+		LOG.info(
+				"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
+						.EZK_CLIENTS_POOL_SIZE);
+		LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
+		LOG.info(
+				"environment:" + EnvironmentDefaults.DELIVER_NAME_VAR + "=" + AgentsFactory
+						.getDeliverAgentClassAsString());
+		LOG.info(
+				"environment:" + EnvironmentDefaults.DISPATCHER_NAME_VAR + "=" + AgentsFactory
+						.getDispatcherAgentClassAsString());
 	}
 
 	public static synchronized void setupEnvironment(String envFile) throws ConfigurationLoadException
@@ -75,6 +98,7 @@ public class Environment
 			LOG.warn("environment configuration already loaded");
 		else
 			instance = new Environment(envFile);
+
 	}
 
 	public static synchronized void setupEnvironment(String envFile, String annotationsFile)
@@ -86,7 +110,7 @@ public class Environment
 			instance = new Environment(envFile, annotationsFile);
 	}
 
-	private void loadConfigurations(boolean requiresAnnotationsFile) throws ConfigurationLoadException
+	private void loadConfigurations(boolean lookForAnnotationsFile) throws ConfigurationLoadException
 	{
 		if(ENVIRONMENT_FILE == null)
 			throw new ConfigurationLoadException("environment file not set");
@@ -137,7 +161,7 @@ public class Environment
 			else
 				throw new ConfigurationLoadException("missing mandatory 'ezk-extension-code-dir' in environment file");
 
-			if(requiresAnnotationsFile)
+			if(lookForAnnotationsFile)
 			{
 				if(prop.containsKey(EnvironmentDefaults.DDL_FILE_VAR))
 					Environment.DDL_ANNOTATIONS_FILE = prop.getProperty(Environment.EnvironmentDefaults.DDL_FILE_VAR);
