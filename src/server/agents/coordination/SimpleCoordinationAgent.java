@@ -47,6 +47,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		}
 
 		CoordinatorRequest request = transaction.getRequestToCoordinator();
+		LOG.info("sending request to zookeeper cluster");
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(response.isSuccess())
@@ -56,8 +57,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		} else
 		{
 			transaction.setReadyToCommit(false);
-			if(LOG.isWarnEnabled())
-				LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+			LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
 		}
 	}
 

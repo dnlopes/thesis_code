@@ -41,14 +41,6 @@ public class DBCommitterAgent implements DBCommitter
 	@Override
 	public boolean commitShadowTransaction(CRDTCompiledTransaction txn)
 	{
-
-		if(this.collector.getCommitsCounter() % Defaults.LOG_FREQUENCY == 0)
-			if(LOG.isInfoEnabled())
-				LOG.info("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
-
-		if(LOG.isTraceEnabled())
-			LOG.trace("commiting op from replicator {}", txn.getReplicatorId());
-
 		int tries = 0;
 
 		while(true)

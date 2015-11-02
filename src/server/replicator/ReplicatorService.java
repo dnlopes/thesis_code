@@ -59,9 +59,6 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		LogicalClock newClock = this.replicator.getNextClock();
 
-		if(LOG.isTraceEnabled())
-			LOG.trace("new clock assigned: {}", newClock.getClockValue());
-
 		transaction.setReplicatorId(this.replicatorId);
 		transaction.setTxnClock(newClock.getClockValue());
 
@@ -96,8 +93,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private void handleReceiveBatch(List<CRDTCompiledTransaction> batch)
 	{
-		if(LOG.isTraceEnabled())
-			LOG.trace("received batch from other replicator");
+		LOG.info("received txn batch from remote node (size {})", batch.size());
 
 		for(CRDTCompiledTransaction txn : batch)
 			this.deliver.deliverTransaction(txn);

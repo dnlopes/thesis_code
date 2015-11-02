@@ -109,6 +109,9 @@ public class Replicator extends AbstractNode
 			pad = new DBCommitterAgent(this.config, this.statsCollector);
 		}
 
+		if(this.statsCollector.getCommitsCounter() % DBCommitter.Defaults.LOG_FREQUENCY == 0)
+			LOG.info("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
+
 		boolean commitDecision = pad.commitShadowTransaction(txn);
 
 		if(!commitDecision)

@@ -24,7 +24,7 @@ public class BatchDispatcher implements DispatcherAgent
 {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(BatchDispatcher.class);
-	private static final int THREAD_WAKEUP_INTERVAL = 500;
+	private static final int THREAD_WAKEUP_INTERVAL = 2000;
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
@@ -59,6 +59,7 @@ public class BatchDispatcher implements DispatcherAgent
 
 			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
 
+			LOG.info("sending txn batch (size {}) to remote nodes", batch.size());
 			networkInterface.sendBatchToRemote(batch);
 		}
 
