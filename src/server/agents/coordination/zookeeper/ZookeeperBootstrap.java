@@ -9,6 +9,7 @@ import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.util.*;
+import common.util.defaults.DatabaseDefaults;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -46,30 +47,34 @@ public class ZookeeperBootstrap
 
 	public static void main(String args[]) throws Exception
 	{
-		if(args.length != 3)
+		if(args.length != 4)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <annotationsFile>");
+			LOG.error("usage: java -jar <jarfile> <environmentFile> <zookeeperHost> <databaseHost> <databaseName>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
-		String topologyFile = args[0];
-		String environmentFile = args[1];
-		String annotationsFile = args[2];
 
-		Topology.setupTopology(topologyFile);
-		Environment.setupEnvironment(environmentFile, annotationsFile);
+		String environmentFile = args[0];
+		String zookeeperHost = args[1];
+		String databaseHost = args[2];
+		String dbName= args[3];
 
-		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap();
+		Environment.setupEnvironment(environmentFile);
+
+		ZookeeperBootstrap bootstrap = new ZookeeperBootstrap(zookeeperHost, databaseHost, dbName);
 		bootstrap.installExtension();
 		bootstrap.readDatabaseState();
 		bootstrap.exitGracefully();
 	}
 
-	public ZookeeperBootstrap() throws IOException, SQLException
+	public ZookeeperBootstrap(String zookeeperHost, String databaseHost, String dbName) throws IOException, SQLException
 	{
 		this.databaseMetadata = Environment.DB_METADATA;
-		this.zookeeper = new ZooKeeper(Topology.ZOOKEEPER_CONNECTION_STRING, SESSION_TIMEOUT, null);
+		this.zookeeper = new ZooKeeper(zookeeperHost, SESSION_TIMEOUT, null);
 		this.ezkClient = new EZKCoordinationClient(this.zookeeper, 1);
-		this.connection = ConnectionFactory.getDefaultConnection(Topology.getInstance().getReplicatorConfigWithIndex(1));
+		DatabaseProperties props = new DatabaseProperties(DatabaseDefaults.DEFAULT_USER, DatabaseDefaults
+				.DEFAULT_PASSWORD, databaseHost, DatabaseDefaults.DEFAULT_MYSQL_PORT);
+
+		this.connection = ConnectionFactory.getDefaultConnection(props, dbName);
 	}
 
 	public void readDatabaseState()

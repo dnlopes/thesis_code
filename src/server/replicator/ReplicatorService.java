@@ -1,7 +1,7 @@
 package server.replicator;
 
 
-import common.util.ThriftUtils;
+import common.thrift.ThriftUtils;
 import server.agents.coordination.CoordinationAgent;
 import server.agents.dispatcher.DispatcherAgent;
 import server.agents.deliver.DeliverAgent;

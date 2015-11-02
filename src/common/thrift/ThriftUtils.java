@@ -1,10 +1,5 @@
-package common.util;
+package common.thrift;
 
-
-import common.thrift.CRDTCompiledTransaction;
-import common.thrift.CRDTOperation;
-import common.thrift.CRDTTransaction;
-import common.thrift.CoordinatorRequest;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;

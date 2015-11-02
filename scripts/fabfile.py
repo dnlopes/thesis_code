@@ -130,7 +130,7 @@ def startCoordinators():
     return '1'
 
 
-@parallel
+#@parallel
 def startReplicators(configFile):
     currentId = config.replicators_map.get(env.host_string)
     port = config.replicatorsIdToPortMap.get(currentId)
