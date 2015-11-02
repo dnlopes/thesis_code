@@ -508,21 +508,26 @@ public class DBExecutorAgent implements IExecutorAgent
 		crdtOperation.setOpId(transaction.getOpsListSize());
 
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("(SELECT ");
+		buffer.append("SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(deleteOp.getTable().toString());
-		this.helper.buildWhereClause(buffer, deleteOp.getWhere());
+		this.helper.buildWhereClause(buffer, deleteOp.getWhere(), true);
+
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
 			this.helper.generateNotInDeletedAndUpdatedClause(buffer);
+			buffer.append(")");
 		}
-		buffer.append(") UNION (SELECT ");
+		else
+			buffer.append(")");
+
+		buffer.append(" UNION SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		this.helper.buildWhereClause(buffer, deleteOp.getWhere());
+		this.helper.buildWhereClause(buffer, deleteOp.getWhere(), true);
 		buffer.append(")");
 		String query = buffer.toString();
 
@@ -708,7 +713,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			return "(" + clause + ")";
 		}
 
-		protected void buildWhereClause(StringBuilder buffer, Expression e)
+		protected void buildWhereClause(StringBuilder buffer, Expression e, boolean closeClause)
 		{
 			if(e == null)
 			{
@@ -716,7 +721,8 @@ public class DBExecutorAgent implements IExecutorAgent
 				{
 					buffer.append(WHERE);
 					buffer.append(encloseWhereClauseWithBrackets(NOT_DELETED_EXPRESSION));
-					buffer.append(")");
+					if(closeClause)
+						buffer.append(")");
 				}
 			} else
 			{
@@ -729,7 +735,8 @@ public class DBExecutorAgent implements IExecutorAgent
 					buffer.append(encloseWhereClauseWithBrackets(NOT_DELETED_EXPRESSION));
 				}
 
-				buffer.append(")");
+				if(closeClause)
+					buffer.append(")");
 			}
 		}
 
@@ -745,19 +752,19 @@ public class DBExecutorAgent implements IExecutorAgent
 		private void addMissingRowsToScratchpad(Update updateOp) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
-			buffer.append("(SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
+			buffer.append("SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
 			buffer.append(updateOp.getTables().get(0).toString());
-			buildWhereClause(buffer, updateOp.getWhere());
-			//buffer.append(") UNION (select *, '" + this.tempTableName + "' as tname FROM ");
-			buffer.append(" AND ");
-			buffer.append(DatabaseDefaults.DELETED_COLUMN);
-			buffer.append("=0) UNION (select *, '" + tempTableName + "' as tname FROM ");
+			buildWhereClause(buffer, updateOp.getWhere(), true);
+			//buffer.append(" AND ");
+			//buffer.append(DatabaseDefaults.DELETED_COLUMN);
+			buffer.append(" UNION select *, '" + tempTableName + "' as tname FROM ");
+			//buffer.append("=0) UNION select *, '" + tempTableName + "' as tname FROM ");
 			buffer.append(tempTableName);
-			buildWhereClause(buffer, updateOp.getWhere());
+			buildWhereClause(buffer, updateOp.getWhere(), true);
 			//buffer.append(");");
-			buffer.append(" AND ");
-			buffer.append(DatabaseDefaults.DELETED_COLUMN);
-			buffer.append("=0)");
+			//buffer.append(" AND ");
+		//	buffer.append(DatabaseDefaults.DELETED_COLUMN);
+		//	buffer.append("=0)");
 
 			ResultSet res = null;
 			try

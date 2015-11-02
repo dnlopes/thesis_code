@@ -240,7 +240,6 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
     logger.info('>> JDBC: %s', config.JDBC)
     logger.info('>> OUTPUT DIR: %s', outputDir)
     logger.info('>> WORKLOAD FILE: %s', config.TPCC_WORKLOAD_FILE)
-    logger.info('>> ANNOTATION FILE: %s', config.ANNOTATION_FILE)
     logger.info('>> ENVIRONMENT FILE: %s', config.ENVIRONMENT_FILE)
     logger.info("################################################################################################################################")
     print "\n"

@@ -15,20 +15,19 @@ public class ReplicatorMain
 
 	public static void main(String args[]) throws ConfigurationLoadException
 	{
-		if(args.length != 4)
+		if(args.length != 3)
 		{
-			System.err.print("usage: java -jar <jarfile> <topologyFile> <annotationsFile> <environmentFile> " +
+			System.err.print("usage: java -jar <jarfile> <topologyFile> <environmentFile> " +
 					"<id>");
 			System.exit(ExitCode.WRONG_ARGUMENTS_NUMBER);
 		}
 
 		String topologyFile = args[0];
-		String annotationsFile = args[1];
-		String environmentFile = args[2];
-		int id = Integer.parseInt(args[3]);
+		String environmentFile = args[1];
+		int id = Integer.parseInt(args[2]);
 
 		Topology.setupTopology(topologyFile);
-		Environment.setupEnvironment(environmentFile, annotationsFile);
+		Environment.setupEnvironment(environmentFile);
 
 		Replicator replicator = new Replicator(Topology.getInstance().getReplicatorConfigWithIndex(id));
 	}
