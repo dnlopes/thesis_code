@@ -135,10 +135,13 @@ def startReplicators(configFile):
     currentId = config.replicators_map.get(env.host_string)
     port = config.replicatorsIdToPortMap.get(currentId)
     logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
-    command = 'java -Xms4000m -Xmx8000m -jar replicator.jar ' + configFile + ' ' + str(
+    jarFile = 'replicator.jar'
+
+    command = 'java -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ANNOTATION_FILE + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
         currentId) + ' > ' + logFile + ' &'
     if config.IS_LOCALHOST:
-        command = 'java -jar replicator.jar ' + configFile + ' ' + str(currentId) + ' > ' + logFile + ' &'
+        command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ANNOTATION_FILE + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
+        currentId) + ' > ' + logFile + ' &'
 
     logger.info('starting replicator at %s', env.host_string)
     logger.info('%s', command)
@@ -160,7 +163,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
         command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(
             usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
         if config.IS_LOCALHOST:
-            command = 'java -jar tpcc-client.jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(
+            command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + str(currentId) + ' ' + str(
                 usersPerProxy) + ' ' + useCustomJDBC + ' ' + str(config.TPCC_TEST_TIME) + ' > ' + logFile + ' &'
 
         logger.info('starting emulator %s with %s users', currentId, usersPerProxy)

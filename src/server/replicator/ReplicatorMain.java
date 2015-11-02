@@ -30,7 +30,6 @@ public class ReplicatorMain
 		Topology.setupTopology(topologyFile);
 		Environment.setupEnvironment(environmentFile, annotationsFile);
 
-
 		Replicator replicator = new Replicator(Topology.getInstance().getReplicatorConfigWithIndex(id));
 	}
 
