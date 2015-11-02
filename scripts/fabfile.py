@@ -160,10 +160,10 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
     for y in xrange(1, proxiesNumber + 1):
         currentId = str(y)
         logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
-        command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
+        command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.TPCC_WORKLOAD_FILE + \
                   ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + config.JDBC + ' > ' + logFile + ' &'
         if config.IS_LOCALHOST:
-            command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
+            command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.TPCC_WORKLOAD_FILE + \
                   ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + config.JDBC + ' > ' + logFile + ' &'
 
         logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
@@ -178,9 +178,8 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 
 def distributeCode():
     with cd(config.BASE_DIR), hide('output', 'running'), settings(warn_only=True):
-        run('mkdir -p ' + config.DEPLOY_DIR + '/src')
         run('rm -rf ' + config.DEPLOY_DIR + '/*')
-        run('mkdir -p ' + config.DEPLOY_DIR)
+        run('mkdir -p ' + config.DEPLOY_DIR + '/src')
         put(config.JARS_DIR + '/*.jar', config.DEPLOY_DIR)
         put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
         put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')

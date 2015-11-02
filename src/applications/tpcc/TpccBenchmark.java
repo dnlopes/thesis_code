@@ -4,7 +4,6 @@ package applications.tpcc;
 import applications.Emulator;
 import applications.Workload;
 import common.nodes.NodeConfig;
-import common.util.Environment;
 import common.util.Topology;
 import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
@@ -26,20 +25,18 @@ public class TpccBenchmark
 
 	public static void main(String[] args) throws ConfigurationLoadException
 	{
-		if(args.length != 7)
+		if(args.length != 6)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <proxyId> " +
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <workloadFile> <proxyId> " +
 					"<numberClients> " +
 					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
 		}
 
 		String topologyFile = args[0];
-		String environmentFile = args[2];
-		String workloadFile = args[3];
+		String workloadFile = args[1];
 
 		Topology.setupTopology(topologyFile);
-		Environment.setupEnvironment(environmentFile);
 
 		loadWorkloadFile(workloadFile);
 
