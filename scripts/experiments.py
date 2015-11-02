@@ -684,7 +684,7 @@ def startDatabaseLayer():
         logger.error("unexpected driver: %s", config.JDBC)
         sys.exit()
 
-def startCoordinatorsLayer(configFile):
+def startCoordinatorsLayer():
 
     with hide('running','output'):
         #extract

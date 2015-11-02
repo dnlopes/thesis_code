@@ -50,6 +50,7 @@ public class DBCommitterAgent implements DBCommitter
 			LOG.trace("commiting op from replicator {}", txn.getReplicatorId());
 
 		int tries = 0;
+
 		while(true)
 		{
 			tries++;
@@ -65,10 +66,7 @@ public class DBCommitterAgent implements DBCommitter
 				this.collector.incrementRetries();
 
 				if(tries % Defaults.LOG_FREQUENCY == 0)
-				{
-					if(LOG.isWarnEnabled())
-						LOG.warn("already tried {} times but still no commit", tries);
-				}
+					LOG.warn("already tried {} times but still no commit", tries);
 			}
 		}
 	}
