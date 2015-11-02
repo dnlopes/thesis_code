@@ -5,6 +5,7 @@ import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.util.Environment;
+import server.execution.main.DBCommitter;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
@@ -29,9 +30,11 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	private final Replicator replicator;
 	private final IDsManager idsManager;
 	private final IReplicatorNetwork network;
+	private int sentRequestsCounter;
 
 	public SimpleCoordinationAgent(Replicator replicator)
 	{
+		this.sentRequestsCounter = 0;
 		this.replicator = replicator;
 		this.network = this.replicator.getNetworkInterface();
 		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
@@ -46,8 +49,13 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			return;
 		}
 
+		this.sentRequestsCounter++;
+
+		if(this.sentRequestsCounter % DBCommitter.Defaults.LOG_FREQUENCY == 0)
+			LOG.info("sending request to zookeeper cluster");
+
 		CoordinatorRequest request = transaction.getRequestToCoordinator();
-		LOG.info("sending request to zookeeper cluster");
+
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(response.isSuccess())
