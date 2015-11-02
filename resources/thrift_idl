@@ -87,22 +87,6 @@ struct CRDTCompiledTransaction {
     4: required list<string> opsList;
 }
 
-struct ThriftOperation {
-    1: required i32 txnId;
-    2: required map<i32, string> operations;
-    3: string clock
-    4: required i32 replicatorId;
-}
-
-struct ThriftShadowTransaction {
-    1: required i32 txnId;
-    2: required map<i32,string> operations;
-    3: CoordinatorRequest requestToCoordinator;
-    4: map<i32,string> tempOperations;
-    5: string clock
-    6: i32 replicatorId;
-}
-
 service ReplicatorRPC {
  bool commitOperation(1:CRDTTransaction op);
  oneway void sendToRemote(1:CRDTCompiledTransaction transaction);

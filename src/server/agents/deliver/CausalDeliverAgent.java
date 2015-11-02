@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
 import common.thrift.CRDTCompiledTransaction;
-import common.thrift.ThriftShadowTransaction;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -79,7 +78,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	private class LogicalClockComparator implements Comparator<ThriftShadowTransaction>
+	private class LogicalClockComparator implements Comparator<CRDTCompiledTransaction>
 	{
 
 		private final int index;
@@ -90,10 +89,10 @@ public class CausalDeliverAgent implements DeliverAgent
 		}
 
 		@Override
-		public int compare(ThriftShadowTransaction shadowTransaction1, ThriftShadowTransaction shadowTransaction2)
+		public int compare(CRDTCompiledTransaction shadowTransaction1, CRDTCompiledTransaction shadowTransaction2)
 		{
-			LogicalClock clock1 = new LogicalClock(shadowTransaction1.getClock());
-			LogicalClock clock2 = new LogicalClock(shadowTransaction2.getClock());
+			LogicalClock clock1 = new LogicalClock(shadowTransaction1.getTxnClock());
+			LogicalClock clock2 = new LogicalClock(shadowTransaction2.getTxnClock());
 			long entry1 = clock1.getEntry(this.index);
 			long entry2 = clock2.getEntry(this.index);
 

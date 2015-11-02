@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.CoordinatorRequest;
 import common.thrift.CoordinatorResponse;
-import common.thrift.ThriftUtils;
+import common.util.ThriftUtils;
 
 import java.io.File;
 

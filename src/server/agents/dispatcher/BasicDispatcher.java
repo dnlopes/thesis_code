@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.CRDTCompiledTransaction;
 import common.thrift.CRDTTransaction;
-import common.thrift.ThriftUtils;
+import common.util.ThriftUtils;
 import server.replicator.Replicator;
 
 
