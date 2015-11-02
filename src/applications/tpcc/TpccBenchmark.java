@@ -4,6 +4,7 @@ package applications.tpcc;
 import applications.Emulator;
 import applications.Workload;
 import common.nodes.NodeConfig;
+import common.util.Environment;
 import common.util.Topology;
 import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
@@ -25,24 +26,27 @@ public class TpccBenchmark
 
 	public static void main(String[] args) throws ConfigurationLoadException
 	{
-		if(args.length != 6)
+		if(args.length != 7)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <workloadFile> <proxyId> " +
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <proxyId> " +
 					"<numberClients> " +
 					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
 		}
 
 		String topologyFile = args[0];
-		String workloadFile = args[1];
+		String envFile = args[1];
+		String workloadFile = args[2];
 
 		Topology.setupTopology(topologyFile);
+		Environment.setupEnvironment(envFile);
+
 		loadWorkloadFile(workloadFile);
 
-		int proxyId = Integer.parseInt(args[2]);
-		int numberClients = Integer.parseInt(args[3]);
-		int testDuration = Integer.parseInt(args[4]);
-		String jdbc = args[5];
+		int proxyId = Integer.parseInt(args[3]);
+		int numberClients = Integer.parseInt(args[4]);
+		int testDuration = Integer.parseInt(args[5]);
+		String jdbc = args[6];
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		NodeConfig nodeConfig = Topology.getInstance().getProxyConfigWithIndex(proxyId);
