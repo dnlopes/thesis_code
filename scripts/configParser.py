@@ -17,40 +17,19 @@ IS_LOADED = False
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
-#user='dp.lopes'
-user='dnl'
+#IS_LOCALHOST = True
+IS_LOCALHOST = False
 
-#ENVIRONMENT='fct'
-ENVIRONMENT='localhost'
+
+user='dp.lopes'
+#user='dnl'
+
+ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'
-IS_LOCALHOST = True
-#IS_LOCALHOST = False
 
-TPCC_WORKLOAD_FILE='workload1'
-ANNOTATION_FILE = 'tpcc_ddl_no_sequential_ids.sql'
-ENVIRONMENT_FILE= 'env_localhost_default'
-TOPOLOGY_FILE=''
-TPCC_TEST_TIME=60
-FILES_PREFIX=''
+if IS_LOCALHOST:
+    ENVIRONMENT = 'localhost'
 
-################################################################################################
-#   PREFIXS AND GLOBAL VARIABLES
-################################################################################################
-ZOOKEEPER_CLIENT_PORT='2181'
-ZOOKEEPER_PORT1 ='2888'
-ZOOKEEPER_PORT2 ='3888'
-ZOOKEEPER_CFG_FILE='zoo.cfg'
-ZOOKEEPER_CONNECTION_STRING = ''
-ZOOKEEPER_SERVERS_STRING = ''
-
-MYSQL_PORT='3306'
-TOTAL_USERS=0
-JDBC=''
-
-ACTIVE_EXPERIMENT=""
-prefix_latency_throughput_experiment = "latency-throughput"
-prefix_scalability_experiment = "scalability"
-prefix_overhead_experiment = "overhead"
 
 ################################################################################################
 #	COMMANDS AND BASE PATHS
@@ -75,6 +54,34 @@ PROJECT_DIR = HOME_DIR + '/code'
 JARS_DIR = PROJECT_DIR + '/dist/jars'
 EXPERIMENTS_DIR = PROJECT_DIR + '/experiments'
 ZOOKEEPER_DATA_DIR = BASE_DIR + '/zookeeper'
+
+TPCC_WORKLOAD_FILE= TPCC_WORKLOADS_DIR + '/workload1'
+
+ANNOTATION_FILE = ANNOTATIONS_DIR + '/tpcc_ddl_no_sequential_ids.sql'
+ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_default'
+
+TOPOLOGY_FILE=''
+TPCC_TEST_TIME=60
+FILES_PREFIX=''
+
+################################################################################################
+#   PREFIXS AND GLOBAL VARIABLES
+################################################################################################
+ZOOKEEPER_CLIENT_PORT='2181'
+ZOOKEEPER_PORT1 ='2888'
+ZOOKEEPER_PORT2 ='3888'
+ZOOKEEPER_CFG_FILE='zoo.cfg'
+ZOOKEEPER_CONNECTION_STRING = ''
+ZOOKEEPER_SERVERS_STRING = ''
+
+MYSQL_PORT='3306'
+TOTAL_USERS=0
+JDBC=''
+
+ACTIVE_EXPERIMENT=""
+prefix_latency_throughput_experiment = "latency-throughput"
+prefix_scalability_experiment = "scalability"
+prefix_overhead_experiment = "overhead"
 
 ################################################################################################
 #	DATA STRUCTURES
