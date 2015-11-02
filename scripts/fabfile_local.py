@@ -412,7 +412,7 @@ def checkClientsIsRunning():
     #logFile = 'client_' + str(currentId) + ".log"
     with cd(DEPLOY_DIR):
         output = run('tail ' + logFile)
-        if 'Benchmark ended' in output:
+        if 'CLIENT TERMINATED' not in output:
             return '0'
         else:
             return '1'

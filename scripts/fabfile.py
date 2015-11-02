@@ -137,10 +137,10 @@ def startReplicators(configFile):
     logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
     jarFile = 'replicator.jar'
 
-    command = 'java -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ANNOTATION_FILE + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
+    command = 'java -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
         currentId) + ' > ' + logFile + ' &'
     if config.IS_LOCALHOST:
-        command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ANNOTATION_FILE + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
+        command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
         currentId) + ' > ' + logFile + ' &'
 
     logger.info('starting replicator at %s', env.host_string)
