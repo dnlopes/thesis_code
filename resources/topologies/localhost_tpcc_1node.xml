@@ -11,7 +11,7 @@
 			<replicator id="1" host="localhost" port="50000" refDatabase="1" />
 		</replicators>
 		<proxies>
-			<proxy id="1" host="localhost" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
+			<proxy id="1" host="localhost" port="50010" refDatabase="1" refReplicator="1"/>
 		</proxies>
 	</topology>
 </config>

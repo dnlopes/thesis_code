@@ -60,6 +60,7 @@ public class Replicator extends AbstractNode
 	{
 		super(config);
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
+		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		this.deliver = AgentsFactory.getDeliverAgent(this);
 		this.dispatcher = AgentsFactory.getDispatcherAgent(this);
@@ -68,7 +69,7 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Topology.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
-		this.networkInterface = new ReplicatorNetwork(this.config);
+
 		this.idsManager = new IDsManager(getPrefix(), getConfig());
 		this.statsCollector = new StatsCollector();
 

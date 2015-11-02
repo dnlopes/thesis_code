@@ -46,7 +46,7 @@ public class Environment
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
-		printEnvironment();
+		//printEnvironment();
 	}
 
 	private Environment(String envFile, String annotationsFile) throws ConfigurationLoadException
@@ -64,7 +64,7 @@ public class Environment
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
-		printEnvironment();
+		//printEnvironment();
 	}
 
 	public static Environment getInstance()

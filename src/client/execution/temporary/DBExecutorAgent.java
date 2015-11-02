@@ -956,20 +956,29 @@ public class DBExecutorAgent implements IExecutorAgent
 		private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert)
 				throws SQLException
 		{
-			if(fkConstraints.size() > 0) // its a child row
+
+			Map<String, String> parentsByConstraint = null;
+
+			if(isInsert)
 			{
-				if(isInsert)
+				if(fkConstraints.size() > 0)
+				{
 					crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
-				else
-					crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
-				Map<String, String> parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
-
-				if(parentsByConstraint != null)
-					crdtOperation.setParentsMap(parentsByConstraint);
-
+					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
+				} else
+					crdtOperation.setOpType(CRDTOperationType.INSERT);
 			} else
-				// its a "neutral" or "parent" row
-				crdtOperation.setOpType(CRDTOperationType.INSERT);
+			{
+				if(fkConstraints.size() > 0)
+				{
+					crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
+					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
+				} else
+					crdtOperation.setOpType(CRDTOperationType.UPDATE);
+			}
+
+			if(parentsByConstraint != null)
+				crdtOperation.setParentsMap(parentsByConstraint);
 		}
 
 		private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface)
