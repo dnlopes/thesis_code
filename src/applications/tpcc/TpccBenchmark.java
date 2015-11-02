@@ -37,13 +37,12 @@ public class TpccBenchmark
 		String workloadFile = args[1];
 
 		Topology.setupTopology(topologyFile);
-
 		loadWorkloadFile(workloadFile);
 
-		int proxyId = Integer.parseInt(args[4]);
-		int numberClients = Integer.parseInt(args[5]);
-		int testDuration = Integer.parseInt(args[6]);
-		String jdbc = args[7];
+		int proxyId = Integer.parseInt(args[2]);
+		int numberClients = Integer.parseInt(args[3]);
+		int testDuration = Integer.parseInt(args[4]);
+		String jdbc = args[5];
 
 		System.setProperty("proxyid", String.valueOf(proxyId));
 		NodeConfig nodeConfig = Topology.getInstance().getProxyConfigWithIndex(proxyId);
