@@ -155,27 +155,4 @@ public class IDsManager
 			return this.currentValue.get();
 		}
 	}
-
-	private class StringGenerator
-	{
-
-		private AtomicInteger currentValue;
-		private DataField field;
-
-		public StringGenerator(DataField field)
-		{
-			this.field = field;
-			this.currentValue = new AtomicInteger();
-		}
-
-		public String getNextString()
-		{
-			int newValue = this.currentValue.incrementAndGet();
-			String uniqueString = PREFIX + String.valueOf(newValue);
-
-			LOG.debug("new string generated for field {}: {}", this.field.getFieldName(), uniqueString);
-
-			return uniqueString;
-		}
-	}
 }

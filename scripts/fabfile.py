@@ -177,11 +177,13 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 ################################################################################################
 
 def distributeCode():
-    run('mkdir -p ' + config.DEPLOY_DIR)
     with cd(config.BASE_DIR), hide('output', 'running'), settings(warn_only=True):
+        run('mkdir -p ' + config.DEPLOY_DIR + '/src')
         run('rm -rf ' + config.DEPLOY_DIR + '/*')
+        run('mkdir -p ' + config.DEPLOY_DIR)
         put(config.JARS_DIR + '/*.jar', config.DEPLOY_DIR)
         put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
+        put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')
         # put(config.PROJECT_DIR + '/resources/configs', config.DEPLOY_DIR)
         # put(config.PROJECT_DIR + '/experiments', config.DEPLOY_DIR)
         # put(config.PROJECT_DIR + '/resources/*.sql', config.DEPLOY_DIR)

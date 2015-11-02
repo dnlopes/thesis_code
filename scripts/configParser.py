@@ -58,7 +58,7 @@ ZOOKEEPER_DATA_DIR = BASE_DIR + '/zookeeper'
 TPCC_WORKLOAD_FILE= TPCC_WORKLOADS_DIR + '/workload1'
 
 ANNOTATION_FILE = ANNOTATIONS_DIR + '/tpcc_ddl_no_sequential_ids.sql'
-ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_default'
+ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default'
 
 TOPOLOGY_FILE=''
 TPCC_TEST_TIME=60

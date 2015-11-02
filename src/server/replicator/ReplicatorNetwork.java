@@ -39,7 +39,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	{
 		super(node);
 		this.replicatorsConfigs = new HashMap<>();
-		this.clientsCount = 0;
+		this.clientsCount = this.me.getId();
 		this.ezkClientsPool = new ObjectPool<>();
 
 		for(NodeConfig replicatorConfig : Topology.getInstance().getAllReplicatorsConfig().values())
@@ -150,7 +150,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			return null;
 		}
 
-		EZKCoordinationClient client = new EZKCoordinationClient(zooKeeper, this.clientsCount++);
+		this.clientsCount += Topology.getInstance().getReplicatorsCount();
+		EZKCoordinationClient client = new EZKCoordinationClient(zooKeeper, this.clientsCount);
 
 		try
 		{
