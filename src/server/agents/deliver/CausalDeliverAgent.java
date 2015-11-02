@@ -89,10 +89,10 @@ public class CausalDeliverAgent implements DeliverAgent
 		}
 
 		@Override
-		public int compare(CRDTCompiledTransaction shadowTransaction1, CRDTCompiledTransaction shadowTransaction2)
+		public int compare(CRDTCompiledTransaction transaction1, CRDTCompiledTransaction transaction2)
 		{
-			LogicalClock clock1 = new LogicalClock(shadowTransaction1.getTxnClock());
-			LogicalClock clock2 = new LogicalClock(shadowTransaction2.getTxnClock());
+			LogicalClock clock1 = new LogicalClock(transaction1.getTxnClock());
+			LogicalClock clock2 = new LogicalClock(transaction2.getTxnClock());
 			long entry1 = clock1.getEntry(this.index);
 			long entry2 = clock2.getEntry(this.index);
 

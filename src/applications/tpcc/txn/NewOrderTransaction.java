@@ -225,7 +225,8 @@ public class NewOrderTransaction implements Transaction
 				return false;
 			}
 
-			d_next_o_id_string = this.symbolsManager.getNextSymbol();
+			if(this.options.isCRDTDriver())
+				d_next_o_id_string = this.symbolsManager.getNextSymbol();
 
 			if(this.options.useSequentialOrderIds())
 			{
@@ -233,12 +234,17 @@ public class NewOrderTransaction implements Transaction
 				{
 
 					ps = statements.createPreparedStatement(con, 2);
-					ps.setString(1, d_next_o_id_string);
+
+					if(this.options.isCRDTDriver())
+						ps.setString(1, d_next_o_id_string);
+					else
+						ps.setInt(1, d_next_o_id);
+
 					ps.setInt(2, this.metadata.getDistrictId());
 					ps.setInt(3, this.metadata.getWarehouseId());
 					if(logger.isTraceEnabled())
 						logger.trace(
-								"UPDATE district SET d_next_o_id = " + d_next_o_id_string + " + 1 WHERE d_id = " + this
+								"UPDATE district SET d_next_o_id = " + d_next_o_id + " + 1 WHERE d_id = " + this
 										.metadata.getDistrictId() + " AND" +
 
 										" " +
@@ -261,7 +267,11 @@ public class NewOrderTransaction implements Transaction
 			{
 
 				ps = statements.createPreparedStatement(con, 3);
-				ps.setString(1, o_id_string);
+				if(this.options.isCRDTDriver())
+					ps.setString(1, o_id_string);
+				else
+					ps.setInt(1, o_id);
+
 				ps.setInt(2, this.metadata.getDistrictId());
 				ps.setInt(3, this.metadata.getWarehouseId());
 				ps.setInt(4, this.metadata.getCustomerId());
@@ -272,7 +282,7 @@ public class NewOrderTransaction implements Transaction
 				if(logger.isTraceEnabled())
 					logger.trace(
 							"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) " +
-									"VALUES(" + o_id_string + "," + this.metadata.getDistrictId() + "," + this.metadata
+									"VALUES(" + o_id + "," + this.metadata.getDistrictId() + "," + this.metadata
 									.getWarehouseId() +
 									"," + this.metadata.getCustomerId() +
 									"," +
@@ -295,13 +305,18 @@ public class NewOrderTransaction implements Transaction
 			{
 
 				ps = statements.createPreparedStatement(con, 4);
-				ps.setString(1, o_id_string);
+
+				if(this.options.isCRDTDriver())
+					ps.setString(1, o_id_string);
+				else
+					ps.setInt(1, o_id);
+
 				ps.setInt(2, this.metadata.getDistrictId());
 				ps.setInt(3, this.metadata.getWarehouseId());
 
 				if(logger.isTraceEnabled())
 					logger.trace(
-							"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id_string + "," + this.metadata
+							"INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (" + o_id + "," + this.metadata
 									.getDistrictId() + "," +
 									this.metadata.getWarehouseId() + ")");
 				ps.executeUpdate();
@@ -481,7 +496,11 @@ public class NewOrderTransaction implements Transaction
 				{
 					//final PreparedStatement pstmt8 = pStmts.getStatement(8);
 					ps = statements.createPreparedStatement(con, 8);
-					ps.setString(1, o_id_string);
+					if(this.options.isCRDTDriver())
+						ps.setString(1, o_id_string);
+					else
+						ps.setInt(1, o_id);
+
 					ps.setInt(2, this.metadata.getDistrictId());
 					ps.setInt(3, this.metadata.getWarehouseId());
 					ps.setInt(4, ol_number);
@@ -494,7 +513,7 @@ public class NewOrderTransaction implements Transaction
 					if(logger.isTraceEnabled())
 						logger.trace("INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, " +
 								"ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) " +
-								"VALUES (" + o_id_string + "," + this.metadata.getDistrictId() + "," + this.metadata
+								"VALUES (" + o_id + "," + this.metadata.getDistrictId() + "," + this.metadata
 								.getWarehouseId() + "," +
 								ol_number +
 								"," +
