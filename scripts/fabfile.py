@@ -193,7 +193,7 @@ def distributeCode():
 def downloadLogsTo(outputDir):
     logger.info('downloading log files from %s', env.host_string)
     with cd(config.DEPLOY_DIR), hide('warnings', 'output', 'running'), settings(warn_only=True):
-        get(config.DEPLOY_DIR + "/*.temp", outputDir)
+        get(config.DEPLOY_DIR + "/*.csv", outputDir)
         get(config.DEPLOY_DIR + "/*.log", outputDir + "/logs")
 
 
@@ -307,7 +307,7 @@ def executeRemoteTerminalCommand(hostName, command):
 
 
 def killRunningProcesses():
-    logger.info('cleaning running processes')
+    logger.info('killing running processes')
     with hide('running', 'output', 'warnings'):
         execute(stopJava, hosts=config.distinct_nodes)
         time.sleep(1)

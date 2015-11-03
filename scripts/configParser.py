@@ -17,12 +17,12 @@ IS_LOADED = False
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
-#IS_LOCALHOST = True
-IS_LOCALHOST = False
+IS_LOCALHOST = True
+#IS_LOCALHOST = False
 
 
-user='dp.lopes'
-#user='dnl'
+#user='dp.lopes'
+user='dnl'
 
 ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'

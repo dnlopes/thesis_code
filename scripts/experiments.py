@@ -28,18 +28,19 @@ JDCBs=['crdt']
 #JDCBs=['crdt','galera']
 #JDCBs=['cluster']
 
-NUMBER_REPLICAS=[3]
-NUMBER_USERS_LIST_1REPLICA=[1]
-NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
+NUMBER_REPLICAS=[1,3,5]
+NUMBER_USERS_LIST_1REPLICA=[1,2,4,8,16,32,64,90,150]
+#NUMBER_USERS_LIST_3REPLICA=[3,6,15,30]
 #NUMBER_USERS_LIST_3REPLICA=[3,6,15,30,45,60,90,120,150]
-#NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
-#NUMBER_USERS_LIST_3REPLICA=[12,24,48,96,192,300,450,600]
+NUMBER_USERS_LIST_3REPLICA=[6,12,24,48,96,192,300,450,600]
 #NUMBER_USERS_LIST_5REPLICA=[5,10,15,30,45,80,120,180,240]
 NUMBER_USERS_LIST_5REPLICA=[10,20,40,80,160,320,500,750,1000]
+NUMBER_USERS_LIST_7REPLICA=[14,28,56,112,224,450,900,1200,1500]
 userListToReplicasNumber = dict()
 userListToReplicasNumber[1] = NUMBER_USERS_LIST_1REPLICA
 userListToReplicasNumber[3] = NUMBER_USERS_LIST_3REPLICA
 userListToReplicasNumber[5] = NUMBER_USERS_LIST_5REPLICA
+userListToReplicasNumber[7] = NUMBER_USERS_LIST_7REPLICA
 
 ################################################################################################
 # SCALABILITY VARIABLES
@@ -92,8 +93,8 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
         config.parseTopologyFile(CONFIG_FILE)
         fab.killRunningProcesses()
         prepareCode()
-
         logger.info("starting tests with %d replicas", numberOfReplicas)
+
         # second cycle, use different jdbc to run experiment
         for jdbc in JDCBs:
             config.JDBC=jdbc
@@ -104,6 +105,10 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
                 #OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
                 with hide('output','running','warnings'),settings(warn_only=True):
                     local("mkdir -p " + OUTPUT_DIR + "/logs")
+                    get(config.ENVIRONMENT_FILE, OUTPUT_DIR)
+                    get(config.TOPOLOGY_FILE, OUTPUT_DIR)
+                    get(config.TPCC_WORKLOAD_FILE, OUTPUT_DIR)
+                    get(config.ANNOTATION_FILE, OUTPUT_DIR)
 
                 TOTAL_USERS = numberOfUsers
                 NUMBER_OF_EMULATORS = len(config.emulators_nodes)

@@ -3,6 +3,7 @@ package applications;
 
 import applications.util.ClientStatistics;
 import applications.util.PerSecondStatistics;
+import common.util.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +161,10 @@ public class Emulator
 		PrintWriter out;
 		try
 		{
-			String fileName = getPrefix();
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
+					*Topology.getInstance().getReplicatorsCount()
+					+ "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId + ".csv";
+
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
 			out.close();

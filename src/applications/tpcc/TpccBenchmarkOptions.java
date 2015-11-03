@@ -25,7 +25,6 @@ public final class TpccBenchmarkOptions extends BaseBenchmarkOptions
 			this.databaseName = ORIGINAL_DB_NAME;
 		else
 			this.databaseName = ORIGINAL_DB_NAME + "_crdt";
-
 	}
 
 	@Override
