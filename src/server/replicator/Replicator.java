@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -46,6 +47,7 @@ public class Replicator extends AbstractNode
 	private final ObjectPool<DBCommitter> agentsPool;
 	private final Lock clockLock;
 	private final String prefix;
+	private final AtomicInteger txnCounter;
 
 	private final IDsManager idsManager;
 
@@ -59,6 +61,7 @@ public class Replicator extends AbstractNode
 	{
 		super(config);
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
+		this.txnCounter = new AtomicInteger();
 		this.networkInterface = new ReplicatorNetwork(this.config);
 
 		this.deliver = AgentsFactory.getDeliverAgent(this);
@@ -75,7 +78,7 @@ public class Replicator extends AbstractNode
 		this.garbageCollector = new GarbageCollector(this);
 		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
 				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0,
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL*4,
 				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 
 		createCommiterAgents();
@@ -294,6 +297,11 @@ public class Replicator extends AbstractNode
 		}
 
 		LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
+	}
+
+	public int assignNewTransactionId()
+	{
+		return this.txnCounter.incrementAndGet();
 	}
 
 	private class StateChecker implements Runnable

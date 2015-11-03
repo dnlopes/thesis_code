@@ -8,7 +8,6 @@ import server.agents.deliver.DeliverAgent;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import server.util.LogicalClock;
 import common.thrift.*;
 
 import java.util.List;
@@ -57,10 +56,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private boolean handleCommitOperation(CRDTTransaction transaction)
 	{
-		LogicalClock newClock = this.replicator.getNextClock();
-
 		transaction.setReplicatorId(this.replicatorId);
-		transaction.setTxnClock(newClock.getClockValue());
 
 		this.coordAgent.handleCoordination(transaction);
 
@@ -68,6 +64,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		{
 			// replace symbols for real values and append prefixs when needed
 			this.replicator.prepareToCommit(transaction);
+			transaction.setTxnClock(this.replicator.getNextClock().getClockValue());
+			transaction.setId(this.replicator.assignNewTransactionId());
+
 			CRDTCompiledTransaction compiledTxn = ThriftUtils.compileCRDTTransaction(transaction);
 			transaction.setCompiledTxn(compiledTxn);
 
@@ -85,9 +84,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private void handleReceiveOperation(CRDTCompiledTransaction op)
 	{
-		if(LOG.isTraceEnabled())
-			LOG.trace("received txn from other replicator");
-
+		LOG.trace("received txn from other replicator");
 		this.deliver.deliverTransaction(op);
 	}
 

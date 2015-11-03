@@ -45,7 +45,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0,
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL*4,
 				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 

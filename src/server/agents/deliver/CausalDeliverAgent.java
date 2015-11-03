@@ -22,7 +22,7 @@ public class CausalDeliverAgent implements DeliverAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliverAgent.class);
-	private static final int THREAD_WAKEUP_INTERVAL = 500;
+	private static final int THREAD_WAKEUP_INTERVAL = 300;
 
 	private final Map<Integer, Queue<CRDTCompiledTransaction>> queues;
 	private final Replicator replicator;
@@ -66,8 +66,7 @@ public class CausalDeliverAgent implements DeliverAgent
 	{
 		int replicatorId = op.getReplicatorId();
 
-		if(LOG.isTraceEnabled())
-			LOG.trace("adding op with clock {} to queue", op.getTxnClock());
+		LOG.trace("adding op with clock {} to queue", op.getTxnClock());
 
 		this.queues.get(replicatorId).add(op);
 	}
@@ -108,9 +107,34 @@ public class CausalDeliverAgent implements DeliverAgent
 
 	private class DeliveryThread implements Runnable
 	{
+
+		private int id = replicator.getConfig().getId();
+		private int counter = 0;
+
 		@Override
 		public void run()
 		{
+			counter++;
+
+			if(counter % 15 == 0)
+			{
+				counter = 0;
+				StringBuffer buffer = new StringBuffer("(");
+
+				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
+				{
+					buffer.append(txnQueue.size());
+					buffer.append(",");
+				}
+
+				if(buffer.charAt(buffer.length() - 1) == ',')
+					buffer.setLength(buffer.length() - 1);
+
+				buffer.append(")");
+
+				LOG.info("<r{}> pending queue size: {}", id, buffer.toString());
+			}
+
 			boolean hasDelivered = false;
 
 			do
