@@ -145,8 +145,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
 		} catch(IOException e)
 		{
-			if(LOG.isErrorEnabled())
-				LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
+			LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
 			return null;
 		}
 
@@ -158,8 +157,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			client.init(Environment.EZK_EXTENSION_CODE);
 		} catch(KeeperException | InterruptedException e)
 		{
-			if(LOG.isErrorEnabled())
-				LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
+			LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
 			return null;
 		}
 

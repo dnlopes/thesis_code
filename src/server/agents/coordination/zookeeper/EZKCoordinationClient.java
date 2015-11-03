@@ -47,8 +47,7 @@ public class EZKCoordinationClient implements EZKCoordinationService
 		if(stat == null)
 			this.zooKeeper.create(this.privateNode, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
-		if(LOG.isInfoEnabled())
-			LOG.info("Coordination extension successfully installed at Zookeeper");
+		LOG.debug("Coordination extension successfully installed at Zookeeper");
 	}
 
 	@Override
