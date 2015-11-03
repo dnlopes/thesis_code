@@ -102,16 +102,6 @@ public class ClientEmulator implements Runnable
 		return this.successCounterRead + this.successCounterWrite;
 	}
 
-	public int getSuccessCounterRead()
-	{
-		return this.successCounterRead;
-	}
-
-	public int getSuccessCounterWrite()
-	{
-		return this.successCounterWrite;
-	}
-
 	public float getAverageReadLatency()
 	{
 		if(this.successCounterRead == 0)
@@ -137,11 +127,6 @@ public class ClientEmulator implements Runnable
 	public int getAbortCounter()
 	{
 		return this.abortCounter;
-	}
-
-	public void resetClientStatistics()
-	{
-		this.stats = new ClientStatistics(this.id);
 	}
 
 	public ClientStatistics getStats()

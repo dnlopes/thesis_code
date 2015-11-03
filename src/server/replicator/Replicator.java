@@ -96,7 +96,7 @@ public class Replicator extends AbstractNode
 	}
 
 	/**
-	 * Attempts to commit a shadow transaction.
+	 * Attempts to commit a transaction.
 	 *
 	 * @param shadowTransaction
 	 *
@@ -142,9 +142,8 @@ public class Replicator extends AbstractNode
 	{
 		this.clockLock.lock();
 
+		this.clock.increment(this.config.getId() - 1);
 		LogicalClock newClock = new LogicalClock(this.clock.getDcEntries());
-		this.clock = newClock;
-		newClock.increment(this.config.getId() - 1);
 
 		this.clockLock.unlock();
 
