@@ -108,7 +108,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
                     get(config.ENVIRONMENT_FILE, OUTPUT_DIR)
                     get(config.TOPOLOGY_FILE, OUTPUT_DIR)
                     get(config.TPCC_WORKLOAD_FILE, OUTPUT_DIR)
-                    get(config.ANNOTATION_FILE, OUTPUT_DIR)
 
                 TOTAL_USERS = numberOfUsers
                 NUMBER_OF_EMULATORS = len(config.emulators_nodes)
