@@ -23,16 +23,9 @@ public class DBCommitterAgent implements DBCommitter
 
 	private Connection connection;
 
-	public DBCommitterAgent(NodeConfig config)
+	public DBCommitterAgent(NodeConfig config) throws SQLException
 	{
-
-		try
-		{
-			this.connection = ConnectionFactory.getDefaultConnection(config);
-		} catch(SQLException e)
-		{
-			LOG.warn("failed to create connection for DBCommitPad", e);
-		}
+		this.connection = ConnectionFactory.getDefaultConnection(config);
 	}
 
 	@Override

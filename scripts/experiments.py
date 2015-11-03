@@ -301,7 +301,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
     attempts = 0
     while isRunning:
         if attempts >= 10:
-            logger.error("checked 6 times if clients were running. Something is probably wrong")
+            logger.error("checked 10 times if clients were running. Something is probably wrong")
             return False
         logger.info('checking experiment status...')
         with hide('running', 'output'):

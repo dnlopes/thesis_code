@@ -22,6 +22,7 @@ import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
 
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,8 +75,8 @@ public class Replicator extends AbstractNode
 		this.garbageCollector = new GarbageCollector(this);
 		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
 				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0, ReplicatorDefaults
-				.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0,
+				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 
 		createCommiterAgents();
 
@@ -104,8 +105,17 @@ public class Replicator extends AbstractNode
 
 		if(pad == null)
 		{
-			LOG.warn("commit pad pool was empty. creating new one");
-			pad = new DBCommitterAgent(this.config);
+			LOG.warn("commitpad pool was empty. creating new one");
+			try
+			{
+				pad = new DBCommitterAgent(this.config);
+			} catch(SQLException e)
+			{
+				LOG.warn("failed to create new commitpad at runtime", e);
+			}
+
+			if(pad == null)
+				pad = this.getCommitPadLoop();
 		}
 
 		LOG.trace("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
@@ -243,16 +253,44 @@ public class Replicator extends AbstractNode
 		this.clockLock.unlock();
 	}
 
+	private DBCommitter getCommitPadLoop()
+	{
+		int counter = 0;
+		DBCommitter pad;
+
+		do
+		{
+			pad = this.agentsPool.borrowObject();
+			counter++;
+
+			if(counter % 150 == 0)
+			{
+				LOG.warn("already tried {} to get commitpad from pool", counter);
+				counter = 0;
+			}
+
+		} while(pad == null);
+
+		return pad;
+	}
+
 	private void createCommiterAgents()
 	{
 		int agentsNumber = Environment.COMMIT_PAD_POOL_SIZE;
 
 		for(int i = 0; i < agentsNumber; i++)
 		{
-			DBCommitter agent = new DBCommitterAgent(getConfig());
+			try
+			{
+				DBCommitter agent = new DBCommitterAgent(getConfig());
 
-			if(agent != null)
-				this.agentsPool.addObject(agent);
+				if(agent != null)
+					this.agentsPool.addObject(agent);
+
+			} catch(SQLException e)
+			{
+				LOG.warn(e.getMessage(), e);
+			}
 		}
 
 		LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
@@ -260,6 +298,7 @@ public class Replicator extends AbstractNode
 
 	private class StateChecker implements Runnable
 	{
+
 		private int id = config.getId();
 
 		@Override
