@@ -5,7 +5,7 @@ import common.database.util.DatabaseMetadata;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.util.Environment;
-import server.execution.main.DBCommitter;
+import common.util.defaults.ReplicatorDefaults;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
@@ -16,6 +16,10 @@ import common.thrift.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -30,14 +34,19 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	private final Replicator replicator;
 	private final IDsManager idsManager;
 	private final IReplicatorNetwork network;
-	private int sentRequestsCounter;
+	private AtomicInteger sentRequestsCounter;
+	private final ScheduledExecutorService scheduleService;
 
 	public SimpleCoordinationAgent(Replicator replicator)
 	{
-		this.sentRequestsCounter = 0;
+		this.sentRequestsCounter = new AtomicInteger();
 		this.replicator = replicator;
 		this.network = this.replicator.getNetworkInterface();
 		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
+
+		this.scheduleService = Executors.newScheduledThreadPool(1);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0,
+				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
@@ -49,13 +58,9 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			return;
 		}
 
-		this.sentRequestsCounter++;
-
-		if(this.sentRequestsCounter % DBCommitter.Defaults.LOG_FREQUENCY == 0)
-			LOG.info("sending request to zookeeper cluster");
+		this.sentRequestsCounter.incrementAndGet();
 
 		CoordinatorRequest request = transaction.getRequestToCoordinator();
-
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 
 		if(response.isSuccess())
@@ -108,6 +113,18 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
 				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
+		}
+	}
+
+	private class StateChecker implements Runnable
+	{
+
+		private int id = replicator.getConfig().getId();
+
+		@Override
+		public void run()
+		{
+			LOG.info("<r{}> number of coordination events: {}", id, sentRequestsCounter.get());
 		}
 	}
 }

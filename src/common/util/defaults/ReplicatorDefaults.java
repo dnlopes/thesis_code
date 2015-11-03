@@ -7,4 +7,5 @@ package common.util.defaults;
 public interface ReplicatorDefaults
 {
 	int GARBAGE_COLLECTOR_THREAD_INTERVAL = 10000;
+	int STATE_CHECKER_THREAD_INTERVAL = 5000;
 }

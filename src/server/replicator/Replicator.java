@@ -3,7 +3,6 @@ package server.replicator;
 
 import common.util.*;
 import server.agents.AgentsFactory;
-import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
 import common.database.util.DatabaseMetadata;
@@ -48,7 +47,6 @@ public class Replicator extends AbstractNode
 	private final String prefix;
 
 	private final IDsManager idsManager;
-	private final StatsCollector statsCollector;
 
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
@@ -71,12 +69,13 @@ public class Replicator extends AbstractNode
 		this.clockLock = new ReentrantLock();
 
 		this.idsManager = new IDsManager(getPrefix(), getConfig());
-		this.statsCollector = new StatsCollector();
 
-		this.scheduleService = Executors.newScheduledThreadPool(1);
+		this.scheduleService = Executors.newScheduledThreadPool(2);
 		this.garbageCollector = new GarbageCollector(this);
 		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
 				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0, ReplicatorDefaults
+				.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 
 		createCommiterAgents();
 
@@ -105,12 +104,11 @@ public class Replicator extends AbstractNode
 
 		if(pad == null)
 		{
-			LOG.warn("commit pad pool was empty");
-			pad = new DBCommitterAgent(this.config, this.statsCollector);
+			LOG.warn("commit pad pool was empty. creating new one");
+			pad = new DBCommitterAgent(this.config);
 		}
 
-		if(this.statsCollector.getCommitsCounter() % DBCommitter.Defaults.LOG_FREQUENCY == 0)
-			LOG.info("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
+		LOG.trace("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
 
 		boolean commitDecision = pad.commitShadowTransaction(txn);
 
@@ -136,9 +134,6 @@ public class Replicator extends AbstractNode
 		newClock.increment(this.config.getId() - 1);
 
 		this.clockLock.unlock();
-
-		if(LOG.isDebugEnabled())
-			LOG.debug("clock incremented to {}", newClock.toString());
 
 		return newClock;
 	}
@@ -241,15 +236,11 @@ public class Replicator extends AbstractNode
 
 	private void mergeWithRemoteClock(LogicalClock clock)
 	{
-		if(LOG.isDebugEnabled())
-			LOG.debug("merging clocks {} with {}", this.clock.toString(), clock.toString());
+		LOG.trace("merging clocks {} with {}", this.clock.toString(), clock.toString());
 
 		this.clockLock.lock();
 		this.clock = this.clock.maxClock(clock);
 		this.clockLock.unlock();
-
-		if(LOG.isDebugEnabled())
-			LOG.debug("merged clock is {}", this.clock.toString());
 	}
 
 	private void createCommiterAgents()
@@ -258,13 +249,23 @@ public class Replicator extends AbstractNode
 
 		for(int i = 0; i < agentsNumber; i++)
 		{
-			DBCommitter agent = new DBCommitterAgent(getConfig(), this.statsCollector);
+			DBCommitter agent = new DBCommitterAgent(getConfig());
 
 			if(agent != null)
 				this.agentsPool.addObject(agent);
 		}
 
-		if(LOG.isInfoEnabled())
-			LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
+		LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
+	}
+
+	private class StateChecker implements Runnable
+	{
+		private int id = config.getId();
+
+		@Override
+		public void run()
+		{
+			LOG.info("<r{}> vector clock: {}", id, clock.toString());
+		}
 	}
 }

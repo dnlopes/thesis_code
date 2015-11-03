@@ -21,7 +21,6 @@ public interface DBCommitter
 
 	interface Defaults
 	{
-		int NUMBER_OF_RETRIES = 10;
 		int LOG_FREQUENCY = 150;
 	}
 }

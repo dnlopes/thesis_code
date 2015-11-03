@@ -7,7 +7,6 @@ import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.CRDTCompiledTransaction;
-import server.execution.StatsCollector;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,11 +22,9 @@ public class DBCommitterAgent implements DBCommitter
 	private static final Logger LOG = LoggerFactory.getLogger(DBCommitterAgent.class);
 
 	private Connection connection;
-	private StatsCollector collector;
 
-	public DBCommitterAgent(NodeConfig config, StatsCollector collector)
+	public DBCommitterAgent(NodeConfig config)
 	{
-		this.collector = collector;
 
 		try
 		{
@@ -49,14 +46,9 @@ public class DBCommitterAgent implements DBCommitter
 			boolean commitDecision = this.tryCommit(txn);
 
 			if(commitDecision)
-			{
-				this.collector.incrementCommits();
 				return true;
-			}
 			else
 			{
-				this.collector.incrementRetries();
-
 				if(tries % Defaults.LOG_FREQUENCY == 0)
 					LOG.warn("already tried {} times but still no commit", tries);
 			}
