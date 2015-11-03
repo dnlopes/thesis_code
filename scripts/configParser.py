@@ -12,24 +12,21 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 IS_LOADED = False
+IS_LOCALHOST = False
 
 ################################################################################################
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
-
-IS_LOCALHOST = True
-#IS_LOCALHOST = False
-
 
 #user='dp.lopes'
 user='dnl'
 
 ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'
+#ENVIRONMENT='localhost'
 
-if IS_LOCALHOST:
-    ENVIRONMENT = 'localhost'
-
+if ENVIRONMENT == 'localhost':
+	IS_LOCALHOST = True
 
 ################################################################################################
 #	COMMANDS AND BASE PATHS
@@ -57,8 +54,8 @@ ZOOKEEPER_DATA_DIR = BASE_DIR + '/zookeeper'
 
 TPCC_WORKLOAD_FILE= TPCC_WORKLOADS_DIR + '/workload1'
 
-#ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default_nocoord'
-ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default_coord'
+#ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default_nocoord.env'
+ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default_coord.env'
 
 TOPOLOGY_FILE=''
 TPCC_TEST_TIME=60

@@ -5,6 +5,7 @@ import pandas as pd
 import configParser as config
 import os.path
 import fabfile as fab
+from optparse import OptionParser
 
 logger = logging.getLogger('plotsLogger')
 logger.setLevel(logging.DEBUG)
@@ -24,10 +25,38 @@ SCALABILITY_1LINE = "scalability_1line.gp"
 SCALABILITY_2LINE = "scalability_2line.gp"
 OVERHEAD = "overhead_chart.gp"
 
+parser = OptionParser()
+parser.add_option("-d", "--dir", dest="outputDir",
+                  help="CSVs files directory")
+parser.add_option("-g", "--graphic", help="plot to generate \n (1) plotLatencyThroughputGraphic (2) generateScalabilityPlot")
+
+
 
 ################################################################################################
 # LATENCY-THROUGHPUT METHODS
 ################################################################################################
+
+def plotLatencyThroughputGraphic(outputDir):
+    workloadFile = glob.glob(outputDir + "/*workload*")
+    if len(workloadFile) == 0:
+        logger.error("workload file not found. Exiting")
+        sys.exit()
+    if len(workloadFile) > 1:
+        logger.error("multiple workload files found! Exiting")
+        sys.exit()
+
+    d = {}
+    with open(workloadFile) as f:
+        for line in f:
+            key, value = line.split('=')
+            d[key] = value
+
+    workloadName = d['name']
+    csvFiles = glob.glob(outputDir + "/*.csv")
+
+    print csvFiles
+    sys.exit()
+
 def generateLatencyThroughputPlot(outputDir):
     plotDataFiles = glob.glob(outputDir + "/*.csv")
     logger.info("generating latency-throughput plot with the following datapoints files: %s", plotDataFiles)
@@ -221,3 +250,27 @@ def mergeResultCSVFiles(outputDir, totalUsers, numberOfReplicas):
     f = open(fileName, 'w')
     f.write(fileContent)
     f.close()
+
+
+if __name__ == "__main__":
+    (options, args) = parser.parse_args()
+
+    mandatories = ['outputDir', 'graphic']
+    for m in mandatories:
+        if not options.__dict__[m]:
+            print "mandatory option is missing\n"
+            parser.print_help()
+            exit(-1)
+
+    outputDir = options.__dict__['outputDir']
+    graphicType = int(options.__dict__['graphic'])
+
+    if graphicType == 1:
+        logger.info("plotting graphic {} with data from {}".format("Latency-Throughput", outputDir))
+        plotLatencyThroughputGraphic(outputDir)
+    elif graphicType == 2:
+        logger.warn("missing plot generation")
+        sys.exit(1)
+    else:
+        logger.error("unknow graphic type. Aborting")
+        sys.exit(-1)
