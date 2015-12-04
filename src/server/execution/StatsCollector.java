@@ -2,6 +2,7 @@ package server.execution;
 
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -13,12 +14,24 @@ public class StatsCollector
 	private AtomicInteger commitsCounter;
 	private AtomicInteger retriesCounter;
 	private AtomicInteger abortsCounter;
+	private AtomicLong sumLatency;
 
 	public StatsCollector()
 	{
 		this.commitsCounter = new AtomicInteger();
 		this.retriesCounter = new AtomicInteger();
 		this.abortsCounter = new AtomicInteger();
+		this.sumLatency = new AtomicLong();
+	}
+
+	public void addLatency(long latency)
+	{
+		this.sumLatency.addAndGet(latency);
+	}
+
+	public long getAverageLatency()
+	{
+		return this.sumLatency.get() / commitsCounter.get();
 	}
 
 	public void incrementCommits()

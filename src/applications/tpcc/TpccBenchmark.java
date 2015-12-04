@@ -1,7 +1,6 @@
 package applications.tpcc;
 
 
-import applications.Emulator;
 import applications.Workload;
 import common.nodes.NodeConfig;
 import common.util.Environment;
@@ -56,7 +55,7 @@ public class TpccBenchmark
 		TpccBenchmarkOptions options = new TpccBenchmarkOptions(numberClients, testDuration, jdbc, BENCHMARK_NAME,
 				workload, nodeConfig.getDbProps());
 
-		Emulator em = new Emulator(proxyId, options);
+		TPCCEmulator em = new TPCCEmulator(proxyId, options);
 		boolean success = em.runBenchmark();
 
 		if(!success)

@@ -1,15 +1,15 @@
 package applications.tpcc.txn;
 
 
+import applications.AbstractTransaction;
 import applications.BaseBenchmarkOptions;
+import applications.GeneratorUtils;
 import applications.Transaction;
+import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.OrderStatMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,27 +20,32 @@ import java.sql.SQLException;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class OrderStatTransaction implements Transaction
+public class OrderStatTransaction extends AbstractTransaction implements Transaction
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
 	private final BaseBenchmarkOptions options;
-	private final OrderStatMetadata metadata;
-	private String lastError;
+	private OrderStatMetadata metadata;
 
-	public OrderStatTransaction(OrderStatMetadata txnMetadata, BaseBenchmarkOptions options)
+	public OrderStatTransaction(BaseBenchmarkOptions options)
 	{
-		this.metadata = txnMetadata;
-		this.options = options;
+		super(TpccConstants.ORDER_STAT_TXN_NAME);
 
-		if(this.metadata == null)
-			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
+		this.options = options;
 	}
 
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		this.metadata = createOrderStatMetadata();
+
+		if(this.metadata == null)
+		{
+			logger.error("failed to generate txn metadata");
+			return false;
+		}
+
 		try
 		{
 			con.setReadOnly(true);
@@ -252,26 +257,7 @@ public class OrderStatTransaction implements Transaction
 			return false;
 		}
 
-		// Commit.
-		try
-		{
-			con.commit();
-			return true;
-
-		} catch(SQLException e)
-		{
-			lastError = e.getMessage();
-			DbUtils.closeQuietly(rs);
-			DbUtils.closeQuietly(ps);
-			this.rollbackQuietly(con);
-			return false;
-		}
-	}
-
-	@Override
-	public String getLastError()
-	{
-		return this.lastError;
+		return true;
 	}
 
 	@Override
@@ -280,20 +266,89 @@ public class OrderStatTransaction implements Transaction
 		return true;
 	}
 
-	@Override
-	public String getName()
+	private OrderStatMetadata createOrderStatMetadata()
 	{
-		return "OrderStatTransaction";
+		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
+		int districtId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
+		int customerId = GeneratorUtils.nuRand(1023, 1, TpccConstants.CUSTOMER_PER_DISTRICT);
+		String c_last = GeneratorUtils.lastName(GeneratorUtils.nuRand(255, 0, 999));
+		int byname = 0;
+
+		if(GeneratorUtils.randomNumber(1, 100) <= 60)
+		{
+			byname = 1; /* select by last name */
+		} else
+		{
+			byname = 0; /* select by customer id */
+		}
+
+		if(warehouseId < 1 || warehouseId > TpccConstants.WAREHOUSES_NUMBER)
+		{
+			logger.error("invalid warehouse id: {}", warehouseId);
+			return null;
+		}
+
+		if(districtId < 1 || districtId > TpccConstants.DISTRICTS_PER_WAREHOUSE)
+		{
+			logger.error("invalid district id: {}", districtId);
+			return null;
+		}
+
+		if(customerId < 1 || customerId > TpccConstants.CUSTOMER_PER_DISTRICT)
+		{
+			logger.error("invalid customer id: {}", customerId);
+			return null;
+		}
+
+		return new OrderStatMetadata(warehouseId, districtId, customerId, byname, c_last);
 	}
 
-	private void rollbackQuietly(Connection connection)
+	/**
+	 * Created by dnlopes on 15/09/15.
+	 */
+	private class OrderStatMetadata
 	{
-		try
-		{
-			connection.rollback();
-		} catch(SQLException ignored)
-		{
 
+		private final int warehouseId;
+		private final int districtId;
+		private final int customerId;
+		private final int byname;
+
+		private final String lastName;
+
+		public OrderStatMetadata(int warehouseId, int districtId, int customerId, int byname, String lastName)
+		{
+			this.warehouseId = warehouseId;
+			this.districtId = districtId;
+			this.customerId = customerId;
+			this.byname = byname;
+			this.lastName = lastName;
 		}
+
+		public String getLastName()
+		{
+			return lastName;
+		}
+
+		public int getByname()
+		{
+			return byname;
+		}
+
+		public int getCustomerId()
+		{
+			return customerId;
+		}
+
+		public int getDistrictId()
+		{
+			return districtId;
+		}
+
+		public int getWarehouseId()
+		{
+			return warehouseId;
+		}
+
 	}
 }

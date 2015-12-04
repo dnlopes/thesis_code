@@ -24,8 +24,9 @@ public interface BenchmarkOptions
 
 		public static String CRDT_DRIVER = "crdt";
 		public static String MYSQL_DRIVER = "mysql";
+		public static String GALERA_DRIVER = "galera";
 
-		public static String[] JDBCS_ALLOWED = {CRDT_DRIVER, MYSQL_DRIVER};
+		public static String[] JDBCS_ALLOWED = {CRDT_DRIVER, MYSQL_DRIVER, GALERA_DRIVER};
 	}
 
 	public interface Defaults

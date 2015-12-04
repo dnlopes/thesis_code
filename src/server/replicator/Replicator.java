@@ -3,6 +3,7 @@ package server.replicator;
 
 import common.util.*;
 import server.agents.AgentsFactory;
+import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
 import common.database.util.DatabaseMetadata;
@@ -18,6 +19,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.agents.coordination.IDsManager;
+import server.hook.PrinterHook;
 import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
@@ -48,6 +50,7 @@ public class Replicator extends AbstractNode
 	private final Lock clockLock;
 	private final String prefix;
 	private final AtomicInteger txnCounter;
+	protected final StatsCollector statsCollector;
 
 	private final IDsManager idsManager;
 
@@ -71,6 +74,7 @@ public class Replicator extends AbstractNode
 		this.clock = new LogicalClock(Topology.getInstance().getReplicatorsCount());
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
+		this.statsCollector = new StatsCollector();
 
 		this.idsManager = new IDsManager(getPrefix(), getConfig());
 
@@ -92,6 +96,7 @@ public class Replicator extends AbstractNode
 			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
 		}
 
+		Runtime.getRuntime().addShutdownHook(new PrinterHook(this.statsCollector));
 		System.out.println("replicator " + this.config.getId() + " online");
 	}
 

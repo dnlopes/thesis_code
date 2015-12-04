@@ -1,17 +1,16 @@
-package applications;
+package applications.tpcc;
 
 
-import applications.util.ClientStatistics;
-import applications.util.PerSecondStatistics;
-import common.util.Topology;
+import applications.BaseBenchmarkOptions;
+import applications.BenchmarkOptions;
+import applications.TransactionStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -20,28 +19,26 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by dnlopes on 05/06/15.
  */
-public class Emulator
+public class TPCCEmulator
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Emulator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TPCCEmulator.class);
 
 	public static volatile boolean RUNNING;
 	public static volatile boolean COUTING;
 
 	private ExecutorService threadsService;
-	private List<ClientEmulator> clients;
-	private List<PerSecondStatistics> perSecondStatsList;
+	private List<TPCCClientEmulator> clients;
 	private int emulatorId;
 	private BaseBenchmarkOptions options;
 
-	public Emulator(int id, BaseBenchmarkOptions options)
+	public TPCCEmulator(int id, BaseBenchmarkOptions options)
 	{
 		RUNNING = true;
 		COUTING = false;
 		this.emulatorId = id;
 		this.options = options;
 		this.clients = new ArrayList<>();
-		this.perSecondStatsList = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 	}
 
@@ -59,7 +56,7 @@ public class Emulator
 
 		for(int i = 0; i < this.options.getClientsNumber(); i++)
 		{
-			ClientEmulator client = new ClientEmulator(i, this.options);
+			TPCCClientEmulator client = new TPCCClientEmulator(i, this.options);
 			this.clients.add(client);
 			this.threadsService.execute(client);
 		}
@@ -83,7 +80,6 @@ public class Emulator
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
-		int iteration = 0;
 
 		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
@@ -91,8 +87,6 @@ public class Emulator
 			try
 			{
 				Thread.sleep(1000);
-				//collectStatistics(iteration++);
-
 			} catch(InterruptedException e)
 			{
 				LOG.error("Benchmark interrupted: {}", e.getMessage());
@@ -114,26 +108,35 @@ public class Emulator
 
 	public void printStatistics()
 	{
-		int abortCounter = 0;
-		float avgLatency = 0, avgReadLatency = 0, avgWriteLatency = 0;
-		int opsCounter = 0;
+		TPCCStatistics globalStats = new TPCCStatistics(0);
 
+		for(TPCCClientEmulator client : this.clients)
+		{
+			TPCCStatistics partialStats = client.getStats();
+			globalStats.mergeStatistics(partialStats);
+		}
+
+		globalStats.generateStatistics();
+		globalStats.printStatistics();
+
+		/*
 		for(ClientEmulator client : this.clients)
 		{
 			avgLatency += client.getAverageLatency();
 			avgReadLatency += client.getAverageReadLatency();
-			avgWriteLatency+= client.getAverageWriteLatency();
+			avgWriteLatency += client.getAverageWriteLatency();
 			opsCounter += client.getTotalOperations();
 			abortCounter += client.getAbortCounter();
 		}
 
 		avgLatency = avgLatency / clients.size();
 		avgReadLatency = avgReadLatency / clients.size();
-		avgWriteLatency= avgWriteLatency / clients.size();
+		avgWriteLatency = avgWriteLatency / clients.size();
 		StringBuilder buffer = new StringBuilder();
 
-		buffer.append("#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
-				"users");
+		buffer.append(
+				"#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
+						"users");
 
 		this.options.getWorkload().addExtraColumns(buffer);
 
@@ -162,8 +165,8 @@ public class Emulator
 		try
 		{
 			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
-					*Topology.getInstance().getReplicatorsCount()
-					+ "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId + ".csv";
+					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
+					+ this.emulatorId + ".csv";
 
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());
@@ -172,6 +175,7 @@ public class Emulator
 		{
 			e.printStackTrace();
 		}
+		*/
 	}
 
 	public String getPrefix()
@@ -192,19 +196,6 @@ public class Emulator
 		{
 			LOG.error(e.getMessage(), e);
 		}
-	}
-
-	public void collectStatistics(int iteration)
-	{
-		PerSecondStatistics perSecondStat = new PerSecondStatistics(iteration);
-
-		for(ClientEmulator client : this.clients)
-		{
-			ClientStatistics t = new ClientStatistics(client.getStats());
-			perSecondStat.addThreadStatistic(t);
-		}
-
-		this.perSecondStatsList.add(perSecondStat);
 	}
 
 }

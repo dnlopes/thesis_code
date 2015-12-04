@@ -1,19 +1,18 @@
 package applications.tpcc.txn;
 
 
+import applications.AbstractTransaction;
 import applications.BaseBenchmarkOptions;
+import applications.GeneratorUtils;
 import applications.Transaction;
 import applications.tpcc.TpccAbortedTransactionException;
 import applications.tpcc.TpccBenchmarkOptions;
 import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.NewOrderMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
 import applications.util.SymbolsManager;
-import common.util.ExitCode;
 
 import java.sql.*;
 
@@ -21,7 +20,7 @@ import java.sql.*;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class NewOrderTransaction implements Transaction
+public class NewOrderTransaction extends AbstractTransaction implements Transaction
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
@@ -40,23 +39,28 @@ public class NewOrderTransaction implements Transaction
 	private String s_dist_10 = null;
 
 	private final TpccBenchmarkOptions options;
-	private final NewOrderMetadata metadata;
-	private String lastError;
+	private NewOrderMetadata metadata;
 	private SymbolsManager symbolsManager;
 
-	public NewOrderTransaction(NewOrderMetadata txnMetadata, BaseBenchmarkOptions options)
+	public NewOrderTransaction(BaseBenchmarkOptions options)
 	{
-		this.metadata = txnMetadata;
+		super(TpccConstants.NEW_ORDER_TXN_NAME);
+
 		this.options = (TpccBenchmarkOptions) options;
 		this.symbolsManager = new SymbolsManager();
-
-		if(this.metadata == null)
-			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
 	}
 
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		this.metadata = createNewOrderMetadata();
+
+		if(this.metadata == null)
+		{
+			logger.error("failed to generate txn metadata");
+			return false;
+		}
+
 		try
 		{
 			con.setReadOnly(false);
@@ -228,7 +232,8 @@ public class NewOrderTransaction implements Transaction
 			if(this.options.isCRDTDriver())
 				d_next_o_id_string = this.symbolsManager.getNextSymbol();
 
-			if(this.options.useSequentialOrderIds())
+			//if(this.options.useSequentialOrderIds())
+			if(!this.options.isCRDTDriver())
 			{
 				try
 				{
@@ -533,20 +538,7 @@ public class NewOrderTransaction implements Transaction
 				}
 			}
 
-			// Commit.
-			try
-			{
-				con.commit();
-				return true;
-
-			} catch(SQLException e)
-			{
-				lastError = e.getMessage();
-				DbUtils.closeQuietly(rs);
-				DbUtils.closeQuietly(ps);
-				this.rollbackQuietly(con);
-				return false;
-			}
+			return true;
 		} catch(TpccAbortedTransactionException ate)
 		{
 			DbUtils.closeQuietly(rs);
@@ -561,32 +553,9 @@ public class NewOrderTransaction implements Transaction
 	}
 
 	@Override
-	public String getLastError()
-	{
-		return this.lastError;
-	}
-
-	@Override
 	public boolean isReadOnly()
 	{
 		return false;
-	}
-
-	@Override
-	public String getName()
-	{
-		return "NewOrderTransaction";
-	}
-
-	private void rollbackQuietly(Connection connection)
-	{
-		try
-		{
-			connection.rollback();
-		} catch(SQLException ignored)
-		{
-
-		}
 	}
 
 	private String pickDistInfo(String ol_dist_info, int ol_supply_w_id)
@@ -626,5 +595,150 @@ public class NewOrderTransaction implements Transaction
 		}
 
 		return ol_dist_info;
+	}
+
+	private NewOrderMetadata createNewOrderMetadata()
+	{
+		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
+		int districtId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
+		int customerId = GeneratorUtils.nuRand(1023, 1, TpccConstants.CUSTOMER_PER_DISTRICT);
+		int orderLinesNumber = 1;
+		//int orderLinesNumber = GeneratorUtils.randomNumberIncludeBoundaries(5, 15);
+		int rbk = GeneratorUtils.randomNumberIncludeBoundaries(1, 100);
+		int all_local = 0;
+
+		int[] itemsIds = new int[TpccConstants.MAX_NUM_ITEMS];
+		int[] supplierWarehouseIds = new int[TpccConstants.MAX_NUM_ITEMS];
+		int[] quantities = new int[TpccConstants.MAX_NUM_ITEMS];
+
+		int notfound = TpccConstants.MAXITEMS + 1;
+
+		for(int i = 0; i < orderLinesNumber; i++)
+		{
+			itemsIds[i] = GeneratorUtils.nuRand(8191, 1, TpccConstants.MAXITEMS);
+			if((i == orderLinesNumber - 1) && (rbk == 1))
+			{
+				itemsIds[i] = notfound;
+			}
+			if(TpccConstants.ALLOW_MULTI_WAREHOUSE_TX)
+			{
+				if(GeneratorUtils.randomNumberIncludeBoundaries(1, 100) != 1)
+				{
+					supplierWarehouseIds[i] = warehouseId;
+				} else
+				{
+					supplierWarehouseIds[i] = selectRemoteWarehouse(warehouseId);
+					all_local = 0;
+				}
+			} else
+			{
+				supplierWarehouseIds[i] = warehouseId;
+			}
+			quantities[i] = GeneratorUtils.randomNumberIncludeBoundaries(1, 10);
+		}
+
+		if(warehouseId < 1 || warehouseId > TpccConstants.WAREHOUSES_NUMBER)
+		{
+			logger.error("invalid warehouse id: {}", warehouseId);
+			return null;
+		}
+
+		if(districtId < 1 || districtId > TpccConstants.DISTRICTS_PER_WAREHOUSE)
+		{
+			logger.error("invalid district id: {}", districtId);
+			return null;
+		}
+
+		if(customerId < 1 || customerId > TpccConstants.CUSTOMER_PER_DISTRICT)
+		{
+			logger.error("invalid customer id: {}", customerId);
+			return null;
+		}
+
+		return new NewOrderMetadata(warehouseId, districtId, customerId, orderLinesNumber, all_local, itemsIds,
+				supplierWarehouseIds, quantities);
+	}
+
+	private int selectRemoteWarehouse(int home_ware)
+	{
+		int tmp;
+
+		if(TpccConstants.WAREHOUSES_NUMBER == 1)
+			return home_ware;
+		while((tmp = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER)) == home_ware)
+			;
+		return tmp;
+	}
+
+	/**
+	 * Created by dnlopes on 10/09/15.
+	 */
+	private class NewOrderMetadata
+	{
+
+		private final int warehouseId;
+		private final int districtId;
+		private final int customerId;
+		private final int numberOfItems;
+		private final int allOrderLinesLocal;
+		private final int[] itemsIdsArray;
+		private final int[] warehouseSuplierItems;
+		private final int[] quantities;
+
+		public NewOrderMetadata(int warehouseId, int districtId, int customerId, int numberOfItems,
+								int allOrderLinesLocal, int[] itemsIdsArray, int[] warehouseSuplierItems,
+								int[] quantities)
+		{
+			this.warehouseId = warehouseId;
+			this.districtId = districtId;
+			this.customerId = customerId;
+			this.numberOfItems = numberOfItems;
+			this.allOrderLinesLocal = allOrderLinesLocal;
+			this.itemsIdsArray = itemsIdsArray;
+			this.warehouseSuplierItems = warehouseSuplierItems;
+			this.quantities = quantities;
+
+		}
+
+		public int getWarehouseId()
+		{
+			return warehouseId;
+		}
+
+		public int getDistrictId()
+		{
+			return districtId;
+		}
+
+		public int getCustomerId()
+		{
+			return customerId;
+		}
+
+		public int getNumberOfItems()
+		{
+			return numberOfItems;
+		}
+
+		public int getAllOrderLinesLocal()
+		{
+			return allOrderLinesLocal;
+		}
+
+		public int[] getItemsIdsArray()
+		{
+			return itemsIdsArray;
+		}
+
+		public int[] getWarehouseSuplierItems()
+		{
+			return warehouseSuplierItems;
+		}
+
+		public int[] getQuantities()
+		{
+			return quantities;
+		}
+
 	}
 }

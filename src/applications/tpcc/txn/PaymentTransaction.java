@@ -1,16 +1,16 @@
 package applications.tpcc.txn;
 
 
+import applications.AbstractTransaction;
 import applications.BaseBenchmarkOptions;
+import applications.GeneratorUtils;
 import applications.Transaction;
+import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.PaymentMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 
 import java.sql.*;
 
@@ -18,27 +18,32 @@ import java.sql.*;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class PaymentTransaction implements Transaction
+public class PaymentTransaction extends AbstractTransaction implements Transaction
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
 	private final BaseBenchmarkOptions options;
-	private final PaymentMetadata metadata;
-	private String lastError;
+	private PaymentMetadata metadata;
 
-	public PaymentTransaction(PaymentMetadata txnMetadata, BaseBenchmarkOptions options)
+	public PaymentTransaction(BaseBenchmarkOptions options)
 	{
-		this.metadata = txnMetadata;
-		this.options = options;
+		super(TpccConstants.PAYMENT_TXN_NAME);
 
-		if(this.metadata == null)
-			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
+		this.options = options;
 	}
 
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		this.metadata = createPaymentMetadata();
+
+		if(this.metadata == null)
+		{
+			logger.error("failed to generate txn metadata");
+			return false;
+		}
+
 		try
 		{
 			con.setReadOnly(false);
@@ -505,25 +510,7 @@ public class PaymentTransaction implements Transaction
 			return false;
 		}
            */
-		try
-		{
-			con.commit();
-			return true;
-		} catch(SQLException e)
-		{
-			lastError = e.getMessage();
-			DbUtils.closeQuietly(rs);
-			DbUtils.closeQuietly(ps);
-			this.rollbackQuietly(con);
-			return false;
-		}
-
-	}
-
-	@Override
-	public String getLastError()
-	{
-		return this.lastError;
+		return true;
 	}
 
 	@Override
@@ -532,20 +519,143 @@ public class PaymentTransaction implements Transaction
 		return false;
 	}
 
-	@Override
-	public String getName()
+	private PaymentMetadata createPaymentMetadata()
 	{
-		return "PaymentTransaction";
+		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
+		int districtId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
+		int customerId = GeneratorUtils.nuRand(1023, 1, TpccConstants.CUSTOMER_PER_DISTRICT);
+		String c_last = GeneratorUtils.lastName(GeneratorUtils.nuRand(255, 0, 999));
+		int h_amount = GeneratorUtils.randomNumberIncludeBoundaries(1, 5000);
+
+		int c_w_id, c_d_id;
+		int byname;
+
+		if(GeneratorUtils.randomNumber(1, 100) <= 60)
+		{
+			byname = 1; /* select by last name */
+		} else
+		{
+			byname = 0; /* select by customer id */
+		}
+
+		if(TpccConstants.ALLOW_MULTI_WAREHOUSE_TX)
+		{
+			if(GeneratorUtils.randomNumberIncludeBoundaries(1, 100) <= 85)
+			{
+				c_w_id = warehouseId;
+				c_d_id = districtId;
+			} else
+			{
+				c_w_id = selectRemoteWarehouse(warehouseId);
+				c_d_id = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
+			}
+		} else
+		{
+			c_w_id = warehouseId;
+			c_d_id = districtId;
+		}
+
+		if(warehouseId < 1 || warehouseId > TpccConstants.WAREHOUSES_NUMBER)
+		{
+			logger.error("invalid warehouse id: {}", warehouseId);
+			return null;
+		}
+
+		if(districtId < 1 || districtId > TpccConstants.DISTRICTS_PER_WAREHOUSE)
+		{
+			logger.error("invalid district id: {}", districtId);
+			return null;
+		}
+
+		if(customerId < 1 || customerId > TpccConstants.CUSTOMER_PER_DISTRICT)
+		{
+			logger.error("invalid customer id: {}", customerId);
+			return null;
+		}
+
+		return new PaymentTransaction.PaymentMetadata(warehouseId, c_w_id, districtId, c_d_id, customerId, byname,
+				h_amount, c_last);
+
 	}
 
-	private void rollbackQuietly(Connection connection)
+	private int selectRemoteWarehouse(int home_ware)
 	{
-		try
-		{
-			connection.rollback();
-		} catch(SQLException ignored)
-		{
+		int tmp;
 
+		if(TpccConstants.WAREHOUSES_NUMBER == 1)
+			return home_ware;
+		while((tmp = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER)) == home_ware)
+			;
+		return tmp;
+	}
+
+	/**
+	 * Created by dnlopes on 15/09/15.
+	 */
+	private class PaymentMetadata
+	{
+
+		private final int warehouseId;
+		private final int customerWarehouseId;
+		private final int districtId;
+		private final int customerDistrictId;
+		private final int customerId;
+		private final int byname;
+		private final int h_amount;
+		private final String lastName;
+
+		public PaymentMetadata(int warehouseId, int customerWarehouseId, int districtId, int customerDistrictId,
+							   int customerId, int byname, int h_amount, String lastName)
+		{
+			this.warehouseId = warehouseId;
+			this.customerWarehouseId = customerWarehouseId;
+			this.districtId = districtId;
+			this.customerDistrictId = customerDistrictId;
+			this.customerId = customerId;
+			this.byname = byname;
+			this.lastName = lastName;
+			this.h_amount = h_amount;
 		}
+
+		public int getWarehouseId()
+		{
+			return warehouseId;
+		}
+
+		public int getCustomerWarehouseId()
+		{
+			return customerWarehouseId;
+		}
+
+		public int getDistrictId()
+		{
+			return districtId;
+		}
+
+		public int getCustomerDistrictId()
+		{
+			return customerDistrictId;
+		}
+
+		public int getCustomerId()
+		{
+			return customerId;
+		}
+
+		public int getByname()
+		{
+			return byname;
+		}
+
+		public int getH_amount()
+		{
+			return h_amount;
+		}
+
+		public String getLastName()
+		{
+			return lastName;
+		}
+
 	}
 }

@@ -1,15 +1,15 @@
 package applications.tpcc.txn;
 
 
+import applications.AbstractTransaction;
 import applications.BaseBenchmarkOptions;
+import applications.GeneratorUtils;
 import applications.Transaction;
+import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.StockLevelMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,27 +20,32 @@ import java.sql.SQLException;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class StockLevelTransaction implements Transaction
+public class StockLevelTransaction extends AbstractTransaction implements Transaction
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
 	private final BaseBenchmarkOptions options;
-	private final StockLevelMetadata metadata;
-	private String lastError;
+	private StockLevelMetadata metadata;
 
-	public StockLevelTransaction(StockLevelMetadata txnMetadata, BaseBenchmarkOptions options)
+	public StockLevelTransaction(BaseBenchmarkOptions options)
 	{
-		this.metadata = txnMetadata;
-		this.options = options;
+		super(TpccConstants.STOCK_LEVEL_TXN_NAME);
 
-		if(this.metadata == null)
-			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
+		this.options = options;
 	}
 
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		this.metadata = createStockLevelMetadata();
+
+		if(this.metadata == null)
+		{
+			logger.error("failed to generate txn metadata");
+			return false;
+		}
+
 		try
 		{
 			con.setReadOnly(true);
@@ -149,25 +154,7 @@ public class StockLevelTransaction implements Transaction
 			return false;
 		}
 
-		// Commit.
-		try
-		{
-			con.commit();
-			return true;
-		} catch(SQLException e)
-		{
-			lastError = e.getMessage();
-			DbUtils.closeQuietly(rs);
-			DbUtils.closeQuietly(ps);
-			this.rollbackQuietly(con);
-			return false;
-		}
-	}
-
-	@Override
-	public String getLastError()
-	{
-		return this.lastError;
+		return true;
 	}
 
 	@Override
@@ -176,20 +163,59 @@ public class StockLevelTransaction implements Transaction
 		return true;
 	}
 
-	@Override
-	public String getName()
+	private StockLevelMetadata createStockLevelMetadata()
 	{
-		return "StockLevelTransaction";
+
+		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
+		int districtId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
+		int level = GeneratorUtils.randomNumberIncludeBoundaries(10, 20);
+
+		if(warehouseId < 1 || warehouseId > TpccConstants.WAREHOUSES_NUMBER)
+		{
+			logger.error("invalid warehouse id: {}", warehouseId);
+			return null;
+		}
+
+		if(districtId < 1 || districtId > TpccConstants.DISTRICTS_PER_WAREHOUSE)
+		{
+			logger.error("invalid district id: {}", districtId);
+			return null;
+		}
+
+		return new StockLevelTransaction.StockLevelMetadata(warehouseId, districtId, level);
 	}
 
-	private void rollbackQuietly(Connection connection)
+	/**
+	 * Created by dnlopes on 15/09/15.
+	 */
+	private class StockLevelMetadata
 	{
-		try
-		{
-			connection.rollback();
-		} catch(SQLException ignored)
-		{
 
+		private final int warehouseId;
+		private final int districtId;
+		private final int level;
+
+		public StockLevelMetadata(int warehouseId, int districtId, int level)
+		{
+			this.warehouseId = warehouseId;
+			this.districtId = districtId;
+			this.level = level;
 		}
+
+		public int getWarehouseId()
+		{
+			return warehouseId;
+		}
+
+		public int getLevel()
+		{
+			return level;
+		}
+
+		public int getDistrictId()
+		{
+			return districtId;
+		}
+
 	}
 }

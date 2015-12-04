@@ -1,16 +1,15 @@
 package applications.tpcc.txn;
 
 
+import applications.AbstractTransaction;
 import applications.BaseBenchmarkOptions;
+import applications.GeneratorUtils;
 import applications.Transaction;
 import applications.tpcc.TpccConstants;
 import applications.tpcc.TpccStatements;
-import applications.tpcc.metadata.DeliveryMetadata;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 
 import java.sql.*;
 import java.util.Calendar;
@@ -20,27 +19,32 @@ import java.util.Date;
 /**
  * Created by dnlopes on 05/09/15.
  */
-public class DeliveryTransaction implements Transaction
+public class DeliveryTransaction extends AbstractTransaction implements Transaction
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(NewOrderTransaction.class);
 
 	private final BaseBenchmarkOptions options;
-	private final DeliveryMetadata metadata;
-	private String lastError;
+	private DeliveryMetadata metadata;
 
-	public DeliveryTransaction(DeliveryMetadata txnMetadata, BaseBenchmarkOptions options)
+	public DeliveryTransaction(BaseBenchmarkOptions options)
 	{
-		this.metadata = txnMetadata;
-		this.options = options;
+		super(TpccConstants.DELIVERY_TXN_NAME);
 
-		if(this.metadata == null)
-			RuntimeUtils.throwRunTimeException("failed to generate txn metadata", ExitCode.NOINITIALIZATION);
+		this.options = options;
 	}
 
 	@Override
 	public boolean executeTransaction(Connection con)
 	{
+		this.metadata = createDeliveryMetadata();
+
+		if(this.metadata == null)
+		{
+			logger.error("failed to generate txn metadata");
+			return false;
+		}
+
 		try
 		{
 			con.setReadOnly(false);
@@ -252,24 +256,7 @@ public class DeliveryTransaction implements Transaction
 			}
 		}
 
-		try
-		{
-			con.commit();
-			return true;
-		} catch(SQLException e)
-		{
-			lastError = e.getMessage();
-			DbUtils.closeQuietly(rs);
-			DbUtils.closeQuietly(ps);
-			this.rollbackQuietly(con);
-			return false;
-		}
-	}
-
-	@Override
-	public String getLastError()
-	{
-		return this.lastError;
+		return true;
 	}
 
 	@Override
@@ -278,20 +265,44 @@ public class DeliveryTransaction implements Transaction
 		return false;
 	}
 
-	@Override
-	public String getName()
+	private DeliveryMetadata createDeliveryMetadata()
 	{
-		return "DeliveryTransaction";
+		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
+		int carrierId = GeneratorUtils.randomNumberIncludeBoundaries(1, 10);
+
+		if(warehouseId < 1 || warehouseId > TpccConstants.WAREHOUSES_NUMBER)
+		{
+			logger.error("invalid warehouse id: {}", warehouseId);
+			return null;
+		}
+
+		return new DeliveryMetadata(warehouseId, carrierId);
 	}
 
-	private void rollbackQuietly(Connection connection)
+	/**
+	 * Created by dnlopes on 15/09/15.
+	 */
+	private class DeliveryMetadata
 	{
-		try
-		{
-			connection.rollback();
-		} catch(SQLException ignored)
-		{
 
+		private final int warehouseId;
+		private final int carrierId;
+
+		public DeliveryMetadata(int warehouseId, int carriedId)
+		{
+			this.warehouseId = warehouseId;
+			this.carrierId = carriedId;
 		}
+
+		public int getWarehouseId()
+		{
+			return warehouseId;
+		}
+
+		public int getCarrierId()
+		{
+			return carrierId;
+		}
+
 	}
 }

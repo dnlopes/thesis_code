@@ -9,6 +9,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.*;
+import server.execution.StatsCollector;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private final DispatcherAgent dispatcher;
 	private final CoordinationAgent coordAgent;
 	private final int replicatorId;
+	private final StatsCollector stats;
 
 	public ReplicatorService(Replicator replicator)
 	{
@@ -34,6 +36,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		this.deliver = this.replicator.getDeliver();
 		this.dispatcher = this.replicator.getDispatcher();
 		this.coordAgent = this.replicator.getCoordAgent();
+		this.stats = this.replicator.statsCollector;
 	}
 
 	@Override
@@ -56,6 +59,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 	private boolean handleCommitOperation(CRDTTransaction transaction)
 	{
+		long beginTime = System.nanoTime();
 		transaction.setReplicatorId(this.replicatorId);
 
 		this.coordAgent.handleCoordination(transaction);
@@ -72,10 +76,16 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 			// wait for commit decision
 			// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
+
 			boolean localCommit = this.replicator.commitOperation(compiledTxn);
 
 			if(localCommit)
 				this.dispatcher.dispatchTransaction(transaction);
+
+			long endTime = System.nanoTime();
+			long latency = (endTime - beginTime) / 1000000;
+			stats.addLatency(latency);
+			stats.incrementCommits();
 
 			return localCommit;
 		} else

@@ -10,8 +10,9 @@ import java.sql.Connection;
 public interface Transaction
 {
 
-	public boolean executeTransaction(Connection con);
-	public String getLastError();
-	public boolean isReadOnly();
-	public String getName();
+	boolean executeTransaction(Connection con);
+	boolean commitTransaction(Connection con);
+	String getLastError();
+	boolean isReadOnly();
+	String getName();
 }

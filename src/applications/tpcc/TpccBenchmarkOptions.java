@@ -2,7 +2,6 @@ package applications.tpcc;
 
 
 import applications.BaseBenchmarkOptions;
-import applications.BenchmarkOptions;
 import applications.Workload;
 import common.util.DatabaseProperties;
 
@@ -21,10 +20,10 @@ public final class TpccBenchmarkOptions extends BaseBenchmarkOptions
 	{
 		super(clientsNumber, duration, jdbc, name, workload, dbProps);
 
-		if(jdbc.compareTo(BenchmarkOptions.JDBCS.MYSQL_DRIVER) == 0)
-			this.databaseName = ORIGINAL_DB_NAME;
-		else
+		if(jdbc.compareTo(JDBCS.CRDT_DRIVER) == 0)
 			this.databaseName = ORIGINAL_DB_NAME + "_crdt";
+		else
+			this.databaseName = ORIGINAL_DB_NAME;
 	}
 
 	@Override

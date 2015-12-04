@@ -1,7 +1,6 @@
 package server.agents.coordination.zookeeper;
 
 
-import common.thrift.ThriftUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
