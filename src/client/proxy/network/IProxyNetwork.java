@@ -1,4 +1,4 @@
-package client.proxy;
+package client.proxy.network;
 
 
 import common.nodes.NodeConfig;

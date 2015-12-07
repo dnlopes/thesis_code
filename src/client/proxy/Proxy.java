@@ -10,17 +10,13 @@ import java.sql.SQLException;
  */
 public interface Proxy
 {
-	public int assignConnectionId();
-	public void setReadOnly(boolean readOnly);
+	int getProxyId();
+	void setReadOnly(boolean readOnly);
 
-	public void abort(int connectionId);
-	public void commit(int connectionId) throws SQLException;
-	public void closeTransaction(int connectionId) throws SQLException;
+	void abort();
+	void commit() throws SQLException;
+	void closeTransaction() throws SQLException;
 
-	public ResultSet executeQuery(String op, int connectionId) throws SQLException;
-	public int executeUpdate(String op, int connectionId) throws SQLException;
-
-
-
-
+	ResultSet executeQuery(String op) throws SQLException;
+	int executeUpdate(String op) throws SQLException;
 }

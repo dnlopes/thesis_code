@@ -26,11 +26,6 @@ public class PrimaryKey
 		this.isGenerated = false;
 	}
 
-	public PrimaryKey(String formatedPk, int size)
-	{
-		this.queryClause = formatedPk;
-		pkSize = size;
-	}
 
 	public void addField(DataField field)
 	{

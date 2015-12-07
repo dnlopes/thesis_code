@@ -90,4 +90,9 @@ public class LWW_INTEGER extends DataField
 	{
 		return true;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
 }

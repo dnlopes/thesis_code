@@ -29,12 +29,18 @@ public class ProxyFactory
 
 	public static Proxy getProxyInstance()
 	{
+		//return createWriteThroughProxy();
 		return createSimpleProxy();
+	}
+
+	private static Proxy createWriteThroughProxy()
+	{
+		return new WriteThroughProxy(PROXY_CONFIG, assignProxyId());
 	}
 
 	private static Proxy createSimpleProxy()
 	{
-		return new BasicProxy(PROXY_CONFIG, assignProxyId());
+		return new SandboxProxy(PROXY_CONFIG, assignProxyId());
 	}
 
 	private static synchronized int assignProxyId()

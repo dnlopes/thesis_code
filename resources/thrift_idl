@@ -11,9 +11,9 @@ struct ApplyDelta
 struct RequestValue
 {
     1: required string constraintId;
-    2: required i32 opId;
+    2: i32 opId;
     3: required string fieldName;
-    4: required string tempSymbol;
+    4: string tempSymbol;
     5: string requestedValue;
 }
 
@@ -78,6 +78,13 @@ struct CRDTTransaction {
     6: optional CoordinatorRequest requestToCoordinator;
     7: optional CRDTCompiledTransaction compiledTxn;
     8: map<string,SymbolEntry> symbolsMap;
+}
+
+struct CRDTPreCompiledOperation
+{
+    1: required string sqlOp;
+    2: required bool hasSymbols;
+    3: optional list<string> symbols;
 }
 
 struct CRDTCompiledTransaction {

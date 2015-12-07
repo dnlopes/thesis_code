@@ -165,9 +165,6 @@ public class DeterministicQuery
 				valueList.set(i, "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'");
 		}
 
-		colList.add(DatabaseDefaults.DELETED_COLUMN);
-		valueList.add(DatabaseDefaults.NOT_DELETED_VALUE);
-
 		// fill in the missing tuples
 		if(missFields != null)
 		{

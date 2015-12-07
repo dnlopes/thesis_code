@@ -22,13 +22,11 @@ public class CRDTPreparedStatement implements PreparedStatement
 	String sql;
 	int[] argPos;
 	String[] vals;
-	private int id;
 	private final Proxy proxy;
 
-	protected CRDTPreparedStatement(String sql, int connectionId, Proxy proxy)
+	protected CRDTPreparedStatement(String sql, Proxy proxy)
 	{
 		this.sql = sql;
-		this.id = connectionId;
 		this.proxy = proxy;
 		init(0, 0);
 	}
@@ -62,14 +60,14 @@ public class CRDTPreparedStatement implements PreparedStatement
 	public ResultSet executeQuery() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-		return this.proxy.executeQuery(arg0, this.id);
+		return this.proxy.executeQuery(arg0);
 	}
 
 	@Override
 	public int executeUpdate() throws SQLException
 	{
 		String arg0 = this.generateStatement();
-		return this.proxy.executeUpdate(arg0, this.id);
+		return this.proxy.executeUpdate(arg0);
 	}
 
 	@Override

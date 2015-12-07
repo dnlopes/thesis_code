@@ -18,7 +18,7 @@ public final class PrimaryKeyValue
 
 	private static final String DEFAULT_VALUE = "TRUE";
 	private final String tableName;
-	private final Map<String, FieldValue> values;
+	private Map<String, FieldValue> values;
 	private String uniqueValue;
 	private String primaryKeyWhereClause;
 	private String pkValue;
@@ -35,10 +35,19 @@ public final class PrimaryKeyValue
 		this.isValueGenerated = false;
 	}
 
+	public PrimaryKeyValue duplicate()
+	{
+		PrimaryKeyValue newPkValue = new PrimaryKeyValue(this.tableName);
+		newPkValue.setValues(new HashMap<>(this.values));
+		newPkValue.preparePrimaryKey();
+
+		return newPkValue;
+	}
+
 	public String getUniqueValue()
 	{
 		if(!isUniqueGenerated)
-			this.generateUniqueIdentifier();
+			preparePrimaryKey();
 
 		return this.uniqueValue;
 	}
@@ -47,6 +56,46 @@ public final class PrimaryKeyValue
 	{
 		this.values.put(fieldValue.getDataField().getFieldName(), fieldValue);
 		this.isUniqueGenerated = false;
+	}
+
+	public String getPrimaryKeyWhereClause()
+	{
+		if(this.values.size() == 0)
+			return DEFAULT_VALUE;
+
+		if(!isPkGenerated)
+			preparePrimaryKey();
+
+		return this.primaryKeyWhereClause;
+	}
+
+	public String getValue()
+	{
+		if(!isValueGenerated)
+			preparePrimaryKey();
+
+		return this.pkValue;
+	}
+
+	public void preparePrimaryKey()
+	{
+		if(!this.isValueGenerated)
+		{
+			generateValue();
+			this.isValueGenerated = true;
+		}
+
+		if(!this.isUniqueGenerated)
+		{
+			generateUniqueIdentifier();
+			this.isUniqueGenerated = true;
+		}
+
+		if(!isPkGenerated)
+		{
+			generatePkWhereClause();
+			this.isPkGenerated = true;
+		}
 	}
 
 	public FieldValue getFieldValue(String fieldName)
@@ -66,6 +115,12 @@ public final class PrimaryKeyValue
 				append(this.uniqueValue).
 				toHashCode();
 	}
+
+	public void setValues(Map<String, FieldValue> values)
+	{
+		this.values = values;
+	}
+
 
 	@Override
 	public boolean equals(Object obj)
@@ -95,19 +150,7 @@ public final class PrimaryKeyValue
 				buffer.append(",");
 		}
 
-		this.isUniqueGenerated = true;
 		this.uniqueValue = buffer.toString();
-	}
-
-	public String getPrimaryKeyWhereClause()
-	{
-		if(this.values.size() == 0)
-			return DEFAULT_VALUE;
-
-		if(!isPkGenerated)
-			this.generatePkWhereClause();
-
-		return this.primaryKeyWhereClause;
 	}
 
 	private void generatePkWhereClause()
@@ -142,15 +185,7 @@ public final class PrimaryKeyValue
 				buffer.append(",");
 		}
 
-		this.isValueGenerated = true;
 		this.pkValue = buffer.toString();
 	}
 
-	public String getValue()
-	{
-		if(!isValueGenerated)
-			this.generateValue();
-
-		return this.pkValue;
-	}
 }

@@ -1,4 +1,4 @@
-package client.proxy;
+package client.proxy.network;
 
 
 import common.nodes.AbstractNetwork;
@@ -18,15 +18,13 @@ import common.thrift.ReplicatorRPC;
 /**
  * Created by dnlopes on 02/09/15.
  */
-public class ProxyNetwork extends AbstractNetwork implements IProxyNetwork
+public class SandboxProxyNetwork extends AbstractNetwork implements IProxyNetwork
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProxyNetwork.class);
 
 	private final NodeConfig replicatorConfig;
 	private ReplicatorRPC.Client replicatorRpc;
 
-	public ProxyNetwork(NodeConfig proxyConfig)
+	public SandboxProxyNetwork(NodeConfig proxyConfig)
 	{
 		super(proxyConfig);
 

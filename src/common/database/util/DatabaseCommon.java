@@ -36,6 +36,8 @@ public class DatabaseCommon
 			FieldValue fValue = new FieldValue(field, fieldValue);
 			pkValue.addFieldValue(fValue);
 		}
+
+		pkValue.preparePrimaryKey();
 		return pkValue;
 	}
 

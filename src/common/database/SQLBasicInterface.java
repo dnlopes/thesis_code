@@ -4,10 +4,7 @@ package common.database;
 import common.nodes.NodeConfig;
 import common.util.ConnectionFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 
 /**
@@ -40,13 +37,13 @@ public class SQLBasicInterface implements SQLInterface
 	@Override
 	public int executeUpdate(String sql) throws SQLException
 	{
-		return this.statQ.executeUpdate(sql);
+		return this.statU.executeUpdate(sql);
 	}
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException
 	{
-		return this.statU.executeQuery(sql);
+		return this.statQ.executeQuery(sql);
 	}
 
 	@Override
@@ -92,5 +89,17 @@ public class SQLBasicInterface implements SQLInterface
 	public void commit() throws SQLException
 	{
 		this.dbConnection.commit();
+	}
+
+	@Override
+	public void rollback() throws SQLException
+	{
+		this.dbConnection.rollback();
+	}
+
+	@Override
+	public PreparedStatement prepareStatement(String sql) throws SQLException
+	{
+		return this.dbConnection.prepareStatement(sql);
 	}
 }

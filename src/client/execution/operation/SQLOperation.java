@@ -1,0 +1,62 @@
+package client.execution.operation;
+
+
+import common.database.util.DatabaseMetadata;
+import common.util.Environment;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.update.Update;
+
+import java.io.StringReader;
+
+
+/**
+ * Created by dnlopes on 06/12/15.
+ */
+public abstract class SQLOperation
+{
+
+	protected static final CCJSqlParserManager SQL_PARSER_MANAGER = new CCJSqlParserManager();
+	protected static final DatabaseMetadata DB_METADATA = Environment.DB_METADATA;
+
+	protected final SQLOperationType opType;
+	protected String sqlString;
+
+	public SQLOperation(SQLOperationType type)
+	{
+		this.opType = type;
+	}
+
+	public abstract void prepareOperation(boolean useWhere, String tempTableName);
+	public abstract SQLOperation duplicate() throws JSQLParserException;
+
+	public static SQLOperation parseSQLOperation(String sql) throws JSQLParserException
+	{
+		Statement sqlStmt = SQL_PARSER_MANAGER.parse(new StringReader(sql));
+
+		if(sqlStmt instanceof Insert)
+			return new SQLInsert((Insert) sqlStmt);
+		else if(sqlStmt instanceof Update)
+			return new SQLUpdate((Update) sqlStmt);
+		else if(sqlStmt instanceof Select)
+			return new SQLSelect((Select) sqlStmt);
+		else if(sqlStmt instanceof Delete)
+			return new SQLDelete((Delete) sqlStmt);
+		else
+			throw new JSQLParserException("unkown sql statement");
+	}
+
+	public SQLOperationType getOpType()
+	{
+		return opType;
+	}
+
+	public String getSQLString()
+	{
+		return sqlString;
+	}
+}

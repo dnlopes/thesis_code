@@ -1,6 +1,9 @@
-package client.execution.temporary;
+package client.execution.temporary.scratchpad.agent;
 
 
+import client.execution.TransactionRecord;
+import client.execution.operation.*;
+import client.execution.temporary.scratchpad.ReadWriteScratchpad;
 import common.database.constraints.fk.ForeignKeyConstraint;
 import common.database.constraints.unique.AutoIncrementConstraint;
 import common.database.constraints.unique.UniqueConstraint;
@@ -8,30 +11,21 @@ import common.database.SQLInterface;
 import common.database.util.*;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
-import common.database.table.TablePolicy;
 import common.database.value.DeltaFieldValue;
 import common.database.value.FieldValue;
-import common.util.Environment;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import common.util.RuntimeUtils;
 import applications.util.SymbolsManager;
 import client.execution.QueryCreator;
 import common.util.ExitCode;
 import common.util.defaults.DatabaseDefaults;
-import common.util.defaults.ScratchpadDefaults;
 import common.thrift.*;
 
 import java.sql.*;
@@ -41,232 +35,26 @@ import java.util.*;
 /**
  * Created by dnlopes on 10/09/15.
  */
-public class DBExecutorAgent implements IExecutorAgent
+public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DBExecutorAgent.class);
 	private static final int TEMPORARY_INTEGER = 10000;
 
-	private SQLInterface sqlInterface;
 	private ExecutionHelper helper;
-
-	private TableDefinition tableDefinition;
-	private DatabaseTable databaseTable;
-	private TablePolicy tablePolicy;
-	private List<ForeignKeyConstraint> fkConstraints;
-	private Map<String, DataField> fields;
-	private String tempTableName;
-	private String tempTableNameAlias;
-	private int tableId;
-	private int sandboxId;
-
-	private FromItem fromItemTemp;
-	private PrimaryKey pk;
-	private List<SelectItem> selectAllItems;
-
 	private Set<PrimaryKeyValue> duplicatedRows;
 	private Set<PrimaryKeyValue> deletedRows;
 	private Map<String, PrimaryKeyValue> recordedPkValues;
 
-	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface) throws SQLException
+	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface,
+						   ReadWriteScratchpad pad, TransactionRecord txnRecord) throws
+			SQLException
 	{
-		this.helper = new ExecutionHelper();
-		this.sandboxId = sandboxId;
-		this.tableId = tableId;
-		this.databaseTable = Environment.DB_METADATA.getTable(tableName);
-		this.tablePolicy = this.databaseTable.getTablePolicy();
-
-		this.fkConstraints = new ArrayList<>();
-
-		for(ForeignKeyConstraint fkConstraint : this.databaseTable.getFkConstraints())
-			this.fkConstraints.add(fkConstraint);
-
-		this.pk = databaseTable.getPrimaryKey();
-		this.selectAllItems = new ArrayList<>();
-		this.fields = this.databaseTable.getFieldsMap();
-
-		for(DataField field : this.fields.values())
-		{
-			if(field.isHiddenField())
-				continue;
-
-			Column column = new Column(field.getFieldName());
-			SelectExpressionItem a = new SelectExpressionItem(column);
-			selectAllItems.add(a);
-		}
+		super(sandboxId, tableId, tableName, sqlInterface, pad, txnRecord);
 
 		this.duplicatedRows = new HashSet<>();
 		this.deletedRows = new HashSet<>();
 		this.recordedPkValues = new HashMap<>();
-		this.sqlInterface = sqlInterface;
-	}
-
-	@Override
-	public void setup(DatabaseMetaData metadata, int scratchpadId)
-	{
-		try
-		{
-			this.tempTableName = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.databaseTable.getName() +
-					"_" +
-					scratchpadId;
-			this.fromItemTemp = new Table(Environment.DATABASE_NAME, tempTableName);
-			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
-			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
-
-			StringBuilder buffer2 = new StringBuilder();
-			buffer2.append("DROP TABLE IF EXISTS ");
-			StringBuilder buffer = new StringBuilder();
-
-			if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
-				buffer.append("CREATE LOCAL TEMPORARY TABLE ");    // for H2
-			else
-				buffer.append("CREATE TABLE IF NOT EXISTS ");        // for mysql
-
-			if(LOG.isTraceEnabled())
-				LOG.trace("creating temporary table {}", this.tempTableName);
-
-			buffer.append(tempTableName);
-			buffer2.append(tempTableName);
-			buffer2.append(";");
-			buffer.append("(");
-
-			ArrayList<Boolean> tempIsStr = new ArrayList<>();        // for columns
-			ArrayList<String> temp = new ArrayList<>();        // for columns
-			ArrayList<String> tempAlias = new ArrayList<>();    // for columns with aliases
-			ArrayList<String> tempTempAlias = new ArrayList<>();    // for temp columns with aliases
-			ArrayList<String> uniqueIndices = new ArrayList<>(); // unique index
-			ResultSet colSet = metadata.getColumns(null, null, this.databaseTable.getName(), "%");
-			boolean first = true;
-
-			while(colSet.next())
-			{
-				if(!first)
-					buffer.append(",");
-				else
-					first = false;
-				buffer.append(colSet.getString(4));            // column name
-				buffer.append(" ");
-				String[] tmpStr = {""};
-				if(colSet.getString(6).contains(" "))
-				{        // column type
-					tmpStr = colSet.getString(6).split(" ");
-				} else
-				{
-					tmpStr[0] = colSet.getString(6);
-				}
-
-				buffer.append(tmpStr[0]);
-				if(!(tmpStr[0].equals("INT") ||
-						tmpStr[0].equals("DOUBLE") ||
-						tmpStr[0].equals("BIT") ||
-						tmpStr[0].equals("DATE") ||
-						tmpStr[0].equals("TIME") ||
-						tmpStr[0].equals("TIMESTAMP") ||
-						tmpStr[0].equals("DATETIME") ||
-						tmpStr[0].equals("YEAR")))
-				{
-					buffer.append("(");
-					buffer.append(colSet.getInt(7));        //size of type
-					buffer.append(")");
-				}
-				buffer.append(" ");
-				if(tmpStr.length > 1)
-					buffer.append(tmpStr[1]);
-				if(colSet.getString(4).equalsIgnoreCase(DatabaseDefaults.DELETED_CLOCK_COLUMN))
-				{
-					buffer.append(" DEFAULT FALSE ");
-				}
-
-				temp.add(colSet.getString(4));
-				tempAlias.add(tableNameAlias + "." + colSet.getString(4));
-				tempTempAlias.add(this.tempTableNameAlias + "." + colSet.getString(4));
-				tempIsStr.add(
-						colSet.getInt(5) == Types.VARCHAR || colSet.getInt(5) == Types.LONGNVARCHAR || colSet.getInt(
-								5) == Types.LONGVARCHAR || colSet.getInt(5) == Types.CHAR || colSet.getInt(
-								5) == Types.DATE || colSet.getInt(5) == Types.TIMESTAMP || colSet.getInt(
-								5) == Types.TIME);
-			}
-			colSet.close();
-			String[] cols = new String[temp.size()];
-			temp.toArray(cols);
-			temp.clear();
-
-			String[] aliasCols = new String[tempAlias.size()];
-			tempAlias.toArray(aliasCols);
-			tempAlias.clear();
-
-			String[] tempAliasCols = new String[tempTempAlias.size()];
-			tempTempAlias.toArray(tempAliasCols);
-			tempTempAlias.clear();
-
-			boolean[] colsIsStr = new boolean[tempIsStr.size()];
-			for(int i = 0; i < colsIsStr.length; i++)
-				colsIsStr[i] = tempIsStr.get(i);
-
-			//get all unique index
-			ResultSet uqIndices = metadata.getIndexInfo(null, null, this.databaseTable.getName(), true, true);
-			while(uqIndices.next())
-			{
-				String indexName = uqIndices.getString("INDEX_NAME");
-				String columnName = uqIndices.getString("COLUMN_NAME");
-				if(indexName == null)
-				{
-					continue;
-				}
-				uniqueIndices.add(columnName);
-			}
-			uqIndices.close();
-
-			ResultSet pkSet = metadata.getPrimaryKeys(null, null, this.databaseTable.getName());
-			while(pkSet.next())
-			{
-				if(temp.size() == 0)
-					buffer.append(", PRIMARY KEY (");
-				else
-					buffer.append(", ");
-				buffer.append(pkSet.getString(4));
-				temp.add(pkSet.getString(4));
-				tempAlias.add(tableNameAlias + "." + pkSet.getString(4));
-				tempTempAlias.add(this.tempTableNameAlias + "." + pkSet.getString(4));
-				uniqueIndices.remove(pkSet.getString(4));
-			}
-			pkSet.close();
-			if(temp.size() > 0)
-				buffer.append(")");
-			String[] pkPlain = new String[temp.size()];
-			temp.toArray(pkPlain);
-			temp.clear();
-
-			String[] pkAlias = new String[tempAlias.size()];
-			tempAlias.toArray(pkAlias);
-			tempAlias.clear();
-
-			String[] pkTempAlias = new String[tempTempAlias.size()];
-			tempTempAlias.toArray(pkTempAlias);
-			tempTempAlias.clear();
-
-			String[] uqIndicesPlain = new String[uniqueIndices.size()];
-			uniqueIndices.toArray(uqIndicesPlain);
-			uniqueIndices.clear();
-
-			this.tableDefinition = new TableDefinition(this.databaseTable.getName(), tableNameAlias, this.tableId,
-					colsIsStr, cols, aliasCols, tempAliasCols, pkPlain, pkAlias, pkTempAlias, uqIndicesPlain);
-
-			if(ScratchpadDefaults.SQL_ENGINE == ScratchpadDefaults.RDBMS_H2)
-				buffer.append(") NOT PERSISTENT;");    // FOR H2
-			else
-				buffer.append(") ENGINE=MEMORY;");    // FOR MYSQL
-
-			this.sqlInterface.executeUpdate(buffer2.toString());
-			this.sqlInterface.executeUpdate(buffer.toString());
-
-		} catch(SQLException e)
-		{
-			LOG.error("failed to create temporary tables for scratchpad", e);
-			RuntimeUtils.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
-		}
-		if(LOG.isTraceEnabled())
-			LOG.trace("executor for table {} created", this.databaseTable.getName());
+		this.helper = new ExecutionHelper();
 	}
 
 	@Override
@@ -343,36 +131,41 @@ public class DBExecutorAgent implements IExecutorAgent
 	}
 
 	@Override
-	public int executeTemporaryUpdate(net.sf.jsqlparser.statement.Statement statement, CRDTTransaction transaction)
+	public int executeTemporaryUpdate(SQLWriteOperation sqlOp)
 			throws SQLException
 	{
-		if(statement instanceof Delete)
-			return executeTempOpDelete((Delete) statement, transaction);
-
-		else
+		//TODO currently not usable
+		if(sqlOp.getOpType() == SQLOperationType.DELETE)
 		{
-			if(statement instanceof Insert)
-				return executeTempOpInsert((Insert) statement, transaction);
-			else if(statement instanceof Update)
-				return executeTempOpUpdate((Update) statement, transaction);
-			else
+			return executeTempOpDelete((SQLDelete) sqlOp, null);
+		} else
+		{
+			if(sqlOp.getOpType() == SQLOperationType.INSERT)
+			{
+				return executeTempOpInsert((SQLInsert) sqlOp, null);
+			} else if(sqlOp.getOpType() == SQLOperationType.UPDATE)
+			{
+				return executeTempOpUpdate((SQLUpdate) sqlOp, null);
+			} else
 				throw new SQLException("update statement not found");
 		}
 	}
 
 	@Override
-	public void resetExecuter() throws SQLException
+	public void clearExecutor() throws SQLException
 	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("TRUNCATE TABLE ");
-		buffer.append(this.tempTableName);
-		this.sqlInterface.executeUpdate(buffer.toString());
+		super.clearExecutor();
 		this.duplicatedRows.clear();
 		this.recordedPkValues.clear();
 		this.deletedRows.clear();
 	}
 
-	private int executeTempOpInsert(Insert insertOp, CRDTTransaction transaction) throws SQLException
+	public void prepareForCommit() throws SQLException
+	{
+		this.sqlInterface.executeQuery("SELECT * FROM " + this.tempTableName);
+	}
+
+	private int executeTempOpInsert(SQLInsert insertOp, CRDTTransaction transaction) throws SQLException
 	{
 		CRDTOperation crdtOperation = new CRDTOperation();
 		crdtOperation.setOpId(transaction.getOpsListSize());
@@ -382,8 +175,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append("insert into ");
 		buffer.append(tempTableName);
 
-		List columnsList = insertOp.getColumns();
-		List valuesList = ((ExpressionList) insertOp.getItemsList()).getExpressions();
+		List columnsList = insertOp.getInsert().getColumns();
+		List valuesList = ((ExpressionList) insertOp.getInsert().getItemsList()).getExpressions();
 		PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
 		Row insertedRow = new Row(this.databaseTable, pkValue);
 
@@ -417,14 +210,6 @@ public class DBExecutorAgent implements IExecutorAgent
 					if(field.isNumberField())
 						val = String.valueOf(TEMPORARY_INTEGER);
 				}
-
-				/*
-
-				for(CheckConstraint checkConstraint : field.getCheckConstraints())
-				{
-					//TODO verify if value is valid under these check constraints
-				}
-				*/
 
 				if(!field.isHiddenField())
 				{
@@ -502,7 +287,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		return result;
 	}
 
-	private int executeTempOpDelete(Delete deleteOp, CRDTTransaction transaction) throws SQLException
+	private int executeTempOpDelete(SQLDelete deleteOp, CRDTTransaction transaction) throws SQLException
 	{
 		CRDTOperation crdtOperation = new CRDTOperation();
 		crdtOperation.setOpId(transaction.getOpsListSize());
@@ -511,23 +296,22 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append("SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
-		buffer.append(deleteOp.getTable().toString());
-		this.helper.buildWhereClause(buffer, deleteOp.getWhere(), true);
+		buffer.append(deleteOp.getDelete().getTable().toString());
+		this.helper.buildWhereClause(buffer, deleteOp.getDelete().getWhere(), true);
 
 		if(this.duplicatedRows.size() > 0 || this.deletedRows.size() > 0)
 		{
 			buffer.append("AND ");
 			this.helper.generateNotInDeletedAndUpdatedClause(buffer);
 			buffer.append(")");
-		}
-		else
+		} else
 			buffer.append(")");
 
 		buffer.append(" UNION SELECT ");
 		buffer.append(this.databaseTable.getNormalFieldsSelection());
 		buffer.append(" FROM ");
 		buffer.append(this.tempTableName);
-		this.helper.buildWhereClause(buffer, deleteOp.getWhere(), true);
+		this.helper.buildWhereClause(buffer, deleteOp.getDelete().getWhere(), true);
 		buffer.append(")");
 		String query = buffer.toString();
 
@@ -556,7 +340,7 @@ public class DBExecutorAgent implements IExecutorAgent
 			buffer.append("delete from ");
 			buffer.append(this.tempTableName);
 			buffer.append(" where ");
-			buffer.append(deleteOp.getWhere().toString());
+			buffer.append(deleteOp.getDelete().getWhere().toString());
 			String delete = buffer.toString();
 
 			this.sqlInterface.executeUpdate(delete);
@@ -580,14 +364,14 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 	}
 
-	private int executeTempOpUpdate(Update updateOp, CRDTTransaction transaction) throws SQLException
+	private int executeTempOpUpdate(SQLUpdate updateOp, CRDTTransaction transaction) throws SQLException
 	{
 		CRDTOperation crdtOperation = new CRDTOperation();
 		crdtOperation.setOpId(transaction.getOpsListSize());
 
 		// before writting in the scratchpad, add the missing rows to the scratchpad
-		this.helper.addMissingRowsToScratchpad(updateOp);
-		Row updatedRow = this.helper.getUpdatedRowFromDatabase(updateOp);
+		this.helper.addMissingRowsToScratchpad(updateOp.getUpdate());
+		Row updatedRow = this.helper.getUpdatedRowFromDatabase(updateOp.getUpdate());
 
 		Map<String, String> oldValuesMap = new HashMap<>();
 		Map<String, String> newValuesMap = new HashMap<>();
@@ -602,8 +386,8 @@ public class DBExecutorAgent implements IExecutorAgent
 		buffer.append("UPDATE ");
 		buffer.append(this.tempTableName);
 		buffer.append(" SET ");
-		Iterator colIt = updateOp.getColumns().iterator();
-		Iterator expIt = updateOp.getExpressions().iterator();
+		Iterator colIt = updateOp.getUpdate().getColumns().iterator();
+		Iterator expIt = updateOp.getUpdate().getExpressions().iterator();
 
 		while(colIt.hasNext())
 		{
@@ -653,7 +437,7 @@ public class DBExecutorAgent implements IExecutorAgent
 		}
 
 		buffer.append(" WHERE ");
-		buffer.append(updateOp.getWhere().toString());
+		buffer.append(updateOp.getUpdate().getWhere().toString());
 		String updateStr = buffer.toString();
 		this.sqlInterface.executeUpdate(updateStr);
 
@@ -752,19 +536,18 @@ public class DBExecutorAgent implements IExecutorAgent
 		private void addMissingRowsToScratchpad(Update updateOp) throws SQLException
 		{
 			StringBuilder buffer = new StringBuilder();
-			buffer.append("SELECT *, '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
+			buffer.append("SELECT ");
+			buffer.append(databaseTable.getNormalFieldsSelection());
+			buffer.append(", '" + updateOp.getTables().get(0).toString() + "' as tname FROM ");
 			buffer.append(updateOp.getTables().get(0).toString());
 			buildWhereClause(buffer, updateOp.getWhere(), true);
 			//buffer.append(" AND ");
 			//buffer.append(DatabaseDefaults.DELETED_COLUMN);
-			buffer.append(" UNION select *, '" + tempTableName + "' as tname FROM ");
-			//buffer.append("=0) UNION select *, '" + tempTableName + "' as tname FROM ");
+			buffer.append(" UNION SELECT ");
+			buffer.append(databaseTable.getNormalFieldsSelection());
+			buffer.append(", '" + tempTableName + "' as tname FROM ");
 			buffer.append(tempTableName);
 			buildWhereClause(buffer, updateOp.getWhere(), true);
-			//buffer.append(");");
-			//buffer.append(" AND ");
-		//	buffer.append(DatabaseDefaults.DELETED_COLUMN);
-		//	buffer.append("=0)");
 
 			ResultSet res = null;
 			try
@@ -801,7 +584,9 @@ public class DBExecutorAgent implements IExecutorAgent
 					buffer.setLength(0);
 					buffer.append("insert into ");
 					buffer.append(tempTableName);
-					buffer.append(" values (");
+					buffer.append(" (");
+					StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
+					//buffer.append(" values (");
 
 					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
 
@@ -811,32 +596,31 @@ public class DBExecutorAgent implements IExecutorAgent
 					{
 						DataField field = fieldsIt.next();
 
-						String oldContent;
+						buffer.append(field.getFieldName());
+						if(fieldsIt.hasNext())
+							buffer.append(",");
 
-						if(!field.isDeletedFlagField())
-							oldContent = res.getString(field.getFieldName());
-						else
-						{
-							oldContent = Integer.toString(res.getInt(field.getFieldName()));
-							oldContent = String.valueOf(oldContent);
-						}
+						String oldContent = res.getString(field.getFieldName());
 
 						if(oldContent == null)
+							oldContent = "NULL";
+
+					/*	if(oldContent == null)
 							if(field.isStringField())
 								oldContent = "NULL";
 							else if(field.isDateField())
 								oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
-
+                       */
 						if(field.isStringField() || field.isDateField())
 						{
-							buffer.append("'");
-							buffer.append(oldContent);
-							buffer.append("'");
+							valuesBuffer.append("'");
+							valuesBuffer.append(oldContent);
+							valuesBuffer.append("'");
 						} else
-							buffer.append(oldContent);
+							valuesBuffer.append(oldContent);
 
 						if(fieldsIt.hasNext())
-							buffer.append(",");
+							valuesBuffer.append(",");
 
 						if(field.isPrimaryKey())
 						{
@@ -845,7 +629,9 @@ public class DBExecutorAgent implements IExecutorAgent
 						}
 					}
 
-					duplicatedRows.add(pkValue);
+					buffer.append(")");
+					buffer.append(valuesBuffer.toString());
+					//duplicatedRows.add(pkValue);
 					buffer.append(")");
 					sqlInterface.executeUpdate(buffer.toString());
 				}
@@ -963,7 +749,6 @@ public class DBExecutorAgent implements IExecutorAgent
 		private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert)
 				throws SQLException
 		{
-
 			Map<String, String> parentsByConstraint = null;
 
 			if(isInsert)
@@ -986,12 +771,13 @@ public class DBExecutorAgent implements IExecutorAgent
 
 			if(parentsByConstraint != null)
 				crdtOperation.setParentsMap(parentsByConstraint);
+
 		}
 
 		private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface)
 				throws SQLException
 		{
-			String query = QueryCreator.findParent(childRow, constraint, sandboxId);
+			String query = QueryCreator.findParent(childRow, constraint, scratchpadId);
 
 			ResultSet rs = sqlInterface.executeQuery(query);
 			if(!rs.isBeforeFirst())

@@ -117,4 +117,9 @@ public class LWW_DELETEDFLAG extends DataField
 	{
 		return deleted_Flag_Name;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
 }

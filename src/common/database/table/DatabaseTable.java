@@ -4,6 +4,7 @@ package common.database.table;
 import java.util.*;
 import java.util.Map.Entry;
 
+import common.database.Record;
 import common.database.constraints.Constraint;
 import common.database.constraints.check.CheckConstraint;
 import common.database.constraints.fk.ForeignKeyConstraint;
@@ -46,11 +47,11 @@ public class DatabaseTable
 	private PrimaryKey primaryKey;
 	private Set<ForeignKeyConstraint> childTablesConstraints;
 	private String selectNormalFieldsForQueryString;
-
-	protected DataField timestampField;
+	private List<DataField> deltaFields;
 	protected DataField contentClockField;
 	protected DataField deletedClockField;
 	protected DataField deletedField;
+	protected int mandatoryFields;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected Map<Integer, DataField> sortedFieldsMap;
@@ -60,8 +61,9 @@ public class DatabaseTable
 	protected LinkedHashMap<String, DataField> primaryKeyMap;
 
 	public DatabaseTable(String name, CRDTTableType tableType, LinkedHashMap<String, DataField> fieldsMap,
-							ExecutionPolicy policy)
+						 ExecutionPolicy policy)
 	{
+		this.mandatoryFields = 0;
 		this.executionPolicy = policy;
 		this.fieldsMap = fieldsMap;
 		this.name = name;
@@ -76,6 +78,7 @@ public class DatabaseTable
 		this.checkConstraints = new LinkedList<>();
 		this.uniqueConstraints = new LinkedList<>();
 		this.fkConstraints = new LinkedList<>();
+		this.deltaFields = new LinkedList<>();
 		this.autoIncrementConstraints = new LinkedList<>();
 		this.autoIncrementConstraintMap = new HashMap<>();
 		this.containsAutoIncrementField = false;
@@ -97,7 +100,11 @@ public class DatabaseTable
 			if(aDataField.isHiddenField())
 				this.hiddenFields.put(aDataField.getFieldName(), aDataField);
 			else
+			{
 				this.normalFields.put(aDataField.getFieldName(), aDataField);
+				if(aDataField.getDefaultValue() == null)
+					this.mandatoryFields++;
+			}
 
 			if(aDataField.isPrimaryKey())
 				this.addToPrimaryKey(aDataField);
@@ -109,6 +116,8 @@ public class DatabaseTable
 				this.autoIncrementConstraintMap.put(aDataField.getFieldName(), aDataField.getAutoIncrementConstraint
 						());
 			}
+			if(aDataField.isDeltaField())
+				this.deltaFields.add(aDataField);
 		}
 
 		setPrimaryKeyString(assemblePrimaryKeyString());
@@ -413,6 +422,11 @@ public class DatabaseTable
 		return this.autoIncrementConstraints;
 	}
 
+	public List<DataField> getDeltaFields()
+	{
+		return this.deltaFields;
+	}
+
 	private String assemblePrimaryKeyString()
 	{
 		StringBuilder pkStrBuilder = new StringBuilder("");
@@ -477,12 +491,13 @@ public class DatabaseTable
 		}
 
 		myString += " is contained AutoIncremental fields: " + this.containsAutoIncrementField + "\n";
-		if(this.timestampField != null)
-		{
-			myString += " logicalTimestamp: " + timestampField.toString() + "\n";
-		}
 
 		return myString;
 
+	}
+
+	public int getMandatoryFields()
+	{
+		return mandatoryFields;
 	}
 }

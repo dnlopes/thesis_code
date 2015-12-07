@@ -89,4 +89,9 @@ public class LWW_FLOAT extends DataField
 	{
 		return true;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
 }

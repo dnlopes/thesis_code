@@ -1,6 +1,8 @@
 package client.execution.temporary.scratchpad;
 
 
+import client.execution.operation.SQLSelect;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,7 +18,7 @@ import java.sql.SQLException;
  * This class exposes only a single operation, and it is used with read-only transactions.
  *
  */
-public interface ReadOnlyScratchpad
+public interface ReadOnlyInterface
 {
-	ResultSet executeQuery(String query) throws SQLException;
+	ResultSet executeQuery(SQLSelect query) throws SQLException;
 }

@@ -1,6 +1,7 @@
 package common.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -18,4 +19,6 @@ public interface SQLInterface
 	void addToBatchUpdate(String sql) throws SQLException;
 	Connection getConnection();
 	void commit() throws SQLException;
+	void rollback() throws SQLException;
+	PreparedStatement prepareStatement(String sql) throws SQLException;
 }

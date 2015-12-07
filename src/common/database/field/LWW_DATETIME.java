@@ -78,4 +78,9 @@ public class LWW_DATETIME extends DataField
 	{
 		return true;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
 }

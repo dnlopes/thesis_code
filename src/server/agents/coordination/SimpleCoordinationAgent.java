@@ -61,7 +61,11 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		this.sentRequestsCounter.incrementAndGet();
 
 		CoordinatorRequest request = transaction.getRequestToCoordinator();
+		long beginTime = System.nanoTime();
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
+		long estimatedTime = System.nanoTime() - beginTime;
+		double estimatedtime_double = estimatedTime * 0.000001;
+		System.out.println("coordination time: " + estimatedtime_double);
 
 		if(response.isSuccess())
 		{

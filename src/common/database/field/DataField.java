@@ -264,6 +264,11 @@ public abstract class DataField
 		return false;
 	}
 
+	public boolean isLWWField()
+	{
+		return false;
+	}
+
 	public String getDefaultValue()
 	{
 		return this.defaultValue;

@@ -191,7 +191,7 @@ public class Environment
 
 		int EZK_CLIENTS_POOL_SIZE_DEFAULT = 20;
 		int COMMIT_PAD_POOL_SIZE_DEFAULT = 50;
-		boolean OPTIMIZE_BATCH_DEFAULT = true;
+		boolean OPTIMIZE_BATCH_DEFAULT = false;
 		int DISPATCHER_AGENT_DEFAULT = 2;
 		int DELIVER_AGENT_DEFAULT = 1;
 

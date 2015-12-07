@@ -61,7 +61,6 @@ public class TPCCClientEmulator implements Runnable
 			long beginTime = System.nanoTime();
 			boolean success = txn.executeTransaction(this.connection);
 			long endTime = System.nanoTime();
-			//execLatency = (endTime - beginTime) / 1000000;
 			execLatency = endTime - beginTime;
 
 			if(success)
@@ -70,16 +69,14 @@ public class TPCCClientEmulator implements Runnable
 				success = txn.commitTransaction(this.connection);
 				long endTime2 = System.nanoTime();
 				commitLatency = endTime2 - beginTime2;
-				//commitLatency = (endTime2 - beginTime2) / 1000000;
 			}
 
 			if(success)
 			{
 				if(TPCCEmulator.COUTING)
 				{
-					this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), execLatency,
-							commitLatency,
-							true));
+					this.stats.addTxnRecord(txn.getName(),
+							new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
 					/*this.stats.addExecLatency(txn.getName(), execLatency);
 					this.stats.addCommitLatency(txn.getName(), commitLatency);
 					this.stats.addLatency(txn.getName(), execLatency + commitLatency);
@@ -93,6 +90,7 @@ public class TPCCClientEmulator implements Runnable
 			}
 		}
 	}
+
 	public TPCCStatistics getStats()
 	{
 		return this.stats;

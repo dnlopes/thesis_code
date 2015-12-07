@@ -162,7 +162,7 @@ public class EZKCoordinationExtension extends EZKBaseExtension
 		{
 			try
 			{
-				int counter = this.askForValue(requestValue);
+				int counter = askForValue(requestValue);
 				requestValue.setRequestedValue(String.valueOf(counter));
 				response.addToRequestedValues(requestValue);
 			} catch(KeeperException e)

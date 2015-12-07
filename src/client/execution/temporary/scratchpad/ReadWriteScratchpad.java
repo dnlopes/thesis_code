@@ -1,8 +1,7 @@
 package client.execution.temporary.scratchpad;
 
 
-import common.thrift.CRDTTransaction;
-
+import client.execution.operation.SQLWriteOperation;
 import java.sql.SQLException;
 
 
@@ -13,11 +12,8 @@ import java.sql.SQLException;
  * Besides query statements, it allows for update and insert sql statements
  *
  */
-public interface ReadWriteScratchpad extends ReadOnlyScratchpad
+public interface ReadWriteScratchpad extends ReadOnlyInterface
 {
-	public void startTransaction(CRDTTransaction txn) throws SQLException;
-	public int getScratchpadId();
-	public CRDTTransaction getActiveTransaction();
-	public void resetScratchpad() throws SQLException;
-	public int executeUpdate(String op) throws SQLException;
+	void clearScratchpad() throws SQLException;
+	int executeUpdate(SQLWriteOperation op) throws SQLException;
 }

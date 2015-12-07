@@ -13,25 +13,23 @@ import java.sql.*;
 public class CRDTStatement implements Statement
 {
 
-	private final int id;
 	private final Proxy proxy;
 
-	public CRDTStatement(int connectionId, Proxy proxy)
+	public CRDTStatement(Proxy proxy)
 	{
-		this.id = connectionId;
 		this.proxy = proxy;
 	}
 
 	@Override
 	public ResultSet executeQuery(String arg0) throws SQLException
 	{
-		return this.proxy.executeQuery(arg0, this.id);
+		return this.proxy.executeQuery(arg0);
 	}
 
 	@Override
 	public int executeUpdate(String arg0) throws SQLException
 	{
-		return this.proxy.executeUpdate(arg0, this.id);
+		return this.proxy.executeUpdate(arg0);
 	}
 
 /*
@@ -82,12 +80,11 @@ public class CRDTStatement implements Statement
 	@Override
 	public boolean execute(String arg0) throws SQLException
 	{
-		if(arg0.contains("start transaction"))
-			return true;
-		else if(arg0.contains("commit"))
-			this.proxy.commit(this.id);
-		else if(arg0.contains("ROLLBACK"))
-			proxy.abort(this.id);
+		if(arg0.equalsIgnoreCase("commit"))
+			this.proxy.commit();
+		else if(arg0.equalsIgnoreCase("rollback"))
+			this.proxy.abort();
+
 		return true;
 	}
 

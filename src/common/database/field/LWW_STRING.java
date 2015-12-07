@@ -103,4 +103,9 @@ public class LWW_STRING extends DataField
 	{
 		return true;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
 }

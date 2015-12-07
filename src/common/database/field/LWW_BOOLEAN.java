@@ -66,4 +66,10 @@ public class LWW_BOOLEAN extends DataField
 	{
 		return Value;
 	}
+
+	public boolean isLWWField()
+	{
+		return true;
+	}
+
 }

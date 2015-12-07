@@ -234,6 +234,7 @@ public class NewOrderTransaction extends AbstractTransaction implements Transact
 
 			//if(this.options.useSequentialOrderIds())
 			if(!this.options.isCRDTDriver())
+			//if(true)
 			{
 				try
 				{
@@ -602,8 +603,8 @@ public class NewOrderTransaction extends AbstractTransaction implements Transact
 		int warehouseId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.WAREHOUSES_NUMBER);
 		int districtId = GeneratorUtils.randomNumberIncludeBoundaries(1, TpccConstants.DISTRICTS_PER_WAREHOUSE);
 		int customerId = GeneratorUtils.nuRand(1023, 1, TpccConstants.CUSTOMER_PER_DISTRICT);
-		int orderLinesNumber = 1;
-		//int orderLinesNumber = GeneratorUtils.randomNumberIncludeBoundaries(5, 15);
+		//int orderLinesNumber = 1;
+		int orderLinesNumber = GeneratorUtils.randomNumberIncludeBoundaries(5, 15);
 		int rbk = GeneratorUtils.randomNumberIncludeBoundaries(1, 100);
 		int all_local = 0;
 
