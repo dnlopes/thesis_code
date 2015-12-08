@@ -1,5 +1,12 @@
 namespace java common.thrift
 
+
+struct Status
+{
+    1: required bool success
+    2: string error
+}
+
 struct ApplyDelta
 {
     1: required string constraintId;
@@ -83,8 +90,7 @@ struct CRDTTransaction {
 struct CRDTPreCompiledOperation
 {
     1: required string sqlOp;
-    2: required bool hasSymbols;
-    3: optional list<string> symbols;
+    2: optional set<string> symbols;
 }
 
 struct CRDTCompiledTransaction {
@@ -92,12 +98,24 @@ struct CRDTCompiledTransaction {
     2: i32 replicatorId;
     3: required string txnClock;
     4: required list<string> opsList;
+    5: map<string,SymbolEntry> symbolsMap;
+}
+
+struct CRDTPreCompiledTransaction {
+    1: i32 id;
+    2: i32 replicatorId;
+    3: string txnClock;
+    4: list<CRDTPreCompiledOperation> opsList;
+    5: map<string,SymbolEntry> symbolsMap;
+    6: bool readyToCommit;
+    7: optional CoordinatorRequest requestToCoordinator;
 }
 
 service ReplicatorRPC {
- bool commitOperation(1:CRDTTransaction op);
- oneway void sendToRemote(1:CRDTCompiledTransaction transaction);
- oneway void sendBatchToRemote(1:list<CRDTCompiledTransaction> batch);
+ //bool commitOperation(1:CRDTTransaction op);
+ Status commitOperation(1:CRDTPreCompiledTransaction op);
+ oneway void sendToRemote(1:CRDTPreCompiledTransaction transaction);
+ oneway void sendBatchToRemote(1:list<CRDTPreCompiledTransaction> batch);
 }
 
 

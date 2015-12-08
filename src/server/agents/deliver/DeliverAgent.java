@@ -1,7 +1,8 @@
 package server.agents.deliver;
 
 
-import common.thrift.CRDTCompiledTransaction;
+import common.thrift.CRDTPreCompiledTransaction;
+import server.util.TransactionCommitFailureException;
 
 
 /**
@@ -15,5 +16,8 @@ import common.thrift.CRDTCompiledTransaction;
 public interface DeliverAgent
 {
 
-	void deliverTransaction(CRDTCompiledTransaction op);
+	int THREAD_WAKEUP_INTERVAL = 300;
+	int BACKGROUND_MAX_IN_A_ROW_CYCLES = 50;
+
+	void deliverTransaction(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException;
 }

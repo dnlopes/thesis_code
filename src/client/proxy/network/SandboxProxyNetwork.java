@@ -3,15 +3,14 @@ package client.proxy.network;
 
 import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
+import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.Status;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import common.thrift.CRDTTransaction;
 import common.thrift.ReplicatorRPC;
 
 
@@ -36,7 +35,7 @@ public class SandboxProxyNetwork extends AbstractNetwork implements IProxyNetwor
 	}
 
 	@Override
-	public boolean commitOperation(CRDTTransaction shadowTransaction, NodeConfig node)
+	public Status commitOperation(CRDTPreCompiledTransaction shadowTransaction)
 	{
 		try
 		{
@@ -44,7 +43,7 @@ public class SandboxProxyNetwork extends AbstractNetwork implements IProxyNetwor
 		} catch(TException e)
 		{
 			LOG.warn("communication problem between proxy and replicator: {}", e.getMessage(), e);
-			return false;
+			return new Status(false, e.getMessage());
 		}
 	}
 

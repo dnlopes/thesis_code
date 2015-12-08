@@ -1,8 +1,8 @@
 package client.proxy.network;
 
 
-import common.nodes.NodeConfig;
-import common.thrift.CRDTTransaction;
+import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.Status;
 
 
 /**
@@ -14,5 +14,5 @@ import common.thrift.CRDTTransaction;
 public interface IProxyNetwork
 {
 
-	boolean commitOperation(CRDTTransaction shadowTransaction, NodeConfig node);
+	Status commitOperation(CRDTPreCompiledTransaction shadowTransaction);
 }

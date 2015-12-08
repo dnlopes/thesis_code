@@ -1,11 +1,10 @@
 package server.agents.dispatcher;
 
 
+import common.thrift.CRDTPreCompiledTransaction;
 import common.util.ExitCode;
 import common.util.RuntimeUtils;
 import server.replicator.IReplicatorNetwork;
-import common.thrift.CRDTCompiledTransaction;
-import common.thrift.CRDTTransaction;
 import server.replicator.Replicator;
 
 import java.util.*;
@@ -24,7 +23,7 @@ public class AggregatorDispatcher implements DispatcherAgent
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
-	private Queue<CRDTTransaction> pendingTransactions;
+	private Queue<CRDTPreCompiledTransaction> pendingTransactions;
 
 	public AggregatorDispatcher(Replicator replicator)
 	{
@@ -40,7 +39,7 @@ public class AggregatorDispatcher implements DispatcherAgent
 	}
 
 	@Override
-	public void dispatchTransaction(CRDTTransaction op)
+	public void dispatchTransaction(CRDTPreCompiledTransaction op)
 	{
 		this.pendingTransactions.add(op);
 	}
@@ -56,15 +55,15 @@ public class AggregatorDispatcher implements DispatcherAgent
 			// 2) merge
 			// 3) compile
 			// 4) send
-			Queue<CRDTTransaction> snapshot = pendingTransactions;
+			Queue<CRDTPreCompiledTransaction> snapshot = pendingTransactions;
 			pendingTransactions = new PriorityBlockingQueue<>();
 
-			List<CRDTCompiledTransaction> batch = this.prepareBatch(snapshot);
+			List<CRDTPreCompiledTransaction> batch = this.prepareBatch(snapshot);
 
 			networkInterface.sendBatchToRemote(batch);
 		}
 
-		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTTransaction> transactions)
+		private List<CRDTPreCompiledTransaction> prepareBatch(Queue<CRDTPreCompiledTransaction> transactions)
 		{
 			return null;
 		}

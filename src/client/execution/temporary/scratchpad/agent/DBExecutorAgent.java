@@ -1,7 +1,7 @@
 package client.execution.temporary.scratchpad.agent;
 
 
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
 import common.database.constraints.fk.ForeignKeyConstraint;
@@ -46,8 +46,7 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 	private Map<String, PrimaryKeyValue> recordedPkValues;
 
 	public DBExecutorAgent(int sandboxId, int tableId, String tableName, SQLInterface sqlInterface,
-						   ReadWriteScratchpad pad, TransactionRecord txnRecord) throws
-			SQLException
+						   ReadWriteScratchpad pad, TransactionContext txnRecord) throws SQLException
 	{
 		super(sandboxId, tableId, tableName, sqlInterface, pad, txnRecord);
 
@@ -131,8 +130,7 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 	}
 
 	@Override
-	public int executeTemporaryUpdate(SQLWriteOperation sqlOp)
-			throws SQLException
+	public int executeTemporaryUpdate(SQLWriteOperation sqlOp) throws SQLException
 	{
 		//TODO currently not usable
 		if(sqlOp.getOpType() == SQLOperationType.DELETE)
@@ -158,11 +156,6 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 		this.duplicatedRows.clear();
 		this.recordedPkValues.clear();
 		this.deletedRows.clear();
-	}
-
-	public void prepareForCommit() throws SQLException
-	{
-		this.sqlInterface.executeQuery("SELECT * FROM " + this.tempTableName);
 	}
 
 	private int executeTempOpInsert(SQLInsert insertOp, CRDTTransaction transaction) throws SQLException

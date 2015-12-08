@@ -52,6 +52,7 @@ public class DatabaseTable
 	protected DataField deletedClockField;
 	protected DataField deletedField;
 	protected int mandatoryFields;
+	private boolean freeToInsert;
 
 	protected LinkedHashMap<String, DataField> fieldsMap;
 	protected Map<Integer, DataField> sortedFieldsMap;
@@ -65,6 +66,7 @@ public class DatabaseTable
 	{
 		this.mandatoryFields = 0;
 		this.executionPolicy = policy;
+		this.freeToInsert = true;
 		this.fieldsMap = fieldsMap;
 		this.name = name;
 		this.tag = tableType;
@@ -124,7 +126,12 @@ public class DatabaseTable
 		generateSelectFieldsForQuery();
 
 		for(Constraint c : this.uniqueConstraints)
+		{
+			if(c.requiresCoordination())
+				freeToInsert = false;
+
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
+		}
 		for(Constraint c : this.fkConstraints)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
 		for(Constraint c : this.checkConstraints)
@@ -427,6 +434,11 @@ public class DatabaseTable
 		return this.deltaFields;
 	}
 
+	public boolean isFreeToInsert()
+	{
+		return freeToInsert;
+	}
+
 	private String assemblePrimaryKeyString()
 	{
 		StringBuilder pkStrBuilder = new StringBuilder("");
@@ -494,6 +506,11 @@ public class DatabaseTable
 
 		return myString;
 
+	}
+
+	public boolean isChildTable()
+	{
+		return this.fkConstraints.size() == 0;
 	}
 
 	public int getMandatoryFields()

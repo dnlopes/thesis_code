@@ -1,7 +1,7 @@
 package client.execution.temporary.scratchpad.agent;
 
 
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import client.execution.temporary.TableDefinition;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
 import common.database.SQLInterface;
@@ -56,10 +56,10 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 	protected List<SelectItem> selectAllItems;
 	protected List<ForeignKeyConstraint> fkConstraints;
 	protected ReadWriteScratchpad scratchpad;
-	protected TransactionRecord txnRecord;
+	protected TransactionContext txnRecord;
 
 	public AbstractExecAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
-							 ReadWriteScratchpad scratchpad, TransactionRecord txnRecord)
+							 ReadWriteScratchpad scratchpad, TransactionContext txnRecord)
 	{
 		this.scratchpadId = scratchpadId;
 		this.tableId = tableId;

@@ -1,13 +1,15 @@
 package client.execution;
 
 
+import common.thrift.*;
+
 import java.util.*;
 
 
 /**
  * Created by dnlopes on 07/12/15.
  */
-public class TransactionRecord
+public class TransactionContext
 {
 
 	private long startTime;
@@ -19,14 +21,18 @@ public class TransactionRecord
 	private long parsingTime;
 	private long execTime;
 	private long commitTime;
+	private long prepareOpTime;
 	private long loadFromMainTime;
 	private List<String> crdtOps;
+	private Map<String, SymbolEntry> symbolsEntry;
+	private CoordinatorRequest coordinatorRequest;
+	private CRDTPreCompiledTransaction preCompiledTxn;
 
-
-	public TransactionRecord()
+	public TransactionContext()
 	{
 		this.selectsTime = 0;
 		this.updatesTime = 0;
+		this.prepareOpTime = 0;
 		this.insertsTime = 0;
 		this.deletesTime = 0;
 		this.execTime = 0;
@@ -34,6 +40,19 @@ public class TransactionRecord
 		this.parsingTime = 0;
 		this.loadFromMainTime = 0;
 		this.crdtOps = new LinkedList<>();
+		this.symbolsEntry = new HashMap<>();
+		this.coordinatorRequest = new CoordinatorRequest();
+		this.preCompiledTxn = new CRDTPreCompiledTransaction();
+	}
+
+	public long getPrepareOpTime()
+	{
+		return prepareOpTime;
+	}
+
+	public void setPrepareOpTime(long time)
+	{
+		this.prepareOpTime = time;
 	}
 
 	public void setStartTime(long time)
@@ -146,6 +165,16 @@ public class TransactionRecord
 		return endTime;
 	}
 
+	public CRDTPreCompiledTransaction getPreCompiledTxn()
+	{
+		return preCompiledTxn;
+	}
+
+	public CoordinatorRequest getCoordinatorRequest()
+	{
+		return coordinatorRequest;
+	}
+
 	public void printRecord()
 	{
 		System.out.println("*** INFO ***");
@@ -156,6 +185,7 @@ public class TransactionRecord
 		System.out.println("load from main time (ms): " + getLoadFromMainTime());
 		System.out.println("parsing time (ms): " + getParsingTime());
 		System.out.println("exec time (ms): " + getExecTime());
+		System.out.println("prepareOp time (ms): " + getPrepareOpTime());
 		System.out.println("commit time (ms): " + getCommitTime());
 		System.out.println();
 	}
@@ -167,11 +197,15 @@ public class TransactionRecord
 		this.selectsTime = 0;
 		this.updatesTime = 0;
 		this.execTime = 0;
+		this.prepareOpTime = 0;
 		this.commitTime = 0;
 		this.insertsTime = 0;
 		this.deletesTime = 0;
 		this.parsingTime = 0;
 		this.loadFromMainTime = 0;
 		this.crdtOps.clear();
+		this.symbolsEntry.clear();
+		this.coordinatorRequest = new CoordinatorRequest();
+		this.preCompiledTxn = new CRDTPreCompiledTransaction();
 	}
 }

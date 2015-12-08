@@ -1,6 +1,7 @@
 package server.agents.deliver;
 
 
+import common.thrift.CRDTPreCompiledTransaction;
 import server.replicator.Replicator;
 import common.thrift.CRDTCompiledTransaction;
 
@@ -19,7 +20,7 @@ public class NoOrderDeliverAgent implements DeliverAgent
 	}
 
 	@Override
-	public void deliverTransaction(CRDTCompiledTransaction op)
+	public void deliverTransaction(CRDTPreCompiledTransaction op)
 	{
 		this.replicator.deliverTransaction(op);
 	}

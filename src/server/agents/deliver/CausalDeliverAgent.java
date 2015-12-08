@@ -1,12 +1,14 @@
 package server.agents.deliver;
 
 
+import common.thrift.CRDTPreCompiledTransaction;
 import common.util.Topology;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
 import common.thrift.CRDTCompiledTransaction;
+import server.util.TransactionCommitFailureException;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -22,9 +24,8 @@ public class CausalDeliverAgent implements DeliverAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliverAgent.class);
-	private static final int THREAD_WAKEUP_INTERVAL = 300;
 
-	private final Map<Integer, Queue<CRDTCompiledTransaction>> queues;
+	private final Map<Integer, Queue<CRDTPreCompiledTransaction>> queues;
 	private final Replicator replicator;
 	private final ScheduledExecutorService scheduleService;
 
@@ -54,7 +55,7 @@ public class CausalDeliverAgent implements DeliverAgent
 	}
 
 	@Override
-	public void deliverTransaction(CRDTCompiledTransaction op)
+	public void deliverTransaction(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		if(canDeliver(op))
 			this.replicator.deliverTransaction(op);
@@ -62,7 +63,7 @@ public class CausalDeliverAgent implements DeliverAgent
 			addToQueue(op);
 	}
 
-	private void addToQueue(CRDTCompiledTransaction op)
+	private void addToQueue(CRDTPreCompiledTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
 
@@ -71,7 +72,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		this.queues.get(replicatorId).add(op);
 	}
 
-	private boolean canDeliver(CRDTCompiledTransaction op)
+	private boolean canDeliver(CRDTPreCompiledTransaction op)
 	{
 		LogicalClock opClock = new LogicalClock(op.getTxnClock());
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
@@ -121,7 +122,7 @@ public class CausalDeliverAgent implements DeliverAgent
 				counter = 0;
 				StringBuffer buffer = new StringBuffer("(");
 
-				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
+				for(Queue<CRDTPreCompiledTransaction> txnQueue : queues.values())
 				{
 					buffer.append(txnQueue.size());
 					buffer.append(",");
@@ -136,19 +137,31 @@ public class CausalDeliverAgent implements DeliverAgent
 			}
 
 			boolean hasDelivered = false;
+			int cycles = 0;
 
 			do
 			{
-				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
+				for(Queue<CRDTPreCompiledTransaction> txnQueue : queues.values())
 				{
-					CRDTCompiledTransaction txn = txnQueue.poll();
+					CRDTPreCompiledTransaction txn = txnQueue.poll();
 
 					if(txn == null)
 						continue;
 
-					replicator.deliverTransaction(txn);
+					try
+					{
+						replicator.deliverTransaction(txn);
+					} catch(TransactionCommitFailureException e)
+					{
+						e.printStackTrace();
+					}
 					hasDelivered = true;
 				}
+
+				cycles++;
+				if(cycles > BACKGROUND_MAX_IN_A_ROW_CYCLES)
+					break;
+
 			} while(hasDelivered);
 		}
 	}

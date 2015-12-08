@@ -1,7 +1,7 @@
 package client.proxy.network;
 
 
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import common.thrift.RequestValue;
 
 
@@ -12,5 +12,5 @@ public interface WTIProxyNetwork
 {
 	int requestNextId(RequestValue requestValue);
 	String getTransactionClock();
-	void sendToRemoteReplicators(TransactionRecord txnInfo);
+	void sendToRemoteReplicators(TransactionContext txnInfo);
 }

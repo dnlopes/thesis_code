@@ -50,7 +50,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	}
 
 	@Override
-	public void handleCoordination(CRDTTransaction transaction)
+	public void handleCoordination(CRDTPreCompiledTransaction transaction)
 	{
 		if(!transaction.isSetRequestToCoordinator())
 		{
@@ -78,7 +78,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		}
 	}
 
-	private void handleCoordinatorResponse(CoordinatorResponse response, CRDTTransaction transaction)
+	private void handleCoordinatorResponse(CoordinatorResponse response, CRDTPreCompiledTransaction transaction)
 	{
 		if(response.isSetRequestedValues())
 		{
@@ -87,7 +87,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		}
 	}
 
-	private void replaceSymbolsForValues(List<RequestValue> requestedValues, CRDTTransaction transaction)
+	private void replaceSymbolsForValues(List<RequestValue> requestedValues, CRDTPreCompiledTransaction transaction)
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 

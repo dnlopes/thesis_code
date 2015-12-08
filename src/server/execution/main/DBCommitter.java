@@ -1,7 +1,9 @@
 package server.execution.main;
 
 
-import common.thrift.CRDTCompiledTransaction;
+import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.Status;
+import server.util.TransactionCommitFailureException;
 
 
 /**
@@ -16,7 +18,7 @@ public interface DBCommitter
 	 * @param op
 	 * @return true if commit succeeds
 	 */
-	boolean commitShadowTransaction(CRDTCompiledTransaction txn);
+	Status commitCrdtOperation(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException;
 
 
 	interface Defaults

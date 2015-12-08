@@ -1,7 +1,7 @@
 package client.execution.temporary.scratchpad;
 
 
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.execution.temporary.scratchpad.agent.DBExecutorPerfAgent;
 import common.database.SQLInterface;
@@ -31,9 +31,9 @@ public class BasicScratchpad implements ReadWriteScratchpad
 	private int scratchpadId;
 	private Map<String, IExecutorAgent> executers;
 	private SQLInterface sqlInterface;
-	private TransactionRecord txnRecord;
+	private TransactionContext txnRecord;
 
-	public BasicScratchpad(SQLInterface sqlInterface, TransactionRecord txnRecord) throws SQLException
+	public BasicScratchpad(SQLInterface sqlInterface, TransactionContext txnRecord) throws SQLException
 	{
 		this.executers = new HashMap<>();
 		this.sqlInterface = sqlInterface;

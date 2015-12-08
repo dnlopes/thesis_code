@@ -82,7 +82,7 @@ public class CRDTConnection implements Connection
 	@Override
 	public void close() throws SQLException
 	{
-		proxy.closeTransaction();
+		proxy.close();
 	}
 
 

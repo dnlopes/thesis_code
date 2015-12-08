@@ -4,6 +4,7 @@ package client.execution.operation;
 import common.util.ExitCode;
 import common.util.RuntimeUtils;
 import common.util.defaults.DatabaseDefaults;
+import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
@@ -36,13 +37,12 @@ public class SQLSelect extends SQLOperation
 	@Override
 	public void prepareOperation(boolean useWhere, String tempTableName)
 	{
-		RuntimeUtils.throwRunTimeException("should not be calling this method", ExitCode.INVALIDUSAGE);
+		throw new NotCallableException("SQLSelect.prepareOperation method missing implementation");
 	}
 
 	public void prepareOperation(String tempTableName)
 	{
-		RuntimeUtils.throwRunTimeException("should not be calling this method", ExitCode.INVALIDUSAGE);
-	}
+		throw new NotCallableException("SQLSelect.prepareOperation method missing implementation");	}
 
 	public void prepareOperation()
 	{
@@ -98,8 +98,7 @@ public class SQLSelect extends SQLOperation
 	@Override
 	public SQLUpdate duplicate() throws JSQLParserException
 	{
-		RuntimeUtils.throwRunTimeException("should not be calling this method", ExitCode.INVALIDUSAGE);
-		return null;
+		throw new NotCallableException("SQLUpdate.duplicate method missing implementation");
 	}
 
 }

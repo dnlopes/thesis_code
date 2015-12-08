@@ -2,7 +2,7 @@ package client.execution.temporary.scratchpad.agent;
 
 
 import client.execution.QueryCreator;
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
 import common.database.SQLInterface;
@@ -46,7 +46,7 @@ public class DBExecutorAgentPassBy extends AbstractExecAgent implements IExecuto
 	private Map<String, PrimaryKeyValue> recordedPkValues;
 
 	public DBExecutorAgentPassBy(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
-								 ReadWriteScratchpad pad, TransactionRecord txnRecord) throws SQLException
+								 ReadWriteScratchpad pad, TransactionContext txnRecord) throws SQLException
 
 	{
 		super(scratchpadId, tableId, tableName, sqlInterface, pad, txnRecord);

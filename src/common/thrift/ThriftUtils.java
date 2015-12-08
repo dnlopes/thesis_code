@@ -1,10 +1,18 @@
 package common.thrift;
 
+
+import client.execution.TransactionContext;
+import common.database.constraints.unique.AutoIncrementConstraint;
+import common.database.field.DataField;
+import common.database.table.DatabaseTable;
+import common.database.util.SemanticPolicy;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.util.CRDTDatabaseSet;
 
 import java.util.ArrayList;
@@ -17,6 +25,8 @@ import java.util.List;
  */
 public class ThriftUtils
 {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ThriftUtils.class);
 
 	public static CoordinatorRequest decodeCoordinatorRequest(byte[] requestByteArray)
 	{
@@ -37,8 +47,7 @@ public class ThriftUtils
 		TSerializer serializer = new TSerializer(new TBinaryProtocol.Factory());
 		try
 		{
-			byte[] bytes = serializer.serialize(request);
-			return bytes;
+			return serializer.serialize(request);
 		} catch(TException e)
 		{
 			return null;
@@ -90,4 +99,36 @@ public class ThriftUtils
 		return compiledTxn;
 	}
 
+	public static void createSymbolEntry(TransactionContext context, String symbol, DataField dField, DatabaseTable
+			table)
+	{
+		SymbolEntry symbolEntry = new SymbolEntry();
+		symbolEntry.setSymbol(symbol);
+		symbolEntry.setTableName(dField.getTableName());
+		symbolEntry.setFieldName(dField.getFieldName());
+		symbolEntry.setRequiresCoordination(false);
+
+		context.getPreCompiledTxn().putToSymbolsMap(symbol, symbolEntry);
+
+		if(!dField.isAutoIncrement())
+			LOG.warn("field with semantic value must either be auto_increment or " + "given by the " +
+					"application" +
+					" " +
+					"level");
+
+		if(dField.getSemantic() == SemanticPolicy.SEMANTIC)
+		{
+			symbolEntry.setRequiresCoordination(true);
+
+			AutoIncrementConstraint autoIncrementConstraint = table.getAutoIncrementConstraint(
+					dField.getFieldName());
+			RequestValue request = new RequestValue();
+
+			request.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
+			request.setTempSymbol(symbol);
+			request.setFieldName(dField.getFieldName());
+
+			context.getCoordinatorRequest().addToRequests(request);
+		}
+	}
 }

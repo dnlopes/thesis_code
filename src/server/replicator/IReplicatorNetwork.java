@@ -1,6 +1,6 @@
 package server.replicator;
 
-import common.thrift.CRDTCompiledTransaction;
+import common.thrift.CRDTPreCompiledTransaction;
 import common.thrift.CoordinatorRequest;
 import common.thrift.CoordinatorResponse;
 
@@ -15,8 +15,8 @@ import java.util.List;
  */
 public interface IReplicatorNetwork
 {
-	void sendOperationToRemote(CRDTCompiledTransaction transaction);
-	void sendBatchToRemote(List<CRDTCompiledTransaction> transactions);
+	void sendOperationToRemote(CRDTPreCompiledTransaction transaction);
+	void sendBatchToRemote(List<CRDTPreCompiledTransaction> transactions);
 
 	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
 }

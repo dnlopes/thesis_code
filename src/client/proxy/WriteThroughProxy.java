@@ -2,7 +2,8 @@ package client.proxy;
 
 
 import applications.util.SymbolsManager;
-import client.execution.TransactionRecord;
+import client.execution.CRDTOperationGenerator;
+import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.proxy.network.WTIProxyNetwork;
 import client.proxy.network.WTProxyNetwork;
@@ -45,7 +46,7 @@ public class WriteThroughProxy implements Proxy
 	private final WTIProxyNetwork network;
 	private SQLInterface sqlInterface;
 
-	private TransactionRecord txnRecord;
+	private TransactionContext txnRecord;
 	private boolean readOnly, isRunning;
 	private SQLDeterministicTransformer transformer;
 	private Map<String, String> symbolsMapping;
@@ -55,7 +56,7 @@ public class WriteThroughProxy implements Proxy
 	{
 		this.proxyId = proxyId;
 		this.network = new WTProxyNetwork(proxyConfig);
-		this.txnRecord = new TransactionRecord();
+		this.txnRecord = new TransactionContext();
 		this.symbolsMapping = new HashMap<>();
 		this.readOnly = false;
 		this.isRunning = false;
@@ -128,7 +129,7 @@ public class WriteThroughProxy implements Proxy
 	}
 
 	@Override
-	public void closeTransaction() throws SQLException
+	public void close() throws SQLException
 	{
 		commit();
 	}
@@ -213,9 +214,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtInserts;
 
 		if(sqlInsert.getDbTable().getFkConstraints().size() > 0)
-			crdtInserts = CRDTOperationGenerator.insertChildRow(sqlInsert, this.clock);
+			crdtInserts = CRDTOperationGenerator.insertChildRow(sqlInsert, this.clock, null);
 		else
-			crdtInserts = CRDTOperationGenerator.insertRow(sqlInsert, this.clock);
+			crdtInserts = CRDTOperationGenerator.insertRow(sqlInsert, this.clock, null);
 
 		int result = 0;
 
@@ -236,9 +237,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtUpdates;
 
 		if(sqlUpdate.getDbTable().getFkConstraints().size() > 0)
-			crdtUpdates = CRDTOperationGenerator.updateChildRow(sqlUpdate, this.clock);
+			crdtUpdates = CRDTOperationGenerator.updateChildRow(sqlUpdate, this.clock, null);
 		else
-			crdtUpdates = CRDTOperationGenerator.updateRow(sqlUpdate, this.clock);
+			crdtUpdates = CRDTOperationGenerator.updateRow(sqlUpdate, this.clock, null);
 
 		int result = 0;
 
@@ -259,9 +260,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtDeletes;
 
 		if(sqlDelete.getDbTable().isParentTable())
-			crdtDeletes = CRDTOperationGenerator.deleteParentRow(sqlDelete, this.clock);
+			crdtDeletes = CRDTOperationGenerator.deleteParentRow(sqlDelete, this.clock, null);
 		else
-			crdtDeletes = CRDTOperationGenerator.deleteRow(sqlDelete, this.clock);
+			crdtDeletes = CRDTOperationGenerator.deleteRow(sqlDelete, this.clock, null);
 
 		int result = 0;
 

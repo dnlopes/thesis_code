@@ -2,6 +2,8 @@ package server.replicator;
 
 
 import common.util.*;
+import common.util.exception.InitComponentFailureException;
+import org.apache.commons.lang3.StringUtils;
 import server.agents.AgentsFactory;
 import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
@@ -20,12 +22,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.agents.coordination.IDsManager;
 import server.hook.PrinterHook;
+import server.util.CompilePreparationException;
 import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
+import server.util.TransactionCommitFailureException;
 
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +65,7 @@ public class Replicator extends AbstractNode
 	private final DispatcherAgent dispatcher;
 	private final CoordinationAgent coordAgent;
 
-	public Replicator(NodeConfig config)
+	public Replicator(NodeConfig config) throws InitComponentFailureException
 	{
 		super(config);
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
@@ -82,8 +87,9 @@ public class Replicator extends AbstractNode
 		this.garbageCollector = new GarbageCollector(this);
 		this.scheduleService.scheduleAtFixedRate(garbageCollector, 0,
 				ReplicatorDefaults.GARBAGE_COLLECTOR_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL*4,
-				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(),
+				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
+				TimeUnit.MILLISECONDS);
 
 		createCommiterAgents();
 
@@ -92,8 +98,8 @@ public class Replicator extends AbstractNode
 			new Thread(new ReplicatorServerThread(this)).start();
 		} catch(TTransportException e)
 		{
-			LOG.error("failed to create background thread on replicator {}: ", getConfig().getName(), e);
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.NOINITIALIZATION);
+			String error = "failed to create background thread for replicator: " + e.getMessage();
+			throw new InitComponentFailureException(error);
 		}
 
 		Runtime.getRuntime().addShutdownHook(new PrinterHook(this.statsCollector));
@@ -107,7 +113,7 @@ public class Replicator extends AbstractNode
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public boolean commitOperation(CRDTCompiledTransaction txn)
+	public Status commitOperation(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException
 	{
 		DBCommitter pad = this.agentsPool.borrowObject();
 
@@ -128,14 +134,14 @@ public class Replicator extends AbstractNode
 
 		LOG.trace("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
 
-		boolean commitDecision = pad.commitShadowTransaction(txn);
+		Status status = pad.commitCrdtOperation(txn);
 
-		if(!commitDecision)
-			LOG.warn("something went very wrong. State will not converge because operation failed to commit");
+		if(!status.isSuccess())
+			LOG.error(status.getError());
 
 		this.agentsPool.returnObject(pad);
 
-		return commitDecision;
+		return status;
 	}
 
 	public IReplicatorNetwork getNetworkInterface()
@@ -155,13 +161,13 @@ public class Replicator extends AbstractNode
 		return newClock;
 	}
 
-	public void deliverTransaction(CRDTCompiledTransaction txn)
+	public void deliverTransaction(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException
 	{
 		mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
 		commitOperation(txn);
 	}
 
-	public void prepareToCommit(CRDTTransaction transaction)
+	public void prepareToCommit(CRDTPreCompiledTransaction transaction) throws CompilePreparationException
 	{
 		if(!transaction.isSetSymbolsMap())
 			return;
@@ -183,14 +189,14 @@ public class Replicator extends AbstractNode
 				symbolEntry.setRealValue(String.valueOf(
 						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
-				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
+				throw new CompilePreparationException("unexpected datafield type");
 		}
 
 		Map<String, SymbolEntry> symbolsMap = transaction.getSymbolsMap();
 
-		for(CRDTOperation op : transaction.getOpsList())
+		for(CRDTPreCompiledOperation op : transaction.getOpsList())
 		{
-			replaceSymbols(op, symbolsMap);
+			replacePlaceHolders(op, symbolsMap, transaction);
 			appendPrefixs(op);
 		}
 	}
@@ -220,7 +226,7 @@ public class Replicator extends AbstractNode
 		return this.coordAgent;
 	}
 
-	private void appendPrefixs(CRDTOperation op)
+	private void appendPrefixs(CRDTPreCompiledOperation op)
 	{
 		/*
 		TODO later: implement
@@ -233,20 +239,24 @@ public class Replicator extends AbstractNode
 		*/
 	}
 
-	private void replaceSymbols(CRDTOperation op, Map<String, SymbolEntry> symbolsMap)
+	private void replacePlaceHolders(CRDTPreCompiledOperation op, Map<String, SymbolEntry> symbolsMap,
+									 CRDTPreCompiledTransaction transaction)
 	{
-		if(op.isSetSymbolFieldMap())
-		{
-			Map<String, String> opSymbolsMap = op.getSymbolFieldMap();
+		String temp = StringUtils.replace(op.getSqlOp(), LogicalClock.CLOCK_PLACEHOLLDER, transaction.getTxnClock());
 
-			for(Map.Entry<String, String> entry : opSymbolsMap.entrySet())
+		if(op.isSetSymbols())
+		{
+			Set<String> symbolsSet = op.getSymbols();
+
+			for(String symbol : symbolsSet)
 			{
-				String realValue = symbolsMap.get(entry.getKey()).getRealValue();
+				String realValue = symbolsMap.get(symbol).getRealValue();
 
 				if(realValue == null)
 					RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
 
-				op.getNewFieldValues().put(entry.getValue(), realValue);
+				temp = StringUtils.replace(temp, symbol, realValue);
+				op.setSqlOp(temp);
 			}
 		}
 	}

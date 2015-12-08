@@ -1,7 +1,8 @@
 package server.agents.dispatcher;
 
 
-import common.thrift.CRDTTransaction;
+import common.thrift.CRDTPreCompiledTransaction;
+import server.util.TransactionCommitFailureException;
 
 
 /**
@@ -17,5 +18,5 @@ import common.thrift.CRDTTransaction;
  */
 public interface DispatcherAgent
 {
-	void dispatchTransaction(CRDTTransaction op);
+	void dispatchTransaction(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException;
 }

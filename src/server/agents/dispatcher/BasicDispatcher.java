@@ -1,13 +1,12 @@
 package server.agents.dispatcher;
 
 
+import common.thrift.CRDTPreCompiledTransaction;
 import server.replicator.IReplicatorNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.thrift.CRDTCompiledTransaction;
-import common.thrift.CRDTTransaction;
-import common.thrift.ThriftUtils;
 import server.replicator.Replicator;
+import server.util.TransactionCommitFailureException;
 
 
 /**
@@ -27,18 +26,11 @@ public class BasicDispatcher implements DispatcherAgent
 	}
 
 	@Override
-	public void dispatchTransaction(CRDTTransaction transaction)
+	public void dispatchTransaction(CRDTPreCompiledTransaction transaction) throws TransactionCommitFailureException
 	{
-		CRDTCompiledTransaction compiledTransaction;
+		if(!transaction.isReadyToCommit())
+			throw new TransactionCommitFailureException("transaction is not ready for commit");
 
-		if(transaction.isSetCompiledTxn())
-			compiledTransaction = transaction.getCompiledTxn();
-		else
-			compiledTransaction = ThriftUtils.compileCRDTTransaction(transaction);
-
-		if(compiledTransaction != null)
-			this.networkInterface.sendOperationToRemote(compiledTransaction);
-		else
-			LOG.warn("failed to dispatch txn: compilation process failed");
+		networkInterface.sendOperationToRemote(transaction);
 	}
 }

@@ -15,7 +15,7 @@ public interface Proxy
 
 	void abort();
 	void commit() throws SQLException;
-	void closeTransaction() throws SQLException;
+	void close() throws SQLException;
 
 	ResultSet executeQuery(String op) throws SQLException;
 	int executeUpdate(String op) throws SQLException;

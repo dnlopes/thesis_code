@@ -1,7 +1,7 @@
 package client.proxy.network;
 
 
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
 import common.thrift.RequestValue;
@@ -35,7 +35,7 @@ public class WTProxyNetwork extends AbstractNetwork implements WTIProxyNetwork
 		//return null;
 	}
 
-	public void sendToRemoteReplicators(TransactionRecord txnInfo)
+	public void sendToRemoteReplicators(TransactionContext txnInfo)
 	{
 		//TODO
 	}

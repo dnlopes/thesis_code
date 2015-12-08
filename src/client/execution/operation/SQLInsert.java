@@ -6,13 +6,11 @@ import common.database.field.DataField;
 import common.database.util.PrimaryKey;
 import common.util.ExitCode;
 import common.util.RuntimeUtils;
+import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.insert.Insert;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -23,7 +21,8 @@ public class SQLInsert extends SQLWriteOperation
 
 	private final Insert sqlStat;
 	private StringBuilder columnsBuffer, valuesBuffer;
-	private Map<String, String> symbolsMapping;
+	private Map<String, String> symbolsToFieldMapping;
+	private Map<String, String> fieldToSymbolsMapping;
 
 	public SQLInsert(Insert insertStat)
 	{
@@ -33,7 +32,8 @@ public class SQLInsert extends SQLWriteOperation
 		this.columnsBuffer = new StringBuilder(" (");
 		this.valuesBuffer = new StringBuilder("(");
 		this.record = new Record(this.dbTable);
-		this.symbolsMapping = new HashMap<>();
+		this.symbolsToFieldMapping = new HashMap<>();
+		this.fieldToSymbolsMapping = new HashMap<>();
 	}
 
 	@Override
@@ -58,8 +58,7 @@ public class SQLInsert extends SQLWriteOperation
 	@Override
 	public SQLOperation duplicate() throws JSQLParserException
 	{
-		RuntimeUtils.throwRunTimeException("should not be calling this method", ExitCode.INVALIDUSAGE);
-		return null;
+		throw new NotCallableException("SQLOperation.duplicate method missing implementation");
 	}
 
 	@Override
@@ -79,7 +78,13 @@ public class SQLInsert extends SQLWriteOperation
 
 	public void addSymbolEntry(String symbol, String fieldName)
 	{
-		this.symbolsMapping.put(symbol, fieldName);
+		symbolsToFieldMapping.put(symbol, fieldName);
+		fieldToSymbolsMapping.put(fieldName, symbol);
+	}
+
+	public Collection<String> getAllUsedSymbols()
+	{
+		return symbolsToFieldMapping.keySet();
 	}
 
 	public Set<DataField> getMissingFields()
@@ -103,6 +108,16 @@ public class SQLInsert extends SQLWriteOperation
 		else
 			return true;
 			*/
+	}
+
+	public boolean containsSymbolForField(String fieldName)
+	{
+		return fieldToSymbolsMapping.containsKey(fieldName);
+	}
+
+	public String getSymbolForField(String fieldName)
+	{
+		return fieldToSymbolsMapping.get(fieldName);
 	}
 
 	public Insert getInsert()

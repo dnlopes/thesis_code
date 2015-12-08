@@ -2,8 +2,9 @@ package client.proxy;
 
 
 import applications.util.SymbolsManager;
+import client.execution.CRDTOperationGenerator;
 import client.execution.SymbolsContext;
-import client.execution.TransactionRecord;
+import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.execution.temporary.scratchpad.BasicScratchpad;
 import client.execution.temporary.scratchpad.DBReadOnlyInterface;
@@ -13,11 +14,15 @@ import client.proxy.network.IProxyNetwork;
 import client.proxy.network.SandboxProxyNetwork;
 import common.database.SQLBasicInterface;
 import common.database.SQLInterface;
+import common.database.constraints.unique.UniqueConstraint;
 import common.database.field.DataField;
 import common.database.util.DatabaseCommon;
 import common.database.util.PrimaryKeyValue;
 import common.database.value.FieldValue;
 import common.nodes.NodeConfig;
+import common.thrift.Status;
+import common.thrift.ThriftUtils;
+import common.thrift.UniqueValue;
 import common.util.ConnectionFactory;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -25,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.util.RuntimeUtils;
 import common.util.ExitCode;
+import server.util.LogicalClock;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,26 +52,28 @@ public class SandboxProxy implements Proxy
 	private SQLInterface sqlInterface;
 	private boolean readOnly, isRunning;
 	private SymbolsContext symbolsManager;
-	private TransactionRecord txnRecord;
+	private TransactionContext txnContext;
 	private ReadOnlyInterface readOnlyInterface;
 	private ReadWriteScratchpad scratchpad;
 	private SQLDeterministicTransformer transformer;
+	private List<SQLOperation> operationList;
 
 	public SandboxProxy(final NodeConfig proxyConfig, int proxyId)
 	{
 		this.proxyId = proxyId;
 		this.network = new SandboxProxyNetwork(proxyConfig);
-		this.txnRecord = new TransactionRecord();
+		this.txnContext = new TransactionContext();
 		this.symbolsManager = new SymbolsContext();
 		this.readOnly = false;
 		this.isRunning = false;
 		this.transformer = new SQLDeterministicTransformer();
+		this.operationList = new LinkedList<>();
 
 		try
 		{
 			this.sqlInterface = new SQLBasicInterface(ConnectionFactory.getDefaultConnection(proxyConfig));
 			this.readOnlyInterface = new DBReadOnlyInterface(sqlInterface);
-			this.scratchpad = new BasicScratchpad(sqlInterface, txnRecord);
+			this.scratchpad = new BasicScratchpad(sqlInterface, txnContext);
 		} catch(SQLException e)
 		{
 			LOG.error("failed to create scratchpad environment for proxy with id {}", proxyId, e);
@@ -87,7 +95,7 @@ public class SandboxProxy implements Proxy
 		{
 			preparedOps = this.transformer.pepareOperation(op);
 			long estimated = System.nanoTime() - start;
-			this.txnRecord.addToParsingTime(estimated);
+			this.txnContext.addToParsingTime(estimated);
 		} catch(JSQLParserException e)
 		{
 			throw new SQLException(e.getMessage());
@@ -107,7 +115,7 @@ public class SandboxProxy implements Proxy
 		{
 			rs = this.readOnlyInterface.executeQuery(selectSQL);
 			estimated = System.nanoTime() - start;
-			this.txnRecord.addSelectTime(estimated);
+			this.txnContext.addSelectTime(estimated);
 		} else // we dont measure select times from non-read only txn here. we do it in the lower layers
 			rs = this.scratchpad.executeQuery(selectSQL);
 
@@ -131,7 +139,7 @@ public class SandboxProxy implements Proxy
 			long start = System.nanoTime();
 			preparedOps = this.transformer.pepareOperation(op);
 			long estimated = System.nanoTime() - start;
-			this.txnRecord.addToParsingTime(estimated);
+			this.txnContext.addToParsingTime(estimated);
 
 		} catch(JSQLParserException e)
 		{
@@ -143,6 +151,7 @@ public class SandboxProxy implements Proxy
 		for(SQLOperation updateOp : preparedOps)
 		{
 			int counter = this.scratchpad.executeUpdate((SQLWriteOperation) updateOp);
+			operationList.add(updateOp);
 			result += counter;
 		}
 
@@ -178,45 +187,70 @@ public class SandboxProxy implements Proxy
 	@Override
 	public void commit() throws SQLException
 	{
-		long start = System.nanoTime();
-		this.txnRecord.setExecTime(start - txnRecord.getStartTime());
+		long endExec = System.nanoTime();
+		this.txnContext.setExecTime(endExec - txnContext.getStartTime());
 
 		// if read-only, just return
 		if(readOnly)
 		{
-			txnRecord.printRecord();
+			txnContext.printRecord();
 			end();
 			return;
 		}
 
 		//txnRecord.printRecord();
 		//TODO commit
+		long prepareOpStart = System.nanoTime();
+		prepareToCommit();
+		long endPrepareOp = System.nanoTime();
+		long estimated = endPrepareOp - prepareOpStart;
+		txnContext.setPrepareOpTime(estimated);
+
+		Status status = network.commitOperation(txnContext.getPreCompiledTxn());
+		estimated = System.nanoTime() - endPrepareOp;
+		txnContext.setCommitTime(estimated);
+
+		if(!status.isSuccess())
+			throw new SQLException(status.getError());
+
 		end();
 	}
 
 	@Override
-	public void closeTransaction() throws SQLException
+	public void close() throws SQLException
 	{
 		commit();
+	}
+
+	private void prepareToCommit()
+	{
+		//pre-compile ops
+		for(SQLOperation op : operationList)
+		{
+			String[] crdtOps = CRDTOperationGenerator.generateCrdtOperations((SQLWriteOperation) op,
+					LogicalClock.CLOCK_PLACEHOLLDER, txnContext);
+		}
 	}
 
 	private void start()
 	{
 		reset();
-		txnRecord.setStartTime(System.nanoTime());
+		txnContext.setStartTime(System.nanoTime());
 		isRunning = true;
 	}
 
 	private void end()
 	{
-		txnRecord.setEndTime(System.nanoTime());
+		txnContext.setEndTime(System.nanoTime());
 		isRunning = false;
 	}
 
 	private void reset()
 	{
-		txnRecord.clear();
+		txnContext.clear();
+		operationList.clear();
 		symbolsManager.clear();
+
 		try
 		{
 			scratchpad.clearScratchpad();
@@ -315,8 +349,7 @@ public class SandboxProxy implements Proxy
 
 				if(value.equalsIgnoreCase("NOW()") || value.equalsIgnoreCase("NOW") || value.equalsIgnoreCase(
 						"CURRENT_TIMESTAMP") || value.equalsIgnoreCase("CURRENT_TIMESTAMP()") || value
-						.equalsIgnoreCase(
-						"CURRENT_DATE"))
+						.equalsIgnoreCase("CURRENT_DATE"))
 					value = "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'";
 
 				if(value.contains("SELECT") || value.contains("select"))
@@ -385,8 +418,7 @@ public class SandboxProxy implements Proxy
 
 				if(value.equalsIgnoreCase("NOW()") || value.equalsIgnoreCase("NOW") || value.equalsIgnoreCase(
 						"CURRENT_TIMESTAMP") || value.equalsIgnoreCase("CURRENT_TIMESTAMP()") || value
-						.equalsIgnoreCase(
-						"CURRENT_DATE"))
+						.equalsIgnoreCase("CURRENT_DATE"))
 					value = "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'";
 
 				if(value.contains(SymbolsManager.SYMBOL_PREFIX))
@@ -399,6 +431,8 @@ public class SandboxProxy implements Proxy
 						value = tmpId;
 					} else // create new entry
 					{
+						DataField dField = insertSQL.getDbTable().getField(column);
+						ThriftUtils.createSymbolEntry(txnContext, value, dField, insertSQL.getDbTable());
 						insertSQL.addSymbolEntry(value, column);
 						String tmpId = symbolsManager.createIdForSymbol(value);
 						symbolsManager.linkRecordWithSymbol(insertSQL.getRecord(), value);
@@ -474,6 +508,30 @@ public class SandboxProxy implements Proxy
 						//TODO we must generate a different symbol to exchange in replicator
 						insertSQL.addRecordEntry(dField.getFieldName(), SymbolsManager.ONE_TIME_SYMBOL);
 					}
+				}
+			}
+
+			if(!insertSQL.getDbTable().isFreeToInsert())
+			{
+				for(UniqueConstraint uniqueConstraint : insertSQL.getDbTable().getUniqueConstraints())
+				{
+					if(!uniqueConstraint.requiresCoordination())
+						continue;
+
+					List<DataField> fieldsList = uniqueConstraint.getFields();
+					StringBuilder uniqueBuffer = new StringBuilder();
+
+					for(DataField aField : fieldsList)
+					{
+						uniqueBuffer.append(insertSQL.getRecord().getData(aField.getFieldName()));
+						uniqueBuffer.append("_");
+					}
+
+					uniqueBuffer.setLength(uniqueBuffer.length() - 1);
+					UniqueValue uniqueRequest = new UniqueValue();
+					uniqueRequest.setConstraintId(uniqueConstraint.getConstraintIdentifier());
+					uniqueRequest.setValue(uniqueBuffer.toString());
+					txnContext.getCoordinatorRequest().addToUniqueValues(uniqueRequest);
 				}
 			}
 
