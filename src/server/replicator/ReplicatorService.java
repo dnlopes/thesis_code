@@ -86,8 +86,8 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		if(transaction.isReadyToCommit())
 		{
 			// replace symbols for real values and append prefixs when needed
-			this.replicator.prepareToCommit(transaction);
 			transaction.setTxnClock(this.replicator.getNextClock().getClockValue());
+			this.replicator.prepareToCommit(transaction);
 			transaction.setId(this.replicator.assignNewTransactionId());
 
 			// wait for commit decision

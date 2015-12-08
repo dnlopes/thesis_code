@@ -2,7 +2,9 @@ package server.replicator;
 
 
 import common.util.*;
+import common.util.defaults.ScratchpadDefaults;
 import common.util.exception.InitComponentFailureException;
+import common.util.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import server.agents.AgentsFactory;
 import server.execution.StatsCollector;
@@ -28,7 +30,10 @@ import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
 import server.util.TransactionCommitFailureException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -65,7 +70,7 @@ public class Replicator extends AbstractNode
 	private final DispatcherAgent dispatcher;
 	private final CoordinationAgent coordAgent;
 
-	public Replicator(NodeConfig config) throws InitComponentFailureException
+	public Replicator(NodeConfig config) throws InitComponentFailureException, InvalidConfigurationException
 	{
 		super(config);
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
@@ -91,6 +96,7 @@ public class Replicator extends AbstractNode
 				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
 				TimeUnit.MILLISECONDS);
 
+		//deleteScratchpads();
 		createCommiterAgents();
 
 		try
@@ -240,9 +246,14 @@ public class Replicator extends AbstractNode
 	}
 
 	private void replacePlaceHolders(CRDTPreCompiledOperation op, Map<String, SymbolEntry> symbolsMap,
-									 CRDTPreCompiledTransaction transaction)
+									 CRDTPreCompiledTransaction transaction) throws CompilePreparationException
 	{
-		String temp = StringUtils.replace(op.getSqlOp(), LogicalClock.CLOCK_PLACEHOLLDER, transaction.getTxnClock());
+		String sqlOp = op.getSqlOp();
+		//StringBuilder builder = new StringBuilder("'").append(transaction.getTxnClock()).append("'");
+		String clockReplacer = transaction.getTxnClock();
+
+		String tempOp = StringUtils.replace(sqlOp, LogicalClock.CLOCK_PLACEHOLDER, clockReplacer);
+		op.setSqlOp(tempOp);
 
 		if(op.isSetSymbols())
 		{
@@ -253,10 +264,10 @@ public class Replicator extends AbstractNode
 				String realValue = symbolsMap.get(symbol).getRealValue();
 
 				if(realValue == null)
-					RuntimeUtils.throwRunTimeException("real value should not be null", ExitCode.NULLPOINTER);
+					throw new CompilePreparationException("failed to retrieve id from coordinator");
 
-				temp = StringUtils.replace(temp, symbol, realValue);
-				op.setSqlOp(temp);
+				tempOp = StringUtils.replace(tempOp, symbol, realValue);
+				op.setSqlOp(tempOp);
 			}
 		}
 	}
@@ -312,6 +323,50 @@ public class Replicator extends AbstractNode
 
 		LOG.info("{} commit agents available for main storage execution", this.agentsPool.getPoolSize());
 	}
+
+	private void deleteScratchpads()
+	{
+		int id = 1;
+		try
+		{
+			boolean keepGoing = true;
+			Connection con = ConnectionFactory.getDefaultConnection(config);
+			do
+			{
+				keepGoing = deleteSingleScratchpads(con, id++);
+			} while(keepGoing);
+
+		} catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private boolean deleteSingleScratchpads(Connection con, int id) throws SQLException
+	{
+		Statement stat = con.createStatement();
+		Collection<DatabaseTable> allTables = Environment.DB_METADATA.getAllTables();
+
+		for(DatabaseTable table : allTables)
+		{
+			try
+			{
+				StringBuilder buffer = new StringBuilder("DROP TABLE ");
+				buffer.append(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX).append(table.getName());
+				buffer.append("_").append(id);
+				String sql = buffer.toString();
+				stat.execute(sql);
+				con.commit();
+			} catch(SQLException e)
+			{
+				LOG.debug("no more scratchpads to delete");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 
 	public int assignNewTransactionId()
 	{

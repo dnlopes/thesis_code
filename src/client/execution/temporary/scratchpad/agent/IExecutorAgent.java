@@ -2,6 +2,7 @@ package client.execution.temporary.scratchpad.agent;
 
 
 import client.execution.operation.SQLWriteOperation;
+import client.execution.temporary.scratchpad.ScratchpadException;
 import net.sf.jsqlparser.statement.select.Select;
 import common.thrift.CRDTTransaction;
 
@@ -24,7 +25,7 @@ public interface IExecutorAgent
 			throws SQLException;
 	ResultSet executeTemporaryQuery(Select selectOp) throws SQLException;
 	void clearExecutor() throws SQLException;
-	void setup(DatabaseMetaData metadata, int scratchpadId);
+	void setup(DatabaseMetaData metadata, int scratchpadId) throws ScratchpadException;
 
 	interface Defaults
 	{

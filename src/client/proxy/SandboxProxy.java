@@ -10,6 +10,7 @@ import client.execution.temporary.scratchpad.BasicScratchpad;
 import client.execution.temporary.scratchpad.DBReadOnlyInterface;
 import client.execution.temporary.scratchpad.ReadOnlyInterface;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.scratchpad.agent.IExecutorAgent;
 import client.proxy.network.IProxyNetwork;
 import client.proxy.network.SandboxProxyNetwork;
 import common.database.SQLBasicInterface;
@@ -28,8 +29,6 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 import server.util.LogicalClock;
 
 import java.sql.ResultSet;
@@ -58,7 +57,7 @@ public class SandboxProxy implements Proxy
 	private SQLDeterministicTransformer transformer;
 	private List<SQLOperation> operationList;
 
-	public SandboxProxy(final NodeConfig proxyConfig, int proxyId)
+	public SandboxProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
 	{
 		this.proxyId = proxyId;
 		this.network = new SandboxProxyNetwork(proxyConfig);
@@ -76,8 +75,7 @@ public class SandboxProxy implements Proxy
 			this.scratchpad = new BasicScratchpad(sqlInterface, txnContext);
 		} catch(SQLException e)
 		{
-			LOG.error("failed to create scratchpad environment for proxy with id {}", proxyId, e);
-			RuntimeUtils.throwRunTimeException(e.getMessage(), ExitCode.SANDBOX_INIT_FAILED);
+			throw new SQLException("failed to create scratchpad environment for proxy: " + e.getMessage());
 		}
 	}
 
@@ -187,6 +185,8 @@ public class SandboxProxy implements Proxy
 	@Override
 	public void commit() throws SQLException
 	{
+		end();
+		/*
 		long endExec = System.nanoTime();
 		this.txnContext.setExecTime(endExec - txnContext.getStartTime());
 
@@ -213,7 +213,8 @@ public class SandboxProxy implements Proxy
 		if(!status.isSuccess())
 			throw new SQLException(status.getError());
 
-		end();
+		txnContext.printRecord();
+		end(); */
 	}
 
 	@Override
@@ -226,10 +227,8 @@ public class SandboxProxy implements Proxy
 	{
 		//pre-compile ops
 		for(SQLOperation op : operationList)
-		{
-			String[] crdtOps = CRDTOperationGenerator.generateCrdtOperations((SQLWriteOperation) op,
-					LogicalClock.CLOCK_PLACEHOLLDER, txnContext);
-		}
+			CRDTOperationGenerator.generateCrdtOperations((SQLWriteOperation) op,
+					LogicalClock.CLOCK_PLACEHOLLDER_WITH_ESCAPED_CHARS, txnContext);
 	}
 
 	private void start()
@@ -265,7 +264,7 @@ public class SandboxProxy implements Proxy
 
 		private final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-		public SQLOperation[] pepareOperation(String sqlOpString) throws JSQLParserException
+		public SQLOperation[] pepareOperation(String sqlOpString) throws JSQLParserException, SQLException
 		{
 			SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString);
 
@@ -383,6 +382,17 @@ public class SandboxProxy implements Proxy
 
 						for(DataField pkField : updateSQL.getPk().getPrimaryKeyFields().values())
 						{
+							String cachedContent = rs.getString(pkField.getFieldName());
+
+							if(cachedContent == null)
+							{
+								int a = 0;
+								if(pkField.isStringField())
+									cachedContent = "NULL";
+								else if(pkField.isDateField())
+									cachedContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
+							}
+
 							FieldValue fValue = new FieldValue(pkField, rs.getString(pkField.getFieldName()).trim());
 							pkValue.addFieldValue(fValue);
 						}
@@ -406,7 +416,7 @@ public class SandboxProxy implements Proxy
 			}
 		}
 
-		private SQLOperation[] prepareInsertOperation(SQLInsert insertSQL) throws JSQLParserException
+		private SQLOperation[] prepareInsertOperation(SQLInsert insertSQL) throws JSQLParserException, SQLException
 		{
 			Iterator colIt = insertSQL.getInsert().getColumns().iterator();
 			Iterator valueIt = ((ExpressionList) insertSQL.getInsert().getItemsList()).getExpressions().iterator();
@@ -499,10 +509,11 @@ public class SandboxProxy implements Proxy
 						insertSQL.addRecordEntry(dField.getFieldName(),
 								dField.getDefaultFieldValue().getFormattedValue());
 					else if(!dField.isAutoIncrement())
-						RuntimeUtils.throwRunTimeException(
-								"missing a column value which does not have a default value and is not an " +
-										"auto_increment field",
-								ExitCode.ERRORTRANSFORM);
+						throw new SQLException(
+								"only auto_increment fields or that have a default value set can be " + "missing " +
+										"from" +
+										" " +
+										"SQL query");
 					else // is auto_increment
 					{
 						//TODO we must generate a different symbol to exchange in replicator

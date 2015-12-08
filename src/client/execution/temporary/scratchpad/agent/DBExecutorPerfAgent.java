@@ -5,6 +5,7 @@ import client.execution.QueryCreator;
 import client.execution.TransactionContext;
 import client.execution.operation.*;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.scratchpad.ScratchpadException;
 import common.database.Record;
 import common.database.SQLInterface;
 import common.database.constraints.fk.ForeignKeyConstraint;
@@ -152,39 +153,6 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 		this.newRecords.clear();
 	}
 
-	public void prepareForCommit() throws SQLException
-	{
-		/*
-		ResultSet rs = this.sqlInterface.executeQuery("SELECT * FROM " + this.tempTableName);
-		WriteSet writeSet = new WriteSet();
-
-		while(rs.next())
-		{
-			Record record = this.helper.loadRecordFromResultSet(rs);
-
-			if(this.cachedRecords.containsKey(record.getPkValue()))
-			{
-				// its an updated record. Retrive LWW fields from temp table and
-				// calculate delta values from the difference old/new values
-				Record cachedRecord = this.cachedRecords.get(record.getPkValue());
-				record.mergeRecords(cachedRecord);
-				writeSet.addToUpdates(record);
-				// in case of a check constraint exists, check with coordinator if we can safely apply the delta
-			} else
-			{
-				//its a new record to be inserted
-				// check uniques constraints and/or auto_increment fields
-				writeSet.addToInserts(record);
-			}
-		}
-
-		//TODO:
-		// At some point - when inserting a child record - we must check the respective parent(s), to understand if we
-		// can insert the child. Also, we must capture the foreign-key semantic here
-
-		int a = 0;  */
-	}
-
 	private int executeTempOpInsert(SQLInsert insertOp) throws SQLException
 	{
 		long start = System.nanoTime();
@@ -255,8 +223,8 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 				while(res.next())
 				{
 					if(!res.isLast())
-						RuntimeUtils.throwRunTimeException("ResultSet should contain exactly 1 row",
-								ExitCode.FETCH_RESULTS_ERROR);
+						throw new ScratchpadException("ResultSet should contain exactly 1 row because it is specified" +
+								" by a primary key");
 
 					rowsDeleted++;
 					pkValue = DatabaseCommon.getPrimaryKeyValue(res, this.databaseTable);
@@ -306,6 +274,10 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 		loadingFromMain = System.nanoTime() - start;
 		this.txnRecord.addLoadfromMainTime(loadingFromMain);
 
+		if(!updateOp.isPrimaryKeySet())
+		{
+			int a = 0;
+		}
 		start = System.nanoTime();
 		updateOp.prepareOperation(false, this.tempTableName);
 		int result = this.sqlInterface.executeUpdate(updateOp.getSQLString());
@@ -383,8 +355,13 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 			ResultSet res = null;
 			try
 			{
-				res = sqlInterface.executeQuery(buffer.toString());
+				String sqlQuery = buffer.toString();
+				res = sqlInterface.executeQuery(sqlQuery);
 
+				if(!res.next())
+				{
+					int a = 0;
+				}
 				while(res.next())
 				{
 					if(!res.getString("tname").equals(tempTableName))
@@ -402,18 +379,21 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 								res.previous();
 							} else
 							{
+								int a = 0;
 								//Debug.println("record exists in both real and temp table");
 								continue;
+
 							}
 						}
 					} else
 					{
+						int a = 0;
 						//Debug.println("record exist in temporary table but not real table");
 						continue;
 					}
 
 					buffer.setLength(0);
-					buffer.append("insert into ");
+					buffer.append("INSERT INTO ");
 					buffer.append(tempTableName);
 					buffer.append(" (");
 					StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
@@ -434,10 +414,13 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 						String oldContent = res.getString(field.getFieldName());
 
 						if(oldContent == null)
+						{
+							int a = 0;
 							if(field.isStringField())
 								oldContent = "NULL";
 							else if(field.isDateField())
 								oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
+						}
 
 						if(field.isStringField() || field.isDateField())
 						{

@@ -4,6 +4,8 @@ package client.proxy;
 import common.nodes.NodeConfig;
 import common.util.Topology;
 
+import java.sql.SQLException;
+
 
 /**
  * Created by dnlopes on 02/09/15.
@@ -27,7 +29,7 @@ public class ProxyFactory
 		proxiesCounter = 0;
 	}
 
-	public static Proxy getProxyInstance()
+	public static Proxy getProxyInstance() throws SQLException
 	{
 		//return createWriteThroughProxy();
 		return createSimpleProxy();
@@ -38,7 +40,7 @@ public class ProxyFactory
 		return new WriteThroughProxy(PROXY_CONFIG, assignProxyId());
 	}
 
-	private static Proxy createSimpleProxy()
+	private static Proxy createSimpleProxy() throws SQLException
 	{
 		return new SandboxProxy(PROXY_CONFIG, assignProxyId());
 	}

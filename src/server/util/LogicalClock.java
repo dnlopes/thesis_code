@@ -8,7 +8,8 @@ import common.util.ExitCode;
 public class LogicalClock implements java.io.Serializable
 {
 
-	public static final String CLOCK_PLACEHOLLDER = "@clock@";
+	public static final String CLOCK_PLACEHOLLDER_WITH_ESCAPED_CHARS = "@clock@";
+	public static final String CLOCK_PLACEHOLDER = "@clock@";
 
 	private long[] entries;
 

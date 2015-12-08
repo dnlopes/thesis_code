@@ -258,13 +258,13 @@ public class CRDTOperationGenerator
 		private static String SET_DELETED = " SET _del=1 ";
 		private static String SET_NOT_DELETED = " SET _del=0 ";
 
-		private static String MERGE_DCLOCK_OP_PREFIX = " SET _dclock=maxClock(_dclock,'";
-		private static String MERGE_CCLOCK_OP_PREFIX = " SET _cclock=maxClock(_cclock,'";
-		private static String DELETE_ROW_OP_SUFFIX_UPDATE_WINS = "isStrictlyGreater(_cclock,'";
-		private static String DELETE_ROW_OP_SUFFIX_DELETE_WINS = "isConcurrentOrGreaterClock(_cclock,'";
-		private static String VISIBLE_PARENT_OP_SUFFIX = "isConcurrentOrGreaterClock(_dclock,'";
-		private static String IS_CONCURRENT_OR_GREATER_DCLOCK = "isConcurrentOrGreaterClock(_dclock,'";
-		private static String CLOCK_IS_GREATER_SUFIX = "clockIsGreater(_cclock,'";
+		private static String MERGE_DCLOCK_OP_PREFIX = " SET _dclock=maxClock(_dclock,\'";
+		private static String MERGE_CCLOCK_OP_PREFIX = " SET _cclock=maxClock(_cclock,\'";
+		private static String DELETE_ROW_OP_SUFFIX_UPDATE_WINS = "isStrictlyGreater(_cclock,\'";
+		private static String DELETE_ROW_OP_SUFFIX_DELETE_WINS = "isConcurrentOrGreaterClock(_cclock,\'";
+		private static String VISIBLE_PARENT_OP_SUFFIX = "isConcurrentOrGreaterClock(_dclock,\'";
+		private static String IS_CONCURRENT_OR_GREATER_DCLOCK = "isConcurrentOrGreaterClock(_dclock,\'";
+		private static String CLOCK_IS_GREATER_SUFIX = "clockIsGreater(_cclock,\'";
 
 		public static String generateInsertOperation(SQLInsert sqlInsert, TransactionContext context)
 		{
@@ -285,7 +285,10 @@ public class CRDTOperationGenerator
 				if(sqlInsert.containsSymbolForField(entry.getKey()))
 					valuesBuffer.append(sqlInsert.getSymbolForField(entry.getKey()));
 				else
-					valuesBuffer.append(entry.getValue());
+				{
+					DataField dataField = sqlInsert.getDbTable().getField(entry.getKey());
+					valuesBuffer.append(dataField.get_Value_In_Correct_Format(entry.getValue()));
+				}
 				valuesBuffer.append(",");
 			}
 
@@ -344,7 +347,7 @@ public class CRDTOperationGenerator
 			buffer.append(tableName);
 			buffer.append(MERGE_DCLOCK_OP_PREFIX);
 			buffer.append(newClock);
-			buffer.append("')");
+			buffer.append("\')");
 			buffer.append(WHERE);
 			buffer.append(whereClause);
 
@@ -365,7 +368,7 @@ public class CRDTOperationGenerator
 			buffer.append(tableName);
 			buffer.append(MERGE_CCLOCK_OP_PREFIX);
 			buffer.append(newClock);
-			buffer.append("')");
+			buffer.append("\')");
 			buffer.append(WHERE);
 			buffer.append(whereClause);
 
@@ -396,7 +399,7 @@ public class CRDTOperationGenerator
 
 				buffer.append(entry.getKey());
 				buffer.append("=");
-				buffer.append(entry.getValue());
+				buffer.append(dataField.get_Value_In_Correct_Format(entry.getValue()));
 				buffer.append(",");
 			}
 
@@ -411,7 +414,7 @@ public class CRDTOperationGenerator
 				buffer.append(AND);
 				buffer.append(CLOCK_IS_GREATER_SUFIX);
 				buffer.append(newClock);
-				buffer.append("')=TRUE");
+				buffer.append("\')=TRUE");
 			}
 
 			String sqlString = buffer.toString();
@@ -432,7 +435,7 @@ public class CRDTOperationGenerator
 			buffer.append(AND);
 			buffer.append(IS_CONCURRENT_OR_GREATER_DCLOCK);
 			buffer.append(newClock);
-			buffer.append("')=TRUE");
+			buffer.append("\')=TRUE");
 
 			String sqlString = buffer.toString();
 

@@ -2,8 +2,6 @@ package server.agents.dispatcher;
 
 
 import common.thrift.CRDTPreCompiledTransaction;
-import common.util.ExitCode;
-import common.util.RuntimeUtils;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 
@@ -27,8 +25,6 @@ public class AggregatorDispatcher implements DispatcherAgent
 
 	public AggregatorDispatcher(Replicator replicator)
 	{
-		RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
-
 		this.networkInterface = replicator.getNetworkInterface();
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
 

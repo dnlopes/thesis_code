@@ -6,9 +6,11 @@ import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.nodes.NodeConfig;
 import common.util.*;
+import common.util.exception.InitComponentFailureException;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.util.CompilePreparationException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,7 +32,7 @@ public class IDsManager
 
 	private Map<String, IDGenerator> idsGenerators;
 
-	public IDsManager(String prefix, NodeConfig replicatorConfig)
+	public IDsManager(String prefix, NodeConfig replicatorConfig) throws InitComponentFailureException
 	{
 		PREFIX = prefix;
 		this.idsGenerators = new HashMap<>();
@@ -38,12 +40,12 @@ public class IDsManager
 		setup(replicatorConfig);
 	}
 
-	public int getNextId(String tableName, String fieldName)
+	public int getNextId(String tableName, String fieldName) throws CompilePreparationException
 	{
 		String key = tableName + "_" + fieldName;
 
 		if(!this.idsGenerators.containsKey(key))
-			RuntimeUtils.throwRunTimeException("id generator not found for key " + key, ExitCode.ID_GENERATOR_ERROR);
+			throw new CompilePreparationException("id generator not found for key: " + key);
 
 		int nextId = this.idsGenerators.get(key).getNextId();
 
@@ -53,7 +55,7 @@ public class IDsManager
 		return nextId;
 	}
 
-	private void setup(NodeConfig config)
+	private void setup(NodeConfig config) throws InitComponentFailureException
 	{
 		if(LOG.isTraceEnabled())
 			LOG.trace("bootstraping id generators for auto increment fields");
@@ -66,7 +68,7 @@ public class IDsManager
 		}
 	}
 
-	private void createIdGenerator(DataField field, NodeConfig config)
+	private void createIdGenerator(DataField field, NodeConfig config) throws InitComponentFailureException
 	{
 		String key = field.getTableName() + "_" + field.getFieldName();
 
@@ -92,7 +94,7 @@ public class IDsManager
 		private AtomicInteger currentValue;
 		private DataField field;
 
-		public IDGenerator(DataField field, NodeConfig config, int delta)
+		public IDGenerator(DataField field, NodeConfig config, int delta) throws InitComponentFailureException
 		{
 			this.field = field;
 			this.currentValue = new AtomicInteger();
@@ -101,7 +103,7 @@ public class IDsManager
 			this.setupGenerator(config);
 		}
 
-		private void setupGenerator(NodeConfig config)
+		private void setupGenerator(NodeConfig config) throws InitComponentFailureException
 		{
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("SELECT MAX(");
@@ -126,16 +128,12 @@ public class IDsManager
 					this.currentValue.set(lastId + config.getId());
 				} else
 				{
-					LOG.error("could not fetch the last id for field {}", this.field.getFieldName());
-					RuntimeUtils.throwRunTimeException("id generator failed to initialize properly",
-							ExitCode.ID_GENERATOR_ERROR);
+					throw new InitComponentFailureException("failed to setup ids generator: could not fetch the last " +
+							"id for field " + field.getFieldName());
 				}
 			} catch(SQLException e)
 			{
-				LOG.error("could not fetch the last id for field {}. Reason: {}", this.field.getFieldName(),
-						e.getMessage());
-				RuntimeUtils.throwRunTimeException("id generator failed to initialize properly",
-						ExitCode.ID_GENERATOR_ERROR);
+				throw new InitComponentFailureException("failed to setup ids generator: " + e.getMessage());
 			} finally
 			{
 				DbUtils.closeQuietly(tempConnection, stmt, rs);

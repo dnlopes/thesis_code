@@ -3,7 +3,6 @@ package client.jdbc;
 
 import client.proxy.Proxy;
 import client.proxy.ProxyFactory;
-import common.util.RuntimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.util.ExitCode;
@@ -70,7 +69,7 @@ public class CRDTConnection implements Connection
 	public void setAutoCommit(boolean autoCommit) throws SQLException
 	{
 		if(autoCommit)
-			RuntimeUtils.throwRunTimeException("autocommit not supported", ExitCode.AUTO_COMMIT_NOT_SUPPORTED);
+			throw new SQLException("connection auto commit not supported");
 	}
 
 	@Override

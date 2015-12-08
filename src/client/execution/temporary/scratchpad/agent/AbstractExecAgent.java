@@ -4,6 +4,7 @@ package client.execution.temporary.scratchpad.agent;
 import client.execution.TransactionContext;
 import client.execution.temporary.TableDefinition;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.scratchpad.ScratchpadException;
 import common.database.SQLInterface;
 import common.database.constraints.fk.ForeignKeyConstraint;
 import common.database.field.DataField;
@@ -105,7 +106,7 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 	}
 
 	@Override
-	public void setup(DatabaseMetaData metadata, int scratchpadId)
+	public void setup(DatabaseMetaData metadata, int scratchpadId) throws ScratchpadException
 	{
 		try
 		{
@@ -270,8 +271,7 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 
 		} catch(SQLException e)
 		{
-			LOG.error("failed to create temporary tables for scratchpad", e);
-			RuntimeUtils.throwRunTimeException("scratchpad creation failed", ExitCode.SCRATCHPAD_INIT_FAILED);
+			throw new ScratchpadException("scratchpad failed to initialize: " + e.getMessage());
 		}
 		if(LOG.isTraceEnabled())
 			LOG.trace("executor for table {} created", this.databaseTable.getName());

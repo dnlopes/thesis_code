@@ -5,6 +5,8 @@ import common.util.Environment;
 import common.util.ExitCode;
 import common.util.Topology;
 import common.util.exception.ConfigurationLoadException;
+import common.util.exception.InitComponentFailureException;
+import common.util.exception.InvalidConfigurationException;
 
 
 /**
@@ -13,7 +15,8 @@ import common.util.exception.ConfigurationLoadException;
 public class ReplicatorMain
 {
 
-	public static void main(String args[]) throws ConfigurationLoadException
+	public static void main(String args[])
+			throws ConfigurationLoadException, InitComponentFailureException, InvalidConfigurationException
 	{
 		if(args.length != 3)
 		{

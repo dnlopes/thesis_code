@@ -2,15 +2,13 @@ package server.agents;
 
 
 import common.util.Environment;
-import common.util.ExitCode;
-import common.util.RuntimeUtils;
+import common.util.exception.InvalidConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.agents.deliver.CausalDeliverAgent;
 import server.agents.deliver.DeliverAgent;
 import server.agents.deliver.NoOrderDeliverAgent;
 import server.agents.dispatcher.BasicDispatcher;
-import server.agents.dispatcher.BatchDispatcher;
 import server.agents.dispatcher.DispatcherAgent;
 import server.replicator.Replicator;
 
@@ -23,7 +21,7 @@ public class AgentsFactory
 
 	private static final Logger LOG = LoggerFactory.getLogger(AgentsFactory.class);
 
-	public static DeliverAgent getDeliverAgent(Replicator replicator)
+	public static DeliverAgent getDeliverAgent(Replicator replicator) throws InvalidConfigurationException
 	{
 		switch(Environment.DELIVER_AGENT)
 		{
@@ -32,28 +30,22 @@ public class AgentsFactory
 		case 2:
 			return new NoOrderDeliverAgent(replicator);
 		default:
-			LOG.error("unknown deliver agent.");
-			RuntimeUtils.throwRunTimeException("unknown deliver agent selected", ExitCode.INVALIDUSAGE);
-			return null;
+			throw new InvalidConfigurationException("unknown deliver agent class");
 		}
 	}
 
-	public static DispatcherAgent getDispatcherAgent(Replicator replicator)
+	public static DispatcherAgent getDispatcherAgent(Replicator replicator) throws InvalidConfigurationException
 	{
 		switch(Environment.DISPATCHER_AGENT)
 		{
 		case 1:
-			return new BatchDispatcher(replicator);
+			throw new InvalidConfigurationException("specified dispatcher agent not yet implemented");
 		case 2:
 			return new BasicDispatcher(replicator);
 		case 3:
-			RuntimeUtils.throwRunTimeException("missing implementation", ExitCode.MISSING_IMPLEMENTATION);
-			return null;
-		//return new AggregatorDispatcher(replicator);
+			throw new InvalidConfigurationException("specified dispatcher agent not yet implemented");
 		default:
-			LOG.error("unknown dispatcher agent.");
-			RuntimeUtils.throwRunTimeException("unknown dispatcher agent selected", ExitCode.INVALIDUSAGE);
-			return null;
+			throw new InvalidConfigurationException("unknown dispatcher agent class");
 		}
 	}
 

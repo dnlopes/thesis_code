@@ -108,7 +108,7 @@ struct CRDTPreCompiledTransaction {
     4: list<CRDTPreCompiledOperation> opsList;
     5: map<string,SymbolEntry> symbolsMap;
     6: bool readyToCommit;
-    7: optional CoordinatorRequest requestToCoordinator;
+    7: CoordinatorRequest requestToCoordinator;
 }
 
 service ReplicatorRPC {

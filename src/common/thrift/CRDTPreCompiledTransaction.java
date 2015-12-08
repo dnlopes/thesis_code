@@ -58,7 +58,7 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
   public List<CRDTPreCompiledOperation> opsList; // required
   public Map<String,SymbolEntry> symbolsMap; // required
   public boolean readyToCommit; // required
-  public CoordinatorRequest requestToCoordinator; // optional
+  public CoordinatorRequest requestToCoordinator; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -141,7 +141,6 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
   private static final int __REPLICATORID_ISSET_ID = 1;
   private static final int __READYTOCOMMIT_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.REQUEST_TO_COORDINATOR};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -160,7 +159,7 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SymbolEntry.class))));
     tmpMap.put(_Fields.READY_TO_COMMIT, new org.apache.thrift.meta_data.FieldMetaData("readyToCommit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.REQUEST_TO_COORDINATOR, new org.apache.thrift.meta_data.FieldMetaData("requestToCoordinator", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.REQUEST_TO_COORDINATOR, new org.apache.thrift.meta_data.FieldMetaData("requestToCoordinator", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CoordinatorRequest.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CRDTPreCompiledTransaction.class, metaDataMap);
@@ -175,7 +174,8 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
     String txnClock,
     List<CRDTPreCompiledOperation> opsList,
     Map<String,SymbolEntry> symbolsMap,
-    boolean readyToCommit)
+    boolean readyToCommit,
+    CoordinatorRequest requestToCoordinator)
   {
     this();
     this.id = id;
@@ -187,6 +187,7 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
     this.symbolsMap = symbolsMap;
     this.readyToCommit = readyToCommit;
     setReadyToCommitIsSet(true);
+    this.requestToCoordinator = requestToCoordinator;
   }
 
   /**
@@ -803,16 +804,14 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
     sb.append("readyToCommit:");
     sb.append(this.readyToCommit);
     first = false;
-    if (isSetRequestToCoordinator()) {
-      if (!first) sb.append(", ");
-      sb.append("requestToCoordinator:");
-      if (this.requestToCoordinator == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.requestToCoordinator);
-      }
-      first = false;
+    if (!first) sb.append(", ");
+    sb.append("requestToCoordinator:");
+    if (this.requestToCoordinator == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.requestToCoordinator);
     }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -997,11 +996,9 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
       oprot.writeBool(struct.readyToCommit);
       oprot.writeFieldEnd();
       if (struct.requestToCoordinator != null) {
-        if (struct.isSetRequestToCoordinator()) {
-          oprot.writeFieldBegin(REQUEST_TO_COORDINATOR_FIELD_DESC);
-          struct.requestToCoordinator.write(oprot);
-          oprot.writeFieldEnd();
-        }
+        oprot.writeFieldBegin(REQUEST_TO_COORDINATOR_FIELD_DESC);
+        struct.requestToCoordinator.write(oprot);
+        oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();

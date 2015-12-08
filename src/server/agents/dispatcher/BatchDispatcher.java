@@ -1,13 +1,11 @@
 package server.agents.dispatcher;
 
 
+import common.thrift.CRDTPreCompiledTransaction;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.thrift.CRDTCompiledTransaction;
-import common.thrift.CRDTTransaction;
-import common.thrift.ThriftUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +26,7 @@ public class BatchDispatcher implements DispatcherAgent
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
-	private Queue<CRDTTransaction> pendingTransactions;
+	private Queue<CRDTPreCompiledTransaction> pendingTransactions;
 
 	public BatchDispatcher(Replicator replicator)
 	{
@@ -42,7 +40,7 @@ public class BatchDispatcher implements DispatcherAgent
 	}
 
 	@Override
-	public void dispatchTransaction(CRDTTransaction op)
+	public void dispatchTransaction(CRDTPreCompiledTransaction op)
 	{
 		//TODO fix bug: check concurrency with dispatcher thread
 		this.pendingTransactions.add(op);
@@ -54,21 +52,21 @@ public class BatchDispatcher implements DispatcherAgent
 		@Override
 		public void run()
 		{
-			Queue<CRDTTransaction> snapshot = pendingTransactions;
+			Queue<CRDTPreCompiledTransaction> snapshot = pendingTransactions;
 			pendingTransactions = new ConcurrentLinkedQueue<>();
 
-			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
+			List<CRDTPreCompiledTransaction> batch = prepareBatch(snapshot);
 
 			LOG.info("sending txn batch (size {}) to remote nodes", batch.size());
 			networkInterface.sendBatchToRemote(batch);
 		}
 
-		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTTransaction> transactions)
+		private List<CRDTPreCompiledTransaction> prepareBatch(Queue<CRDTPreCompiledTransaction> transactions)
 		{
-			List<CRDTCompiledTransaction> batchList = new ArrayList<>();
+			List<CRDTPreCompiledTransaction> batchList = new ArrayList<>();
 
-			for(CRDTTransaction txn : transactions)
-				batchList.add(ThriftUtils.compileCRDTTransaction(txn));
+			for(CRDTPreCompiledTransaction txn : transactions)
+				batchList.add(txn);
 
 			return batchList;
 		}

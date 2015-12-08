@@ -25,7 +25,6 @@ public class TransactionContext
 	private long loadFromMainTime;
 	private List<String> crdtOps;
 	private Map<String, SymbolEntry> symbolsEntry;
-	private CoordinatorRequest coordinatorRequest;
 	private CRDTPreCompiledTransaction preCompiledTxn;
 
 	public TransactionContext()
@@ -41,13 +40,12 @@ public class TransactionContext
 		this.loadFromMainTime = 0;
 		this.crdtOps = new LinkedList<>();
 		this.symbolsEntry = new HashMap<>();
-		this.coordinatorRequest = new CoordinatorRequest();
 		this.preCompiledTxn = new CRDTPreCompiledTransaction();
 	}
 
-	public long getPrepareOpTime()
+	public double getPrepareOpTime()
 	{
-		return prepareOpTime;
+		return prepareOpTime * 0.000001;
 	}
 
 	public void setPrepareOpTime(long time)
@@ -165,14 +163,16 @@ public class TransactionContext
 		return endTime;
 	}
 
+	public CoordinatorRequest getCoordinatorRequest()
+	{
+		if(!preCompiledTxn.isSetRequestToCoordinator())
+			preCompiledTxn.setRequestToCoordinator(new CoordinatorRequest());
+
+		return preCompiledTxn.getRequestToCoordinator();
+	}
 	public CRDTPreCompiledTransaction getPreCompiledTxn()
 	{
 		return preCompiledTxn;
-	}
-
-	public CoordinatorRequest getCoordinatorRequest()
-	{
-		return coordinatorRequest;
 	}
 
 	public void printRecord()
@@ -205,7 +205,6 @@ public class TransactionContext
 		this.loadFromMainTime = 0;
 		this.crdtOps.clear();
 		this.symbolsEntry.clear();
-		this.coordinatorRequest = new CoordinatorRequest();
 		this.preCompiledTxn = new CRDTPreCompiledTransaction();
 	}
 }

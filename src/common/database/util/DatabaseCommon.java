@@ -1,6 +1,7 @@
 package common.database.util;
 
 
+import common.database.Record;
 import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.database.value.FieldValue;
@@ -120,5 +121,32 @@ public class DatabaseCommon
 
 			row.addFieldValue(new FieldValue(field, fieldValue));
 		}
+	}
+
+	public Record loadRecordFromResultSet(ResultSet rs) throws SQLException
+	{
+		/*
+		Record record = new Record(databaseTable);
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+
+		for(DataField field : fields.values())
+		{
+			String value = rs.getString(field.getFieldName());
+
+			if(value == null)
+				value = "NULL";
+
+			if(field.isPrimaryKey())
+			{
+				FieldValue fValue = new FieldValue(field, value);
+				pkValue.addFieldValue(fValue);
+			}
+
+			record.addData(field.getFieldName(), value);
+
+		}
+		pkValue.preparePrimaryKey();
+		return record; */
+		return null;
 	}
 }

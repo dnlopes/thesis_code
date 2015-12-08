@@ -2,8 +2,8 @@ package common.database.value;
 
 
 import common.database.field.DataField;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
+
+import java.sql.SQLException;
 
 
 /**
@@ -14,14 +14,14 @@ public class DeltaFieldValue extends FieldValue
 
 	private double delta;
 
-	public DeltaFieldValue(DataField field, String value, String oldValue)
+	public DeltaFieldValue(DataField field, String value, String oldValue) throws SQLException
 	{
 		super(field, value);
 		this.delta = 0;
 		this.transformValueForDeltaField(oldValue);
 	}
 
-	private void transformValueForDeltaField(String oldField)
+	private void transformValueForDeltaField(String oldField) throws SQLException
 	{
 		double oldValue = Double.parseDouble(oldField);
 
@@ -35,7 +35,7 @@ public class DeltaFieldValue extends FieldValue
 					splitted[i] = splitted[i].trim();
 
 				if(splitted.length != 2)
-					RuntimeUtils.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
+					throw new SQLException("malformed delta update field");
 
 				if(this.dataField.getFieldName().compareTo(splitted[0]) == 0) //[0] is the fieldName
 					this.delta = Double.parseDouble(splitted[1]);
@@ -50,7 +50,7 @@ public class DeltaFieldValue extends FieldValue
 					splitted[i] = splitted[i].trim();
 
 				if(splitted.length != 2)
-					RuntimeUtils.throwRunTimeException("malformed delta update field", ExitCode.INVALIDUSAGE);
+					throw new SQLException("malformed delta update field");
 
 				if(this.dataField.getFieldName().compareTo(splitted[0]) == 0) //[0] is the fieldName
 					this.delta = Double.parseDouble(splitted[1]);

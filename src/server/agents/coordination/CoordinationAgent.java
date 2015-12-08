@@ -2,6 +2,7 @@ package server.agents.coordination;
 
 
 import common.thrift.CRDTPreCompiledTransaction;
+import server.util.CompilePreparationException;
 
 
 /**
@@ -9,5 +10,5 @@ import common.thrift.CRDTPreCompiledTransaction;
  */
 public interface CoordinationAgent
 {
-	void handleCoordination(CRDTPreCompiledTransaction transaction);
+	void handleCoordination(CRDTPreCompiledTransaction transaction) throws CompilePreparationException;
 }

@@ -6,6 +6,7 @@ import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.util.Environment;
 import common.util.defaults.ReplicatorDefaults;
+import common.util.exception.InitComponentFailureException;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import common.util.RuntimeUtils;
 import common.util.ExitCode;
 import common.thrift.*;
+import server.util.CompilePreparationException;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	private AtomicInteger sentRequestsCounter;
 	private final ScheduledExecutorService scheduleService;
 
-	public SimpleCoordinationAgent(Replicator replicator)
+	public SimpleCoordinationAgent(Replicator replicator) throws InitComponentFailureException
 	{
 		this.sentRequestsCounter = new AtomicInteger();
 		this.replicator = replicator;
@@ -45,12 +47,13 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL*4,
-				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(),
+				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
+				TimeUnit.MILLISECONDS);
 	}
 
 	@Override
-	public void handleCoordination(CRDTPreCompiledTransaction transaction)
+	public void handleCoordination(CRDTPreCompiledTransaction transaction) throws CompilePreparationException
 	{
 		if(!transaction.isSetRequestToCoordinator())
 		{
@@ -79,6 +82,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	}
 
 	private void handleCoordinatorResponse(CoordinatorResponse response, CRDTPreCompiledTransaction transaction)
+			throws CompilePreparationException
 	{
 		if(response.isSetRequestedValues())
 		{
@@ -88,6 +92,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	}
 
 	private void replaceSymbolsForValues(List<RequestValue> requestedValues, CRDTPreCompiledTransaction transaction)
+			throws CompilePreparationException
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 
@@ -116,7 +121,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 				symbolEntry.setRealValue(String.valueOf(
 						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
 			else
-				RuntimeUtils.throwRunTimeException("unexpected datafield type", ExitCode.INVALIDUSAGE);
+				throw new CompilePreparationException("unexpected datafield type");
 		}
 	}
 

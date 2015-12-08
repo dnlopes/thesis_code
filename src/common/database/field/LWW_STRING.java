@@ -92,6 +92,11 @@ public class LWW_STRING extends DataField
 	@Override
 	public String get_Value_In_Correct_Format(String Value)
 	{
+		if(Value == null)
+		{
+			int a = 0;
+		}
+
 		if((Value.indexOf("'") == 0 && Value.lastIndexOf("'") == Value.length() - 1) || (Value.indexOf(
 				"\"") == 0 && Value.lastIndexOf("\"") == Value.length() - 1))
 			return Value;

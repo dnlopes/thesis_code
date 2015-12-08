@@ -35,11 +35,11 @@ public class SandboxProxyNetwork extends AbstractNetwork implements IProxyNetwor
 	}
 
 	@Override
-	public Status commitOperation(CRDTPreCompiledTransaction shadowTransaction)
+	public Status commitOperation(CRDTPreCompiledTransaction crdtTransaction)
 	{
 		try
 		{
-			return replicatorRpc.commitOperation(shadowTransaction);
+			return replicatorRpc.commitOperation(crdtTransaction);
 		} catch(TException e)
 		{
 			LOG.warn("communication problem between proxy and replicator: {}", e.getMessage(), e);
