@@ -35,7 +35,7 @@ import java.util.*;
 /**
  * Created by dnlopes on 04/12/15.
  */
-public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorAgent
+public class SimpleExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 {
 
 	private ExecutionHelper helper;
@@ -45,7 +45,7 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 	private Map<PrimaryKeyValue, Record> cachedRecords;
 	private Map<PrimaryKeyValue, Record> newRecords;
 
-	public DBExecutorPerfAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
+	public SimpleExecutorAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
 							   ReadWriteScratchpad pad, TransactionContext txnRecord) throws SQLException
 	{
 		super(scratchpadId, tableId, tableName, sqlInterface, pad, txnRecord);
@@ -59,7 +59,7 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 	}
 
 	@Override
-	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException
+	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException
 	{
 		long start = System.nanoTime();
 		//TODO filter DELETED and UPDATED ROWS properly
@@ -104,12 +104,12 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 		SelectDeParser deparser = new SelectDeParser(expressionDeParser, buffer);
 		expressionDeParser.setSelectVisitor(deparser);
 		expressionDeParser.setBuffer(buffer);
-		selectOp.getSelectBody().accept(deparser);
+		selectOp.getSelect().getSelectBody().accept(deparser);
 
 		mainBuffer.append("(");
 		mainBuffer.append(buffer.toString()).append(") UNION (");
 
-		PlainSelect plainSelect = ((PlainSelect) selectOp.getSelectBody());
+		PlainSelect plainSelect = ((PlainSelect) selectOp.getSelect().getSelectBody());
 		((Table) plainSelect.getFromItem()).setName(this.tempTableName);
 
 		mainBuffer.append(selectOp.toString());
@@ -357,15 +357,13 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 			{
 				String sqlQuery = buffer.toString();
 				res = sqlInterface.executeQuery(sqlQuery);
-
-				if(!res.next())
-				{
-					int a = 0;
-				}
+				boolean entered = false;
 				while(res.next())
 				{
+					entered = true;
 					if(!res.getString("tname").equals(tempTableName))
 					{
+						int a = 0;
 						if(!res.next())
 						{
 							//Debug.println("record exists in real table but not temp table");
@@ -373,13 +371,14 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 							res.previous();
 						} else
 						{
+							int b = 0;
 							if(!res.getString("tname").equals(tempTableName))
 							{
 								//Debug.println("record exists in real table but not temp table");
 								res.previous();
 							} else
 							{
-								int a = 0;
+								int d = 0;
 								//Debug.println("record exists in both real and temp table");
 								continue;
 
@@ -398,7 +397,7 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 					buffer.append(" (");
 					StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
 
-					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable);
 
 					Iterator<DataField> fieldsIt = fields.values().iterator();
 					Record cachedRecord = updateOp.getCachedRecord();
@@ -414,13 +413,7 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 						String oldContent = res.getString(field.getFieldName());
 
 						if(oldContent == null)
-						{
-							int a = 0;
-							if(field.isStringField())
-								oldContent = "NULL";
-							else if(field.isDateField())
-								oldContent = IExecutorAgent.Defaults.DEFAULT_DATE_VALUE;
-						}
+							oldContent = "NULL";
 
 						if(field.isStringField() || field.isDateField())
 						{
@@ -445,11 +438,6 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 						cachedRecord.addData(field.getFieldName(), oldContent);
 					}
 
-					if(!updateOp.isPrimaryKeySet())
-					{
-						pkValue.preparePrimaryKey();
-						updateOp.setPrimaryKey(pkValue);
-					}
 					cachedRecords.put(pkValue, cachedRecord);
 
 					buffer.append(")");
@@ -457,10 +445,16 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 					buffer.append(")");
 					sqlInterface.executeUpdate(buffer.toString());
 				}
+				if(!entered)
+				{
+					int c = 0;
+				}
 			} finally
 			{
 				DbUtils.closeQuietly(res);
 			}
+
+
 		}
 
 		private void generateNotInDeletedAndUpdatedClause(StringBuilder buffer)
@@ -574,7 +568,7 @@ public class DBExecutorPerfAgent extends AbstractExecAgent implements IExecutorA
 		private Record loadRecordFromResultSet(ResultSet rs) throws SQLException
 		{
 			Record record = new Record(databaseTable);
-			PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+			PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable);
 
 			for(DataField field : fields.values())
 			{

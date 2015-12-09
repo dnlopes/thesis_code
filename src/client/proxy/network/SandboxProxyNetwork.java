@@ -5,6 +5,7 @@ import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
 import common.thrift.CRDTPreCompiledTransaction;
 import common.thrift.Status;
+import common.util.exception.SocketConnectionException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -31,12 +32,17 @@ public class SandboxProxyNetwork extends AbstractNetwork implements IProxyNetwor
 			LOG.trace("setting up rpc connection to replicator");
 
 		this.replicatorConfig = proxyConfig.getReplicatorConfig();
-		this.replicatorRpc = this.createReplicatorConnection();
+		this.replicatorRpc = createReplicatorConnection();
 	}
 
 	@Override
-	public Status commitOperation(CRDTPreCompiledTransaction crdtTransaction)
+	public Status commitOperation(CRDTPreCompiledTransaction crdtTransaction) throws SocketConnectionException
 	{
+		if(replicatorRpc == null)
+			replicatorRpc = createReplicatorConnection();
+
+		if(replicatorRpc == null)
+			throw new SocketConnectionException("cannot open connection to replicator");
 		try
 		{
 			return replicatorRpc.commitOperation(crdtTransaction);

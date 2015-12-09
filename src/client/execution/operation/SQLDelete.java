@@ -3,6 +3,7 @@ package client.execution.operation;
 
 import common.database.Record;
 import common.database.field.DataField;
+import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.delete.Delete;
 
@@ -23,7 +24,7 @@ public class SQLDelete extends SQLWriteOperation
 		this.record = new Record(this.dbTable);
 	}
 
-	public SQLDelete(Delete sqlStat, Record record)
+	private SQLDelete(Delete sqlStat, Record record)
 	{
 		super(SQLOperationType.DELETE, sqlStat.getTable());
 
@@ -34,19 +35,25 @@ public class SQLDelete extends SQLWriteOperation
 	@Override
 	public void prepareOperation(boolean useWhere, String tempTableName)
 	{
-
+		throw new NotCallableException("SQLOperation.prepareOperation method missing implementation");
 	}
 
 	@Override
-	public SQLOperation duplicate() throws JSQLParserException
+	public void prepareOperation(String tempTableName)
 	{
-		return new SQLDelete(sqlStat, this.record.duplicate());
+		throw new NotCallableException("SQLOperation.prepareOperation method missing implementation");
+	}
+
+	@Override
+	public SQLDelete duplicate() throws JSQLParserException
+	{
+		return new SQLDelete(sqlStat, record.duplicate());
 	}
 
 	@Override
 	public void prepareForNextInput()
 	{
-
+		throw new NotCallableException("SQLOperation.prepareOperation method missing implementation");
 	}
 
 	public boolean isPrimaryKeyMissingFromWhere()
@@ -61,9 +68,9 @@ public class SQLDelete extends SQLWriteOperation
 	}
 
 	@Override
-	public void addRecordEntry(String column, String value)
+	public void addRecordValue(String column, String value)
 	{
-
+		throw new NotCallableException("SQLOperation.prepareOperation method missing implementation");
 	}
 
 	public Delete getDelete()

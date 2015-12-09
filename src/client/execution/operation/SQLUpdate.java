@@ -4,6 +4,7 @@ package client.execution.operation;
 import common.database.Record;
 import common.database.field.DataField;
 import common.database.util.PrimaryKeyValue;
+import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.update.Update;
 
@@ -31,7 +32,8 @@ public class SQLUpdate extends SQLWriteOperation
 		this.cachedRecord = new Record(this.dbTable);
 	}
 
-	public SQLUpdate(Update sqlStat, Record record) throws JSQLParserException
+	private SQLUpdate(Update sqlStat, Record record, Record cachedRecord, StringBuilder sqlBuffer) throws
+			JSQLParserException
 	{
 		super(SQLOperationType.UPDATE, sqlStat.getTables().get(0));
 
@@ -40,20 +42,8 @@ public class SQLUpdate extends SQLWriteOperation
 
 		this.sqlStat = sqlStat;
 		this.record = record;
-		this.sqlBuffer = new StringBuilder("");
-		this.cachedRecord = new Record(this.dbTable);
-	}
-
-	public SQLUpdate(Update sqlStat, Record record, StringBuilder sqlBuffer) throws JSQLParserException
-	{
-		super(SQLOperationType.UPDATE, sqlStat.getTables().get(0));
-
-		if(sqlStat.getTables().size() != 1)
-			throw new JSQLParserException("multi-table updates not supported");
-
-		this.sqlStat = sqlStat;
-		this.record = record.duplicate();
-		this.sqlBuffer = new StringBuilder(sqlBuffer);
+		this.cachedRecord = cachedRecord;
+		this.sqlBuffer = sqlBuffer;
 	}
 
 	@Override
@@ -78,10 +68,15 @@ public class SQLUpdate extends SQLWriteOperation
 	}
 
 	@Override
-	public void addRecordEntry(String column, String value)
+	public void addRecordValue(String column, String value)
 	{
 		this.record.addData(column, value);
 		this.sqlBuffer.append(" ").append(column).append("=").append(value);
+	}
+
+	public void addRecordPrimaryKeyData(String column, String value)
+	{
+		this.record.addData(column, value);
 	}
 
 	@Override
@@ -107,9 +102,15 @@ public class SQLUpdate extends SQLWriteOperation
 		return false;
 	}
 
-	public SQLOperation duplicate() throws JSQLParserException
+	@Override
+	public void prepareOperation(String tempTableName)
 	{
-		return new SQLUpdate(sqlStat, record, sqlBuffer);
+		throw new NotCallableException("SQLUpdate.prepareOperation(string) method missing implementation");
+	}
+
+	public SQLUpdate duplicate() throws JSQLParserException
+	{
+		return new SQLUpdate(sqlStat, record.duplicate(), cachedRecord.duplicate(), new StringBuilder(sqlBuffer));
 	}
 
 	public Record getCachedRecord()

@@ -5,6 +5,7 @@ import client.execution.TransactionContext;
 import client.execution.temporary.TableDefinition;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
 import client.execution.temporary.scratchpad.ScratchpadException;
+import common.database.Record;
 import common.database.SQLInterface;
 import common.database.constraints.fk.ForeignKeyConstraint;
 import common.database.field.DataField;
@@ -12,10 +13,9 @@ import common.database.table.DatabaseTable;
 import common.database.table.TablePolicy;
 import common.database.util.PrimaryKey;
 import common.util.Environment;
-import common.util.ExitCode;
-import common.util.RuntimeUtils;
 import common.util.defaults.DatabaseDefaults;
 import common.util.defaults.ScratchpadDefaults;
+import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.FromItem;
@@ -58,6 +58,7 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 	protected List<ForeignKeyConstraint> fkConstraints;
 	protected ReadWriteScratchpad scratchpad;
 	protected TransactionContext txnRecord;
+	protected boolean isDirty;
 
 	public AbstractExecAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
 							 ReadWriteScratchpad scratchpad, TransactionContext txnRecord)
@@ -73,6 +74,7 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 		this.fields = new HashMap<>();
 		this.selectAllItems = new ArrayList<>();
 		this.scratchpad = scratchpad;
+		this.isDirty = false;
 
 		for(DataField field : this.databaseTable.getFieldsMap().values())
 		{
@@ -96,13 +98,25 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 	}
 
 	@Override
+	public void scanTemporaryTables(List<Record> recordsList) throws SQLException
+	{
+		throw new NotCallableException(
+				"AbstractExecAgent.scanTemporaryTables should not be called for this executor " + "agent");
+	}
+
+	@Override
 	public void clearExecutor() throws SQLException
 	{
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("DELETE FROM ");
-		buffer.append(this.tempTableName);
+		if(isDirty)
+		{
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("DELETE FROM ");
+			buffer.append(this.tempTableName);
 
-		this.sqlInterface.executeUpdate(buffer.toString());
+			this.sqlInterface.executeUpdate(buffer.toString());
+		}
+
+		isDirty = false;
 	}
 
 	@Override

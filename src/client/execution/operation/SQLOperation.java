@@ -1,10 +1,12 @@
 package client.execution.operation;
 
 
+import common.database.table.DatabaseTable;
 import common.database.util.DatabaseMetadata;
 import common.util.Environment;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -24,14 +26,19 @@ public abstract class SQLOperation
 	protected static final DatabaseMetadata DB_METADATA = Environment.DB_METADATA;
 
 	protected final SQLOperationType opType;
+	protected final DatabaseTable dbTable;
+	protected final Table table;
 	protected String sqlString;
 
-	public SQLOperation(SQLOperationType type)
+	public SQLOperation(SQLOperationType type, Table table)
 	{
 		this.opType = type;
+		this.table = table;
+		this.dbTable = DB_METADATA.getTable(table.getName());
 	}
 
-	public abstract void prepareOperation(boolean useWhere, String tempTableName);
+	public abstract void prepareOperation(String tempTableName);
+
 	public abstract SQLOperation duplicate() throws JSQLParserException;
 
 	public static SQLOperation parseSQLOperation(String sql) throws JSQLParserException
@@ -58,5 +65,15 @@ public abstract class SQLOperation
 	public String getSQLString()
 	{
 		return sqlString;
+	}
+
+	public Table getTable()
+	{
+		return table;
+	}
+
+	public DatabaseTable getDbTable()
+	{
+		return dbTable;
 	}
 }

@@ -1,6 +1,8 @@
 package common.util;
 
 
+import common.database.constraints.Constraint;
+import common.database.table.DatabaseTable;
 import common.database.util.DatabaseMetadata;
 import common.parser.DDLParser;
 import common.util.exception.ConfigurationLoadException;
@@ -24,6 +26,7 @@ public class Environment
 	private volatile static boolean IS_CONFIGURED = false;
 	private static Environment instance;
 
+	public static boolean IS_ZOOKEEPER_REQUIRED = false;
 	public static String ENVIRONMENT_FILE;
 	public static String DDL_ANNOTATIONS_FILE;
 	public static int EZK_CLIENTS_POOL_SIZE;
@@ -43,24 +46,6 @@ public class Environment
 		ENVIRONMENT_FILE = envFile;
 
 		loadConfigurations(true);
-		loadAnnotationsFile();
-
-		IS_CONFIGURED = true;
-		//printEnvironment();
-	}
-
-	private Environment(String envFile, String annotationsFile) throws ConfigurationLoadException
-	{
-		if(envFile == null)
-			throw new ConfigurationLoadException("environment file is null");
-
-		if(annotationsFile == null)
-			throw new ConfigurationLoadException("ddl annotations file is null");
-
-		ENVIRONMENT_FILE = envFile;
-		DDL_ANNOTATIONS_FILE = annotationsFile;
-
-		loadConfigurations(false);
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
@@ -99,15 +84,6 @@ public class Environment
 		else
 			instance = new Environment(envFile);
 
-	}
-
-	public static synchronized void setupEnvironment(String envFile, String annotationsFile)
-			throws ConfigurationLoadException
-	{
-		if(IS_CONFIGURED)
-			LOG.warn("environment configuration already loaded");
-		else
-			instance = new Environment(envFile, annotationsFile);
 	}
 
 	private void loadConfigurations(boolean lookForAnnotationsFile) throws ConfigurationLoadException
@@ -184,6 +160,38 @@ public class Environment
 		DB_METADATA = parser.parseAnnotations();
 
 		LOG.trace("ddl annotations file loaded: {}", DDL_ANNOTATIONS_FILE);
+
+		for(DatabaseTable table : DB_METADATA.getAllTables())
+		{
+			for(Constraint c : table.getUniqueConstraints())
+			{
+				if(c.requiresCoordination())
+				{
+					IS_ZOOKEEPER_REQUIRED = true;
+					return;
+				}
+			}
+			for(Constraint c : table.getAutoIncrementConstraints())
+			{
+				if(c.requiresCoordination())
+				{
+					IS_ZOOKEEPER_REQUIRED = true;
+					return;
+				}
+			}
+			for(Constraint c : table.getCheckConstraints())
+			{
+				//TODO
+				// after proper implementation of check constraints
+				// uncomment the next block
+				/*
+				if(c.requiresCoordination())
+				{
+					IS_ZOOKEEPER_REQUIRED = true;
+					return;
+				}           */
+			}
+		}
 	}
 
 	public interface EnvironmentDefaults

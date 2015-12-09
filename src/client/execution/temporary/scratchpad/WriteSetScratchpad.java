@@ -2,45 +2,45 @@ package client.execution.temporary.scratchpad;
 
 
 import client.execution.TransactionContext;
-import client.execution.operation.*;
+import client.execution.operation.SQLOperationType;
+import client.execution.operation.SQLSelect;
+import client.execution.operation.SQLWriteOperation;
 import client.execution.temporary.WriteSet;
-import client.execution.temporary.scratchpad.agent.SimpleExecutorAgent;
+import client.execution.temporary.scratchpad.agent.IExecutorAgent;
+import client.execution.temporary.scratchpad.agent.WriteSetExecutorAgent;
 import common.database.Record;
 import common.database.SQLInterface;
-import client.execution.temporary.scratchpad.agent.IExecutorAgent;
-import common.util.exception.NotCallableException;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.FromItem;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
+import common.util.defaults.ScratchpadDefaults;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.defaults.ScratchpadDefaults;
 
-import java.sql.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 
 /**
  * Created by dnlopes on 25/09/15.
  */
-public class BasicScratchpad implements ReadWriteScratchpad
+public class WriteSetScratchpad implements ReadWriteScratchpad
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(BasicScratchpad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(WriteSetScratchpad.class);
 
 	private int scratchpadId;
 	private Map<String, IExecutorAgent> executers;
 	private SQLInterface sqlInterface;
 	private TransactionContext txnRecord;
+	private WriteSet writeSet;
 
-	public BasicScratchpad(SQLInterface sqlInterface, TransactionContext txnRecord) throws SQLException
+	public WriteSetScratchpad(SQLInterface sqlInterface, TransactionContext txnRecord) throws SQLException
 	{
 		this.executers = new HashMap<>();
 		this.sqlInterface = sqlInterface;
 		this.txnRecord = txnRecord;
+		this.writeSet = new WriteSet();
 		assignScratchpadId();
 		createDBExecuters();
 	}
@@ -48,41 +48,13 @@ public class BasicScratchpad implements ReadWriteScratchpad
 	@Override
 	public ResultSet executeQuery(SQLSelect sqlSelect) throws SQLException
 	{
-		Select selectStatement = sqlSelect.getSelect();
+		IExecutorAgent executor = this.executers.get(sqlSelect.getTable().getName().toUpperCase());
 
-		SelectBody sb = selectStatement.getSelectBody();
-
-		if(!(sb instanceof PlainSelect))
-			throw new SQLException("Cannot process select : " + selectStatement.toString());
-
-		PlainSelect psb = (PlainSelect) sb;
-		FromItem fi = psb.getFromItem();
-
-		if(!(fi instanceof Table))
-			throw new RuntimeException("Cannot process select : " + selectStatement.toString());
-
-		List joins = psb.getJoins();
-		int nJoins = joins == null ? 0 : joins.size();
-
-		String tableName;
-		if(nJoins == 0)
+		if(executor == null)
 		{
-			tableName = ((Table) fi).getName().toUpperCase();
-
-			IExecutorAgent executor = this.executers.get(tableName);
-
-			if(executor == null)
-			{
-				LOG.error("executor for table {} not found", tableName);
-				throw new SQLException("executor not found");
-			} else
-				return executor.executeTemporaryQuery(sqlSelect);
+			throw new SQLException("executor agent not found for table " + sqlSelect.getDbTable().getName());
 		} else
-		//TODO: implement multi-table queries (joins)
-		{
-			LOG.warn("multi-table queries not yet implemented");
-			return sqlInterface.executeQuery(selectStatement.toString());
-		}
+			return executor.executeTemporaryQuery(sqlSelect);
 	}
 
 	@Override
@@ -95,8 +67,7 @@ public class BasicScratchpad implements ReadWriteScratchpad
 
 		if(agent == null)
 		{
-			LOG.error("executor agent for table {} not found", sqlWriteOp.getDbTable().getName());
-			throw new SQLException("executor agent not found");
+			throw new SQLException("executor agent not found for table " + sqlWriteOp.getDbTable().getName());
 		} else
 		{
 			return agent.executeTemporaryUpdate(sqlWriteOp);
@@ -104,22 +75,29 @@ public class BasicScratchpad implements ReadWriteScratchpad
 	}
 
 	@Override
+	public void clearScratchpad() throws SQLException
+	{
+		for(IExecutorAgent agent : this.executers.values())
+			agent.clearExecutor();
+
+		writeSet.clear();
+	}
+
+	@Override
 	public WriteSet getWriteSet()
 	{
-		throw new NotCallableException("BasicScratchpad:getWriteSet should not be called");
+		return writeSet;
 	}
 
 	@Override
 	public List<Record> getScratchpadSnapshot() throws SQLException
 	{
-		throw new NotCallableException("BasicScratchpad:getWriteSet should not be called");
-	}
+		List<Record> records = new LinkedList<>();
 
-	@Override
-	public void clearScratchpad() throws SQLException
-	{
-		for(IExecutorAgent agent : this.executers.values())
-			agent.clearExecutor();
+		for(IExecutorAgent executor : executers.values())
+			executor.scanTemporaryTables(records);
+
+		return records;
 	}
 
 	private void createDBExecuters() throws SQLException
@@ -143,7 +121,7 @@ public class BasicScratchpad implements ReadWriteScratchpad
 		for(int i = 0; i < tempTables.size(); i++)
 		{
 			String tableName = tempTables.get(i);
-			IExecutorAgent executor = new SimpleExecutorAgent(scratchpadId, i, tableName, this.sqlInterface, this,
+			IExecutorAgent executor = new WriteSetExecutorAgent(scratchpadId, i, tableName, this.sqlInterface, this,
 					txnRecord);
 			executor.setup(metadata, scratchpadId);
 			this.sqlInterface.commit();

@@ -57,14 +57,14 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 	}
 
 	@Override
-	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException
+	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException
 	{
 		String queryToOrigin;
 		String queryToTemp;
 
 		StringBuilder buffer = new StringBuilder();
 
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+		PlainSelect plainSelect = (PlainSelect) selectOp.getSelect().getSelectBody();
 
 		if(plainSelect.isForUpdate())
 			plainSelect.setForUpdate(false);
@@ -170,7 +170,7 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 
 		List columnsList = insertOp.getInsert().getColumns();
 		List valuesList = ((ExpressionList) insertOp.getInsert().getItemsList()).getExpressions();
-		PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable.getName());
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(this.databaseTable);
 		Row insertedRow = new Row(this.databaseTable, pkValue);
 
 		Set<UniqueConstraint> toCheckConstraint = new HashSet<>();
@@ -581,7 +581,7 @@ public class DBExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 					StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
 					//buffer.append(" values (");
 
-					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable);
 
 					Iterator<DataField> fieldsIt = fields.values().iterator();
 

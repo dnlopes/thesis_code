@@ -57,7 +57,7 @@ public class DBCommitterAgent implements DBCommitter
 		}
 	}
 
-	private boolean tryCommit(CRDTPreCompiledTransaction op)
+	private boolean tryCommit(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		Statement stat = null;
 		boolean success = false;
@@ -66,7 +66,12 @@ public class DBCommitterAgent implements DBCommitter
 		{
 			stat = this.connection.createStatement();
 			for(CRDTPreCompiledOperation sqlOp : op.getOpsList())
+			{
+				if(!op.isReadyToCommit())
+					throw new TransactionCommitFailureException("sql statement is not ready for commit");
+
 				stat.addBatch(sqlOp.getSqlOp());
+			}
 
 			stat.executeBatch();
 			this.connection.commit();

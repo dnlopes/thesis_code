@@ -1,6 +1,7 @@
 package client.execution;
 
 
+import common.database.SQLInterface;
 import common.thrift.*;
 
 import java.util.*;
@@ -22,12 +23,15 @@ public class TransactionContext
 	private long execTime;
 	private long commitTime;
 	private long prepareOpTime;
+	private long scanTempTime;
 	private long loadFromMainTime;
 	private List<String> crdtOps;
+	private SQLInterface sqlInterface;
 	private Map<String, SymbolEntry> symbolsEntry;
 	private CRDTPreCompiledTransaction preCompiledTxn;
+	private SymbolsContext symbolsManager;
 
-	public TransactionContext()
+	public TransactionContext(SQLInterface sqlInterface)
 	{
 		this.selectsTime = 0;
 		this.updatesTime = 0;
@@ -37,10 +41,13 @@ public class TransactionContext
 		this.execTime = 0;
 		this.commitTime = 0;
 		this.parsingTime = 0;
+		this.scanTempTime = 0;
 		this.loadFromMainTime = 0;
 		this.crdtOps = new LinkedList<>();
 		this.symbolsEntry = new HashMap<>();
 		this.preCompiledTxn = new CRDTPreCompiledTransaction();
+		this.symbolsManager = new SymbolsContext();
+		this.sqlInterface = sqlInterface;
 	}
 
 	public double getPrepareOpTime()
@@ -51,6 +58,11 @@ public class TransactionContext
 	public void setPrepareOpTime(long time)
 	{
 		this.prepareOpTime = time;
+	}
+
+	public void setScanTempTime(long time)
+	{
+		this.scanTempTime = time;
 	}
 
 	public void setStartTime(long time)
@@ -108,6 +120,11 @@ public class TransactionContext
 		return selectsTime * 0.000001;
 	}
 
+	public double getScanTime()
+	{
+		return scanTempTime * 0.000001;
+	}
+
 	public double getDeletesTime()
 	{
 		return deletesTime * 0.000001;
@@ -143,11 +160,6 @@ public class TransactionContext
 		return loadFromMainTime * 0.000001;
 	}
 
-	public void addCrdtOp(String crdtOp)
-	{
-		crdtOps.add(crdtOp);
-	}
-
 	public void addCrdtOp(String[] crdtOpList)
 	{
 		crdtOps.addAll(Arrays.asList(crdtOpList));
@@ -163,6 +175,11 @@ public class TransactionContext
 		return endTime;
 	}
 
+	public SymbolsContext getSymbolsManager()
+	{
+		return symbolsManager;
+	}
+
 	public CoordinatorRequest getCoordinatorRequest()
 	{
 		if(!preCompiledTxn.isSetRequestToCoordinator())
@@ -170,9 +187,15 @@ public class TransactionContext
 
 		return preCompiledTxn.getRequestToCoordinator();
 	}
+
 	public CRDTPreCompiledTransaction getPreCompiledTxn()
 	{
 		return preCompiledTxn;
+	}
+
+	public SQLInterface getSqlInterface()
+	{
+		return sqlInterface;
 	}
 
 	public void printRecord()
@@ -185,6 +208,7 @@ public class TransactionContext
 		System.out.println("load from main time (ms): " + getLoadFromMainTime());
 		System.out.println("parsing time (ms): " + getParsingTime());
 		System.out.println("exec time (ms): " + getExecTime());
+		System.out.println("scan_temp time (ms): " + getScanTime());
 		System.out.println("prepareOp time (ms): " + getPrepareOpTime());
 		System.out.println("commit time (ms): " + getCommitTime());
 		System.out.println();
@@ -202,9 +226,11 @@ public class TransactionContext
 		this.insertsTime = 0;
 		this.deletesTime = 0;
 		this.parsingTime = 0;
+		this.scanTempTime = 0;
 		this.loadFromMainTime = 0;
 		this.crdtOps.clear();
 		this.symbolsEntry.clear();
+		this.symbolsManager.clear();
 		this.preCompiledTxn = new CRDTPreCompiledTransaction();
 	}
 }

@@ -125,12 +125,20 @@ public class DatabaseTable
 		setPrimaryKeyString(assemblePrimaryKeyString());
 		generateSelectFieldsForQuery();
 
-		for(Constraint c : this.uniqueConstraints)
+		for(UniqueConstraint c : this.uniqueConstraints)
 		{
-			if(c.requiresCoordination())
-				freeToInsert = false;
+			/*
+			if(!tablePolicy.allowInserts() && !tablePolicy.allowUpdates())
+				c.setRequiresCoordination(false);
+                      */
+
+			if(!tablePolicy.allowInserts() && c.isPrimaryKey())
+				c.setRequiresCoordination(false);
 
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
+
+			if(c.requiresCoordination())
+				freeToInsert = false;
 		}
 		for(Constraint c : this.fkConstraints)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);

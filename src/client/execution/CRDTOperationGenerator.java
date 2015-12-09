@@ -21,38 +21,37 @@ public class CRDTOperationGenerator
 
 	public static String[] generateCrdtOperations(SQLWriteOperation op, String clock, TransactionContext context)
 	{
+		Record record = op.getRecord();
+
 		switch(op.getOpType())
 		{
 		case INSERT:
 			if(op.getDbTable().isParentTable())
-				return insertRow((SQLInsert) op, clock, context);
+				return insertRow(op.getRecord(), clock, context);
 			else
-				return insertChildRow((SQLInsert) op, clock, context);
+				return insertChildRow(record, clock, context);
 		case UPDATE:
 			if(op.getDbTable().isParentTable())
-				return updateRow((SQLUpdate) op, clock, context);
+				return updateRow(record, clock, context);
 			else
-				return updateChildRow((SQLUpdate) op, clock, context);
+				return updateChildRow(record, clock, context);
 		case DELETE:
 			if(op.getDbTable().isParentTable())
-				return deleteParentRow((SQLDelete) op, clock, context);
+				return deleteParentRow(record, clock, context);
 			else
-				return deleteRow((SQLDelete) op, clock, context);
+				return deleteRow(record, clock, context);
 		}
 
 		return null;
 	}
 
-	public static String[] insertRow(SQLInsert sqlInsert, String clock, TransactionContext context)
+	public static String[] insertRow(Record record, String clock, TransactionContext context)
 	{
-		sqlInsert.prepareForNextInput();
-		sqlInsert.addRecordEntry(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.NOT_DELETED_VALUE);
-		sqlInsert.prepareForNextInput();
-		sqlInsert.addRecordEntry(DatabaseDefaults.CONTENT_CLOCK_COLUMN, clock);
-		sqlInsert.prepareForNextInput();
-		sqlInsert.addRecordEntry(DatabaseDefaults.DELETED_CLOCK_COLUMN, clock);
+		record.addData(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.NOT_DELETED_VALUE);
+		record.addData(DatabaseDefaults.CONTENT_CLOCK_COLUMN, clock);
+		record.addData(DatabaseDefaults.DELETED_CLOCK_COLUMN, clock);
 
-		String insertOp = OperationsGenerator.generateInsertOperation(sqlInsert, context);
+		String insertOp = OperationsGenerator.generateInsertOperation(record, context);
 		//sqlInsert.prepareOperation();
 
 		String[] ops = new String[1];
@@ -61,10 +60,10 @@ public class CRDTOperationGenerator
 		return ops;
 	}
 
-	public static String[] insertChildRow(SQLInsert sqlInsert, String clock, TransactionContext context)
+	public static String[] insertChildRow(Record record, String clock, TransactionContext context)
 	{
 		//TODO implement for WriteThroughProxy
-		return insertRow(sqlInsert, clock, context);
+		return insertRow(record, clock, context);
 		/*
 		op.putToNewFieldValues(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.DELETED_VALUE);
 		op.putToNewFieldValues(DatabaseDefaults.CONTENT_CLOCK_COLUMN, clock);
@@ -91,24 +90,17 @@ public class CRDTOperationGenerator
 		return ops;            */
 	}
 
-	public static String[] updateRow(SQLUpdate sqlUpdate, String clock, TransactionContext context)
+	public static String[] updateRow(Record record, String clock, TransactionContext context)
 	{
-		DatabaseTable dbTable = sqlUpdate.getDbTable();
-
+		DatabaseTable dbTable = record.getDatabaseTable();
 		List<String> statements = new ArrayList<>();
-
-		Record updatedRecord = sqlUpdate.getRecord();
-		Record cachedRecord = sqlUpdate.getCachedRecord();
-
-		updatedRecord.mergeRecords(cachedRecord);
-		String recordPrimaryKeyClause = updatedRecord.getPkValue().getPrimaryKeyWhereClause();
-
-		boolean shouldWriteLWWFields = updatedRecord.touchedLWWField();
+		String recordPrimaryKeyClause = record.getPkValue().getPrimaryKeyWhereClause();
+		boolean shouldWriteLWWFields = record.touchedLWWField();
 
 		Map<String, String> lwwFieldsMap = new HashMap<>();
 		Map<String, String> deltaFieldsMap = new HashMap<>();
 
-		for(Map.Entry<String, String> newField : updatedRecord.getRecordData().entrySet())
+		for(Map.Entry<String, String> newField : record.getRecordData().entrySet())
 		{
 			DataField field = dbTable.getField(newField.getKey());
 
@@ -157,10 +149,10 @@ public class CRDTOperationGenerator
 		return statementsArray;
 	}
 
-	public static String[] updateChildRow(SQLUpdate sqlUpdate, String clock, TransactionContext context)
+	public static String[] updateChildRow(Record record, String clock, TransactionContext context)
 	{
 		//TODO implement for WriteThroughProxy
-		return updateRow(sqlUpdate, clock, context);
+		return updateRow(record, clock, context);
 		/*
 		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
 		List<String> statements = new ArrayList<>();
@@ -219,30 +211,28 @@ public class CRDTOperationGenerator
 		return statementsArray;   */
 	}
 
-	public static String[] deleteRow(SQLDelete sqlDelete, String clock, TransactionContext context)
+	public static String[] deleteRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO implement DELETES!
-		return null;
-		/*
-		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
+		DatabaseTable dbTable = record.getDatabaseTable();
+		String recordPrimaryKeyClause = record.getPkValue().getPrimaryKeyWhereClause();
 
 		ExecutionPolicy tablePolicy = dbTable.getExecutionPolicy();
 
 		String[] ops = new String[1];
 
 		if(tablePolicy == ExecutionPolicy.DELETEWINS)
-			ops[0] = OperationsGenerator.generateDeleteDeleteWins(op.getPkWhereClause(), dbTable.getName(), clock);
+			ops[0] = OperationsGenerator.generateDeleteDeleteWins(recordPrimaryKeyClause, dbTable.getName(), clock);
 		else
-			ops[0] = OperationsGenerator.generateDeleteUpdateWins(op.getPkWhereClause(), dbTable.getName(), clock);
+			ops[0] = OperationsGenerator.generateDeleteUpdateWins(recordPrimaryKeyClause, dbTable.getName(), clock);
 
-		return ops;                  */
+		return ops;
 
 	}
 
-	public static String[] deleteParentRow(SQLDelete sqlDelete, String clock, TransactionContext context)
+	public static String[] deleteParentRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO later: implementation
-		return null;
+		//TODO implement delete parent-row
+		return deleteRow(record, clock, context);
 	}
 
 	private static class OperationsGenerator
@@ -266,27 +256,28 @@ public class CRDTOperationGenerator
 		private static String IS_CONCURRENT_OR_GREATER_DCLOCK = "isConcurrentOrGreaterClock(_dclock,\'";
 		private static String CLOCK_IS_GREATER_SUFIX = "clockIsGreater(_cclock,\'";
 
-		public static String generateInsertOperation(SQLInsert sqlInsert, TransactionContext context)
+		public static String generateInsertOperation(Record record, TransactionContext context)
 		{
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			StringBuilder buffer = new StringBuilder();
 			StringBuilder valuesBuffer = new StringBuilder();
 
 			buffer.append(INSERT_INTO);
-			buffer.append(sqlInsert.getDbTable().getName());
+			buffer.append(record.getDatabaseTable().getName());
 			buffer.append(" (");
 
-			for(Map.Entry<String, String> entry : sqlInsert.getRecord().getRecordData().entrySet())
+			for(Map.Entry<String, String> entry : record.getRecordData().entrySet())
 			{
 				buffer.append(entry.getKey());
 				buffer.append(",");
 
-				if(sqlInsert.containsSymbolForField(entry.getKey()))
-					valuesBuffer.append(sqlInsert.getSymbolForField(entry.getKey()));
+				if(record.containsSymbolForField(entry.getKey()))
+					valuesBuffer.append(record.getSymbolForField(entry.getKey()));
 				else
 				{
-					DataField dataField = sqlInsert.getDbTable().getField(entry.getKey());
+					DataField dataField = record.getDatabaseTable().getField(entry.getKey());
 					valuesBuffer.append(dataField.get_Value_In_Correct_Format(entry.getValue()));
 				}
 				valuesBuffer.append(",");
@@ -303,7 +294,7 @@ public class CRDTOperationGenerator
 
 			String sqlString = buffer.toString();
 
-			for(String symbol : sqlInsert.getAllUsedSymbols())
+			for(String symbol : record.getAllUsedSymbols())
 				op.addToSymbols(symbol);
 
 			op.setSqlOp(sqlString);
@@ -316,6 +307,7 @@ public class CRDTOperationGenerator
 													  String newClock, TransactionContext context)
 		{
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			StringBuilder buffer = new StringBuilder();
 
@@ -342,6 +334,7 @@ public class CRDTOperationGenerator
 		{
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
 			StringBuilder buffer = new StringBuilder();
+			op.setIsCompiled(false);
 
 			buffer.append(UPDATE);
 			buffer.append(tableName);
@@ -363,6 +356,7 @@ public class CRDTOperationGenerator
 		{
 			StringBuilder buffer = new StringBuilder();
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			buffer.append(UPDATE);
 			buffer.append(tableName);
@@ -385,6 +379,7 @@ public class CRDTOperationGenerator
 		{
 			StringBuilder buffer = new StringBuilder();
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			buffer.append(UPDATE);
 			buffer.append(table.getName());
@@ -430,6 +425,7 @@ public class CRDTOperationGenerator
 		{
 			StringBuilder buffer = new StringBuilder();
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			buffer.append(generateSetVisible(rowWhereClause, tableName, context));
 			buffer.append(AND);
@@ -449,6 +445,7 @@ public class CRDTOperationGenerator
 		{
 			StringBuilder buffer = new StringBuilder();
 			CRDTPreCompiledOperation op = new CRDTPreCompiledOperation();
+			op.setIsCompiled(false);
 
 			buffer.append(UPDATE);
 			buffer.append(tableName);

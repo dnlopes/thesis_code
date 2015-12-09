@@ -2,7 +2,12 @@ package client.execution.temporary.scratchpad;
 
 
 import client.execution.operation.SQLWriteOperation;
+import client.execution.temporary.ReadOnlyInterface;
+import client.execution.temporary.WriteSet;
+import common.database.Record;
+
 import java.sql.SQLException;
+import java.util.List;
 
 
 /**
@@ -16,4 +21,6 @@ public interface ReadWriteScratchpad extends ReadOnlyInterface
 {
 	void clearScratchpad() throws SQLException;
 	int executeUpdate(SQLWriteOperation op) throws SQLException;
+	WriteSet getWriteSet();
+	List<Record> getScratchpadSnapshot() throws SQLException;
 }

@@ -20,7 +20,7 @@ public abstract class AbstractConstraint implements Constraint
 	protected ConstraintType constraintType;
 	private String constraintIdentifier;
 	private String tableName;
-	private final boolean requiresCoordination;
+	private boolean requiresCoordination;
 
 	public AbstractConstraint(ConstraintType type, boolean requiresCoordination)
 	{
@@ -95,4 +95,11 @@ public abstract class AbstractConstraint implements Constraint
 	{
 		return this.requiresCoordination;
 	}
+
+	@Override
+	public void setRequiresCoordination(boolean requiresCoordination)
+	{
+		this.requiresCoordination = requiresCoordination;
+	}
+
 }

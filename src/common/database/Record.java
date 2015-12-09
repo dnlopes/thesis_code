@@ -6,6 +6,7 @@ import common.database.table.DatabaseTable;
 import common.database.util.PrimaryKeyValue;
 import common.database.value.FieldValue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,10 +19,11 @@ public class Record
 
 	private Map<String, DataField> pkFields;
 	private PrimaryKeyValue pkValue;
-	private Map<String, String> recordData;
+	private Map<String, String> data;
 	private DatabaseTable databaseTable;
-	private Map<String, String> attachedSymbols;
 	private Map<String, DataField> normalFields;
+	private Map<String, String> symbolsToFieldMapping;
+	private Map<String, String> fieldToSymbolsMapping;
 
 	private boolean touchedLWWField;
 
@@ -30,10 +32,27 @@ public class Record
 		this.databaseTable = table;
 		this.pkFields = this.databaseTable.getPrimaryKey().getPrimaryKeyFields();
 		this.normalFields = this.databaseTable.getNormalFields();
-		this.recordData = new HashMap<>();
-		this.attachedSymbols = new HashMap<>();
-		this.pkValue = new PrimaryKeyValue(this.databaseTable.getName());
+		this.symbolsToFieldMapping = new HashMap<>();
+		this.fieldToSymbolsMapping = new HashMap<>();
+
+		this.data = new HashMap<>();
+
+		this.pkValue = new PrimaryKeyValue(this.databaseTable);
 		this.touchedLWWField = false;
+	}
+
+	public Record(DatabaseTable table, Map<String, String> data, Map<String, String> symbolToField,
+				  Map<String, String> fieldToSymbol, PrimaryKeyValue pkValue, boolean touchedLWWField)
+	{
+		this.databaseTable = table;
+		this.pkFields = this.databaseTable.getPrimaryKey().getPrimaryKeyFields();
+		this.normalFields = this.databaseTable.getNormalFields();
+
+		this.data = data;
+		this.pkValue = pkValue;
+		this.touchedLWWField = touchedLWWField;
+		this.symbolsToFieldMapping = symbolToField;
+		this.fieldToSymbolsMapping = fieldToSymbol;
 	}
 
 	public PrimaryKeyValue getPkValue()
@@ -43,22 +62,21 @@ public class Record
 
 	public void addData(String key, String value)
 	{
-		this.recordData.put(key, value);
-
-		if(this.normalFields.containsKey(key))
-			if(this.normalFields.get(key).isLWWField())
-				touchedLWWField = true;
-
-		if(pkFields.containsKey(key))
+		if(pkFields.containsKey(key) && !data.containsKey(key))
 		{
 			FieldValue fValue = new FieldValue(databaseTable.getField(key), value);
 			pkValue.addFieldValue(fValue);
 		}
+
+		data.put(key, value);
+
+		if(normalFields.containsKey(key) && normalFields.get(key).isLWWField())
+			touchedLWWField = true;
 	}
 
 	public String getData(String key)
 	{
-		return this.recordData.get(key);
+		return this.data.get(key);
 	}
 
 	public void mergeRecords(Record oldRecord)
@@ -70,7 +88,7 @@ public class Record
 			if(aField.isDeltaField())
 			{
 				double oldValue = Double.parseDouble(oldRecord.getData(fieldName));
-				double newValue = Double.parseDouble(recordData.get(fieldName));
+				double newValue = Double.parseDouble(data.get(fieldName));
 
 				double delta = newValue - oldValue;
 				String applyDelta;
@@ -86,35 +104,33 @@ public class Record
 					buffer.append(String.valueOf(delta));
 					applyDelta = buffer.toString();
 				}
-				this.recordData.put(fieldName, applyDelta);
+				this.data.put(fieldName, applyDelta);
 			} else
 			{
-				if(this.recordData.containsKey(fieldName)) // this field was updated
+				if(this.data.containsKey(fieldName)) // this field was updated
 				{
-
 					if(aField.isLWWField())
 						this.touchedLWWField = true;
 
 				} else // this field was not updated
-					this.recordData.put(fieldName, oldRecord.getData(fieldName));
+					this.data.put(fieldName, oldRecord.getData(fieldName));
 			}
 		}
 	}
 
+	public boolean isPrimaryKeyReady()
+	{
+		return pkValue.isPrimaryKeyReady();
+	}
+
 	public boolean containsEntry(String key)
 	{
-		return this.recordData.containsKey(key);
+		return this.data.containsKey(key);
 	}
 
 	public Map<String, String> getRecordData()
 	{
-		return recordData;
-	}
-
-	public void attachSymbol(String field, String symbol)
-	{
-		this.attachedSymbols.put(field, symbol);
-		this.recordData.put(field, symbol);
+		return data;
 	}
 
 	public void setPkValue(PrimaryKeyValue pkValue)
@@ -122,27 +138,45 @@ public class Record
 		this.pkValue = pkValue;
 	}
 
-	public void setRecordData(Map<String, String> recordData)
-	{
-		this.recordData = recordData;
-	}
-
-	public void setAttachedSymbols(Map<String, String> attachedSymbols)
-	{
-		this.attachedSymbols = attachedSymbols;
-	}
-
 	public boolean touchedLWWField()
 	{
 		return touchedLWWField;
 	}
 
+	public boolean isFullyCached()
+	{
+		return data.size() == normalFields.size();
+	}
+
+	public void addSymbolEntry(String symbol, String fieldName)
+	{
+		symbolsToFieldMapping.put(symbol, fieldName);
+		fieldToSymbolsMapping.put(fieldName, symbol);
+	}
+
+	public Collection<String> getAllUsedSymbols()
+	{
+		return symbolsToFieldMapping.keySet();
+	}
+
+	public boolean containsSymbolForField(String fieldName)
+	{
+		return fieldToSymbolsMapping.containsKey(fieldName);
+	}
+
+	public String getSymbolForField(String fieldName)
+	{
+		return fieldToSymbolsMapping.get(fieldName);
+	}
+
+	public DatabaseTable getDatabaseTable()
+	{
+		return databaseTable;
+	}
+
 	public Record duplicate()
 	{
-		Record newRecord = new Record(this.databaseTable);
-		newRecord.setRecordData(new HashMap<>(this.recordData));
-		newRecord.setAttachedSymbols(new HashMap<>(this.attachedSymbols));
-
-		return newRecord;
+		return new Record(databaseTable, new HashMap<>(this.data), new HashMap<>(symbolsToFieldMapping),
+				new HashMap<>(fieldToSymbolsMapping), pkValue.duplicate(), touchedLWWField);
 	}
 }

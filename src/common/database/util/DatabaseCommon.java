@@ -24,7 +24,7 @@ public class DatabaseCommon
 
 	public static PrimaryKeyValue getPrimaryKeyValue(final ResultSet rs, DatabaseTable dbTable) throws SQLException
 	{
-		PrimaryKeyValue pkValue = new PrimaryKeyValue(dbTable.getName());
+		PrimaryKeyValue pkValue = new PrimaryKeyValue(dbTable);
 		PrimaryKey pk = dbTable.getPrimaryKey();
 
 		for(DataField field : pk.getPrimaryKeyFields().values())
@@ -99,54 +99,20 @@ public class DatabaseCommon
 		return "";
 	}
 
-	/**
-	 * Fill the row values with the values of the current entry of the ResultSet
-	 *
-	 * @param row
-	 * @param rs
-	 *
-	 * @throws SQLException
-	 */
-	public static void fillNormalFields(Row row, final ResultSet rs) throws SQLException
+	public static Record loadRecordFromResultSet(ResultSet rs, DatabaseTable table) throws SQLException
 	{
-		for(DataField field : row.getTable().getFieldsList())
-		{
-			if(field.isHiddenField())
-				continue;
+		Record record = new Record(table);
 
-			String fieldValue = rs.getObject(field.getFieldName()).toString();
-
-			if(fieldValue == null)
-				throw new SQLException(("field value should not be null"));
-
-			row.addFieldValue(new FieldValue(field, fieldValue));
-		}
-	}
-
-	public Record loadRecordFromResultSet(ResultSet rs) throws SQLException
-	{
-		/*
-		Record record = new Record(databaseTable);
-		PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
-
-		for(DataField field : fields.values())
+		for(DataField field : table.getNormalFields().values())
 		{
 			String value = rs.getString(field.getFieldName());
 
 			if(value == null)
 				value = "NULL";
 
-			if(field.isPrimaryKey())
-			{
-				FieldValue fValue = new FieldValue(field, value);
-				pkValue.addFieldValue(fValue);
-			}
-
 			record.addData(field.getFieldName(), value);
-
 		}
-		pkValue.preparePrimaryKey();
-		return record; */
-		return null;
+
+		return record;
 	}
 }

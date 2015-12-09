@@ -32,7 +32,8 @@ public class ProxyFactory
 	public static Proxy getProxyInstance() throws SQLException
 	{
 		//return createWriteThroughProxy();
-		return createSimpleProxy();
+		//return createBasicProxy();
+		return createWSSandboxProxy();
 	}
 
 	private static Proxy createWriteThroughProxy()
@@ -40,9 +41,14 @@ public class ProxyFactory
 		return new WriteThroughProxy(PROXY_CONFIG, assignProxyId());
 	}
 
-	private static Proxy createSimpleProxy() throws SQLException
+	private static Proxy createBasicProxy() throws SQLException
 	{
 		return new SandboxProxy(PROXY_CONFIG, assignProxyId());
+	}
+
+	private static Proxy createWSSandboxProxy() throws SQLException
+	{
+		return new SandboxWriteSetProxy(PROXY_CONFIG, assignProxyId());
 	}
 
 	private static synchronized int assignProxyId()

@@ -14,33 +14,22 @@ import net.sf.jsqlparser.schema.Table;
 public abstract class SQLWriteOperation extends SQLOperation
 {
 
-	protected final DatabaseTable dbTable;
-	protected final Table table;
 	protected final PrimaryKey pk;
 	protected Record record;
 	protected boolean isPrimaryKeySet;
 
 	public SQLWriteOperation(SQLOperationType type, Table table)
 	{
-		super(type);
-		this.table = table;
-		this.dbTable = DB_METADATA.getTable(table.getName());
+		super(type, table);
 		this.pk = dbTable.getPrimaryKey();
 		this.isPrimaryKeySet = false;
 	}
 
+	public abstract void prepareOperation(boolean useWhere, String tempTableName);
+
 	public abstract void prepareForNextInput();
-	public abstract void addRecordEntry(String column, String value);
 
-	public DatabaseTable getDbTable()
-	{
-		return dbTable;
-	}
-
-	public Table getTable()
-	{
-		return this.table;
-	}
+	public abstract void addRecordValue(String column, String value);
 
 	public PrimaryKey getPk()
 	{

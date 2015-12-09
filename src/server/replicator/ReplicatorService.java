@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.*;
 import server.util.CompilePreparationException;
+import server.util.CoordinationFailureException;
 import server.util.TransactionCommitFailureException;
 
 import java.util.List;
@@ -49,6 +50,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		} catch(TransactionCommitFailureException e)
 		{
 			return new Status(false, e.getMessage());
+		} catch(CoordinationFailureException e)
+		{
+			return new Status(false, e.getMessage());
 		}
 	}
 
@@ -77,7 +81,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	private Status handleCommitOperation(CRDTPreCompiledTransaction transaction)
-			throws CompilePreparationException, TransactionCommitFailureException
+			throws CompilePreparationException, TransactionCommitFailureException, CoordinationFailureException
 	{
 		transaction.setReplicatorId(this.replicatorId);
 
@@ -97,7 +101,6 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 			if(localCommitStatus.isSuccess())
 				this.dispatcher.dispatchTransaction(transaction);
-
 
 			return localCommitStatus;
 		} else

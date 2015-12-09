@@ -204,6 +204,7 @@ public class Replicator extends AbstractNode
 		{
 			replacePlaceHolders(op, symbolsMap, transaction);
 			appendPrefixs(op);
+			op.setIsCompiled(true);
 		}
 	}
 
@@ -366,7 +367,6 @@ public class Replicator extends AbstractNode
 
 		return true;
 	}
-
 
 	public int assignNewTransactionId()
 	{

@@ -1,6 +1,8 @@
 package common.database.util;
 
 
+import common.database.field.DataField;
+import common.database.table.DatabaseTable;
 import common.database.value.FieldValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -17,7 +19,7 @@ public final class PrimaryKeyValue
 {
 
 	private static final String DEFAULT_VALUE = "TRUE";
-	private final String tableName;
+	private final DatabaseTable table;
 	private Map<String, FieldValue> values;
 	private String uniqueValue;
 	private String primaryKeyWhereClause;
@@ -25,23 +27,37 @@ public final class PrimaryKeyValue
 	private boolean isUniqueGenerated;
 	private boolean isPkGenerated;
 	private boolean isValueGenerated;
+	private int missingPksFields;
+	private Map<String, DataField> pkFields;
 
-	public PrimaryKeyValue(String tableName)
+
+	public PrimaryKeyValue(DatabaseTable table)
 	{
-		this.tableName = tableName;
+		this.table = table;
+		this.pkFields = table.getPrimaryKey().getPrimaryKeyFields();
 		this.values = new HashMap<>();
+
+		missingPksFields = pkFields.size() - values.size();
+
 		this.isUniqueGenerated = false;
 		this.isPkGenerated = false;
 		this.isValueGenerated = false;
 	}
 
+	private PrimaryKeyValue(DatabaseTable table, Map<String, FieldValue> values)
+	{
+		this.table = table;
+		this.pkFields = table.getPrimaryKey().getPrimaryKeyFields();
+		this.values = values;
+
+		missingPksFields = pkFields.size() - values.size();
+		if(missingPksFields == 0)
+			preparePrimaryKey();
+	}
+
 	public PrimaryKeyValue duplicate()
 	{
-		PrimaryKeyValue newPkValue = new PrimaryKeyValue(this.tableName);
-		newPkValue.setValues(new HashMap<>(this.values));
-		newPkValue.preparePrimaryKey();
-
-		return newPkValue;
+		return new PrimaryKeyValue(table, new HashMap<>(values));
 	}
 
 	public String getUniqueValue()
@@ -54,8 +70,12 @@ public final class PrimaryKeyValue
 
 	public void addFieldValue(FieldValue fieldValue)
 	{
-		this.values.put(fieldValue.getDataField().getFieldName(), fieldValue);
-		this.isUniqueGenerated = false;
+		values.put(fieldValue.getDataField().getFieldName(), fieldValue);
+		missingPksFields--;
+		isUniqueGenerated = false;
+
+		if(missingPksFields == 0)
+			preparePrimaryKey();
 	}
 
 	public String getPrimaryKeyWhereClause()
@@ -105,7 +125,7 @@ public final class PrimaryKeyValue
 
 	public String getTableName()
 	{
-		return this.tableName;
+		return this.table.getName();
 	}
 
 	@Override
@@ -121,7 +141,6 @@ public final class PrimaryKeyValue
 		this.values = values;
 	}
 
-
 	@Override
 	public boolean equals(Object obj)
 	{
@@ -136,9 +155,14 @@ public final class PrimaryKeyValue
 				isEquals();
 	}
 
+	public boolean isPrimaryKeyReady()
+	{
+		return missingPksFields == 0;
+	}
+
 	private void generateUniqueIdentifier()
 	{
-		StringBuilder buffer = new StringBuilder(this.tableName);
+		StringBuilder buffer = new StringBuilder(getTableName());
 		buffer.append(":");
 
 		Iterator<FieldValue> it = this.values.values().iterator();

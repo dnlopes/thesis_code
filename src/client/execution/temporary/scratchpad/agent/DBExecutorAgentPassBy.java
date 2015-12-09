@@ -58,14 +58,14 @@ public class DBExecutorAgentPassBy extends AbstractExecAgent implements IExecuto
 	}
 
 	@Override
-	public ResultSet executeTemporaryQuery(Select selectOp) throws SQLException
+	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException
 	{
 		String queryToOrigin;
 		String queryToTemp;
 
 		StringBuilder buffer = new StringBuilder();
 
-		PlainSelect plainSelect = (PlainSelect) selectOp.getSelectBody();
+		PlainSelect plainSelect = (PlainSelect) selectOp.getSelect().getSelectBody();
 
 		if(plainSelect.isForUpdate())
 			plainSelect.setForUpdate(false);
@@ -393,7 +393,7 @@ public class DBExecutorAgentPassBy extends AbstractExecAgent implements IExecuto
 					buffer.append(tempTableName);
 					buffer.append(" values (");
 
-					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable.getName());
+					PrimaryKeyValue pkValue = new PrimaryKeyValue(databaseTable);
 
 					Iterator<DataField> fieldsIt = fields.values().iterator();
 

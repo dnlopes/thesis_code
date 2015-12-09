@@ -1,9 +1,6 @@
 package server.agents.coordination;
 
 
-import common.database.util.DatabaseMetadata;
-import common.database.field.DataField;
-import common.database.table.DatabaseTable;
 import common.util.Environment;
 import common.util.defaults.ReplicatorDefaults;
 import common.util.exception.InitComponentFailureException;
@@ -11,10 +8,9 @@ import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.RuntimeUtils;
-import common.util.ExitCode;
 import common.thrift.*;
 import server.util.CompilePreparationException;
+import server.util.CoordinationFailureException;
 
 import java.util.List;
 import java.util.Map;
@@ -31,35 +27,41 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleCoordinationAgent.class);
-	private static final DatabaseMetadata metadata = Environment.DB_METADATA;
 
-	private final Replicator replicator;
-	private final IDsManager idsManager;
-	private final IReplicatorNetwork network;
+	private Replicator replicator;
+	private IReplicatorNetwork network;
 	private AtomicInteger sentRequestsCounter;
-	private final ScheduledExecutorService scheduleService;
+	private ScheduledExecutorService scheduleService;
 
 	public SimpleCoordinationAgent(Replicator replicator) throws InitComponentFailureException
 	{
-		this.sentRequestsCounter = new AtomicInteger();
-		this.replicator = replicator;
-		this.network = this.replicator.getNetworkInterface();
-		this.idsManager = new IDsManager(this.replicator.getPrefix(), this.replicator.getConfig());
+		if(Environment.IS_ZOOKEEPER_REQUIRED)
+		{
+			this.sentRequestsCounter = new AtomicInteger();
+			this.replicator = replicator;
+			this.network = this.replicator.getNetworkInterface();
 
-		this.scheduleService = Executors.newScheduledThreadPool(1);
-		this.scheduleService.scheduleAtFixedRate(new StateChecker(),
-				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
-				TimeUnit.MILLISECONDS);
+			this.scheduleService = Executors.newScheduledThreadPool(1);
+			this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4,
+					ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
+		}
+		else
+			LOG.info("zookeeper is not required in this environment");
 	}
 
 	@Override
-	public void handleCoordination(CRDTPreCompiledTransaction transaction) throws CompilePreparationException
+	public void handleCoordination(CRDTPreCompiledTransaction transaction)
+			throws CompilePreparationException, CoordinationFailureException
 	{
 		if(!transaction.isSetRequestToCoordinator())
 		{
 			transaction.setReadyToCommit(true);
 			return;
 		}
+
+		if(!Environment.IS_ZOOKEEPER_REQUIRED)
+			throw new CoordinationFailureException("current environment does not require coordination but proxy " +
+					"generated a request");
 
 		this.sentRequestsCounter.incrementAndGet();
 
@@ -96,7 +98,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 
-		// first lets replace the symbols for the values received from coordinator
+		// lets replace the symbols for the values received from coordinator
 		for(RequestValue requestValue : requestedValues)
 		{
 			if(requestValue.isSetRequestedValue())
@@ -104,24 +106,6 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 				SymbolEntry symbolEntry = symbols.get(requestValue.getTempSymbol());
 				symbolEntry.setRealValue(requestValue.getRequestedValue());
 			}
-		}
-
-		// then, lets generate unique values locally
-		for(SymbolEntry symbolEntry : symbols.values())
-		{
-			// already got value from coordinator
-			if(symbolEntry.isSetRealValue())
-				continue;
-
-			// lets generate a unique value locally
-			DatabaseTable dbTable = metadata.getTable(symbolEntry.getTableName());
-			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
-
-			if(dataField.isNumberField())
-				symbolEntry.setRealValue(String.valueOf(
-						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
-			else
-				throw new CompilePreparationException("unexpected datafield type");
 		}
 	}
 

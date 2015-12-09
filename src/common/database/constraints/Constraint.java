@@ -29,5 +29,6 @@ public interface Constraint
 	boolean constainsField(DataField field);
 
 	boolean requiresCoordination();
+	void setRequiresCoordination(boolean requiresCoordination);
 
 }

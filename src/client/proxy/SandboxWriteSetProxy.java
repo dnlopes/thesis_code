@@ -4,17 +4,23 @@ package client.proxy;
 import client.execution.CRDTOperationGenerator;
 import client.execution.TransactionContext;
 import client.execution.operation.*;
-import client.execution.temporary.SQLQueryHijacker;
-import client.execution.temporary.scratchpad.BasicScratchpad;
 import client.execution.temporary.DBReadOnlyInterface;
 import client.execution.temporary.ReadOnlyInterface;
-import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.SQLQueryHijacker;
+import client.execution.temporary.WriteSet;
+import client.execution.temporary.scratchpad.*;
 import client.proxy.network.IProxyNetwork;
 import client.proxy.network.SandboxProxyNetwork;
+import common.database.Record;
 import common.database.SQLBasicInterface;
 import common.database.SQLInterface;
+import common.database.field.DataField;
+import common.database.table.DatabaseTable;
 import common.nodes.NodeConfig;
+import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.Status;
 import common.util.ConnectionFactory;
+import common.util.exception.SocketConnectionException;
 import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +34,10 @@ import java.util.*;
 /**
  * Created by dnlopes on 02/09/15.
  */
-public class SandboxProxy implements Proxy
+public class SandboxWriteSetProxy implements Proxy
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SandboxProxy.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SandboxWriteSetProxy.class);
 
 	private final int proxyId;
 	private final IProxyNetwork network;
@@ -42,7 +48,7 @@ public class SandboxProxy implements Proxy
 	private ReadWriteScratchpad scratchpad;
 	private List<SQLOperation> operationList;
 
-	public SandboxProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
+	public SandboxWriteSetProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
 	{
 		this.proxyId = proxyId;
 		this.network = new SandboxProxyNetwork(proxyConfig);
@@ -54,8 +60,8 @@ public class SandboxProxy implements Proxy
 		{
 			this.sqlInterface = new SQLBasicInterface(ConnectionFactory.getDefaultConnection(proxyConfig));
 			this.readOnlyInterface = new DBReadOnlyInterface(sqlInterface);
-			this.scratchpad = new BasicScratchpad(sqlInterface, txnContext);
 			this.txnContext = new TransactionContext(sqlInterface);
+			this.scratchpad = new WriteSetScratchpad(sqlInterface, txnContext);
 		} catch(SQLException e)
 		{
 			throw new SQLException("failed to create scratchpad environment for proxy: " + e.getMessage());
@@ -168,36 +174,48 @@ public class SandboxProxy implements Proxy
 	@Override
 	public void commit() throws SQLException
 	{
-		end();
-		/*
 		long endExec = System.nanoTime();
 		this.txnContext.setExecTime(endExec - txnContext.getStartTime());
 
 		// if read-only, just return
 		if(readOnly)
 		{
-			txnContext.printRecord();
+			//txnContext.printRecord();
 			end();
 			return;
 		}
 
-		//txnRecord.printRecord();
-		//TODO commit
-		long prepareOpStart = System.nanoTime();
-		prepareToCommit();
-		long endPrepareOp = System.nanoTime();
-		long estimated = endPrepareOp - prepareOpStart;
+		CRDTPreCompiledTransaction crdtTxn = prepareToCommit();
+		long estimated = System.nanoTime() - endExec;
 		txnContext.setPrepareOpTime(estimated);
 
-		Status status = network.commitOperation(txnContext.getPreCompiledTxn());
-		estimated = System.nanoTime() - endPrepareOp;
-		txnContext.setCommitTime(estimated);
+		long commitStart = System.nanoTime();
+
+		if(!crdtTxn.isSetOpsList())
+		{
+			estimated = System.nanoTime() - commitStart;
+			txnContext.setCommitTime(estimated);
+			//txnContext.printRecord();
+			end();
+			return;
+		}
+
+		Status status = null;
+		try
+		{
+			status = network.commitOperation(crdtTxn);
+		} catch(SocketConnectionException e)
+		{
+			throw new SQLException(e.getMessage());
+		} finally
+		{
+			estimated = System.nanoTime() - commitStart;
+			txnContext.setCommitTime(estimated);
+			end();
+		}
 
 		if(!status.isSuccess())
 			throw new SQLException(status.getError());
-
-		txnContext.printRecord();
-		end(); */
 	}
 
 	@Override
@@ -206,12 +224,102 @@ public class SandboxProxy implements Proxy
 		commit();
 	}
 
-	private void prepareToCommit()
+	private CRDTPreCompiledTransaction prepareToCommit() throws SQLException
 	{
-		//pre-compile ops
-		for(SQLOperation op : operationList)
-			CRDTOperationGenerator.generateCrdtOperations((SQLWriteOperation) op,
-					LogicalClock.CLOCK_PLACEHOLLDER_WITH_ESCAPED_CHARS, txnContext);
+		WriteSet snapshot = scratchpad.getWriteSet();
+
+		Map<String, Record> cache = snapshot.getCachedRecords();
+		Map<String, Record> updates = snapshot.getUpdates();
+		Map<String, Record> inserts = snapshot.getInserts();
+		Map<String, Record> deletes = snapshot.getDeletes();
+
+		String clockPlaceHolder = LogicalClock.CLOCK_PLACEHOLLDER_WITH_ESCAPED_CHARS;
+
+		// take care of INSERTS
+		for(Record insertedRecord : inserts.values())
+		{
+			DatabaseTable table = insertedRecord.getDatabaseTable();
+			String pkValueString = insertedRecord.getPkValue().getUniqueValue();
+
+			if(updates.containsKey(pkValueString))
+			{
+				Record updatedVersion = updates.get(pkValueString);
+
+				// it was inserted and later updated.
+				// use inserted record values as base, and then override
+				// the columns that are present in the update record
+				for(Map.Entry<String, String> updatedEntry : updatedVersion.getRecordData().entrySet())
+				{
+					DataField field = table.getField(updatedEntry.getKey());
+
+					if(field.isPrimaryKey())
+						continue;
+
+					if(field.isLWWField())
+						insertedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
+					else if(field.isDeltaField())
+					{
+						//TODO
+						// calculate delta and merge
+					}
+				}
+
+				// remove from updates for performance
+				// we no longer have to execute a update for this record
+				updates.remove(updatedVersion.getPkValue().getUniqueValue());
+			}
+
+			if(table.isChildTable())
+				CRDTOperationGenerator.insertChildRow(insertedRecord, clockPlaceHolder, txnContext);
+			else
+				CRDTOperationGenerator.insertRow(insertedRecord, clockPlaceHolder, txnContext);
+		}
+
+		for(Record updatedRecord : updates.values())
+		{
+			DatabaseTable table = updatedRecord.getDatabaseTable();
+
+			if(!cache.containsKey(updatedRecord.getPkValue().getUniqueValue()))
+				throw new SQLException("updated record missing from cache");
+
+			Record cachedRecord = cache.get(updatedRecord.getPkValue().getUniqueValue());
+
+			// use cached record was baseline, then override the changed columns
+			// the columns that are present in the update record
+			for(Map.Entry<String, String> updatedEntry : updatedRecord.getRecordData().entrySet())
+			{
+				DataField field = table.getField(updatedEntry.getKey());
+
+				if(field.isPrimaryKey())
+					continue;
+
+				if(field.isLWWField())
+					cachedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
+				else if(field.isDeltaField())
+				{
+					//TODO
+					// calculate delta and merge
+				}
+			}
+
+			if(table.isChildTable())
+				CRDTOperationGenerator.updateChildRow(cachedRecord, clockPlaceHolder, txnContext);
+			else
+				CRDTOperationGenerator.updateRow(cachedRecord, clockPlaceHolder, txnContext);
+		}
+		// TODO
+		// take care of DELETES
+		for(Record deletedRecord : deletes.values())
+		{
+			DatabaseTable table = deletedRecord.getDatabaseTable();
+
+			if(table.isParentTable())
+				CRDTOperationGenerator.deleteParentRow(deletedRecord, clockPlaceHolder, txnContext);
+			else
+				CRDTOperationGenerator.deleteRow(deletedRecord, clockPlaceHolder, txnContext);
+		}
+
+		return txnContext.getPreCompiledTxn();
 	}
 
 	private void start()

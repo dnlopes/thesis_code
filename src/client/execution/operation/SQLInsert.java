@@ -4,8 +4,6 @@ package client.execution.operation;
 import common.database.Record;
 import common.database.field.DataField;
 import common.database.util.PrimaryKey;
-import common.util.ExitCode;
-import common.util.RuntimeUtils;
 import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -21,8 +19,6 @@ public class SQLInsert extends SQLWriteOperation
 
 	private final Insert sqlStat;
 	private StringBuilder columnsBuffer, valuesBuffer;
-	private Map<String, String> symbolsToFieldMapping;
-	private Map<String, String> fieldToSymbolsMapping;
 
 	public SQLInsert(Insert insertStat)
 	{
@@ -32,8 +28,6 @@ public class SQLInsert extends SQLWriteOperation
 		this.columnsBuffer = new StringBuilder(" (");
 		this.valuesBuffer = new StringBuilder("(");
 		this.record = new Record(this.dbTable);
-		this.symbolsToFieldMapping = new HashMap<>();
-		this.fieldToSymbolsMapping = new HashMap<>();
 	}
 
 	@Override
@@ -56,6 +50,12 @@ public class SQLInsert extends SQLWriteOperation
 	}
 
 	@Override
+	public void prepareOperation(String tempTableName)
+	{
+		throw new NotCallableException("SQLOperation.prepareOperation method missing implementation");
+	}
+
+	@Override
 	public SQLOperation duplicate() throws JSQLParserException
 	{
 		throw new NotCallableException("SQLOperation.duplicate method missing implementation");
@@ -69,22 +69,11 @@ public class SQLInsert extends SQLWriteOperation
 	}
 
 	@Override
-	public void addRecordEntry(String column, String value)
+	public void addRecordValue(String column, String value)
 	{
 		this.record.addData(column, value);
 		this.columnsBuffer.append(column);
 		this.valuesBuffer.append(value);
-	}
-
-	public void addSymbolEntry(String symbol, String fieldName)
-	{
-		symbolsToFieldMapping.put(symbol, fieldName);
-		fieldToSymbolsMapping.put(fieldName, symbol);
-	}
-
-	public Collection<String> getAllUsedSymbols()
-	{
-		return symbolsToFieldMapping.keySet();
 	}
 
 	public Set<DataField> getMissingFields()
@@ -108,16 +97,6 @@ public class SQLInsert extends SQLWriteOperation
 		else
 			return true;
 			*/
-	}
-
-	public boolean containsSymbolForField(String fieldName)
-	{
-		return fieldToSymbolsMapping.containsKey(fieldName);
-	}
-
-	public String getSymbolForField(String fieldName)
-	{
-		return fieldToSymbolsMapping.get(fieldName);
 	}
 
 	public Insert getInsert()

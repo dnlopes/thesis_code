@@ -1,16 +1,18 @@
 package client.execution.operation;
 
 
-import common.util.ExitCode;
-import common.util.RuntimeUtils;
 import common.util.defaults.DatabaseDefaults;
 import common.util.exception.NotCallableException;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
 import net.sf.jsqlparser.util.deparser.SelectDeParser;
+
+import java.util.List;
 
 
 /**
@@ -23,9 +25,15 @@ public class SQLSelect extends SQLOperation
 			.NOT_DELETED_VALUE;
 	protected final Select sqlStat;
 
-	public SQLSelect(Select sqlStat)
+	public SQLSelect(Select sqlStat) throws JSQLParserException
 	{
-		super(SQLOperationType.SELECT);
+		super(SQLOperationType.SELECT, (Table) ((PlainSelect) sqlStat.getSelectBody()).getFromItem());
+
+		List joins = ((PlainSelect) sqlStat.getSelectBody()).getJoins();
+
+		if(joins != null)
+			throw new JSQLParserException("multi-table select not supported");
+
 		this.sqlStat = sqlStat;
 	}
 
@@ -35,14 +43,70 @@ public class SQLSelect extends SQLOperation
 	}
 
 	@Override
-	public void prepareOperation(boolean useWhere, String tempTableName)
-	{
-		throw new NotCallableException("SQLSelect.prepareOperation method missing implementation");
-	}
-
 	public void prepareOperation(String tempTableName)
 	{
-		throw new NotCallableException("SQLSelect.prepareOperation method missing implementation");	}
+		StringBuilder mainStorageQuery = new StringBuilder("(");
+		StringBuilder buffer = new StringBuilder();
+
+		if(dbTable.getTablePolicy().allowDeletes())
+		{
+			ExpressionDeParser expressionDeParser = new ExpressionDeParser()
+			{
+				boolean done = false;
+
+				@Override
+				public void visit(AndExpression andExpression)
+				{
+					if(andExpression.isNot())
+						getBuffer().append(" NOT ");
+
+					andExpression.getLeftExpression().accept(this);
+					getBuffer().append(" AND ");
+					andExpression.getRightExpression().accept(this);
+
+					if(!done)
+					{
+						getBuffer().append(" ").append(NOT_DELETED_EXPRESSION);
+						done = true;
+					}
+				}
+
+				@Override
+				public void visit(EqualsTo equalsTo)
+				{
+					visitOldOracleJoinBinaryExpression(equalsTo, " = ");
+
+					if(!done)
+					{
+						getBuffer().append(" AND ").append(NOT_DELETED_EXPRESSION);
+						done = true;
+					}
+				}
+			};
+
+			SelectDeParser deparser = new SelectDeParser(expressionDeParser, buffer);
+			expressionDeParser.setSelectVisitor(deparser);
+			expressionDeParser.setBuffer(buffer);
+			sqlStat.getSelectBody().accept(deparser);
+			mainStorageQuery.append(buffer.toString());
+		}
+		else
+			mainStorageQuery.append(sqlStat.toString());
+
+		mainStorageQuery.append(")");
+
+		if(dbTable.getTablePolicy().allowInserts())
+		{
+			mainStorageQuery.append(" UNION (");
+
+			PlainSelect plainSelect = ((PlainSelect) sqlStat.getSelectBody());
+			((Table) plainSelect.getFromItem()).setName(tempTableName);
+			mainStorageQuery.append(sqlStat.toString());
+			mainStorageQuery.append(")");
+		}
+
+		sqlString = mainStorageQuery.toString();
+	}
 
 	public void prepareOperation()
 	{

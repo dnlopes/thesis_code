@@ -1,0 +1,316 @@
+package client.execution.temporary.scratchpad.agent;
+
+
+import client.execution.QueryCreator;
+import client.execution.TransactionContext;
+import client.execution.operation.*;
+import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import common.database.Record;
+import common.database.SQLInterface;
+import common.database.constraints.fk.ForeignKeyConstraint;
+import common.database.field.DataField;
+import common.database.table.DatabaseTable;
+import common.database.util.DatabaseCommon;
+import common.database.util.PrimaryKeyValue;
+import common.database.util.Row;
+import common.thrift.CRDTOperation;
+import common.thrift.CRDTOperationType;
+import org.apache.commons.dbutils.DbUtils;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+
+/**
+ * Created by dnlopes on 04/12/15.
+ */
+public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecutorAgent
+{
+
+	private static final String FULL_SCAN_PREFIX = "SELECT * FROM ";
+	private ExecutionHelper helper;
+
+	public WriteSetExecutorAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
+								 ReadWriteScratchpad pad, TransactionContext txnRecord) throws SQLException
+	{
+		super(scratchpadId, tableId, tableName, sqlInterface, pad, txnRecord);
+
+		this.helper = new ExecutionHelper();
+	}
+
+	@Override
+	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException
+	{
+		long start = System.nanoTime();
+		//TODO filter UPDATED ROWS properly
+		selectOp.prepareOperation(tempTableName);
+
+		ResultSet rs = this.sqlInterface.executeQuery(selectOp.getSQLString());
+
+		long estimated = System.nanoTime() - start;
+		this.txnRecord.addSelectTime(estimated);
+		return rs;
+	}
+
+	@Override
+	public int executeTemporaryUpdate(SQLWriteOperation sqlOp) throws SQLException
+	{
+		if(sqlOp.getOpType() == SQLOperationType.DELETE)
+		{
+			return executeTempOpDelete((SQLDelete) sqlOp);
+		} else
+		{
+			if(sqlOp.getOpType() == SQLOperationType.INSERT)
+			{
+				isDirty = true;
+				return executeTempOpInsert((SQLInsert) sqlOp);
+			} else if(sqlOp.getOpType() == SQLOperationType.UPDATE)
+			{
+				isDirty = true;
+				return executeTempOpUpdate((SQLUpdate) sqlOp);
+			} else
+				throw new SQLException("update statement not found");
+		}
+	}
+
+	@Override
+	public void scanTemporaryTables(List<Record> recordsList) throws SQLException
+	{
+		StringBuilder buffer = new StringBuilder(FULL_SCAN_PREFIX);
+		buffer.append(tempTableName);
+
+		String sqlQuery = buffer.toString();
+
+		ResultSet rs = sqlInterface.executeQuery(sqlQuery);
+
+		while(rs.next())
+		{
+			Record aRecord = DatabaseCommon.loadRecordFromResultSet(rs, databaseTable);
+			recordsList.add(aRecord);
+		}
+	}
+
+	private int executeTempOpInsert(SQLInsert insertOp) throws SQLException
+	{
+		long start = System.nanoTime();
+
+		Record toInsertRecord = insertOp.getRecord();
+		scratchpad.getWriteSet().addToInserts(toInsertRecord);
+		scratchpad.getWriteSet().addToCache(toInsertRecord);
+
+		insertOp.prepareOperation(false, this.tempTableName);
+
+		int result = this.sqlInterface.executeUpdate(insertOp.getSQLString());
+		long estimated = System.nanoTime() - start;
+		this.txnRecord.addInsertTime(estimated);
+
+		return result;
+	}
+
+	private int executeTempOpDelete(SQLDelete deleteOp) throws SQLException
+	{
+		Record toDeleteRecord = deleteOp.getRecord();
+
+		if(!toDeleteRecord.isPrimaryKeyReady())
+			throw new SQLException("pk value missing for this delete query");
+
+		long start = System.nanoTime();
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("DELETE FROM ").append(tempTableName).append(" WHERE ");
+		buffer.append(deleteOp.getRecord().getPkValue());
+		String delete = buffer.toString();
+
+		int result = this.sqlInterface.executeUpdate(delete);
+		long estimated = System.nanoTime() - start;
+		txnRecord.addDeleteTime(estimated);
+		scratchpad.getWriteSet().addToDeletes(toDeleteRecord);
+
+		return result;
+	}
+
+	private int executeTempOpUpdate(SQLUpdate updateOp) throws SQLException
+	{
+		long loadingFromMain;
+		long execUpdate;
+
+		Record cachedRecord = updateOp.getCachedRecord();
+
+		if(!cachedRecord.isPrimaryKeyReady())
+			throw new SQLException("cached record is missing pk value");
+
+		// if NOT in cache, we have to retrieved it from main storage
+		// previously inserted records go to cache as well
+		if(!scratchpad.getWriteSet().getCachedRecords().containsKey(cachedRecord.getPkValue().getUniqueValue()))
+		{
+			long start = System.nanoTime();
+			this.helper.addMissingRowsToScratchpad(updateOp);
+			loadingFromMain = System.nanoTime() - start;
+			txnRecord.addLoadfromMainTime(loadingFromMain);
+		}
+
+		long start = System.nanoTime();
+		updateOp.prepareOperation(true, this.tempTableName);
+		int result = this.sqlInterface.executeUpdate(updateOp.getSQLString());
+		execUpdate = System.nanoTime() - start;
+		txnRecord.addUpdateTime(execUpdate);
+		scratchpad.getWriteSet().addToUpdates(updateOp.getRecord());
+
+		return result;
+	}
+
+	private class ExecutionHelper
+	{
+
+		public static final String WHERE = " WHERE (";
+		public static final String AND = " AND (";
+
+		/**
+		 * Inserts missing rows in the temporary table and returns the list of rows
+		 * This must be done before updating rows in the scratchpad.
+		 *
+		 * @param updateOp
+		 * @param pad
+		 *
+		 * @throws SQLException
+		 */
+		private void addMissingRowsToScratchpad(SQLUpdate updateOp) throws SQLException
+		{
+			//TODO
+			// if we have already loaded the record previously (during parsing time)
+			// we do not need to do the select here, we just need to insert in temp tables
+			// this can happen when the original update is not specified by the PK
+			// in such case, we perform a select PK to know which records will be updated
+
+			StringBuilder buffer = new StringBuilder("SELECT ");
+			buffer.append(updateOp.getDbTable().getNormalFieldsSelection());
+			buffer.append(" FROM ").append(updateOp.getDbTable().getName());
+			buffer.append(" WHERE ").append(updateOp.getCachedRecord().getPkValue().getPrimaryKeyWhereClause());
+
+			String sqlQuery = buffer.toString();
+
+			ResultSet rs = sqlInterface.executeQuery(sqlQuery);
+
+			while(rs.next())
+			{
+				if(!rs.isLast())
+					throw new SQLException("expected only one record, but instead we got more");
+
+				buffer.setLength(0);
+				buffer.append("INSERT INTO ");
+				buffer.append(tempTableName);
+				buffer.append(" (");
+				StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
+
+				Iterator<DataField> fieldsIt = fields.values().iterator();
+				Record cachedRecord = updateOp.getCachedRecord();
+
+				while(fieldsIt.hasNext())
+				{
+					DataField field = fieldsIt.next();
+
+					buffer.append(field.getFieldName());
+					if(fieldsIt.hasNext())
+						buffer.append(",");
+
+					String cachedContent = rs.getString(field.getFieldName());
+
+					if(cachedContent == null)
+						cachedContent = "NULL";
+
+					cachedRecord.addData(field.getFieldName(), cachedContent);
+					valuesBuffer.append(field.get_Value_In_Correct_Format(cachedContent));
+
+					if(fieldsIt.hasNext())
+						valuesBuffer.append(",");
+				}
+
+				if(!cachedRecord.isFullyCached())
+					throw new SQLException("failed to retrieve full record from main storage");
+
+				scratchpad.getWriteSet().addToCache(cachedRecord);
+
+				buffer.append(")");
+				buffer.append(valuesBuffer.toString());
+				buffer.append(")");
+				sqlInterface.executeUpdate(buffer.toString());
+			}
+		}
+
+		private Map<String, String> findParentRows(Row childRow, List<ForeignKeyConstraint> constraints,
+												   SQLInterface sqlInterface) throws SQLException
+		{
+			Map<String, String> parentByConstraint = new HashMap<>();
+
+			for(int i = 0; i < constraints.size(); i++)
+			{
+				ForeignKeyConstraint c = constraints.get(i);
+
+				if(!c.getParentTable().getTablePolicy().allowDeletes())
+					continue;
+
+				Row parent = findParent(childRow, c, sqlInterface);
+				parentByConstraint.put(c.getConstraintIdentifier(),
+						parent.getPrimaryKeyValue().getPrimaryKeyWhereClause());
+
+				if(parent == null)
+					throw new SQLException("parent row not found. Foreing key violated");
+			}
+
+			//return null in the case where app never deletes any parent
+			if(parentByConstraint.size() == 0)
+				return null;
+			else
+				return parentByConstraint;
+		}
+
+		private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert)
+				throws SQLException
+		{
+			Map<String, String> parentsByConstraint = null;
+
+			if(isInsert)
+			{
+				if(fkConstraints.size() > 0)
+				{
+					crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
+					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
+				} else
+					crdtOperation.setOpType(CRDTOperationType.INSERT);
+			} else
+			{
+				if(fkConstraints.size() > 0)
+				{
+					crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
+					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
+				} else
+					crdtOperation.setOpType(CRDTOperationType.UPDATE);
+			}
+
+			if(parentsByConstraint != null)
+				crdtOperation.setParentsMap(parentsByConstraint);
+
+		}
+
+		private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface)
+				throws SQLException
+		{
+			String query = QueryCreator.findParent(childRow, constraint, scratchpadId);
+
+			ResultSet rs = sqlInterface.executeQuery(query);
+			if(!rs.isBeforeFirst())
+			{
+				DbUtils.closeQuietly(rs);
+				throw new SQLException("parent row not found. Foreing key violated");
+			}
+
+			rs.next();
+			DatabaseTable remoteTable = constraint.getParentTable();
+			PrimaryKeyValue parentPk = DatabaseCommon.getPrimaryKeyValue(rs, remoteTable);
+			DbUtils.closeQuietly(rs);
+
+			return new Row(remoteTable, parentPk);
+		}
+	}
+
+}

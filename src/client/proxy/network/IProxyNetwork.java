@@ -3,6 +3,7 @@ package client.proxy.network;
 
 import common.thrift.CRDTPreCompiledTransaction;
 import common.thrift.Status;
+import common.util.exception.SocketConnectionException;
 
 
 /**
@@ -14,5 +15,5 @@ import common.thrift.Status;
 public interface IProxyNetwork
 {
 
-	Status commitOperation(CRDTPreCompiledTransaction shadowTransaction);
+	Status commitOperation(CRDTPreCompiledTransaction shadowTransaction) throws SocketConnectionException;
 }

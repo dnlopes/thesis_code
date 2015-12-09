@@ -12,10 +12,7 @@ import common.database.SQLBasicInterface;
 import common.database.SQLInterface;
 import common.database.constraints.unique.AutoIncrementConstraint;
 import common.database.field.DataField;
-import common.database.table.DatabaseTable;
 import common.database.util.DatabaseCommon;
-import common.database.util.PrimaryKeyValue;
-import common.database.value.FieldValue;
 import common.nodes.NodeConfig;
 import common.thrift.RequestValue;
 import common.util.ConnectionFactory;
@@ -56,7 +53,7 @@ public class WriteThroughProxy implements Proxy
 	{
 		this.proxyId = proxyId;
 		this.network = new WTProxyNetwork(proxyConfig);
-		this.txnRecord = new TransactionContext();
+
 		this.symbolsMapping = new HashMap<>();
 		this.readOnly = false;
 		this.isRunning = false;
@@ -65,7 +62,7 @@ public class WriteThroughProxy implements Proxy
 		try
 		{
 			this.sqlInterface = new SQLBasicInterface(ConnectionFactory.getDefaultConnection(proxyConfig));
-
+			this.txnRecord = new TransactionContext(sqlInterface);
 		} catch(SQLException e)
 		{
 			LOG.error("failed to create connection", e);
@@ -108,7 +105,6 @@ public class WriteThroughProxy implements Proxy
 		// if read-only, just return
 		if(readOnly)
 		{
-			//this.txnRecord.printRecord();
 			end();
 			return;
 		}
@@ -214,9 +210,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtInserts;
 
 		if(sqlInsert.getDbTable().getFkConstraints().size() > 0)
-			crdtInserts = CRDTOperationGenerator.insertChildRow(sqlInsert, this.clock, null);
+			crdtInserts = CRDTOperationGenerator.insertChildRow(sqlInsert.getRecord(), this.clock, null);
 		else
-			crdtInserts = CRDTOperationGenerator.insertRow(sqlInsert, this.clock, null);
+			crdtInserts = CRDTOperationGenerator.insertRow(sqlInsert.getRecord(), this.clock, null);
 
 		int result = 0;
 
@@ -237,9 +233,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtUpdates;
 
 		if(sqlUpdate.getDbTable().getFkConstraints().size() > 0)
-			crdtUpdates = CRDTOperationGenerator.updateChildRow(sqlUpdate, this.clock, null);
+			crdtUpdates = CRDTOperationGenerator.updateChildRow(sqlUpdate.getRecord(), this.clock, null);
 		else
-			crdtUpdates = CRDTOperationGenerator.updateRow(sqlUpdate, this.clock, null);
+			crdtUpdates = CRDTOperationGenerator.updateRow(sqlUpdate.getRecord(), this.clock, null);
 
 		int result = 0;
 
@@ -260,9 +256,9 @@ public class WriteThroughProxy implements Proxy
 		String[] crdtDeletes;
 
 		if(sqlDelete.getDbTable().isParentTable())
-			crdtDeletes = CRDTOperationGenerator.deleteParentRow(sqlDelete, this.clock, null);
+			crdtDeletes = CRDTOperationGenerator.deleteParentRow(sqlDelete.getRecord(), this.clock, null);
 		else
-			crdtDeletes = CRDTOperationGenerator.deleteRow(sqlDelete, this.clock, null);
+			crdtDeletes = CRDTOperationGenerator.deleteRow(sqlDelete.getRecord(), this.clock, null);
 
 		int result = 0;
 
@@ -337,18 +333,18 @@ public class WriteThroughProxy implements Proxy
 
 					while(rs.next())
 					{
-						SQLDelete aDelete = (SQLDelete) deleteSQL.duplicate();
-
-						PrimaryKeyValue pkValue = new PrimaryKeyValue(deleteSQL.getDbTable().getName());
+						SQLDelete aDelete = deleteSQL.duplicate();
+						Record toDeleteRecord = aDelete.getRecord();
 
 						for(DataField pkField : deleteSQL.getPk().getPrimaryKeyFields().values())
 						{
-							FieldValue fValue = new FieldValue(pkField, rs.getString(pkField.getFieldName()).trim());
-							pkValue.addFieldValue(fValue);
+							String value = rs.getString(pkField.getFieldName()).trim();
+							toDeleteRecord.addData(pkField.getFieldName(), value);
 						}
 
-						pkValue.preparePrimaryKey();
-						aDelete.getRecord().setPkValue(pkValue);
+						if(!toDeleteRecord.isPrimaryKeyReady())
+							throw new SQLException("failed to retrieve pk value from main storage");
+
 						deleteOps.add(aDelete);
 					}
 
@@ -360,7 +356,6 @@ public class WriteThroughProxy implements Proxy
 				return deleteOps.toArray(new SQLOperation[deleteOps.size()]);
 			} else
 			{
-
 				//TODO implement simple case delete
 				int a = 0;
 				return null;
@@ -394,7 +389,7 @@ public class WriteThroughProxy implements Proxy
 				if(value.contains("SELECT") || value.contains("select"))
 					throw new JSQLParserException("nested select not yet supported");
 
-				updateSQL.addRecordEntry(column, value);
+				updateSQL.addRecordValue(column, value);
 
 				if(colIt.hasNext())
 					updateSQL.prepareForNextInput();
@@ -415,11 +410,13 @@ public class WriteThroughProxy implements Proxy
 
 				while(rs.next())
 				{
-					SQLUpdate anUpdate = new SQLUpdate(updateSQL.getUpdate(), updateSQL.getRecord());
-					loadRecordFromResultSet(rs, anUpdate.getCachedRecord(), updateSQL.getDbTable());
+					SQLUpdate anUpdate = updateSQL.duplicate();
+					Record cachedRecord = DatabaseCommon.loadRecordFromResultSet(rs, anUpdate.getDbTable());
 
-					PrimaryKeyValue pkValue = anUpdate.getCachedRecord().getPkValue();
-					anUpdate.getRecord().setPkValue(pkValue);
+					if(!cachedRecord.isFullyCached())
+						throw new SQLException("failed to retrieve full row from main storage for record update");
+
+					anUpdate.setCachedRecord(cachedRecord);
 					updateOps.add(anUpdate);
 				}
 
@@ -468,7 +465,7 @@ public class WriteThroughProxy implements Proxy
 					}
 				}
 
-				insertSQL.addRecordEntry(column, value);
+				insertSQL.addRecordValue(column, value);
 
 				if(colIt.hasNext())
 					insertSQL.prepareForNextInput();
@@ -524,7 +521,7 @@ public class WriteThroughProxy implements Proxy
 				for(DataField dField : missing)
 				{
 					if(dField.getDefaultFieldValue() != null)
-						insertSQL.addRecordEntry(dField.getFieldName(),
+						insertSQL.addRecordValue(dField.getFieldName(),
 								dField.getDefaultFieldValue().getFormattedValue());
 					else if(!dField.isAutoIncrement())
 						RuntimeUtils.throwRunTimeException(
@@ -541,7 +538,7 @@ public class WriteThroughProxy implements Proxy
 						int generatedId = network.requestNextId(requestValue);
 						String idString = String.valueOf(generatedId);
 						insertSQL.prepareForNextInput();
-						insertSQL.addRecordEntry(dField.getFieldName(), idString);
+						insertSQL.addRecordValue(dField.getFieldName(), idString);
 					}
 				}
 			}
@@ -549,34 +546,6 @@ public class WriteThroughProxy implements Proxy
 			SQLOperation[] insert = new SQLOperation[1];
 			insert[0] = insertSQL;
 			return insert;
-		}
-
-		private Record loadRecordFromResultSet(ResultSet rs, Record record, DatabaseTable dbTable) throws SQLException
-		{
-			PrimaryKeyValue pkValue = new PrimaryKeyValue(dbTable.getName());
-
-			for(DataField field : dbTable.getNormalFields().values())
-			{
-				String value = rs.getString(field.getFieldName());
-
-				if(value == null)
-					value = "NULL";
-
-				if(field.isStringField() || field.isDateField())
-					value = "'" + value + "'";
-
-				if(field.isPrimaryKey())
-				{
-					FieldValue fValue = new FieldValue(field, value);
-					pkValue.addFieldValue(fValue);
-				}
-
-				record.addData(field.getFieldName(), value);
-			}
-
-			pkValue.preparePrimaryKey();
-			record.setPkValue(pkValue);
-			return record;
 		}
 	}
 }

@@ -127,12 +127,18 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private void createZookeeperClientsPool()
 	{
-		for(int i = 0; i < Environment.EZK_CLIENTS_POOL_SIZE; i++)
+		if(Environment.IS_ZOOKEEPER_REQUIRED)
 		{
-			EZKCoordinationClient newClient = createEZKClient();
+			LOG.info("opening {} zookeeper connections", Environment.EZK_CLIENTS_POOL_SIZE);
 
-			if(newClient != null)
-				this.ezkClientsPool.addObject(newClient);
+			for(int i = 0; i < Environment.EZK_CLIENTS_POOL_SIZE; i++)
+			{
+				EZKCoordinationClient newClient = createEZKClient();
+
+				if(newClient != null)
+					this.ezkClientsPool.addObject(newClient);
+			}
+			LOG.info("{} zookeeper connections ready", ezkClientsPool.getPoolSize());
 		}
 	}
 
@@ -145,7 +151,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 					EZKCoordinationExtension.ZookeeperDefaults.ZOOKEEPER_SESSION_TIMEOUT, null);
 		} catch(IOException e)
 		{
-			LOG.error("failed to create zookeeper connection {}: ", e.getMessage(), e);
+			LOG.warn(e.getMessage());
 			return null;
 		}
 
@@ -157,7 +163,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			client.init(Environment.EZK_EXTENSION_CODE);
 		} catch(KeeperException | InterruptedException e)
 		{
-			LOG.error("failed to install zookeeper extension {}: ", e.getMessage(), e);
+			LOG.warn("failed to install zookeeper extension {}: ", e.getMessage(), e);
 			return null;
 		}
 

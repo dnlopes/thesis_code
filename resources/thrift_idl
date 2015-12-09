@@ -91,6 +91,7 @@ struct CRDTPreCompiledOperation
 {
     1: required string sqlOp;
     2: optional set<string> symbols;
+    3: required bool isCompiled;
 }
 
 struct CRDTCompiledTransaction {
