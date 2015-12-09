@@ -32,7 +32,7 @@ env.hosts = ['localhost']
 def startDatabasesGalera(isMaster):
     clusterAddress = utils.generateClusterAddress()
 
-    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_retry_autocommit=0 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
+    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_retry_autocommit=50 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
     if isMaster:
         mysqlCommand += " --wsrep-new-cluster"
 
