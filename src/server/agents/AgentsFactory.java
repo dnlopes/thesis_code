@@ -58,8 +58,8 @@ public class AgentsFactory
 		case 2:
 			return "NoOrderDeliverAgent";
 		default:
-			LOG.error("unknown deliver agent.");
-			return "null";
+			LOG.error("unkown deliver agent class");
+			return null;
 		}
 	}
 
@@ -74,8 +74,8 @@ public class AgentsFactory
 		case 3:
 			return "AggregatorDispatcher";
 		default:
-			LOG.error("unknown dispatcher agent.");
-			return "null";
+			LOG.error("unkown dispatcher agent class");
+			return null;
 		}
 	}
 }

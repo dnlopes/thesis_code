@@ -7,7 +7,7 @@ import client.execution.operation.SQLSelect;
 import client.execution.operation.SQLWriteOperation;
 import client.execution.temporary.WriteSet;
 import client.execution.temporary.scratchpad.agent.IExecutorAgent;
-import client.execution.temporary.scratchpad.agent.WriteSetExecutorAgent;
+import client.execution.temporary.scratchpad.agent.ExecutorAgent;
 import common.database.Record;
 import common.database.SQLInterface;
 import common.util.defaults.ScratchpadDefaults;
@@ -24,10 +24,10 @@ import java.util.*;
 /**
  * Created by dnlopes on 25/09/15.
  */
-public class WriteSetScratchpad implements ReadWriteScratchpad
+public class DBScratchpad implements IDBScratchpad
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(WriteSetScratchpad.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DBScratchpad.class);
 
 	private int scratchpadId;
 	private Map<String, IExecutorAgent> executers;
@@ -35,12 +35,13 @@ public class WriteSetScratchpad implements ReadWriteScratchpad
 	private TransactionContext txnRecord;
 	private WriteSet writeSet;
 
-	public WriteSetScratchpad(SQLInterface sqlInterface, TransactionContext txnRecord) throws SQLException
+	public DBScratchpad(SQLInterface sqlInterface, TransactionContext txnRecord) throws SQLException
 	{
 		this.executers = new HashMap<>();
 		this.sqlInterface = sqlInterface;
 		this.txnRecord = txnRecord;
 		this.writeSet = new WriteSet();
+
 		assignScratchpadId();
 		createDBExecuters();
 	}
@@ -121,7 +122,7 @@ public class WriteSetScratchpad implements ReadWriteScratchpad
 		for(int i = 0; i < tempTables.size(); i++)
 		{
 			String tableName = tempTables.get(i);
-			IExecutorAgent executor = new WriteSetExecutorAgent(scratchpadId, i, tableName, this.sqlInterface, this,
+			IExecutorAgent executor = new ExecutorAgent(scratchpadId, i, tableName, this.sqlInterface, this,
 					txnRecord);
 			executor.setup(metadata, scratchpadId);
 			this.sqlInterface.commit();

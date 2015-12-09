@@ -17,7 +17,7 @@ import java.util.List;
  * Besides query statements, it allows for update and insert sql statements
  *
  */
-public interface ReadWriteScratchpad extends ReadOnlyInterface
+public interface IDBScratchpad extends ReadOnlyInterface
 {
 	void clearScratchpad() throws SQLException;
 	int executeUpdate(SQLWriteOperation op) throws SQLException;

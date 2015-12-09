@@ -23,7 +23,6 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.agents.coordination.IDsManager;
-import server.hook.PrinterHook;
 import server.util.CompilePreparationException;
 import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
@@ -108,8 +107,7 @@ public class Replicator extends AbstractNode
 			throw new InitComponentFailureException(error);
 		}
 
-		Runtime.getRuntime().addShutdownHook(new PrinterHook(this.statsCollector));
-		System.out.println("replicator " + this.config.getId() + " online");
+		LOG.info("replicator " + this.config.getId() + " online");
 	}
 
 	/**

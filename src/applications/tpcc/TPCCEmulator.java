@@ -3,14 +3,15 @@ package applications.tpcc;
 
 import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
-import applications.TransactionStats;
+import common.util.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +118,36 @@ public class TPCCEmulator
 		}
 
 		globalStats.generateStatistics();
-		globalStats.printStatistics();
+		String statsString = globalStats.getStatsString();
+
+		PrintWriter out;
+
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("txn_name").append(",");
+		buffer.append("commits").append(",");
+		buffer.append("aborts").append(",");
+		buffer.append("maxLatency").append(",");
+		buffer.append("minLatency").append(",");
+		buffer.append("avgLatency").append(",");
+		buffer.append("avgExecLatency").append(",");
+		buffer.append("avgCommitLatency").append("\n");
+		buffer.append(statsString);
+
+		String outputContent = buffer.toString();
+
+		try
+		{
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
+					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
+					+ this.emulatorId + ".csv";
+
+			out = new PrintWriter(fileName);
+			out.write(outputContent);
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
 
 		/*
 		for(ClientEmulator client : this.clients)
@@ -161,20 +191,7 @@ public class TPCCEmulator
 
 		this.options.getWorkload().addExtraColumnValues(buffer);
 
-		PrintWriter out;
-		try
-		{
-			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
-					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
-					+ this.emulatorId + ".csv";
 
-			out = new PrintWriter(fileName);
-			out.write(buffer.toString());
-			out.close();
-		} catch(FileNotFoundException e)
-		{
-			e.printStackTrace();
-		}
 		*/
 	}
 

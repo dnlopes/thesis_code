@@ -36,25 +36,19 @@ public class ProxyFactory
 	{
 		Proxy proxy = createWSSandboxProxy();
 		hook.addProxy(proxy);
-
 		//return createWriteThroughProxy();
-		//return createBasicProxy();
 		return proxy;
 	}
 
 	private static Proxy createWriteThroughProxy()
 	{
-		return new WriteThroughProxy(PROXY_CONFIG, assignProxyId());
+		return new MainExecutionProxy(PROXY_CONFIG, assignProxyId());
 	}
 
-	private static Proxy createBasicProxy() throws SQLException
-	{
-		return new SandboxProxy(PROXY_CONFIG, assignProxyId());
-	}
 
 	private static Proxy createWSSandboxProxy() throws SQLException
 	{
-		return new SandboxWriteSetProxy(PROXY_CONFIG, assignProxyId());
+		return new SandboxExecutionProxy(PROXY_CONFIG, assignProxyId());
 	}
 
 	private static synchronized int assignProxyId()

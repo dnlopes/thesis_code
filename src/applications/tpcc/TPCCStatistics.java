@@ -13,13 +13,11 @@ import java.util.*;
 public class TPCCStatistics
 {
 
-	private int threadId;
 	private Map<String, List<TransactionRecord>> txnRecords;
 	private List<TransactionStats> txnStats;
 
 	public TPCCStatistics(int id)
 	{
-		this.threadId = id;
 		this.txnRecords = new HashMap<>();
 		this.txnStats = new ArrayList<>();
 
@@ -52,15 +50,13 @@ public class TPCCStatistics
 		}
 	}
 
-	public void printStatistics()
+	public String getStatsString()
 	{
+		StringBuilder buffer = new StringBuilder();
+
 		for(TransactionStats txnStat : this.txnStats)
-			txnStat.printStats();
-	}
+			buffer.append(txnStat.getStatsString());
 
-	public List<TransactionStats> getTxnStats()
-	{
-		return this.txnStats;
+		return buffer.toString();
 	}
-
 }

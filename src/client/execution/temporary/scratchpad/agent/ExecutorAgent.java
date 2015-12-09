@@ -4,7 +4,8 @@ package client.execution.temporary.scratchpad.agent;
 import client.execution.QueryCreator;
 import client.execution.TransactionContext;
 import client.execution.operation.*;
-import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.scratchpad.IDBScratchpad;
+import client.execution.temporary.scratchpad.ScratchpadException;
 import common.database.Record;
 import common.database.SQLInterface;
 import common.database.constraints.fk.ForeignKeyConstraint;
@@ -25,14 +26,13 @@ import java.util.*;
 /**
  * Created by dnlopes on 04/12/15.
  */
-public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecutorAgent
+public class ExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 {
 
-	private static final String FULL_SCAN_PREFIX = "SELECT * FROM ";
 	private ExecutionHelper helper;
 
-	public WriteSetExecutorAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
-								 ReadWriteScratchpad pad, TransactionContext txnRecord) throws SQLException
+	public ExecutorAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface, IDBScratchpad pad,
+						 TransactionContext txnRecord) throws SQLException
 	{
 		super(scratchpadId, tableId, tableName, sqlInterface, pad, txnRecord);
 
@@ -40,13 +40,20 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 	}
 
 	@Override
-	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException
+	public ResultSet executeTemporaryQuery(SQLSelect selectOp) throws ScratchpadException
 	{
 		long start = System.nanoTime();
 		//TODO filter UPDATED ROWS properly
 		selectOp.prepareOperation(tempTableName);
 
-		ResultSet rs = this.sqlInterface.executeQuery(selectOp.getSQLString());
+		ResultSet rs;
+		try
+		{
+			rs = this.sqlInterface.executeQuery(selectOp.getSQLString());
+		} catch(SQLException e)
+		{
+			throw new ScratchpadException(e.getMessage());
+		}
 
 		long estimated = System.nanoTime() - start;
 		this.txnRecord.addSelectTime(estimated);
@@ -54,7 +61,7 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 	}
 
 	@Override
-	public int executeTemporaryUpdate(SQLWriteOperation sqlOp) throws SQLException
+	public int executeTemporaryUpdate(SQLWriteOperation sqlOp) throws ScratchpadException
 	{
 		if(sqlOp.getOpType() == SQLOperationType.DELETE)
 		{
@@ -70,66 +77,85 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 				isDirty = true;
 				return executeTempOpUpdate((SQLUpdate) sqlOp);
 			} else
-				throw new SQLException("update statement not found");
+				throw new ScratchpadException("update statement not found");
 		}
 	}
 
 	@Override
-	public void scanTemporaryTables(List<Record> recordsList) throws SQLException
+	public void scanTemporaryTables(List<Record> recordsList) throws ScratchpadException
 	{
 		StringBuilder buffer = new StringBuilder(FULL_SCAN_PREFIX);
 		buffer.append(tempTableName);
 
 		String sqlQuery = buffer.toString();
 
-		ResultSet rs = sqlInterface.executeQuery(sqlQuery);
-
-		while(rs.next())
+		ResultSet rs;
+		try
 		{
-			Record aRecord = DatabaseCommon.loadRecordFromResultSet(rs, databaseTable);
-			recordsList.add(aRecord);
+			rs = sqlInterface.executeQuery(sqlQuery);
+
+			while(rs.next())
+			{
+				Record aRecord = DatabaseCommon.loadRecordFromResultSet(rs, databaseTable);
+				recordsList.add(aRecord);
+			}
+		} catch(SQLException e)
+		{
+			throw new ScratchpadException(e.getMessage());
+		}
+
+	}
+
+	private int executeTempOpInsert(SQLInsert insertOp) throws ScratchpadException
+	{
+		try
+		{
+			long start = System.nanoTime();
+
+			Record toInsertRecord = insertOp.getRecord();
+			scratchpad.getWriteSet().addToInserts(toInsertRecord);
+			scratchpad.getWriteSet().addToCache(toInsertRecord);
+
+			insertOp.prepareOperation(false, this.tempTableName);
+
+			int result = this.sqlInterface.executeUpdate(insertOp.getSQLString());
+			long estimated = System.nanoTime() - start;
+			this.txnRecord.addInsertTime(estimated);
+			return result;
+		} catch(SQLException e)
+		{
+			throw new ScratchpadException(e.getMessage());
 		}
 	}
 
-	private int executeTempOpInsert(SQLInsert insertOp) throws SQLException
-	{
-		long start = System.nanoTime();
-
-		Record toInsertRecord = insertOp.getRecord();
-		scratchpad.getWriteSet().addToInserts(toInsertRecord);
-		scratchpad.getWriteSet().addToCache(toInsertRecord);
-
-		insertOp.prepareOperation(false, this.tempTableName);
-
-		int result = this.sqlInterface.executeUpdate(insertOp.getSQLString());
-		long estimated = System.nanoTime() - start;
-		this.txnRecord.addInsertTime(estimated);
-
-		return result;
-	}
-
-	private int executeTempOpDelete(SQLDelete deleteOp) throws SQLException
+	private int executeTempOpDelete(SQLDelete deleteOp) throws ScratchpadException
 	{
 		Record toDeleteRecord = deleteOp.getRecord();
 
 		if(!toDeleteRecord.isPrimaryKeyReady())
-			throw new SQLException("pk value missing for this delete query");
+			throw new ScratchpadException("pk value missing for this delete query");
 
-		long start = System.nanoTime();
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("DELETE FROM ").append(tempTableName).append(" WHERE ");
-		buffer.append(deleteOp.getRecord().getPkValue());
-		String delete = buffer.toString();
+		try
+		{
+			long start = System.nanoTime();
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("DELETE FROM ").append(tempTableName).append(" WHERE ");
+			buffer.append(deleteOp.getRecord().getPkValue());
+			String delete = buffer.toString();
 
-		int result = this.sqlInterface.executeUpdate(delete);
-		long estimated = System.nanoTime() - start;
-		txnRecord.addDeleteTime(estimated);
-		scratchpad.getWriteSet().addToDeletes(toDeleteRecord);
+			int result = this.sqlInterface.executeUpdate(delete);
+			long estimated = System.nanoTime() - start;
+			txnRecord.addDeleteTime(estimated);
+			scratchpad.getWriteSet().addToDeletes(toDeleteRecord);
 
-		return result;
+			return result;
+		} catch(SQLException e)
+		{
+			throw new ScratchpadException(e.getMessage());
+		}
 	}
 
-	private int executeTempOpUpdate(SQLUpdate updateOp) throws SQLException
+	private int executeTempOpUpdate(SQLUpdate updateOp) throws ScratchpadException
 	{
 		long loadingFromMain;
 		long execUpdate;
@@ -137,7 +163,7 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 		Record cachedRecord = updateOp.getCachedRecord();
 
 		if(!cachedRecord.isPrimaryKeyReady())
-			throw new SQLException("cached record is missing pk value");
+			throw new ScratchpadException("cached record is missing pk value");
 
 		// if NOT in cache, we have to retrieved it from main storage
 		// previously inserted records go to cache as well
@@ -149,14 +175,20 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 			txnRecord.addLoadfromMainTime(loadingFromMain);
 		}
 
-		long start = System.nanoTime();
-		updateOp.prepareOperation(true, this.tempTableName);
-		int result = this.sqlInterface.executeUpdate(updateOp.getSQLString());
-		execUpdate = System.nanoTime() - start;
-		txnRecord.addUpdateTime(execUpdate);
-		scratchpad.getWriteSet().addToUpdates(updateOp.getRecord());
+		try
+		{
+			long start = System.nanoTime();
+			updateOp.prepareOperation(true, this.tempTableName);
+			int result = this.sqlInterface.executeUpdate(updateOp.getSQLString());
+			execUpdate = System.nanoTime() - start;
+			txnRecord.addUpdateTime(execUpdate);
+			scratchpad.getWriteSet().addToUpdates(updateOp.getRecord());
 
-		return result;
+			return result;
+		} catch(SQLException e)
+		{
+			throw new ScratchpadException(e.getMessage());
+		}
 	}
 
 	private class ExecutionHelper
@@ -174,7 +206,7 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 		 *
 		 * @throws SQLException
 		 */
-		private void addMissingRowsToScratchpad(SQLUpdate updateOp) throws SQLException
+		private void addMissingRowsToScratchpad(SQLUpdate updateOp) throws ScratchpadException
 		{
 			//TODO
 			// if we have already loaded the record previously (during parsing time)
@@ -189,51 +221,59 @@ public class WriteSetExecutorAgent extends AbstractExecAgent implements IExecuto
 
 			String sqlQuery = buffer.toString();
 
-			ResultSet rs = sqlInterface.executeQuery(sqlQuery);
+			ResultSet rs;
 
-			while(rs.next())
+			try
 			{
-				if(!rs.isLast())
-					throw new SQLException("expected only one record, but instead we got more");
-
-				buffer.setLength(0);
-				buffer.append("INSERT INTO ");
-				buffer.append(tempTableName);
-				buffer.append(" (");
-				StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
-
-				Iterator<DataField> fieldsIt = fields.values().iterator();
-				Record cachedRecord = updateOp.getCachedRecord();
-
-				while(fieldsIt.hasNext())
+				rs = sqlInterface.executeQuery(sqlQuery);
+				while(rs.next())
 				{
-					DataField field = fieldsIt.next();
+					if(!rs.isLast())
+						throw new ScratchpadException("expected only one record, but instead we got more");
 
-					buffer.append(field.getFieldName());
-					if(fieldsIt.hasNext())
-						buffer.append(",");
+					buffer.setLength(0);
+					buffer.append("INSERT INTO ");
+					buffer.append(tempTableName);
+					buffer.append(" (");
+					StringBuilder valuesBuffer = new StringBuilder(" VALUES (");
 
-					String cachedContent = rs.getString(field.getFieldName());
+					Iterator<DataField> fieldsIt = fields.values().iterator();
+					Record cachedRecord = updateOp.getCachedRecord();
 
-					if(cachedContent == null)
-						cachedContent = "NULL";
+					while(fieldsIt.hasNext())
+					{
+						DataField field = fieldsIt.next();
 
-					cachedRecord.addData(field.getFieldName(), cachedContent);
-					valuesBuffer.append(field.get_Value_In_Correct_Format(cachedContent));
+						buffer.append(field.getFieldName());
+						if(fieldsIt.hasNext())
+							buffer.append(",");
 
-					if(fieldsIt.hasNext())
-						valuesBuffer.append(",");
+						String cachedContent = rs.getString(field.getFieldName());
+
+						if(cachedContent == null)
+							cachedContent = "NULL";
+
+						cachedRecord.addData(field.getFieldName(), cachedContent);
+						valuesBuffer.append(field.get_Value_In_Correct_Format(cachedContent));
+
+						if(fieldsIt.hasNext())
+							valuesBuffer.append(",");
+					}
+
+					if(!cachedRecord.isFullyCached())
+						throw new SQLException("failed to retrieve full record from main storage");
+
+					scratchpad.getWriteSet().addToCache(cachedRecord);
+
+					buffer.append(")");
+					buffer.append(valuesBuffer.toString());
+					buffer.append(")");
+					sqlInterface.executeUpdate(buffer.toString());
 				}
 
-				if(!cachedRecord.isFullyCached())
-					throw new SQLException("failed to retrieve full record from main storage");
-
-				scratchpad.getWriteSet().addToCache(cachedRecord);
-
-				buffer.append(")");
-				buffer.append(valuesBuffer.toString());
-				buffer.append(")");
-				sqlInterface.executeUpdate(buffer.toString());
+			} catch(SQLException e)
+			{
+				throw new ScratchpadException(e.getMessage());
 			}
 		}
 

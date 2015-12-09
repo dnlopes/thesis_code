@@ -36,10 +36,10 @@ import java.util.*;
 /**
  * Created by dnlopes on 02/09/15.
  */
-public class SandboxWriteSetProxy implements Proxy
+public class SandboxExecutionProxy implements Proxy
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SandboxWriteSetProxy.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SandboxExecutionProxy.class);
 
 	private final int proxyId;
 	private final IProxyNetwork network;
@@ -47,11 +47,11 @@ public class SandboxWriteSetProxy implements Proxy
 	private boolean readOnly, isRunning;
 	private TransactionContext txnContext;
 	private ReadOnlyInterface readOnlyInterface;
-	private ReadWriteScratchpad scratchpad;
+	private IDBScratchpad scratchpad;
 	private List<SQLOperation> operationList;
 	private TransactionLog transactionLog;
 
-	public SandboxWriteSetProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
+	public SandboxExecutionProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
 	{
 		this.proxyId = proxyId;
 		this.network = new SandboxProxyNetwork(proxyConfig);
@@ -65,7 +65,7 @@ public class SandboxWriteSetProxy implements Proxy
 			this.sqlInterface = new SQLBasicInterface(ConnectionFactory.getDefaultConnection(proxyConfig));
 			this.readOnlyInterface = new DBReadOnlyInterface(sqlInterface);
 			this.txnContext = new TransactionContext(sqlInterface);
-			this.scratchpad = new WriteSetScratchpad(sqlInterface, txnContext);
+			this.scratchpad = new DBScratchpad(sqlInterface, txnContext);
 		} catch(SQLException e)
 		{
 			throw new SQLException("failed to create scratchpad environment for proxy: " + e.getMessage());

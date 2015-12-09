@@ -35,10 +35,10 @@ import java.util.*;
 /**
  * Created by dnlopes on 07/12/15.
  */
-public class WriteThroughProxy implements Proxy
+public class MainExecutionProxy implements Proxy
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SandboxProxy.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MainExecutionProxy.class);
 
 	private final int proxyId;
 	private final WTIProxyNetwork network;
@@ -50,7 +50,7 @@ public class WriteThroughProxy implements Proxy
 	private Map<String, String> symbolsMapping;
 	private String clock;
 
-	public WriteThroughProxy(final NodeConfig proxyConfig, int proxyId)
+	public MainExecutionProxy(final NodeConfig proxyConfig, int proxyId)
 	{
 		this.proxyId = proxyId;
 		this.network = new WTProxyNetwork(proxyConfig);

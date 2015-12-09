@@ -32,7 +32,21 @@ public class TransactionsLogWritter extends Thread
 	@Override
 	public void run()
 	{
+		String jdbc = System.getProperty("jdbc");
+		String emulatorId = System.getProperty("emulatorId");
+
 		StringBuilder buffer = new StringBuilder();
+
+		buffer.append("proxyid").append(",");
+		buffer.append("exec").append(",");
+		buffer.append("commit").append(",");
+		buffer.append("inserts").append(",");
+		buffer.append("updates").append(",");
+		buffer.append("deletes").append(",");
+		buffer.append("selects").append(",");
+		buffer.append("parsing").append(",");
+		buffer.append("generate_crdt").append(",");
+		buffer.append("load_from_main").append("\n");
 
 		for(Proxy proxy : proxies)
 		{
@@ -46,8 +60,9 @@ public class TransactionsLogWritter extends Thread
 		PrintWriter out;
 		try
 		{
-			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + proxies.size() +
-					"_clients.log";
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + proxies.size() * Topology
+					.getInstance().getReplicatorsCount() + "_users_" + jdbc + "_jdbc_emulator" + emulatorId +
+					"_txns.csv";
 
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());

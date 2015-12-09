@@ -3,7 +3,7 @@ package client.execution.temporary.scratchpad.agent;
 
 import client.execution.TransactionContext;
 import client.execution.temporary.TableDefinition;
-import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.execution.temporary.scratchpad.IDBScratchpad;
 import client.execution.temporary.scratchpad.ScratchpadException;
 import common.database.Record;
 import common.database.SQLInterface;
@@ -41,27 +41,28 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 {
 
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractExecAgent.class);
+	protected static final String FULL_SCAN_PREFIX = "SELECT * FROM ";
 
-	protected String INSERT_PREFIX;
-	protected SQLInterface sqlInterface;
-	protected DatabaseTable databaseTable;
-	protected int scratchpadId;
+	protected final int scratchpadId;
+	protected final int tableId;
+	protected final DatabaseTable databaseTable;
+	protected final TransactionContext txnRecord;
+	protected final SQLInterface sqlInterface;
+	protected final Map<String, DataField> fields;
+	protected final List<SelectItem> selectAllItems;
+	protected final TablePolicy tablePolicy;
+	protected final PrimaryKey pk;
+	protected final List<ForeignKeyConstraint> fkConstraints;
+	protected final IDBScratchpad scratchpad;
+
 	protected String tempTableName;
 	protected FromItem fromItemTemp;
 	protected String tempTableNameAlias;
-	protected int tableId;
 	protected TableDefinition tableDefinition;
-	protected TablePolicy tablePolicy;
-	protected PrimaryKey pk;
-	protected Map<String, DataField> fields;
-	protected List<SelectItem> selectAllItems;
-	protected List<ForeignKeyConstraint> fkConstraints;
-	protected ReadWriteScratchpad scratchpad;
-	protected TransactionContext txnRecord;
 	protected boolean isDirty;
 
 	public AbstractExecAgent(int scratchpadId, int tableId, String tableName, SQLInterface sqlInterface,
-							 ReadWriteScratchpad scratchpad, TransactionContext txnRecord)
+							 IDBScratchpad scratchpad, TransactionContext txnRecord)
 	{
 		this.scratchpadId = scratchpadId;
 		this.tableId = tableId;
@@ -98,25 +99,30 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 	}
 
 	@Override
-	public void scanTemporaryTables(List<Record> recordsList) throws SQLException
+	public void scanTemporaryTables(List<Record> recordsList) throws ScratchpadException
 	{
 		throw new NotCallableException(
 				"AbstractExecAgent.scanTemporaryTables should not be called for this executor " + "agent");
 	}
 
 	@Override
-	public void clearExecutor() throws SQLException
+	public void clearExecutor() throws ScratchpadException
 	{
 		if(isDirty)
 		{
-			StringBuilder buffer = new StringBuilder();
-			buffer.append("DELETE FROM ");
-			buffer.append(this.tempTableName);
+			try
+			{
+				StringBuilder buffer = new StringBuilder();
+				buffer.append("DELETE FROM ");
+				buffer.append(this.tempTableName);
 
-			this.sqlInterface.executeUpdate(buffer.toString());
+				this.sqlInterface.executeUpdate(buffer.toString());
+				isDirty = false;
+			} catch(SQLException e)
+			{
+				throw new ScratchpadException(e.getMessage());
+			}
 		}
-
-		isDirty = false;
 	}
 
 	@Override
@@ -129,7 +135,6 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 					scratchpadId;
 			this.fromItemTemp = new Table(Environment.DATABASE_NAME, tempTableName);
 			this.tempTableNameAlias = ScratchpadDefaults.SCRATCHPAD_TEMPTABLE_ALIAS_PREFIX + this.tableId;
-			INSERT_PREFIX = "INSERT INTO " + tempTableName + " (";
 
 			String tableNameAlias = ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX + this.tableId;
 

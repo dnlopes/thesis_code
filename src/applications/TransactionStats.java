@@ -91,20 +91,22 @@ public class TransactionStats
 		}
 	}
 
-	public void printStats()
+	public String getStatsString()
 	{
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("[" + txnName + "] - ");
-		buffer.append("commits: " + this.successCounter + " | ");
-		buffer.append("aborts: " + this.abortsCounter + " | ");
-		buffer.append("maxLatency: " + this.maxLatency + " | ");
-		buffer.append("minLatency: " + this.minLatency + " | ");
-		buffer.append("avgLatency: " + this.avgLatency + " | ");
-		buffer.append("avgExecLatency: " + this.avgExecLatency + " | ");
-		buffer.append("avgCommitLatency: " + this.avgCommitLatency + " | ");
 
-		System.out.println(buffer.toString());
+		buffer.append(txnName).append(",");
+		buffer.append(successCounter).append(",");
+		buffer.append(abortsCounter).append(",");
+		buffer.append(maxLatency).append(",");
+		buffer.append(minLatency).append(",");
+		buffer.append(avgLatency).append(",");
+		buffer.append(avgExecLatency).append(",");
+		buffer.append(avgCommitLatency).append("\n");
 
+		return buffer.toString();
+
+		/*
 		buffer.setLength(0);
 
 		int lowerBound = 0;
@@ -127,6 +129,6 @@ public class TransactionStats
 			index++;
 		}
 
-		System.out.println(buffer.toString());
+		System.out.println(buffer.toString());  */
 	}
 }

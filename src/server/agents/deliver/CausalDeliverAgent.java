@@ -48,7 +48,6 @@ public class CausalDeliverAgent implements DeliverAgent
 
 		for(int i = 0; i < replicatorsNumber; i++)
 		{
-
 			Queue q = new PriorityBlockingQueue(100, new LogicalClockComparator(i));
 			this.queues.put(i + 1, q); // i+1 because replicator id starts at 1 but clock index starts at 0
 		}

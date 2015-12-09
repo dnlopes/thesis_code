@@ -39,17 +39,16 @@ public class TransactionLogEntry
 	public String toString()
 	{
 		StringBuilder buffer = new StringBuilder();
-
-		buffer.append("(").append(proxyId).append(") ");
-		buffer.append("exec ").append(execTime).append("ms | ");
-		buffer.append("commit ").append(commitTime).append("ms | ");
-		buffer.append("inserts ").append(insertsTime).append("ms | ");
-		buffer.append("updates ").append(updatesTime).append("ms | ");
-		buffer.append("deletes ").append(deletesTime).append("ms | ");
-		buffer.append("selects ").append(selectsTime).append("ms | ");
-		buffer.append("parsing ").append(parsingTime).append("ms | ");
-		buffer.append("generate crdt ").append(prepareOpTime).append("ms | ");
-		buffer.append("load from main ").append(loadFromMainTime).append("ms");
+		buffer.append(proxyId).append(",");
+		buffer.append(execTime).append(",");
+		buffer.append(commitTime).append(",");
+		buffer.append(insertsTime).append(",");
+		buffer.append(updatesTime).append(",");
+		buffer.append(deletesTime).append(",");
+		buffer.append(selectsTime).append(",");
+		buffer.append(parsingTime).append(",");
+		buffer.append(prepareOpTime).append(",");
+		buffer.append(loadFromMainTime);
 
 		return buffer.toString();
 	}

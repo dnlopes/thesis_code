@@ -27,7 +27,7 @@ public class TpccBenchmark
 	{
 		if(args.length != 7)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <proxyId> " +
+			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <emulatorId> " +
 					"<numberClients> " +
 					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
@@ -47,7 +47,10 @@ public class TpccBenchmark
 		int testDuration = Integer.parseInt(args[5]);
 		String jdbc = args[6];
 
+		System.setProperty("jdbc", jdbc);
+		System.setProperty("emulatorId", String.valueOf(proxyId));
 		System.setProperty("proxyid", String.valueOf(proxyId));
+
 		NodeConfig nodeConfig = Topology.getInstance().getProxyConfigWithIndex(proxyId);
 
 		Workload workload = new TpccWorkload();

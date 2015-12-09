@@ -5,14 +5,10 @@ import client.execution.operation.SQLSelect;
 import client.execution.operation.SQLWriteOperation;
 import client.execution.temporary.scratchpad.ScratchpadException;
 import common.database.Record;
-import net.sf.jsqlparser.statement.select.Select;
-import common.thrift.CRDTTransaction;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 
@@ -24,17 +20,14 @@ import java.util.List;
 public interface IExecutorAgent
 {
 
-	int executeTemporaryUpdate(SQLWriteOperation sqlOp)
-			throws SQLException;
+	int executeTemporaryUpdate(SQLWriteOperation sqlOp) throws SQLException;
+
 	ResultSet executeTemporaryQuery(SQLSelect selectOp) throws SQLException;
+
 	void clearExecutor() throws SQLException;
+
 	void setup(DatabaseMetaData metadata, int scratchpadId) throws ScratchpadException;
+
 	void scanTemporaryTables(List<Record> recordsList) throws SQLException;
 
-	interface Defaults
-	{
-
-		String DEFAULT_DATE_VALUE = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-	}
 }
