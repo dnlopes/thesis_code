@@ -23,10 +23,10 @@
       <replicator id="5" host="node5" port="50004" refDatabase="5" />
     </replicators>
     <proxies>
-      <proxy id="1" host="node10" port="50010" refDatabase="1" refReplicator="1"/>
-      <proxy id="2" host="node10" port="50011" refDatabase="2" refReplicator="2"/>
-      <proxy id="3" host="node10" port="50012" refDatabase="3" refReplicator="3"/>
-      <proxy id="4" host="node10" port="50013" refDatabase="4" refReplicator="4"/>
+      <proxy id="1" host="node6" port="50010" refDatabase="1" refReplicator="1"/>
+      <proxy id="2" host="node7" port="50011" refDatabase="2" refReplicator="2"/>
+      <proxy id="3" host="node8" port="50012" refDatabase="3" refReplicator="3"/>
+      <proxy id="4" host="node9" port="50013" refDatabase="4" refReplicator="4"/>
       <proxy id="5" host="node10" port="50014" refDatabase="5" refReplicator="5"/>
     </proxies>
   </topology>
