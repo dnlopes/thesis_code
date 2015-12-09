@@ -30,9 +30,11 @@ env.hosts = ['localhost']
 
 @parallel
 def startDatabasesGalera(isMaster):
+
+    #http://galeracluster.com/documentation-webpages/mysqlwsrepoptions.html#wsrep-sync-wait
     clusterAddress = utils.generateClusterAddress()
 
-    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_retry_autocommit=50 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
+    mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep-slave-UK-checks=on --wsrep-sync-wait=3 --wsrep-slave-FK-checks=on --wsrep_retry_autocommit=50 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
     if isMaster:
         mysqlCommand += " --wsrep-new-cluster"
 
@@ -161,19 +163,21 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
     if(jdbc == 'galera'):
       jdbc = 'mysql'
 
-    for y in xrange(1, proxiesNumber + 1):
-        currentId = str(y)
-        logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
-        command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
-                  ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
-        if config.IS_LOCALHOST:
-            command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
-                  ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
+    currentId = config.emulators_map.get(env.host_string)
 
-        logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
-        logger.info('%s', command)
-        with cd(config.DEPLOY_DIR):
-            run(command)
+    #for y in xrange(1, proxiesNumber + 1):
+    currentId = str(y)
+    logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
+    command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
+              ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
+    if config.IS_LOCALHOST:
+        command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
+              ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
+
+    logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
+    logger.info('%s', command)
+    with cd(config.DEPLOY_DIR):
+        run(command)
 
 
 ################################################################################################

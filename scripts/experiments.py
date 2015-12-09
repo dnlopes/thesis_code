@@ -16,7 +16,6 @@ formatter = logging.Formatter('[%(levelname)s] %(message)s')
 ch.setFormatter(formatter)
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
-
 TO_DOWNLOAD_COMMANDS = []
 
 ################################################################################################

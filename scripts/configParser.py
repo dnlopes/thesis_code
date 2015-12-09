@@ -148,6 +148,7 @@ def parseTopologyFile(topologyFile):
 		port = proxy.get('port')
 		emulators_nodes.append(host)
 		distinctNodesSet.add(host)
+    emulators_map[host] = proxyId
 
 	for coordinator in e.iter('coordinator'):
 		coordinatorId = coordinator.get('id')
