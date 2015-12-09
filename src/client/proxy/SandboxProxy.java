@@ -9,6 +9,7 @@ import client.execution.temporary.scratchpad.BasicScratchpad;
 import client.execution.temporary.DBReadOnlyInterface;
 import client.execution.temporary.ReadOnlyInterface;
 import client.execution.temporary.scratchpad.ReadWriteScratchpad;
+import client.log.TransactionLog;
 import client.proxy.network.IProxyNetwork;
 import client.proxy.network.SandboxProxyNetwork;
 import common.database.SQLBasicInterface;
@@ -137,6 +138,12 @@ public class SandboxProxy implements Proxy
 		}
 
 		return result;
+	}
+
+	@Override
+	public TransactionLog getTransactionLog()
+	{
+		return null;
 	}
 
 	@Override

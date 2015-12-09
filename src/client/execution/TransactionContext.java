@@ -13,6 +13,12 @@ import java.util.*;
 public class TransactionContext
 {
 
+	private SQLInterface sqlInterface;
+	private Map<String, SymbolEntry> symbolsEntry;
+	private CRDTPreCompiledTransaction preCompiledTxn;
+	private SymbolsContext symbolsManager;
+	private List<String> crdtOps;
+
 	private long startTime;
 	private long endTime;
 	private long selectsTime;
@@ -25,11 +31,6 @@ public class TransactionContext
 	private long prepareOpTime;
 	private long scanTempTime;
 	private long loadFromMainTime;
-	private List<String> crdtOps;
-	private SQLInterface sqlInterface;
-	private Map<String, SymbolEntry> symbolsEntry;
-	private CRDTPreCompiledTransaction preCompiledTxn;
-	private SymbolsContext symbolsManager;
 
 	public TransactionContext(SQLInterface sqlInterface)
 	{

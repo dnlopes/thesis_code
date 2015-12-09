@@ -9,6 +9,8 @@ import client.execution.temporary.ReadOnlyInterface;
 import client.execution.temporary.SQLQueryHijacker;
 import client.execution.temporary.WriteSet;
 import client.execution.temporary.scratchpad.*;
+import client.log.TransactionLog;
+import client.log.TransactionLogEntry;
 import client.proxy.network.IProxyNetwork;
 import client.proxy.network.SandboxProxyNetwork;
 import common.database.Record;
@@ -47,6 +49,7 @@ public class SandboxWriteSetProxy implements Proxy
 	private ReadOnlyInterface readOnlyInterface;
 	private ReadWriteScratchpad scratchpad;
 	private List<SQLOperation> operationList;
+	private TransactionLog transactionLog;
 
 	public SandboxWriteSetProxy(final NodeConfig proxyConfig, int proxyId) throws SQLException
 	{
@@ -55,6 +58,7 @@ public class SandboxWriteSetProxy implements Proxy
 		this.readOnly = false;
 		this.isRunning = false;
 		this.operationList = new LinkedList<>();
+		this.transactionLog = new TransactionLog();
 
 		try
 		{
@@ -146,6 +150,12 @@ public class SandboxWriteSetProxy implements Proxy
 	}
 
 	@Override
+	public TransactionLog getTransactionLog()
+	{
+		return transactionLog;
+	}
+
+	@Override
 	public int getProxyId()
 	{
 		return this.proxyId;
@@ -180,7 +190,6 @@ public class SandboxWriteSetProxy implements Proxy
 		// if read-only, just return
 		if(readOnly)
 		{
-			//txnContext.printRecord();
 			end();
 			return;
 		}
@@ -195,7 +204,6 @@ public class SandboxWriteSetProxy implements Proxy
 		{
 			estimated = System.nanoTime() - commitStart;
 			txnContext.setCommitTime(estimated);
-			//txnContext.printRecord();
 			end();
 			return;
 		}
@@ -333,6 +341,12 @@ public class SandboxWriteSetProxy implements Proxy
 	{
 		txnContext.setEndTime(System.nanoTime());
 		isRunning = false;
+		TransactionLogEntry entry = new TransactionLogEntry(proxyId, txnContext.getSelectsTime(),
+				txnContext.getUpdatesTime(), txnContext.getInsertsTime(), txnContext.getDeletesTime(),
+				txnContext.getParsingTime(), txnContext.getExecTime(), txnContext.getCommitTime(),
+				txnContext.getPrepareOpTime(), txnContext.getLoadFromMainTime());
+
+		transactionLog.addEntry(entry);
 	}
 
 	private void reset()

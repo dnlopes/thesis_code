@@ -5,6 +5,7 @@ import applications.util.SymbolsManager;
 import client.execution.CRDTOperationGenerator;
 import client.execution.TransactionContext;
 import client.execution.operation.*;
+import client.log.TransactionLog;
 import client.proxy.network.WTIProxyNetwork;
 import client.proxy.network.WTProxyNetwork;
 import common.database.Record;
@@ -201,6 +202,12 @@ public class WriteThroughProxy implements Proxy
 		}
 
 		return result;
+	}
+
+	@Override
+	public TransactionLog getTransactionLog()
+	{
+		return null;
 	}
 
 	private int executeInsert(SQLInsert sqlInsert) throws SQLException

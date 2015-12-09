@@ -1,6 +1,8 @@
 package client.proxy;
 
 
+import client.log.TransactionLog;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -19,4 +21,5 @@ public interface Proxy
 
 	ResultSet executeQuery(String op) throws SQLException;
 	int executeUpdate(String op) throws SQLException;
+	TransactionLog getTransactionLog();
 }
