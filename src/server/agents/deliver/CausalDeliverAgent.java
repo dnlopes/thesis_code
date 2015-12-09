@@ -7,7 +7,6 @@ import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
-import common.thrift.CRDTCompiledTransaction;
 import server.util.TransactionCommitFailureException;
 
 import java.util.*;
@@ -77,7 +76,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	private class LogicalClockComparator implements Comparator<CRDTCompiledTransaction>
+	private class LogicalClockComparator implements Comparator<CRDTPreCompiledTransaction>
 	{
 
 		private final int index;
@@ -88,7 +87,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		}
 
 		@Override
-		public int compare(CRDTCompiledTransaction transaction1, CRDTCompiledTransaction transaction2)
+		public int compare(CRDTPreCompiledTransaction transaction1, CRDTPreCompiledTransaction transaction2)
 		{
 			LogicalClock clock1 = new LogicalClock(transaction1.getTxnClock());
 			LogicalClock clock2 = new LogicalClock(transaction2.getTxnClock());

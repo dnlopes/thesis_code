@@ -63,43 +63,11 @@ enum CRDTOperationType {
     DELETE_PARENT
 }
 
-struct CRDTOperation {
-    1: required string tableName;
-    2: required string primaryKey;
-    3: required string uniquePkValue;
-    4: required CRDTOperationType opType;
-    5: optional string pkWhereClause;
-    6: optional map<string,string> newFieldValues;
-    7: optional map<string,string> oldFieldValues;
-    8: optional map<string,string> parentsMap;
-    9: required i32 opId;
-    10: optional map<string,string> symbolFieldMap;
-}
-
-struct CRDTTransaction {
-    1: required i32 id;
-    2: i32 replicatorId;
-    3: string txnClock;
-    4: bool readyToCommit;
-    5: list<CRDTOperation> opsList;
-    6: optional CoordinatorRequest requestToCoordinator;
-    7: optional CRDTCompiledTransaction compiledTxn;
-    8: map<string,SymbolEntry> symbolsMap;
-}
-
 struct CRDTPreCompiledOperation
 {
     1: required string sqlOp;
     2: optional set<string> symbols;
     3: required bool isCompiled;
-}
-
-struct CRDTCompiledTransaction {
-    1: required i32 id;
-    2: i32 replicatorId;
-    3: required string txnClock;
-    4: required list<string> opsList;
-    5: map<string,SymbolEntry> symbolsMap;
 }
 
 struct CRDTPreCompiledTransaction {

@@ -14,7 +14,6 @@ import common.database.table.DatabaseTable;
 import common.database.util.DatabaseCommon;
 import common.database.util.PrimaryKeyValue;
 import common.database.util.Row;
-import common.thrift.CRDTOperation;
 import common.thrift.CRDTOperationType;
 import org.apache.commons.dbutils.DbUtils;
 
@@ -302,34 +301,6 @@ public class ExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 				return null;
 			else
 				return parentByConstraint;
-		}
-
-		private void verifyParentsConsistency(CRDTOperation crdtOperation, Row row, boolean isInsert)
-				throws SQLException
-		{
-			Map<String, String> parentsByConstraint = null;
-
-			if(isInsert)
-			{
-				if(fkConstraints.size() > 0)
-				{
-					crdtOperation.setOpType(CRDTOperationType.INSERT_CHILD);
-					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
-				} else
-					crdtOperation.setOpType(CRDTOperationType.INSERT);
-			} else
-			{
-				if(fkConstraints.size() > 0)
-				{
-					crdtOperation.setOpType(CRDTOperationType.UPDATE_CHILD);
-					parentsByConstraint = findParentRows(row, fkConstraints, sqlInterface);
-				} else
-					crdtOperation.setOpType(CRDTOperationType.UPDATE);
-			}
-
-			if(parentsByConstraint != null)
-				crdtOperation.setParentsMap(parentsByConstraint);
-
 		}
 
 		private Row findParent(Row childRow, ForeignKeyConstraint constraint, SQLInterface sqlInterface)

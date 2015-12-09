@@ -13,11 +13,6 @@ import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import server.util.CRDTDatabaseSet;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
@@ -52,51 +47,6 @@ public class ThriftUtils
 		{
 			return null;
 		}
-	}
-
-	public static CRDTCompiledTransaction compileCRDTTransaction(CRDTTransaction txn)
-	{
-		String txnClock = txn.getTxnClock();
-		List<String> compiledOpsList = new ArrayList<>();
-
-		for(CRDTOperation op : txn.getOpsList())
-		{
-			String[] compiledOps;
-
-			switch(op.getOpType())
-			{
-			case INSERT:
-				compiledOps = CRDTDatabaseSet.insertRow(op, txnClock);
-				break;
-			case INSERT_CHILD:
-				compiledOps = CRDTDatabaseSet.insertChildRow(op, txnClock);
-				break;
-			case UPDATE:
-				compiledOps = CRDTDatabaseSet.updateRow(op, txnClock);
-				break;
-			case UPDATE_CHILD:
-				compiledOps = CRDTDatabaseSet.updateChildRow(op, txnClock);
-				break;
-			case DELETE:
-				compiledOps = CRDTDatabaseSet.deleteRow(op, txnClock);
-				break;
-			case DELETE_PARENT:
-				compiledOps = CRDTDatabaseSet.deleteParentRow(op, txnClock);
-				break;
-			default:
-				return null;
-			}
-
-			compiledOpsList.addAll(Arrays.asList(compiledOps));
-		}
-
-		CRDTCompiledTransaction compiledTxn = new CRDTCompiledTransaction();
-		compiledTxn.setTxnClock(txn.getTxnClock());
-		compiledTxn.setId(txn.getId());
-		compiledTxn.setReplicatorId(txn.getReplicatorId());
-		compiledTxn.setOpsList(compiledOpsList);
-
-		return compiledTxn;
 	}
 
 	public static void createSymbolEntry(TransactionContext context, String symbol, DataField dField, DatabaseTable

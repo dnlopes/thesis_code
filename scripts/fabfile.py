@@ -164,9 +164,6 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
       jdbc = 'mysql'
 
     currentId = config.emulators_map.get(env.host_string)
-
-    #for y in xrange(1, proxiesNumber + 1):
-    currentId = str(y)
     logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
     command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + config.TPCC_WORKLOAD_FILE + \
               ' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
@@ -284,14 +281,13 @@ def isPortOpen(port):
 
 
 def areClientsRunning(emulatorsNumber):
-    for y in xrange(1, emulatorsNumber + 1):
-        currentId = str(y)
-        logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
-        with cd(config.DEPLOY_DIR):
-            output = run('tail ' + logFile)
-            if 'CLIENT TERMINATED' not in output:
-                logger.warn('emulator %s not yet finished', currentId)
-                return "True"
+    currentId = config.emulators_map.get(env.host_string)
+    logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
+    with cd(config.DEPLOY_DIR):
+        output = run('tail ' + logFile)
+        if 'CLIENT TERMINATED' not in output:
+            logger.warn('emulator %s not yet finished', currentId)
+            return "True"
     return "False"
 
 

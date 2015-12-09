@@ -3,7 +3,6 @@ package server.agents.deliver;
 
 import common.thrift.CRDTPreCompiledTransaction;
 import server.replicator.Replicator;
-import common.thrift.CRDTCompiledTransaction;
 import server.util.TransactionCommitFailureException;
 
 
