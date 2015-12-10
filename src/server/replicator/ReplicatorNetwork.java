@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
@@ -38,8 +36,6 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private ObjectPool<EZKCoordinationClient> ezkClientsPool;
 	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> replicatorsConnections;
 	private int clientsCount;
-	private AtomicLong totalLatency = new AtomicLong();
-	private AtomicInteger counter = new AtomicInteger();
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
@@ -63,31 +59,30 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	{
 		for(NodeConfig config : replicatorsConfigs.values())
 		{
-			long start = System.nanoTime();
-			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+			ObjectPool<ReplicatorRPC.Client> pool = replicatorsConnections.get(config.getId());
+			ReplicatorRPC.Client connection = pool.borrowObject();
+
+			if(connection == null)
+				connection = openConnection(config);
+
+			if(connection == null)
+			{
+				LOG.error("could not contact peer (replicator {})", config.getId());
+				continue;
+			}
 
 			try
 			{
-				newTransport.open();
-				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
-				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
-				long estimated = System.nanoTime() - start;
-				totalLatency.addAndGet(estimated);
-				client.sendToRemote(transaction);
+				connection.sendToRemote(transaction);
 			} catch(TException e)
 			{
-				LOG.warn("failed to trx to replicator {}: ", config.getId(), e);
+				LOG.warn(e.getMessage());
 			} finally
 			{
-				newTransport.close();
+				if(connection != null)
+					pool.returnObject(connection);
 			}
 		}
-
-		int tmp = counter.incrementAndGet();
-		long latencyShot = totalLatency.get();
-		double latency = latencyShot * 0.000001;
-		if(tmp % 100 == 0)
-			LOG.info("time spent so far creating connections: {} ms", latency);
 	}
 
 	@Override
