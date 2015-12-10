@@ -13,6 +13,8 @@ import server.util.TransactionCommitFailureException;
 public interface DBCommitter
 {
 
+	int MAX_RETRIES = 50;
+
 	/**
 	 * Attemps to commit a transaction in main storage
 	 * @param op

@@ -40,7 +40,7 @@ public class DBCommitterAgent implements DBCommitter
 		while(true)
 		{
 			tries++;
-			if(tries == 50)
+			if(tries == DBCommitter.MAX_RETRIES)
 				throw new TransactionCommitFailureException("transaction failed to commit after 50 attempts");
 
 			boolean commitDecision = tryCommit(txn);

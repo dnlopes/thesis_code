@@ -50,7 +50,6 @@ public class Environment
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
-		printEnvironment();
 	}
 
 	public static Environment getInstance()
@@ -58,7 +57,7 @@ public class Environment
 		return instance;
 	}
 
-	private static void printEnvironment()
+	public static void printEnvironment()
 	{
 		LOG.info("environment:" + EnvironmentDefaults.DATABASE_NAME_VAR + "=" + Environment.DATABASE_NAME);
 		LOG.info("environment:" + EnvironmentDefaults.DDL_FILE_VAR + "=" + Environment.DDL_ANNOTATIONS_FILE);

@@ -19,12 +19,14 @@ import java.sql.SQLException;
 public class TPCCClientEmulator implements Runnable
 {
 
+	public static int MAX_RETRIES = 50;
 	private static final Logger LOG = LoggerFactory.getLogger(TPCCClientEmulator.class);
 
 	private Connection connection;
 	private int id;
 	private final BaseBenchmarkOptions options;
 	private TPCCStatistics stats;
+	private long execLatency, commitLatency;
 
 	public TPCCClientEmulator(int id, BaseBenchmarkOptions options)
 	{
@@ -53,42 +55,57 @@ public class TPCCClientEmulator implements Runnable
 
 		while(TPCCEmulator.RUNNING)
 		{
-			long execLatency;
-			long commitLatency = 0;
-
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
+			int retries = 0;
+			execLatency = 0;
+			commitLatency = 0;
+			boolean success = false;
 
-			long beginTime = System.nanoTime();
-			boolean success = txn.executeTransaction(this.connection);
-			long endTime = System.nanoTime();
-			execLatency = endTime - beginTime;
-
-			if(success)
+			while(retries <= MAX_RETRIES)
 			{
-				long beginTime2 = System.nanoTime();
-				success = txn.commitTransaction(this.connection);
-				long endTime2 = System.nanoTime();
-				commitLatency = endTime2 - beginTime2;
-			}
+				retries++;
+				success = tryTransaction(txn);
 
-			if(success)
-			{
-				if(TPCCEmulator.COUTING)
+				if(success)
 				{
-					this.stats.addTxnRecord(txn.getName(),
-							new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
-					/*this.stats.addExecLatency(txn.getName(), execLatency);
-					this.stats.addCommitLatency(txn.getName(), commitLatency);
-					this.stats.addLatency(txn.getName(), execLatency + commitLatency);
-					this.stats.incrementSuccess(txn.getName());*/
+					if(TPCCEmulator.COUTING)
+						this.stats.addTxnRecord(txn.getName(),
+								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
+					break;
+				} else
+				{
+					//if error was NOT from dead lock, move on to the next txn
+					String error = txn.getLastError();
+					if(!error.contains("try restarting transaction"))
+						break;
+					else
+						LOG.warn("restarting transaction due to ({})", txn.getLastError());
 				}
-			} else
+			}
+			if(!success)
 			{
-				//this.stats.incrementAborts(txn.getName());
 				this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
-				LOG.error("txn {} failed: {}", txn.getName(), txn.getLastError());
+				LOG.error("txn {} failed after {} attempts: {}", txn.getName(), retries, txn.getLastError());
 			}
 		}
+	}
+
+	private boolean tryTransaction(Transaction trx)
+	{
+		long beginExec = System.nanoTime();
+		boolean execSuccess = trx.executeTransaction(this.connection);
+		long execTime = System.nanoTime() - beginExec;
+		execLatency += execTime;
+
+		if(!execSuccess)
+			return false;
+
+		long beginCommit = System.nanoTime();
+		boolean commitSuccess = trx.commitTransaction(this.connection);
+		long commitTime = System.nanoTime() - beginCommit;
+		commitLatency += commitTime;
+
+		return commitSuccess;
 	}
 
 	public TPCCStatistics getStats()

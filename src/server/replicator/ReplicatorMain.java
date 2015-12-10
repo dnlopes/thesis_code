@@ -36,6 +36,7 @@ public class ReplicatorMain
 
 		Topology.setupTopology(topologyFile);
 		Environment.setupEnvironment(environmentFile);
+		Environment.printEnvironment();
 
 		NodeConfig config = Topology.getInstance().getReplicatorConfigWithIndex(id);
 
