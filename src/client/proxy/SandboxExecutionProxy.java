@@ -318,7 +318,7 @@ public class SandboxExecutionProxy implements Proxy
 			else
 				CRDTOperationGenerator.updateRow(cachedRecord, clockPlaceHolder, txnContext);
 		}
-		// TODO
+
 		// take care of DELETES
 		for(Record deletedRecord : deletes.values())
 		{

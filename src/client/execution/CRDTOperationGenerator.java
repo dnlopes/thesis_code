@@ -62,7 +62,7 @@ public class CRDTOperationGenerator
 
 	public static String[] insertChildRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO implement for WriteThroughProxy
+		//TODO implement
 		return insertRow(record, clock, context);
 		/*
 		op.putToNewFieldValues(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.DELETED_VALUE);
@@ -151,7 +151,7 @@ public class CRDTOperationGenerator
 
 	public static String[] updateChildRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO implement for WriteThroughProxy
+		//TODO implement
 		return updateRow(record, clock, context);
 		/*
 		DatabaseTable dbTable = METADATA.getTable(op.getTableName());

@@ -150,7 +150,7 @@ public class CausalDeliverAgent implements DeliverAgent
 						replicator.deliverTransaction(txn);
 					} catch(TransactionCommitFailureException e)
 					{
-						e.printStackTrace();
+						LOG.error(e.getMessage());
 					}
 					hasDelivered = true;
 				}

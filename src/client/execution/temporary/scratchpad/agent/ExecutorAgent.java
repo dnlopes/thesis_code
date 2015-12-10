@@ -206,7 +206,7 @@ public class ExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 		 */
 		private void addMissingRowsToScratchpad(SQLUpdate updateOp) throws ScratchpadException
 		{
-			//TODO
+			//TODO (optimization)
 			// if we have already loaded the record previously (during parsing time)
 			// we do not need to do the select here, we just need to insert in temp tables
 			// this can happen when the original update is not specified by the PK

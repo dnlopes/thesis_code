@@ -50,7 +50,7 @@ public class Environment
 		loadAnnotationsFile();
 
 		IS_CONFIGURED = true;
-		//printEnvironment();
+		printEnvironment();
 	}
 
 	public static Environment getInstance()
@@ -69,6 +69,9 @@ public class Environment
 		LOG.info(
 				"environment:" + EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR + "=" + Environment
 						.EZK_CLIENTS_POOL_SIZE);
+		LOG.info(
+				"environment:" + EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_VAR + "=" + Environment
+						.REPLICATORS_CONNECTIONS_POOL_SIZE);
 		LOG.info("environment:" + EnvironmentDefaults.OPTIMIZE_BATCH_VAR + "=" + Environment.OPTIMIZE_BATCH);
 		LOG.info(
 				"environment:" + EnvironmentDefaults.DELIVER_NAME_VAR + "=" + AgentsFactory

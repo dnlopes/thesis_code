@@ -68,8 +68,8 @@ public class Replicator extends AbstractNode
 		this.txnCounter = new AtomicInteger();
 		this.networkInterface = new ReplicatorNetwork(config);
 
-		this.deliver = AgentsFactory.getDeliverAgent(this);
-		this.dispatcher = AgentsFactory.getDispatcherAgent(this);
+		this.deliver = AgentsFactory.createDeliverAgent(this);
+		this.dispatcher = AgentsFactory.createDispatcherAgent(this);
 		this.coordAgent = new SimpleCoordinationAgent(this);
 
 		this.clock = new LogicalClock(Topology.getInstance().getReplicatorsCount());

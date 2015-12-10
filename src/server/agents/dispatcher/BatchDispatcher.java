@@ -33,10 +33,10 @@ public class BatchDispatcher implements DispatcherAgent
 		this.networkInterface = replicator.getNetworkInterface();
 		this.pendingTransactions = new ConcurrentLinkedQueue<>();
 
-		DispatcherThread deliveryThread = new DispatcherThread();
+		BatchSenderThread batchSender = new BatchSenderThread();
 
 		this.scheduleService = Executors.newScheduledThreadPool(1);
-		this.scheduleService.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(batchSender, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class BatchDispatcher implements DispatcherAgent
 		pendingTransactions.add(op);
 	}
 
-	private class DispatcherThread implements Runnable
+	private class BatchSenderThread implements Runnable
 	{
 
 		@Override
