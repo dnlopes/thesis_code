@@ -19,6 +19,7 @@ public interface IReplicatorNetwork
 {
 	void sendOperationToRemote(CRDTCompiledTransaction transaction);
 	void sendBatchToRemote(List<CRDTCompiledTransaction> transactions);
+	void openConnections();
 
 	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req) throws SocketConnectionException;
 }

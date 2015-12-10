@@ -30,6 +30,7 @@ public class Environment
 	public static String ENVIRONMENT_FILE;
 	public static String DDL_ANNOTATIONS_FILE;
 	public static int EZK_CLIENTS_POOL_SIZE;
+	public static int REPLICATORS_CONNECTIONS_POOL_SIZE;
 	public static int COMMIT_PAD_POOL_SIZE;
 	public static boolean OPTIMIZE_BATCH;
 	public static String EZK_EXTENSION_CODE;
@@ -102,6 +103,11 @@ public class Environment
 						prop.getProperty(Environment.EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR));
 			else
 				Environment.COMMIT_PAD_POOL_SIZE = Environment.EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_DEFAULT;
+			if(prop.containsKey(Environment.EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_VAR))
+				Environment.COMMIT_PAD_POOL_SIZE = Integer.parseInt(
+						prop.getProperty(Environment.EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_VAR));
+			else
+				Environment.REPLICATORS_CONNECTIONS_POOL_SIZE = EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_DEFAULT;
 
 			if(prop.containsKey(Environment.EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR))
 				Environment.EZK_CLIENTS_POOL_SIZE = Integer.parseInt(
@@ -198,12 +204,14 @@ public class Environment
 	{
 
 		int EZK_CLIENTS_POOL_SIZE_DEFAULT = 20;
+		int REPLICATORS_CONNECTIONS_POOL_SIZE_DEFAULT = 50;
 		int COMMIT_PAD_POOL_SIZE_DEFAULT = 50;
 		boolean OPTIMIZE_BATCH_DEFAULT = false;
 		int DISPATCHER_AGENT_DEFAULT = 2;
 		int DELIVER_AGENT_DEFAULT = 1;
 
 		String DDL_FILE_VAR = "ddl-file";
+		String REPLICATORS_CONNECTIONS_POOL_SIZE_VAR = "replicators-con-pool-size";
 		String EZK_CLIENTS_POOL_SIZE_VAR = "ezk-client-pool-size";
 		String COMMIT_PAD_POOL_SIZE_VAR = "commit-pool-size";
 		String OPTIMIZE_BATCH_VAR = "optimize-batch";

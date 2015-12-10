@@ -39,9 +39,9 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	{
 		this.replicator = replicator;
 		this.replicatorId = replicator.getConfig().getId();
-		this.deliver = this.replicator.getDeliver();
-		this.dispatcher = this.replicator.getDispatcher();
-		this.coordAgent = this.replicator.getCoordAgent();
+		this.deliver = replicator.getDeliver();
+		this.dispatcher = replicator.getDispatcher();
+		this.coordAgent = replicator.getCoordAgent();
 		this.compiler = new TrxCompiler(replicator);
 	}
 

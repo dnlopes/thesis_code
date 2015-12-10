@@ -36,6 +36,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 	private Map<Integer, NodeConfig> replicatorsConfigs;
 	private ObjectPool<EZKCoordinationClient> ezkClientsPool;
+	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> replicatorsConnections;
 	private int clientsCount;
 	private AtomicLong totalLatency = new AtomicLong();
 	private AtomicInteger counter = new AtomicInteger();
@@ -43,15 +44,18 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	public ReplicatorNetwork(NodeConfig node)
 	{
 		super(node);
+
 		this.replicatorsConfigs = new HashMap<>();
-		this.clientsCount = this.me.getId();
+		this.replicatorsConnections = new HashMap<>();
+		this.clientsCount = me.getId();
 		this.ezkClientsPool = new ObjectPool<>();
 
 		for(NodeConfig replicatorConfig : Topology.getInstance().getAllReplicatorsConfig().values())
-			if(replicatorConfig.getId() != this.me.getId())
-				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
-
-		initZookeeperConnections();
+			if(replicatorConfig.getId() != me.getId())
+			{
+				replicatorsConnections.put(replicatorConfig.getId(), new ObjectPool<ReplicatorRPC.Client>());
+				replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
+			}
 	}
 
 	@Override
@@ -110,6 +114,14 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
+	public void openConnections()
+	{
+		LOG.info("opening connections for peers");
+		openZookeeperConnections();
+		openReplicatorConnections();
+	}
+
+	@Override
 	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req) throws SocketConnectionException
 	{
 		CoordinatorResponse dummyResponse = new CoordinatorResponse();
@@ -136,7 +148,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		return response;
 	}
 
-	private void initZookeeperConnections()
+	private void openZookeeperConnections()
 	{
 		if(Environment.IS_ZOOKEEPER_REQUIRED)
 		{
@@ -147,9 +159,47 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				EZKCoordinationClient newClient = createZookeeperConnection();
 
 				if(newClient != null)
-					this.ezkClientsPool.addObject(newClient);
+					ezkClientsPool.addObject(newClient);
 			}
-			LOG.info("{} zookeeper connections ready", ezkClientsPool.getPoolSize());
+			LOG.info("{} connections for zookeeper available", ezkClientsPool.getPoolSize());
+		}
+	}
+
+	private void openReplicatorConnections()
+	{
+		for(NodeConfig config : this.replicatorsConfigs.values())
+			openConnectionsForPeer(config);
+	}
+
+	private void openConnectionsForPeer(NodeConfig config)
+	{
+		int maxConnections = Environment.REPLICATORS_CONNECTIONS_POOL_SIZE;
+		ObjectPool<ReplicatorRPC.Client> pool = replicatorsConnections.get(config.getId());
+
+		for(int i = 0; i < maxConnections; i++)
+		{
+			ReplicatorRPC.Client aConnection = openConnection(config);
+			if(aConnection != null)
+				pool.addObject(aConnection);
+		}
+
+		LOG.info("{} connections for replicator {} available", pool.getPoolSize(), config.getId());
+	}
+
+	private ReplicatorRPC.Client openConnection(NodeConfig config)
+	{
+		TTransport newTransport = new TSocket(config.getHost(), config.getPort());
+
+		try
+		{
+			newTransport.open();
+			TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
+			return new ReplicatorRPC.Client(protocol);
+		} catch(TException e)
+		{
+			newTransport.close();
+			LOG.warn(e.getMessage());
+			return null;
 		}
 	}
 

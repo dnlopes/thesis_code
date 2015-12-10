@@ -66,7 +66,7 @@ public class Replicator extends AbstractNode
 
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
 		this.txnCounter = new AtomicInteger();
-		this.networkInterface = new ReplicatorNetwork(this.config);
+		this.networkInterface = new ReplicatorNetwork(config);
 
 		this.deliver = AgentsFactory.getDeliverAgent(this);
 		this.dispatcher = AgentsFactory.getDispatcherAgent(this);
@@ -97,6 +97,7 @@ public class Replicator extends AbstractNode
 			throw new InitComponentFailureException(error);
 		}
 
+		networkInterface.openConnections();
 		LOG.info("replicator " + this.config.getId() + " online");
 	}
 
@@ -288,6 +289,7 @@ public class Replicator extends AbstractNode
 
 	private class StateChecker implements Runnable
 	{
+
 		private int id = config.getId();
 
 		@Override
