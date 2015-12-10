@@ -74,7 +74,7 @@ public class TPCCEmulator
 				this.shutdownEmulator();
 				return false;
 			}
-			System.out.println("Ramp up time ended!");
+			LOG.info("Ramp up time ended!");
 		}
 
 		COUTING = true;
@@ -84,7 +84,7 @@ public class TPCCEmulator
 
 		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
-			System.out.println("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
+			LOG.info("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try
 			{
 				Thread.sleep(1000);
@@ -101,8 +101,8 @@ public class TPCCEmulator
 
 		final long actualTestTime = System.currentTimeMillis() - startTime;
 
-		System.out.println("Experiment ended!");
-		System.out.println("Benchmark elapsed time: " + df.format(actualTestTime / 1000.0f));
+		LOG.info("Experiment ended!");
+		LOG.info("Benchmark elapsed time: " + df.format(actualTestTime / 1000.0f));
 
 		return true;
 	}
@@ -122,8 +122,10 @@ public class TPCCEmulator
 		String distributionStrings = globalStats.getDistributionStrings();
 
 		PrintWriter out;
+		PrintWriter out2;
 
 		StringBuffer buffer = new StringBuffer();
+		StringBuffer distributionBuffer = new StringBuffer();
 		buffer.append("txn_name").append(",");
 		buffer.append("commits").append(",");
 		buffer.append("aborts").append(",");
@@ -132,68 +134,35 @@ public class TPCCEmulator
 		buffer.append("avgLatency").append(",");
 		buffer.append("avgExecLatency").append(",");
 		buffer.append("avgCommitLatency").append("\n");
-		buffer.append(statsString).append("\n").append(distributionStrings);
+		buffer.append(statsString).append("\n");
+
+		distributionBuffer.append(distributionStrings).append("\n");
 
 		String outputContent = buffer.toString();
+		String distributionContent = distributionBuffer.toString();
 
 		try
 		{
 			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
 					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
 					+ this.emulatorId + ".csv";
+			String distributionFileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options
+					.getClientsNumber()
+					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
+					+ this.emulatorId + "_distribution.log";
 
 			out = new PrintWriter(fileName);
 			out.write(outputContent);
+			out.close();
+			out = new PrintWriter(distributionFileName);
+			out.write(distributionContent);
 			out.close();
 		} catch(FileNotFoundException e)
 		{
 			e.printStackTrace();
 		}
 
-		/*
-		for(ClientEmulator client : this.clients)
-		{
-			avgLatency += client.getAverageLatency();
-			avgReadLatency += client.getAverageReadLatency();
-			avgWriteLatency += client.getAverageWriteLatency();
-			opsCounter += client.getTotalOperations();
-			abortCounter += client.getAbortCounter();
-		}
 
-		avgLatency = avgLatency / clients.size();
-		avgReadLatency = avgReadLatency / clients.size();
-		avgWriteLatency = avgWriteLatency / clients.size();
-		StringBuilder buffer = new StringBuilder();
-
-		buffer.append(
-				"#writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc," +
-						"users");
-
-		this.options.getWorkload().addExtraColumns(buffer);
-
-		buffer.append("\n");
-		buffer.append(options.getWorkload().getWriteRate());
-		buffer.append(",");
-		buffer.append(this.options.getWorkload().getCoordinatedOperationsRate());
-		buffer.append(",");
-		buffer.append(avgLatency);
-		buffer.append(",");
-		buffer.append(avgReadLatency);
-		buffer.append(",");
-		buffer.append(avgWriteLatency);
-		buffer.append(",");
-		buffer.append(opsCounter);
-		buffer.append(",");
-		buffer.append(abortCounter);
-		buffer.append(",");
-		buffer.append(options.getJdbc());
-		buffer.append(",");
-		buffer.append(options.getClientsNumber());
-
-		this.options.getWorkload().addExtraColumnValues(buffer);
-
-
-		*/
 	}
 
 	public String getPrefix()

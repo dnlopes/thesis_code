@@ -3,6 +3,7 @@ package server.agents.deliver;
 
 import common.thrift.CRDTCompiledTransaction;
 import common.util.Topology;
+import common.util.defaults.ReplicatorDefaults;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,11 @@ public class CausalDeliverAgent implements DeliverAgent
 
 		DeliveryThread deliveryThread = new DeliveryThread();
 
-		this.scheduleService = Executors.newScheduledThreadPool(1);
+		this.scheduleService = Executors.newScheduledThreadPool(2);
 		this.scheduleService.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService.scheduleAtFixedRate(new StateChecker(),
+				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
+				TimeUnit.MILLISECONDS);
 	}
 
 	private void setup()
@@ -56,7 +60,7 @@ public class CausalDeliverAgent implements DeliverAgent
 	public void deliverTransaction(CRDTCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		if(canDeliver(op))
-			replicator.deliverTransaction(op);
+			replicator.commitOperation(op, true);
 		else
 			addToQueue(op);
 	}
@@ -103,41 +107,45 @@ public class CausalDeliverAgent implements DeliverAgent
 		}
 	}
 
-	private class DeliveryThread implements Runnable
+
+	private class StateChecker implements Runnable
 	{
 
 		private int id = replicator.getConfig().getId();
-		private int counter = 0;
 
 		@Override
 		public void run()
 		{
-			counter++;
+			StringBuffer buffer = new StringBuffer("(");
 
-			if(counter % 8 == 0)
+			for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
 			{
-				counter = 0;
-				StringBuffer buffer = new StringBuffer("(");
-
-				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
-				{
-					buffer.append(txnQueue.size());
-					buffer.append(",");
-				}
-
-				if(buffer.charAt(buffer.length() - 1) == ',')
-					buffer.setLength(buffer.length() - 1);
-
-				buffer.append(")");
-
-				LOG.info("<r{}> pending queue size: {}", id, buffer.toString());
+				buffer.append(txnQueue.size());
+				buffer.append(",");
 			}
 
-			boolean hasDelivered = false;
-			int cycles = 0;
+			if(buffer.charAt(buffer.length() - 1) == ',')
+				buffer.setLength(buffer.length() - 1);
+
+			buffer.append(")");
+
+			LOG.info("<r{}> pending queue size: {}", id, buffer.toString());
+		}
+	}
+
+
+	private class DeliveryThread implements Runnable
+	{
+
+		@Override
+		public void run()
+		{
+			boolean hasDelivered;
 
 			do
 			{
+				hasDelivered = false;
+
 				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
 				{
 					CRDTCompiledTransaction txn = txnQueue.poll();
@@ -147,18 +155,13 @@ public class CausalDeliverAgent implements DeliverAgent
 
 					try
 					{
-						replicator.deliverTransaction(txn);
+						replicator.commitOperation(txn, true);
+						hasDelivered = true;
 					} catch(TransactionCommitFailureException e)
 					{
 						LOG.error(e.getMessage());
 					}
-					hasDelivered = true;
 				}
-
-				cycles++;
-				if(cycles > BACKGROUND_MAX_IN_A_ROW_CYCLES)
-					break;
-
 			} while(hasDelivered);
 		}
 	}

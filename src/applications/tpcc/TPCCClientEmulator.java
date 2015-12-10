@@ -78,8 +78,6 @@ public class TPCCClientEmulator implements Runnable
 					String error = txn.getLastError();
 					if(!error.contains("try restarting transaction"))
 						break;
-					else
-						LOG.warn("restarting transaction due to ({})", txn.getLastError());
 				}
 			}
 			if(!success)

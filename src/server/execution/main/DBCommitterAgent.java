@@ -75,7 +75,6 @@ public class DBCommitterAgent implements DBCommitter
 			{
 				lastError = e.getMessage();
 				DbUtils.rollback(this.connection);
-				LOG.warn("txn ({}) rollback ({})", op.getTxnClock(), e.getMessage());
 			} catch(SQLException e1)
 			{
 				LOG.error("failed to rollback txn ({})", op.getTxnClock(), e1);

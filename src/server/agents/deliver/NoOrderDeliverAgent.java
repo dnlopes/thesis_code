@@ -22,6 +22,6 @@ public class NoOrderDeliverAgent implements DeliverAgent
 	@Override
 	public void deliverTransaction(CRDTCompiledTransaction op) throws TransactionCommitFailureException
 	{
-		this.replicator.deliverTransaction(op);
+		this.replicator.commitOperation(op, true);
 	}
 }

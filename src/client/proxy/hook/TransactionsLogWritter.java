@@ -62,7 +62,7 @@ public class TransactionsLogWritter extends Thread
 		{
 			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + proxies.size() * Topology
 					.getInstance().getReplicatorsCount() + "_users_" + jdbc + "_jdbc_emulator" + emulatorId +
-					"_txns.csv";
+					"_transactions.log";
 
 			out = new PrintWriter(fileName);
 			out.write(buffer.toString());

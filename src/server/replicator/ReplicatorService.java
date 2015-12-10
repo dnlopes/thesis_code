@@ -113,7 +113,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 
 			// wait for commit decision
 			// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
-			Status commitStatus = replicator.commitOperation(compiledTrx);
+			Status commitStatus = replicator.commitOperation(compiledTrx, false);
 
 			if(commitStatus.isSuccess())
 				dispatcher.dispatchTransaction(compiledTrx);

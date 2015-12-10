@@ -108,8 +108,12 @@ public class Replicator extends AbstractNode
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public Status commitOperation(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
+	public Status commitOperation(CRDTCompiledTransaction txn, boolean shouldMergeClocks)
+			throws TransactionCommitFailureException
 	{
+		if(shouldMergeClocks)
+			mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
+
 		DBCommitter pad = this.agentsPool.borrowObject();
 
 		if(pad == null)
@@ -154,12 +158,6 @@ public class Replicator extends AbstractNode
 		this.clockLock.unlock();
 
 		return newClock;
-	}
-
-	public void deliverTransaction(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
-	{
-		mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
-		commitOperation(txn);
 	}
 
 	public String getPrefix()
