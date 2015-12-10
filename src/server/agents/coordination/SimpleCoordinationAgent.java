@@ -47,8 +47,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			this.network = this.replicator.getNetworkInterface();
 
 			this.scheduleService = Executors.newScheduledThreadPool(1);
-			this.scheduleService.scheduleAtFixedRate(new StateChecker(),
-					ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4,
+			this.scheduleService.scheduleAtFixedRate(new StateChecker(), 0,
 					ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
 		} else
 			LOG.info("zookeeper is not required in this environment");
@@ -117,12 +116,16 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 
 	private class StateChecker implements Runnable
 	{
+
 		private int id = replicator.getConfig().getId();
 
 		@Override
 		public void run()
 		{
 			int coordinatedRequests = eventsCounter.get();
+			if(coordinatedRequests == 0)
+				return;
+
 			double avgLatency = (latencySum.get() / coordinatedRequests) * 0.000001;
 
 			LOG.info("<r{}> {} coordinated events with average latency of {}", id, coordinatedRequests, avgLatency);

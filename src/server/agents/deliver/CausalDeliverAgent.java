@@ -114,7 +114,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		{
 			counter++;
 
-			if(counter % 15 == 0)
+			if(counter % 8 == 0)
 			{
 				counter = 0;
 				StringBuffer buffer = new StringBuffer("(");
