@@ -165,7 +165,7 @@ public class LogicalClock implements java.io.Serializable
 	{
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("'");
-		buffer.append(this.getClockValue());
+		buffer.append(getClockValue());
 		buffer.append("'");
 		return buffer.toString();
 	}

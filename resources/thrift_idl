@@ -68,6 +68,16 @@ struct CRDTPreCompiledOperation
     1: required string sqlOp;
     2: optional set<string> symbols;
     3: required bool isCompiled;
+    4: optional CRDTCompiledTransaction compiledTxn;
+}
+
+
+struct CRDTCompiledTransaction
+{
+    1: required list<string> ops;
+    2: required bool isReady;
+    3: required i32 replicatorId;
+    4: required string txnClock;
 }
 
 struct CRDTPreCompiledTransaction {
@@ -83,8 +93,8 @@ struct CRDTPreCompiledTransaction {
 service ReplicatorRPC {
  //bool commitOperation(1:CRDTTransaction op);
  Status commitOperation(1:CRDTPreCompiledTransaction op);
- oneway void sendToRemote(1:CRDTPreCompiledTransaction transaction);
- oneway void sendBatchToRemote(1:list<CRDTPreCompiledTransaction> batch);
+ oneway void sendToRemote(1:CRDTCompiledTransaction transaction);
+ oneway void sendBatchToRemote(1:list<CRDTCompiledTransaction> batch);
 }
 
 

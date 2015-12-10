@@ -18,8 +18,8 @@ IS_LOCALHOST = False
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
-#user='dp.lopes'
-user='dnl'
+user='dp.lopes'
+#user='dnl'
 
 ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'
@@ -148,7 +148,7 @@ def parseTopologyFile(topologyFile):
 		port = proxy.get('port')
 		emulators_nodes.append(host)
 		distinctNodesSet.add(host)
-    emulators_map[host] = proxyId
+		emulators_map[host] = proxyId
 
 	for coordinator in e.iter('coordinator'):
 		coordinatorId = coordinator.get('id')

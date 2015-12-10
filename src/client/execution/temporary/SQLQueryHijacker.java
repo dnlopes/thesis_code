@@ -15,6 +15,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 
@@ -33,10 +34,11 @@ public final class SQLQueryHijacker
 
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-	public static SQLOperation[] pepareOperation(String sqlOpString, TransactionContext context)
+	public static SQLOperation[] pepareOperation(String sqlOpString, TransactionContext context, CCJSqlParserManager
+			parser)
 			throws JSQLParserException, SQLException
 	{
-		SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString);
+		SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString, parser);
 
 		if(sqlOp.getOpType() == SQLOperationType.INSERT)
 			return prepareInsertOperation((SQLInsert) sqlOp, context);

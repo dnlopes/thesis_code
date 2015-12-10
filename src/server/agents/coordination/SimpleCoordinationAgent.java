@@ -4,12 +4,13 @@ package server.agents.coordination;
 import common.util.Environment;
 import common.util.defaults.ReplicatorDefaults;
 import common.util.exception.InitComponentFailureException;
+import common.util.exception.InvalidConfigurationException;
+import common.util.exception.SocketConnectionException;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.*;
-import server.util.CompilePreparationException;
 import server.util.CoordinationFailureException;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -30,61 +32,62 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 
 	private Replicator replicator;
 	private IReplicatorNetwork network;
-	private AtomicInteger sentRequestsCounter;
 	private ScheduledExecutorService scheduleService;
+	private AtomicLong latencySum;
+	private AtomicInteger eventsCounter;
 
 	public SimpleCoordinationAgent(Replicator replicator) throws InitComponentFailureException
 	{
+		this.latencySum = new AtomicLong();
+		this.eventsCounter = new AtomicInteger();
+
 		if(Environment.IS_ZOOKEEPER_REQUIRED)
 		{
-			this.sentRequestsCounter = new AtomicInteger();
 			this.replicator = replicator;
 			this.network = this.replicator.getNetworkInterface();
 
 			this.scheduleService = Executors.newScheduledThreadPool(1);
-			this.scheduleService.scheduleAtFixedRate(new StateChecker(), ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4,
+			this.scheduleService.scheduleAtFixedRate(new StateChecker(),
+					ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4,
 					ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL, TimeUnit.MILLISECONDS);
-		}
-		else
+		} else
 			LOG.info("zookeeper is not required in this environment");
 	}
 
 	@Override
-	public void handleCoordination(CRDTPreCompiledTransaction transaction)
-			throws CompilePreparationException, CoordinationFailureException
+	public void handleCoordination(CRDTPreCompiledTransaction trx)
+			throws SocketConnectionException, CoordinationFailureException, InvalidConfigurationException
 	{
-		if(!transaction.isSetRequestToCoordinator())
+		if(!trx.isSetRequestToCoordinator())
 		{
-			transaction.setReadyToCommit(true);
+			trx.setReadyToCommit(true);
 			return;
 		}
 
 		if(!Environment.IS_ZOOKEEPER_REQUIRED)
-			throw new CoordinationFailureException("current environment does not require coordination but proxy " +
-					"generated a request");
+			throw new InvalidConfigurationException(
+					"current environment does not require coordination but proxy " + "generated a request");
 
-		this.sentRequestsCounter.incrementAndGet();
-
-		CoordinatorRequest request = transaction.getRequestToCoordinator();
+		eventsCounter.incrementAndGet();
+		CoordinatorRequest request = trx.getRequestToCoordinator();
 		long beginTime = System.nanoTime();
 		CoordinatorResponse response = this.network.sendRequestToCoordinator(request);
 		long estimatedTime = System.nanoTime() - beginTime;
-		double estimatedtime_double = estimatedTime * 0.000001;
-		System.out.println("coordination time: " + estimatedtime_double);
+		latencySum.addAndGet(estimatedTime);
 
 		if(response.isSuccess())
 		{
-			handleCoordinatorResponse(response, transaction);
-			transaction.setReadyToCommit(true);
+			handleCoordinatorResponse(response, trx);
+			trx.setReadyToCommit(true);
 		} else
 		{
-			transaction.setReadyToCommit(false);
-			LOG.warn("coordinator didnt allow txn to commit: {}", response.getErrorMessage());
+			trx.setReadyToCommit(false);
+			throw new CoordinationFailureException(response.getErrorMessage());
 		}
 	}
 
 	private void handleCoordinatorResponse(CoordinatorResponse response, CRDTPreCompiledTransaction transaction)
-			throws CompilePreparationException
+			throws CoordinationFailureException
 	{
 		if(response.isSetRequestedValues())
 		{
@@ -94,7 +97,7 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 	}
 
 	private void replaceSymbolsForValues(List<RequestValue> requestedValues, CRDTPreCompiledTransaction transaction)
-			throws CompilePreparationException
+			throws CoordinationFailureException
 	{
 		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
 
@@ -104,6 +107,9 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 			if(requestValue.isSetRequestedValue())
 			{
 				SymbolEntry symbolEntry = symbols.get(requestValue.getTempSymbol());
+				if(requestValue.getRequestedValue() == null)
+					throw new CoordinationFailureException("failed to retrieve id from coordinator");
+
 				symbolEntry.setRealValue(requestValue.getRequestedValue());
 			}
 		}
@@ -111,13 +117,15 @@ public class SimpleCoordinationAgent implements CoordinationAgent
 
 	private class StateChecker implements Runnable
 	{
-
 		private int id = replicator.getConfig().getId();
 
 		@Override
 		public void run()
 		{
-			LOG.info("<r{}> number of coordination events: {}", id, sentRequestsCounter.get());
+			int coordinatedRequests = eventsCounter.get();
+			double avgLatency = (latencySum.get() / coordinatedRequests) * 0.000001;
+
+			LOG.info("<r{}> {} coordinated events with average latency of {}", id, coordinatedRequests, avgLatency);
 		}
 	}
 }

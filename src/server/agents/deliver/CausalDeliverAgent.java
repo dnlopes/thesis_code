@@ -1,7 +1,7 @@
 package server.agents.deliver;
 
 
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import common.util.Topology;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class CausalDeliverAgent implements DeliverAgent
 
 	private static final Logger LOG = LoggerFactory.getLogger(CausalDeliverAgent.class);
 
-	private final Map<Integer, Queue<CRDTPreCompiledTransaction>> queues;
+	private final Map<Integer, Queue<CRDTCompiledTransaction>> queues;
 	private final Replicator replicator;
 	private final ScheduledExecutorService scheduleService;
 
@@ -33,7 +33,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		this.replicator = replicator;
 		this.queues = new HashMap<>();
 
-		this.setup();
+		setup();
 
 		DeliveryThread deliveryThread = new DeliveryThread();
 
@@ -48,35 +48,35 @@ public class CausalDeliverAgent implements DeliverAgent
 		for(int i = 0; i < replicatorsNumber; i++)
 		{
 			Queue q = new PriorityBlockingQueue(100, new LogicalClockComparator(i));
-			this.queues.put(i + 1, q); // i+1 because replicator id starts at 1 but clock index starts at 0
+			queues.put(i + 1, q); // i+1 because replicator id starts at 1 but clock index starts at 0
 		}
 	}
 
 	@Override
-	public void deliverTransaction(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
+	public void deliverTransaction(CRDTCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		if(canDeliver(op))
-			this.replicator.deliverTransaction(op);
+			replicator.deliverTransaction(op);
 		else
 			addToQueue(op);
 	}
 
-	private void addToQueue(CRDTPreCompiledTransaction op)
+	private void addToQueue(CRDTCompiledTransaction op)
 	{
 		int replicatorId = op.getReplicatorId();
 
-		LOG.trace("adding op with clock {} to queue", op.getTxnClock());
+		LOG.trace("adding op with clock ({}) to queue", op.getTxnClock());
 
-		this.queues.get(replicatorId).add(op);
+		queues.get(replicatorId).add(op);
 	}
 
-	private boolean canDeliver(CRDTPreCompiledTransaction op)
+	private boolean canDeliver(CRDTCompiledTransaction op)
 	{
 		LogicalClock opClock = new LogicalClock(op.getTxnClock());
 		return replicator.getCurrentClock().lessThanByAtMostOne(opClock);
 	}
 
-	private class LogicalClockComparator implements Comparator<CRDTPreCompiledTransaction>
+	private class LogicalClockComparator implements Comparator<CRDTCompiledTransaction>
 	{
 
 		private final int index;
@@ -87,7 +87,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		}
 
 		@Override
-		public int compare(CRDTPreCompiledTransaction transaction1, CRDTPreCompiledTransaction transaction2)
+		public int compare(CRDTCompiledTransaction transaction1, CRDTCompiledTransaction transaction2)
 		{
 			LogicalClock clock1 = new LogicalClock(transaction1.getTxnClock());
 			LogicalClock clock2 = new LogicalClock(transaction2.getTxnClock());
@@ -102,7 +102,6 @@ public class CausalDeliverAgent implements DeliverAgent
 				return -1;
 		}
 	}
-
 
 	private class DeliveryThread implements Runnable
 	{
@@ -120,7 +119,7 @@ public class CausalDeliverAgent implements DeliverAgent
 				counter = 0;
 				StringBuffer buffer = new StringBuffer("(");
 
-				for(Queue<CRDTPreCompiledTransaction> txnQueue : queues.values())
+				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
 				{
 					buffer.append(txnQueue.size());
 					buffer.append(",");
@@ -139,9 +138,9 @@ public class CausalDeliverAgent implements DeliverAgent
 
 			do
 			{
-				for(Queue<CRDTPreCompiledTransaction> txnQueue : queues.values())
+				for(Queue<CRDTCompiledTransaction> txnQueue : queues.values())
 				{
-					CRDTPreCompiledTransaction txn = txnQueue.poll();
+					CRDTCompiledTransaction txn = txnQueue.poll();
 
 					if(txn == null)
 						continue;

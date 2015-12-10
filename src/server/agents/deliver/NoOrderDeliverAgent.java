@@ -1,7 +1,7 @@
 package server.agents.deliver;
 
 
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import server.replicator.Replicator;
 import server.util.TransactionCommitFailureException;
 
@@ -20,7 +20,7 @@ public class NoOrderDeliverAgent implements DeliverAgent
 	}
 
 	@Override
-	public void deliverTransaction(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
+	public void deliverTransaction(CRDTCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		this.replicator.deliverTransaction(op);
 	}

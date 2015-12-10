@@ -24,6 +24,7 @@ import common.thrift.Status;
 import common.util.ConnectionFactory;
 import common.util.exception.SocketConnectionException;
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.util.LogicalClock;
@@ -41,6 +42,7 @@ public class SandboxExecutionProxy implements Proxy
 
 	private static final Logger LOG = LoggerFactory.getLogger(SandboxExecutionProxy.class);
 
+	private final CCJSqlParserManager parserManager;
 	private final int proxyId;
 	private final IProxyNetwork network;
 	private SQLInterface sqlInterface;
@@ -59,6 +61,7 @@ public class SandboxExecutionProxy implements Proxy
 		this.isRunning = false;
 		this.operationList = new LinkedList<>();
 		this.transactionLog = new TransactionLog();
+		this.parserManager = new CCJSqlParserManager();
 
 		try
 		{
@@ -84,7 +87,7 @@ public class SandboxExecutionProxy implements Proxy
 
 		try
 		{
-			preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext);
+			preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext, parserManager);
 			long estimated = System.nanoTime() - start;
 			this.txnContext.addToParsingTime(estimated);
 		} catch(JSQLParserException e)
@@ -128,7 +131,7 @@ public class SandboxExecutionProxy implements Proxy
 		try
 		{
 			long start = System.nanoTime();
-			preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext);
+			preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext, parserManager);
 			long estimated = System.nanoTime() - start;
 			this.txnContext.addToParsingTime(estimated);
 

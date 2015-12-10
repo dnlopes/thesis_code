@@ -22,7 +22,6 @@ import java.io.StringReader;
 public abstract class SQLOperation
 {
 
-	protected static final CCJSqlParserManager SQL_PARSER_MANAGER = new CCJSqlParserManager();
 	protected static final DatabaseMetadata DB_METADATA = Environment.DB_METADATA;
 
 	protected final SQLOperationType opType;
@@ -41,9 +40,9 @@ public abstract class SQLOperation
 
 	public abstract SQLOperation duplicate() throws JSQLParserException;
 
-	public static SQLOperation parseSQLOperation(String sql) throws JSQLParserException
+	public static SQLOperation parseSQLOperation(String sql, CCJSqlParserManager parser) throws JSQLParserException
 	{
-		Statement sqlStmt = SQL_PARSER_MANAGER.parse(new StringReader(sql));
+		Statement sqlStmt = parser.parse(new StringReader(sql));
 
 		if(sqlStmt instanceof Insert)
 			return new SQLInsert((Insert) sqlStmt);

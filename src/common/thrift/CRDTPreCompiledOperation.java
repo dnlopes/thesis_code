@@ -41,6 +41,7 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
   private static final org.apache.thrift.protocol.TField SQL_OP_FIELD_DESC = new org.apache.thrift.protocol.TField("sqlOp", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField SYMBOLS_FIELD_DESC = new org.apache.thrift.protocol.TField("symbols", org.apache.thrift.protocol.TType.SET, (short)2);
   private static final org.apache.thrift.protocol.TField IS_COMPILED_FIELD_DESC = new org.apache.thrift.protocol.TField("isCompiled", org.apache.thrift.protocol.TType.BOOL, (short)3);
+  private static final org.apache.thrift.protocol.TField COMPILED_TXN_FIELD_DESC = new org.apache.thrift.protocol.TField("compiledTxn", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,12 +52,14 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
   public String sqlOp; // required
   public Set<String> symbols; // optional
   public boolean isCompiled; // required
+  public CRDTCompiledTransaction compiledTxn; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     SQL_OP((short)1, "sqlOp"),
     SYMBOLS((short)2, "symbols"),
-    IS_COMPILED((short)3, "isCompiled");
+    IS_COMPILED((short)3, "isCompiled"),
+    COMPILED_TXN((short)4, "compiledTxn");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -77,6 +80,8 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
           return SYMBOLS;
         case 3: // IS_COMPILED
           return IS_COMPILED;
+        case 4: // COMPILED_TXN
+          return COMPILED_TXN;
         default:
           return null;
       }
@@ -119,7 +124,7 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
   // isset id assignments
   private static final int __ISCOMPILED_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.SYMBOLS};
+  private static final _Fields optionals[] = {_Fields.SYMBOLS,_Fields.COMPILED_TXN};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -130,6 +135,8 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     tmpMap.put(_Fields.IS_COMPILED, new org.apache.thrift.meta_data.FieldMetaData("isCompiled", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.COMPILED_TXN, new org.apache.thrift.meta_data.FieldMetaData("compiledTxn", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "CRDTCompiledTransaction")));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CRDTPreCompiledOperation.class, metaDataMap);
   }
@@ -160,6 +167,9 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       this.symbols = __this__symbols;
     }
     this.isCompiled = other.isCompiled;
+    if (other.isSetCompiledTxn()) {
+      this.compiledTxn = other.compiledTxn;
+    }
   }
 
   public CRDTPreCompiledOperation deepCopy() {
@@ -172,6 +182,7 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
     this.symbols = null;
     setIsCompiledIsSet(false);
     this.isCompiled = false;
+    this.compiledTxn = null;
   }
 
   public String getSqlOp() {
@@ -260,6 +271,30 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCOMPILED_ISSET_ID, value);
   }
 
+  public CRDTCompiledTransaction getCompiledTxn() {
+    return this.compiledTxn;
+  }
+
+  public CRDTPreCompiledOperation setCompiledTxn(CRDTCompiledTransaction compiledTxn) {
+    this.compiledTxn = compiledTxn;
+    return this;
+  }
+
+  public void unsetCompiledTxn() {
+    this.compiledTxn = null;
+  }
+
+  /** Returns true if field compiledTxn is set (has been assigned a value) and false otherwise */
+  public boolean isSetCompiledTxn() {
+    return this.compiledTxn != null;
+  }
+
+  public void setCompiledTxnIsSet(boolean value) {
+    if (!value) {
+      this.compiledTxn = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case SQL_OP:
@@ -286,6 +321,14 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       }
       break;
 
+    case COMPILED_TXN:
+      if (value == null) {
+        unsetCompiledTxn();
+      } else {
+        setCompiledTxn((CRDTCompiledTransaction)value);
+      }
+      break;
+
     }
   }
 
@@ -299,6 +342,9 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
 
     case IS_COMPILED:
       return Boolean.valueOf(isIsCompiled());
+
+    case COMPILED_TXN:
+      return getCompiledTxn();
 
     }
     throw new IllegalStateException();
@@ -317,6 +363,8 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       return isSetSymbols();
     case IS_COMPILED:
       return isSetIsCompiled();
+    case COMPILED_TXN:
+      return isSetCompiledTxn();
     }
     throw new IllegalStateException();
   }
@@ -361,6 +409,15 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
         return false;
     }
 
+    boolean this_present_compiledTxn = true && this.isSetCompiledTxn();
+    boolean that_present_compiledTxn = true && that.isSetCompiledTxn();
+    if (this_present_compiledTxn || that_present_compiledTxn) {
+      if (!(this_present_compiledTxn && that_present_compiledTxn))
+        return false;
+      if (!this.compiledTxn.equals(that.compiledTxn))
+        return false;
+    }
+
     return true;
   }
 
@@ -382,6 +439,11 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
     list.add(present_isCompiled);
     if (present_isCompiled)
       list.add(isCompiled);
+
+    boolean present_compiledTxn = true && (isSetCompiledTxn());
+    list.add(present_compiledTxn);
+    if (present_compiledTxn)
+      list.add(compiledTxn);
 
     return list.hashCode();
   }
@@ -420,6 +482,16 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
     }
     if (isSetIsCompiled()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isCompiled, other.isCompiled);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCompiledTxn()).compareTo(other.isSetCompiledTxn());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCompiledTxn()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.compiledTxn, other.compiledTxn);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -465,6 +537,16 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
     sb.append("isCompiled:");
     sb.append(this.isCompiled);
     first = false;
+    if (isSetCompiledTxn()) {
+      if (!first) sb.append(", ");
+      sb.append("compiledTxn:");
+      if (this.compiledTxn == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.compiledTxn);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -548,6 +630,15 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // COMPILED_TXN
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.compiledTxn = new CRDTCompiledTransaction();
+              struct.compiledTxn.read(iprot);
+              struct.setCompiledTxnIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -588,6 +679,13 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       oprot.writeFieldBegin(IS_COMPILED_FIELD_DESC);
       oprot.writeBool(struct.isCompiled);
       oprot.writeFieldEnd();
+      if (struct.compiledTxn != null) {
+        if (struct.isSetCompiledTxn()) {
+          oprot.writeFieldBegin(COMPILED_TXN_FIELD_DESC);
+          struct.compiledTxn.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -611,7 +709,10 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       if (struct.isSetSymbols()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetCompiledTxn()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetSymbols()) {
         {
           oprot.writeI32(struct.symbols.size());
@@ -620,6 +721,9 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
             oprot.writeString(_iter36);
           }
         }
+      }
+      if (struct.isSetCompiledTxn()) {
+        struct.compiledTxn.write(oprot);
       }
     }
 
@@ -630,7 +734,7 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
       struct.setSqlOpIsSet(true);
       struct.isCompiled = iprot.readBool();
       struct.setIsCompiledIsSet(true);
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         {
           org.apache.thrift.protocol.TSet _set37 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
@@ -643,6 +747,11 @@ public class CRDTPreCompiledOperation implements org.apache.thrift.TBase<CRDTPre
           }
         }
         struct.setSymbolsIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.compiledTxn = new CRDTCompiledTransaction();
+        struct.compiledTxn.read(iprot);
+        struct.setCompiledTxnIsSet(true);
       }
     }
   }

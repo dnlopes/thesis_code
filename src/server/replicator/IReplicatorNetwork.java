@@ -1,8 +1,10 @@
 package server.replicator;
 
+import common.thrift.CRDTCompiledTransaction;
 import common.thrift.CRDTPreCompiledTransaction;
 import common.thrift.CoordinatorRequest;
 import common.thrift.CoordinatorResponse;
+import common.util.exception.SocketConnectionException;
 
 import java.util.List;
 
@@ -15,8 +17,8 @@ import java.util.List;
  */
 public interface IReplicatorNetwork
 {
-	void sendOperationToRemote(CRDTPreCompiledTransaction transaction);
-	void sendBatchToRemote(List<CRDTPreCompiledTransaction> transactions);
+	void sendOperationToRemote(CRDTCompiledTransaction transaction);
+	void sendBatchToRemote(List<CRDTCompiledTransaction> transactions);
 
-	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req);
+	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req) throws SocketConnectionException;
 }

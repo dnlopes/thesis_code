@@ -2,8 +2,7 @@ package server.execution.main;
 
 
 import common.nodes.NodeConfig;
-import common.thrift.CRDTPreCompiledOperation;
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import common.thrift.Status;
 import common.util.ConnectionFactory;
 import org.apache.commons.dbutils.DbUtils;
@@ -34,7 +33,7 @@ public class DBCommitterAgent implements DBCommitter
 	}
 
 	@Override
-	public Status commitCrdtOperation(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException
+	public Status commitTrx(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
 	{
 		int tries = 0;
 
@@ -49,15 +48,11 @@ public class DBCommitterAgent implements DBCommitter
 			if(commitDecision)
 				return SUCCESS_STATUS;
 			else
-			{
 				LOG.warn(lastError);
-				if(tries % Defaults.LOG_FREQUENCY == 0)
-					LOG.warn("already tried {} times but still no commit", tries);
-			}
 		}
 	}
 
-	private boolean tryCommit(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
+	private boolean tryCommit(CRDTCompiledTransaction op) throws TransactionCommitFailureException
 	{
 		Statement stat = null;
 		boolean success = false;
@@ -65,20 +60,14 @@ public class DBCommitterAgent implements DBCommitter
 		try
 		{
 			stat = this.connection.createStatement();
-			for(CRDTPreCompiledOperation sqlOp : op.getOpsList())
-			{
-				if(!op.isReadyToCommit())
-					throw new TransactionCommitFailureException("sql statement is not ready for commit");
-
-				stat.addBatch(sqlOp.getSqlOp());
-			}
+			for(String sqlOp : op.getOps())
+				stat.addBatch(sqlOp);
 
 			stat.executeBatch();
-			this.connection.commit();
+			connection.commit();
 			success = true;
 
-			if(LOG.isTraceEnabled())
-				LOG.trace("txn {} committed", op.getId());
+			LOG.trace("txn ({}) committed", op.getTxnClock());
 
 		} catch(SQLException e)
 		{
@@ -86,10 +75,10 @@ public class DBCommitterAgent implements DBCommitter
 			{
 				lastError = e.getMessage();
 				DbUtils.rollback(this.connection);
-				LOG.warn("txn {} rollback ({})", op.getId(), e.getMessage());
+				LOG.warn("txn ({}) rollback ({})", op.getTxnClock(), e.getMessage());
 			} catch(SQLException e1)
 			{
-				LOG.warn("failed to rollback txn {}", op.getId(), e1);
+				LOG.error("failed to rollback txn ({})", op.getTxnClock(), e1);
 			}
 		} finally
 		{

@@ -1,12 +1,9 @@
 package server.agents.dispatcher;
 
 
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import server.replicator.IReplicatorNetwork;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.replicator.Replicator;
-import server.util.TransactionCommitFailureException;
 
 
 /**
@@ -16,8 +13,6 @@ import server.util.TransactionCommitFailureException;
 public class BasicDispatcher implements DispatcherAgent
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(BasicDispatcher.class);
-
 	private final IReplicatorNetwork networkInterface;
 
 	public BasicDispatcher(Replicator replicator)
@@ -26,11 +21,8 @@ public class BasicDispatcher implements DispatcherAgent
 	}
 
 	@Override
-	public void dispatchTransaction(CRDTPreCompiledTransaction transaction) throws TransactionCommitFailureException
+	public void dispatchTransaction(CRDTCompiledTransaction transaction)
 	{
-		if(!transaction.isReadyToCommit())
-			throw new TransactionCommitFailureException("transaction is not ready for commit");
-
 		networkInterface.sendOperationToRemote(transaction);
 	}
 }

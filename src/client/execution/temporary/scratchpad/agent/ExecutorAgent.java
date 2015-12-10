@@ -14,7 +14,6 @@ import common.database.table.DatabaseTable;
 import common.database.util.DatabaseCommon;
 import common.database.util.PrimaryKeyValue;
 import common.database.util.Row;
-import common.thrift.CRDTOperationType;
 import org.apache.commons.dbutils.DbUtils;
 
 import java.sql.ResultSet;

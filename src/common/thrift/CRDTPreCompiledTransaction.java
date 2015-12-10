@@ -887,14 +887,14 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
           case 4: // OPS_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
-                struct.opsList = new ArrayList<CRDTPreCompiledOperation>(_list40.size);
-                CRDTPreCompiledOperation _elem41;
-                for (int _i42 = 0; _i42 < _list40.size; ++_i42)
+                org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                struct.opsList = new ArrayList<CRDTPreCompiledOperation>(_list48.size);
+                CRDTPreCompiledOperation _elem49;
+                for (int _i50 = 0; _i50 < _list48.size; ++_i50)
                 {
-                  _elem41 = new CRDTPreCompiledOperation();
-                  _elem41.read(iprot);
-                  struct.opsList.add(_elem41);
+                  _elem49 = new CRDTPreCompiledOperation();
+                  _elem49.read(iprot);
+                  struct.opsList.add(_elem49);
                 }
                 iprot.readListEnd();
               }
@@ -906,16 +906,16 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
           case 5: // SYMBOLS_MAP
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map43 = iprot.readMapBegin();
-                struct.symbolsMap = new HashMap<String,SymbolEntry>(2*_map43.size);
-                String _key44;
-                SymbolEntry _val45;
-                for (int _i46 = 0; _i46 < _map43.size; ++_i46)
+                org.apache.thrift.protocol.TMap _map51 = iprot.readMapBegin();
+                struct.symbolsMap = new HashMap<String,SymbolEntry>(2*_map51.size);
+                String _key52;
+                SymbolEntry _val53;
+                for (int _i54 = 0; _i54 < _map51.size; ++_i54)
                 {
-                  _key44 = iprot.readString();
-                  _val45 = new SymbolEntry();
-                  _val45.read(iprot);
-                  struct.symbolsMap.put(_key44, _val45);
+                  _key52 = iprot.readString();
+                  _val53 = new SymbolEntry();
+                  _val53.read(iprot);
+                  struct.symbolsMap.put(_key52, _val53);
                 }
                 iprot.readMapEnd();
               }
@@ -971,9 +971,9 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
         oprot.writeFieldBegin(OPS_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.opsList.size()));
-          for (CRDTPreCompiledOperation _iter47 : struct.opsList)
+          for (CRDTPreCompiledOperation _iter55 : struct.opsList)
           {
-            _iter47.write(oprot);
+            _iter55.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -983,10 +983,10 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
         oprot.writeFieldBegin(SYMBOLS_MAP_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.symbolsMap.size()));
-          for (Map.Entry<String, SymbolEntry> _iter48 : struct.symbolsMap.entrySet())
+          for (Map.Entry<String, SymbolEntry> _iter56 : struct.symbolsMap.entrySet())
           {
-            oprot.writeString(_iter48.getKey());
-            _iter48.getValue().write(oprot);
+            oprot.writeString(_iter56.getKey());
+            _iter56.getValue().write(oprot);
           }
           oprot.writeMapEnd();
         }
@@ -1052,19 +1052,19 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
       if (struct.isSetOpsList()) {
         {
           oprot.writeI32(struct.opsList.size());
-          for (CRDTPreCompiledOperation _iter49 : struct.opsList)
+          for (CRDTPreCompiledOperation _iter57 : struct.opsList)
           {
-            _iter49.write(oprot);
+            _iter57.write(oprot);
           }
         }
       }
       if (struct.isSetSymbolsMap()) {
         {
           oprot.writeI32(struct.symbolsMap.size());
-          for (Map.Entry<String, SymbolEntry> _iter50 : struct.symbolsMap.entrySet())
+          for (Map.Entry<String, SymbolEntry> _iter58 : struct.symbolsMap.entrySet())
           {
-            oprot.writeString(_iter50.getKey());
-            _iter50.getValue().write(oprot);
+            oprot.writeString(_iter58.getKey());
+            _iter58.getValue().write(oprot);
           }
         }
       }
@@ -1094,30 +1094,30 @@ public class CRDTPreCompiledTransaction implements org.apache.thrift.TBase<CRDTP
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TList _list51 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.opsList = new ArrayList<CRDTPreCompiledOperation>(_list51.size);
-          CRDTPreCompiledOperation _elem52;
-          for (int _i53 = 0; _i53 < _list51.size; ++_i53)
+          org.apache.thrift.protocol.TList _list59 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.opsList = new ArrayList<CRDTPreCompiledOperation>(_list59.size);
+          CRDTPreCompiledOperation _elem60;
+          for (int _i61 = 0; _i61 < _list59.size; ++_i61)
           {
-            _elem52 = new CRDTPreCompiledOperation();
-            _elem52.read(iprot);
-            struct.opsList.add(_elem52);
+            _elem60 = new CRDTPreCompiledOperation();
+            _elem60.read(iprot);
+            struct.opsList.add(_elem60);
           }
         }
         struct.setOpsListIsSet(true);
       }
       if (incoming.get(4)) {
         {
-          org.apache.thrift.protocol.TMap _map54 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.symbolsMap = new HashMap<String,SymbolEntry>(2*_map54.size);
-          String _key55;
-          SymbolEntry _val56;
-          for (int _i57 = 0; _i57 < _map54.size; ++_i57)
+          org.apache.thrift.protocol.TMap _map62 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.symbolsMap = new HashMap<String,SymbolEntry>(2*_map62.size);
+          String _key63;
+          SymbolEntry _val64;
+          for (int _i65 = 0; _i65 < _map62.size; ++_i65)
           {
-            _key55 = iprot.readString();
-            _val56 = new SymbolEntry();
-            _val56.read(iprot);
-            struct.symbolsMap.put(_key55, _val56);
+            _key63 = iprot.readString();
+            _val64 = new SymbolEntry();
+            _val64.read(iprot);
+            struct.symbolsMap.put(_key63, _val64);
           }
         }
         struct.setSymbolsMapIsSet(true);

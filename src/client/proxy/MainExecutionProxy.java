@@ -21,6 +21,7 @@ import common.util.ExitCode;
 import common.util.RuntimeUtils;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,7 @@ public class MainExecutionProxy implements Proxy
 	private final WTIProxyNetwork network;
 	private SQLInterface sqlInterface;
 
+	private final CCJSqlParserManager parserManager;
 	private TransactionContext txnRecord;
 	private boolean readOnly, isRunning;
 	private SQLDeterministicTransformer transformer;
@@ -59,6 +61,7 @@ public class MainExecutionProxy implements Proxy
 		this.readOnly = false;
 		this.isRunning = false;
 		this.transformer = new SQLDeterministicTransformer();
+		this.parserManager = new CCJSqlParserManager();
 
 		try
 		{
@@ -143,7 +146,7 @@ public class MainExecutionProxy implements Proxy
 		SQLOperation sqlOp;
 		try
 		{
-			sqlOp = SQLOperation.parseSQLOperation(op);
+			sqlOp = SQLOperation.parseSQLOperation(op, parserManager);
 		} catch(JSQLParserException e)
 		{
 			throw new SQLException(e.getMessage());
@@ -178,7 +181,7 @@ public class MainExecutionProxy implements Proxy
 		try
 		{
 			long start = System.nanoTime();
-			preparedOps = this.transformer.pepareOperation(op);
+			preparedOps = this.transformer.pepareOperation(op, parserManager);
 			long estimated = System.nanoTime() - start;
 			this.txnRecord.addToParsingTime(estimated);
 
@@ -305,9 +308,10 @@ public class MainExecutionProxy implements Proxy
 
 		private final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-		public SQLOperation[] pepareOperation(String sqlOpString) throws JSQLParserException
+		public SQLOperation[] pepareOperation(String sqlOpString, CCJSqlParserManager parser) throws
+				JSQLParserException
 		{
-			SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString);
+			SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString, parser);
 
 			if(sqlOp.getOpType() == SQLOperationType.INSERT)
 				return prepareInsertOperation((SQLInsert) sqlOp);
@@ -390,7 +394,8 @@ public class MainExecutionProxy implements Proxy
 
 				if(value.equalsIgnoreCase("NOW()") || value.equalsIgnoreCase("NOW") || value.equalsIgnoreCase(
 						"CURRENT_TIMESTAMP") || value.equalsIgnoreCase("CURRENT_TIMESTAMP()") || value
-						.equalsIgnoreCase("CURRENT_DATE"))
+						.equalsIgnoreCase(
+						"CURRENT_DATE"))
 					value = "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'";
 
 				if(value.contains("SELECT") || value.contains("select"))
@@ -450,7 +455,8 @@ public class MainExecutionProxy implements Proxy
 
 				if(value.equalsIgnoreCase("NOW()") || value.equalsIgnoreCase("NOW") || value.equalsIgnoreCase(
 						"CURRENT_TIMESTAMP") || value.equalsIgnoreCase("CURRENT_TIMESTAMP()") || value
-						.equalsIgnoreCase("CURRENT_DATE"))
+						.equalsIgnoreCase(
+						"CURRENT_DATE"))
 					value = "'" + DatabaseCommon.CURRENTTIMESTAMP(DATE_FORMAT) + "'";
 
 				if(value.contains(SymbolsManager.SYMBOL_PREFIX))
@@ -462,7 +468,8 @@ public class MainExecutionProxy implements Proxy
 					{
 						RequestValue requestValue = new RequestValue();
 						AutoIncrementConstraint autoIncrementConstraint = insertSQL.getDbTable()
-								.getAutoIncrementConstraint(column);
+								.getAutoIncrementConstraint(
+								column);
 						requestValue.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
 
 						int generatedId = network.requestNextId(requestValue);
@@ -539,7 +546,8 @@ public class MainExecutionProxy implements Proxy
 					{
 						RequestValue requestValue = new RequestValue();
 						AutoIncrementConstraint autoIncrementConstraint = insertSQL.getDbTable()
-								.getAutoIncrementConstraint(dField.getFieldName());
+								.getAutoIncrementConstraint(
+								dField.getFieldName());
 						requestValue.setConstraintId(autoIncrementConstraint.getConstraintIdentifier());
 
 						int generatedId = network.requestNextId(requestValue);

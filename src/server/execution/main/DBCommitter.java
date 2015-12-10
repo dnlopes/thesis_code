@@ -1,7 +1,7 @@
 package server.execution.main;
 
 
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import common.thrift.Status;
 import server.util.TransactionCommitFailureException;
 
@@ -14,15 +14,9 @@ public interface DBCommitter
 {
 
 	/**
-	 * Attemps to commit a shadow transaction in main storage
+	 * Attemps to commit a transaction in main storage
 	 * @param op
 	 * @return true if commit succeeds
 	 */
-	Status commitCrdtOperation(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException;
-
-
-	interface Defaults
-	{
-		int LOG_FREQUENCY = 150;
-	}
+	Status commitTrx(CRDTCompiledTransaction txn) throws TransactionCommitFailureException;
 }

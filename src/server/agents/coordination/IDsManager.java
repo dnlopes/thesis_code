@@ -10,7 +10,7 @@ import common.util.exception.InitComponentFailureException;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import server.util.CompilePreparationException;
+import server.util.TransactionCompilationException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -40,12 +40,12 @@ public class IDsManager
 		setup(replicatorConfig);
 	}
 
-	public int getNextId(String tableName, String fieldName) throws CompilePreparationException
+	public int getNextId(String tableName, String fieldName) throws TransactionCompilationException
 	{
 		String key = tableName + "_" + fieldName;
 
 		if(!this.idsGenerators.containsKey(key))
-			throw new CompilePreparationException("id generator not found for key: " + key);
+			throw new TransactionCompilationException("id generator not found for key: " + key);
 
 		int nextId = this.idsGenerators.get(key).getNextId();
 
@@ -74,17 +74,15 @@ public class IDsManager
 
 		if(this.idsGenerators.containsKey(key))
 		{
-			if(LOG.isWarnEnabled())
-				LOG.warn("ids generator already created. Silently ignored");
+			LOG.warn("ids generator already created. Silently ignored");
 			return;
 		}
 		IDGenerator newGenerator = new IDGenerator(field, config, Topology.getInstance().getReplicatorsCount());
 
 		this.idsGenerators.put(key, newGenerator);
 
-		if(LOG.isTraceEnabled())
-			LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
-					newGenerator.getCurrentValue());
+		LOG.trace("id generator for field {} created. Initial value {}", field.getFieldName(),
+				newGenerator.getCurrentValue());
 	}
 
 	private class IDGenerator
@@ -128,7 +126,8 @@ public class IDsManager
 					this.currentValue.set(lastId + config.getId());
 				} else
 				{
-					throw new InitComponentFailureException("failed to setup ids generator: could not fetch the last " +
+					throw new InitComponentFailureException("failed to setup ids generator: could not fetch the last" +
+							" " +
 							"id for field " + field.getFieldName());
 				}
 			} catch(SQLException e)

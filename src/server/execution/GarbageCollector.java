@@ -1,4 +1,4 @@
-package server.replicator;
+package server.execution;
 
 
 import common.database.SQLBasicInterface;
@@ -8,6 +8,7 @@ import common.database.table.DatabaseTable;
 import common.util.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import server.replicator.Replicator;
 import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
 

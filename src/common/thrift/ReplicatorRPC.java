@@ -41,9 +41,9 @@ public class ReplicatorRPC {
 
     public Status commitOperation(CRDTPreCompiledTransaction op) throws org.apache.thrift.TException;
 
-    public void sendToRemote(CRDTPreCompiledTransaction transaction) throws org.apache.thrift.TException;
+    public void sendToRemote(CRDTCompiledTransaction transaction) throws org.apache.thrift.TException;
 
-    public void sendBatchToRemote(List<CRDTPreCompiledTransaction> batch) throws org.apache.thrift.TException;
+    public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws org.apache.thrift.TException;
 
   }
 
@@ -51,9 +51,9 @@ public class ReplicatorRPC {
 
     public void commitOperation(CRDTPreCompiledTransaction op, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void sendToRemote(CRDTPreCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void sendToRemote(CRDTCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void sendBatchToRemote(List<CRDTPreCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void sendBatchToRemote(List<CRDTCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -100,24 +100,24 @@ public class ReplicatorRPC {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "commitOperation failed: unknown result");
     }
 
-    public void sendToRemote(CRDTPreCompiledTransaction transaction) throws org.apache.thrift.TException
+    public void sendToRemote(CRDTCompiledTransaction transaction) throws org.apache.thrift.TException
     {
       send_sendToRemote(transaction);
     }
 
-    public void send_sendToRemote(CRDTPreCompiledTransaction transaction) throws org.apache.thrift.TException
+    public void send_sendToRemote(CRDTCompiledTransaction transaction) throws org.apache.thrift.TException
     {
       sendToRemote_args args = new sendToRemote_args();
       args.setTransaction(transaction);
       sendBase("sendToRemote", args);
     }
 
-    public void sendBatchToRemote(List<CRDTPreCompiledTransaction> batch) throws org.apache.thrift.TException
+    public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws org.apache.thrift.TException
     {
       send_sendBatchToRemote(batch);
     }
 
-    public void send_sendBatchToRemote(List<CRDTPreCompiledTransaction> batch) throws org.apache.thrift.TException
+    public void send_sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws org.apache.thrift.TException
     {
       sendBatchToRemote_args args = new sendBatchToRemote_args();
       args.setBatch(batch);
@@ -174,7 +174,7 @@ public class ReplicatorRPC {
       }
     }
 
-    public void sendToRemote(CRDTPreCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void sendToRemote(CRDTCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       sendToRemote_call method_call = new sendToRemote_call(transaction, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -182,8 +182,8 @@ public class ReplicatorRPC {
     }
 
     public static class sendToRemote_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private CRDTPreCompiledTransaction transaction;
-      public sendToRemote_call(CRDTPreCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CRDTCompiledTransaction transaction;
+      public sendToRemote_call(CRDTCompiledTransaction transaction, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
         this.transaction = transaction;
       }
@@ -205,7 +205,7 @@ public class ReplicatorRPC {
       }
     }
 
-    public void sendBatchToRemote(List<CRDTPreCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void sendBatchToRemote(List<CRDTCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       sendBatchToRemote_call method_call = new sendBatchToRemote_call(batch, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -213,8 +213,8 @@ public class ReplicatorRPC {
     }
 
     public static class sendBatchToRemote_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private List<CRDTPreCompiledTransaction> batch;
-      public sendBatchToRemote_call(List<CRDTPreCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private List<CRDTCompiledTransaction> batch;
+      public sendBatchToRemote_call(List<CRDTCompiledTransaction> batch, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
         this.batch = batch;
       }
@@ -1184,7 +1184,7 @@ public class ReplicatorRPC {
       schemes.put(TupleScheme.class, new sendToRemote_argsTupleSchemeFactory());
     }
 
-    public CRDTPreCompiledTransaction transaction; // required
+    public CRDTCompiledTransaction transaction; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1249,7 +1249,7 @@ public class ReplicatorRPC {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.TRANSACTION, new org.apache.thrift.meta_data.FieldMetaData("transaction", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CRDTPreCompiledTransaction.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CRDTCompiledTransaction.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendToRemote_args.class, metaDataMap);
     }
@@ -1258,7 +1258,7 @@ public class ReplicatorRPC {
     }
 
     public sendToRemote_args(
-      CRDTPreCompiledTransaction transaction)
+      CRDTCompiledTransaction transaction)
     {
       this();
       this.transaction = transaction;
@@ -1269,7 +1269,7 @@ public class ReplicatorRPC {
      */
     public sendToRemote_args(sendToRemote_args other) {
       if (other.isSetTransaction()) {
-        this.transaction = new CRDTPreCompiledTransaction(other.transaction);
+        this.transaction = new CRDTCompiledTransaction(other.transaction);
       }
     }
 
@@ -1282,11 +1282,11 @@ public class ReplicatorRPC {
       this.transaction = null;
     }
 
-    public CRDTPreCompiledTransaction getTransaction() {
+    public CRDTCompiledTransaction getTransaction() {
       return this.transaction;
     }
 
-    public sendToRemote_args setTransaction(CRDTPreCompiledTransaction transaction) {
+    public sendToRemote_args setTransaction(CRDTCompiledTransaction transaction) {
       this.transaction = transaction;
       return this;
     }
@@ -1312,7 +1312,7 @@ public class ReplicatorRPC {
         if (value == null) {
           unsetTransaction();
         } else {
-          setTransaction((CRDTPreCompiledTransaction)value);
+          setTransaction((CRDTCompiledTransaction)value);
         }
         break;
 
@@ -1471,7 +1471,7 @@ public class ReplicatorRPC {
           switch (schemeField.id) {
             case 1: // TRANSACTION
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.transaction = new CRDTPreCompiledTransaction();
+                struct.transaction = new CRDTCompiledTransaction();
                 struct.transaction.read(iprot);
                 struct.setTransactionIsSet(true);
               } else { 
@@ -1530,7 +1530,7 @@ public class ReplicatorRPC {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.transaction = new CRDTPreCompiledTransaction();
+          struct.transaction = new CRDTCompiledTransaction();
           struct.transaction.read(iprot);
           struct.setTransactionIsSet(true);
         }
@@ -1550,7 +1550,7 @@ public class ReplicatorRPC {
       schemes.put(TupleScheme.class, new sendBatchToRemote_argsTupleSchemeFactory());
     }
 
-    public List<CRDTPreCompiledTransaction> batch; // required
+    public List<CRDTCompiledTransaction> batch; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1616,7 +1616,7 @@ public class ReplicatorRPC {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.BATCH, new org.apache.thrift.meta_data.FieldMetaData("batch", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CRDTPreCompiledTransaction.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CRDTCompiledTransaction.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendBatchToRemote_args.class, metaDataMap);
     }
@@ -1625,7 +1625,7 @@ public class ReplicatorRPC {
     }
 
     public sendBatchToRemote_args(
-      List<CRDTPreCompiledTransaction> batch)
+      List<CRDTCompiledTransaction> batch)
     {
       this();
       this.batch = batch;
@@ -1636,9 +1636,9 @@ public class ReplicatorRPC {
      */
     public sendBatchToRemote_args(sendBatchToRemote_args other) {
       if (other.isSetBatch()) {
-        List<CRDTPreCompiledTransaction> __this__batch = new ArrayList<CRDTPreCompiledTransaction>(other.batch.size());
-        for (CRDTPreCompiledTransaction other_element : other.batch) {
-          __this__batch.add(new CRDTPreCompiledTransaction(other_element));
+        List<CRDTCompiledTransaction> __this__batch = new ArrayList<CRDTCompiledTransaction>(other.batch.size());
+        for (CRDTCompiledTransaction other_element : other.batch) {
+          __this__batch.add(new CRDTCompiledTransaction(other_element));
         }
         this.batch = __this__batch;
       }
@@ -1657,22 +1657,22 @@ public class ReplicatorRPC {
       return (this.batch == null) ? 0 : this.batch.size();
     }
 
-    public java.util.Iterator<CRDTPreCompiledTransaction> getBatchIterator() {
+    public java.util.Iterator<CRDTCompiledTransaction> getBatchIterator() {
       return (this.batch == null) ? null : this.batch.iterator();
     }
 
-    public void addToBatch(CRDTPreCompiledTransaction elem) {
+    public void addToBatch(CRDTCompiledTransaction elem) {
       if (this.batch == null) {
-        this.batch = new ArrayList<CRDTPreCompiledTransaction>();
+        this.batch = new ArrayList<CRDTCompiledTransaction>();
       }
       this.batch.add(elem);
     }
 
-    public List<CRDTPreCompiledTransaction> getBatch() {
+    public List<CRDTCompiledTransaction> getBatch() {
       return this.batch;
     }
 
-    public sendBatchToRemote_args setBatch(List<CRDTPreCompiledTransaction> batch) {
+    public sendBatchToRemote_args setBatch(List<CRDTCompiledTransaction> batch) {
       this.batch = batch;
       return this;
     }
@@ -1698,7 +1698,7 @@ public class ReplicatorRPC {
         if (value == null) {
           unsetBatch();
         } else {
-          setBatch((List<CRDTPreCompiledTransaction>)value);
+          setBatch((List<CRDTCompiledTransaction>)value);
         }
         break;
 
@@ -1855,14 +1855,14 @@ public class ReplicatorRPC {
             case 1: // BATCH
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list58 = iprot.readListBegin();
-                  struct.batch = new ArrayList<CRDTPreCompiledTransaction>(_list58.size);
-                  CRDTPreCompiledTransaction _elem59;
-                  for (int _i60 = 0; _i60 < _list58.size; ++_i60)
+                  org.apache.thrift.protocol.TList _list66 = iprot.readListBegin();
+                  struct.batch = new ArrayList<CRDTCompiledTransaction>(_list66.size);
+                  CRDTCompiledTransaction _elem67;
+                  for (int _i68 = 0; _i68 < _list66.size; ++_i68)
                   {
-                    _elem59 = new CRDTPreCompiledTransaction();
-                    _elem59.read(iprot);
-                    struct.batch.add(_elem59);
+                    _elem67 = new CRDTCompiledTransaction();
+                    _elem67.read(iprot);
+                    struct.batch.add(_elem67);
                   }
                   iprot.readListEnd();
                 }
@@ -1890,9 +1890,9 @@ public class ReplicatorRPC {
           oprot.writeFieldBegin(BATCH_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.batch.size()));
-            for (CRDTPreCompiledTransaction _iter61 : struct.batch)
+            for (CRDTCompiledTransaction _iter69 : struct.batch)
             {
-              _iter61.write(oprot);
+              _iter69.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -1923,9 +1923,9 @@ public class ReplicatorRPC {
         if (struct.isSetBatch()) {
           {
             oprot.writeI32(struct.batch.size());
-            for (CRDTPreCompiledTransaction _iter62 : struct.batch)
+            for (CRDTCompiledTransaction _iter70 : struct.batch)
             {
-              _iter62.write(oprot);
+              _iter70.write(oprot);
             }
           }
         }
@@ -1937,14 +1937,14 @@ public class ReplicatorRPC {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.batch = new ArrayList<CRDTPreCompiledTransaction>(_list63.size);
-            CRDTPreCompiledTransaction _elem64;
-            for (int _i65 = 0; _i65 < _list63.size; ++_i65)
+            org.apache.thrift.protocol.TList _list71 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.batch = new ArrayList<CRDTCompiledTransaction>(_list71.size);
+            CRDTCompiledTransaction _elem72;
+            for (int _i73 = 0; _i73 < _list71.size; ++_i73)
             {
-              _elem64 = new CRDTPreCompiledTransaction();
-              _elem64.read(iprot);
-              struct.batch.add(_elem64);
+              _elem72 = new CRDTCompiledTransaction();
+              _elem72.read(iprot);
+              struct.batch.add(_elem72);
             }
           }
           struct.setBatchIsSet(true);

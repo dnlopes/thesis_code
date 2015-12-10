@@ -5,6 +5,7 @@ import common.nodes.AbstractNetwork;
 import common.nodes.NodeConfig;
 import common.util.Environment;
 import common.util.Topology;
+import common.util.exception.SocketConnectionException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -24,6 +25,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
@@ -34,6 +37,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private Map<Integer, NodeConfig> replicatorsConfigs;
 	private ObjectPool<EZKCoordinationClient> ezkClientsPool;
 	private int clientsCount;
+	private AtomicLong totalLatency = new AtomicLong();
+	private AtomicInteger counter = new AtomicInteger();
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
@@ -46,14 +51,15 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			if(replicatorConfig.getId() != this.me.getId())
 				this.replicatorsConfigs.put(replicatorConfig.getId(), replicatorConfig);
 
-		createZookeeperClientsPool();
+		initZookeeperConnections();
 	}
 
 	@Override
-	public void sendOperationToRemote(CRDTPreCompiledTransaction transaction)
+	public void sendOperationToRemote(CRDTCompiledTransaction transaction)
 	{
-		for(NodeConfig config : this.replicatorsConfigs.values())
+		for(NodeConfig config : replicatorsConfigs.values())
 		{
+			long start = System.nanoTime();
 			TTransport newTransport = new TSocket(config.getHost(), config.getPort());
 
 			try
@@ -61,19 +67,27 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 				newTransport.open();
 				TProtocol protocol = new TBinaryProtocol.Factory().getProtocol(newTransport);
 				ReplicatorRPC.Client client = new ReplicatorRPC.Client(protocol);
+				long estimated = System.nanoTime() - start;
+				totalLatency.addAndGet(estimated);
 				client.sendToRemote(transaction);
 			} catch(TException e)
 			{
-				LOG.warn("failed to send crdt transaction to replicator {}", config.getId(), e);
+				LOG.warn("failed to trx to replicator {}: ", config.getId(), e);
 			} finally
 			{
 				newTransport.close();
 			}
 		}
+
+		int tmp = counter.incrementAndGet();
+		long latencyShot = totalLatency.get();
+		double latency = latencyShot * 0.000001;
+		if(tmp % 100 == 0)
+			LOG.info("time spent so far creating connections: {} ms", latency);
 	}
 
 	@Override
-	public void sendBatchToRemote(List<CRDTPreCompiledTransaction> transactions)
+	public void sendBatchToRemote(List<CRDTCompiledTransaction> transactions)
 	{
 		for(NodeConfig config : this.replicatorsConfigs.values())
 		{
@@ -96,7 +110,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req)
+	public CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req) throws SocketConnectionException
 	{
 		CoordinatorResponse dummyResponse = new CoordinatorResponse();
 		dummyResponse.setSuccess(false);
@@ -105,17 +119,14 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 		if(client == null)
 		{
-			if(LOG.isWarnEnabled())
-				LOG.warn("ezk clients pool empty. creating new ezk-client");
+			LOG.warn("zookeeper connections pool empty. creating new connection");
 
-			client = createEZKClient();
+			client = createZookeeperConnection();
 
 			if(client == null)
 			{
-				if(LOG.isErrorEnabled())
-					LOG.error("failed to create new ezk-client session");
-
-				return dummyResponse;
+				LOG.error("failed to create new zookeeper connection");
+				throw new SocketConnectionException("failed to establish connection with zookeeper cluster");
 			}
 		}
 
@@ -125,7 +136,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		return response;
 	}
 
-	private void createZookeeperClientsPool()
+	private void initZookeeperConnections()
 	{
 		if(Environment.IS_ZOOKEEPER_REQUIRED)
 		{
@@ -133,7 +144,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 			for(int i = 0; i < Environment.EZK_CLIENTS_POOL_SIZE; i++)
 			{
-				EZKCoordinationClient newClient = createEZKClient();
+				EZKCoordinationClient newClient = createZookeeperConnection();
 
 				if(newClient != null)
 					this.ezkClientsPool.addObject(newClient);
@@ -142,7 +153,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 		}
 	}
 
-	private EZKCoordinationClient createEZKClient()
+	private EZKCoordinationClient createZookeeperConnection()
 	{
 		ZooKeeper zooKeeper;
 		try

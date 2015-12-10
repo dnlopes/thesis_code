@@ -1,6 +1,9 @@
 package server.replicator;
 
 
+import common.util.exception.InitComponentFailureException;
+import common.util.exception.InvalidConfigurationException;
+import common.util.exception.SocketConnectionException;
 import server.agents.coordination.CoordinationAgent;
 import server.agents.dispatcher.DispatcherAgent;
 import server.agents.deliver.DeliverAgent;
@@ -8,9 +11,11 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import common.thrift.*;
+import server.execution.TrxCompiler;
 import server.util.CompilePreparationException;
 import server.util.CoordinationFailureException;
 import server.util.TransactionCommitFailureException;
+import server.util.TransactionCompilationException;
 
 import java.util.List;
 
@@ -27,15 +32,17 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private final DeliverAgent deliver;
 	private final DispatcherAgent dispatcher;
 	private final CoordinationAgent coordAgent;
+	private final TrxCompiler compiler;
 	private final int replicatorId;
 
-	public ReplicatorService(Replicator replicator)
+	public ReplicatorService(Replicator replicator) throws InitComponentFailureException
 	{
 		this.replicator = replicator;
 		this.replicatorId = replicator.getConfig().getId();
 		this.deliver = this.replicator.getDeliver();
 		this.dispatcher = this.replicator.getDispatcher();
 		this.coordAgent = this.replicator.getCoordAgent();
+		this.compiler = new TrxCompiler(replicator);
 	}
 
 	@Override
@@ -53,11 +60,20 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		} catch(CoordinationFailureException e)
 		{
 			return new Status(false, e.getMessage());
+		} catch(SocketConnectionException e)
+		{
+			return new Status(false, e.getMessage());
+		} catch(InvalidConfigurationException e)
+		{
+			return new Status(false, e.getMessage());
+		} catch(TransactionCompilationException e)
+		{
+			return new Status(false, e.getMessage());
 		}
 	}
 
 	@Override
-	public void sendToRemote(CRDTPreCompiledTransaction txn) throws TException
+	public void sendToRemote(CRDTCompiledTransaction txn) throws TException
 	{
 		try
 		{
@@ -69,7 +85,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	}
 
 	@Override
-	public void sendBatchToRemote(List<CRDTPreCompiledTransaction> batch) throws TException
+	public void sendBatchToRemote(List<CRDTCompiledTransaction> batch) throws TException
 	{
 		try
 		{
@@ -80,45 +96,45 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 		}
 	}
 
-	private Status handleCommitOperation(CRDTPreCompiledTransaction transaction)
-			throws CompilePreparationException, TransactionCommitFailureException, CoordinationFailureException
+	private Status handleCommitOperation(CRDTPreCompiledTransaction trx)
+			throws CompilePreparationException, TransactionCommitFailureException, CoordinationFailureException,
+			SocketConnectionException, InvalidConfigurationException, TransactionCompilationException
 	{
-		transaction.setReplicatorId(this.replicatorId);
+		trx.setReplicatorId(replicatorId);
 
-		this.coordAgent.handleCoordination(transaction);
+		coordAgent.handleCoordination(trx);
 
-		if(transaction.isReadyToCommit())
+		if(trx.isReadyToCommit())
 		{
-			// replace symbols for real values and append prefixs when needed
-			transaction.setTxnClock(this.replicator.getNextClock().getClockValue());
-			this.replicator.prepareToCommit(transaction);
-			transaction.setId(this.replicator.assignNewTransactionId());
+			// finish trx compilation
+			trx.setTxnClock(replicator.getNextClock().getClockValue());
+			trx.setId(replicator.assignNewTransactionId());
+			CRDTCompiledTransaction compiledTrx = compiler.compileTrx(trx);
 
 			// wait for commit decision
 			// if it suceeds, then dispatch this transaction to the dispatcher agent for later propagation
+			Status commitStatus = replicator.commitOperation(compiledTrx);
 
-			Status localCommitStatus = this.replicator.commitOperation(transaction);
+			if(commitStatus.isSuccess())
+				dispatcher.dispatchTransaction(compiledTrx);
 
-			if(localCommitStatus.isSuccess())
-				this.dispatcher.dispatchTransaction(transaction);
-
-			return localCommitStatus;
+			return commitStatus;
 		} else
 			return new Status(false, "txn was not ready for commit");
 	}
 
-	private void handleReceiveOperation(CRDTPreCompiledTransaction op) throws TransactionCommitFailureException
+	private void handleReceiveOperation(CRDTCompiledTransaction trx) throws TransactionCommitFailureException
 	{
 		LOG.trace("received txn from other replicator");
-		this.deliver.deliverTransaction(op);
+		this.deliver.deliverTransaction(trx);
 	}
 
-	private void handleReceiveBatch(List<CRDTPreCompiledTransaction> batch) throws TransactionCommitFailureException
+	private void handleReceiveBatch(List<CRDTCompiledTransaction> trxBatch) throws TransactionCommitFailureException
 	{
-		LOG.info("received txn batch from remote node (size {})", batch.size());
+		LOG.debug("received trx batch from remote node (size {})", trxBatch.size());
 
-		for(CRDTPreCompiledTransaction txn : batch)
-			this.deliver.deliverTransaction(txn);
+		for(CRDTCompiledTransaction txn : trxBatch)
+			deliver.deliverTransaction(txn);
 	}
 
 }

@@ -1,7 +1,7 @@
 package server.agents.dispatcher;
 
 
-import common.thrift.CRDTPreCompiledTransaction;
+import common.thrift.CRDTCompiledTransaction;
 import server.replicator.IReplicatorNetwork;
 import server.replicator.Replicator;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class BatchDispatcher implements DispatcherAgent
 
 	private final IReplicatorNetwork networkInterface;
 	private final ScheduledExecutorService scheduleService;
-	private Queue<CRDTPreCompiledTransaction> pendingTransactions;
+	private Queue<CRDTCompiledTransaction> pendingTransactions;
 
 	public BatchDispatcher(Replicator replicator)
 	{
@@ -40,10 +40,9 @@ public class BatchDispatcher implements DispatcherAgent
 	}
 
 	@Override
-	public void dispatchTransaction(CRDTPreCompiledTransaction op)
+	public void dispatchTransaction(CRDTCompiledTransaction op)
 	{
-		//TODO fix bug: check concurrency with dispatcher thread
-		this.pendingTransactions.add(op);
+		pendingTransactions.add(op);
 	}
 
 	private class DispatcherThread implements Runnable
@@ -52,23 +51,19 @@ public class BatchDispatcher implements DispatcherAgent
 		@Override
 		public void run()
 		{
-			Queue<CRDTPreCompiledTransaction> snapshot = pendingTransactions;
+			//TODO fix bug: check concurrency when changing pointers
+			Queue<CRDTCompiledTransaction> snapshot = pendingTransactions;
 			pendingTransactions = new ConcurrentLinkedQueue<>();
 
-			List<CRDTPreCompiledTransaction> batch = prepareBatch(snapshot);
+			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
 
-			LOG.info("sending txn batch (size {}) to remote nodes", batch.size());
+			LOG.debug("sending txn batch (size {}) to remote nodes", batch.size());
 			networkInterface.sendBatchToRemote(batch);
 		}
 
-		private List<CRDTPreCompiledTransaction> prepareBatch(Queue<CRDTPreCompiledTransaction> transactions)
+		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTCompiledTransaction> trxList)
 		{
-			List<CRDTPreCompiledTransaction> batchList = new ArrayList<>();
-
-			for(CRDTPreCompiledTransaction txn : transactions)
-				batchList.add(txn);
-
-			return batchList;
+			return new ArrayList<>(trxList);
 		}
 	}
 }

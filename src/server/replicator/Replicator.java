@@ -5,13 +5,11 @@ import common.util.*;
 import common.util.defaults.ScratchpadDefaults;
 import common.util.exception.InitComponentFailureException;
 import common.util.exception.InvalidConfigurationException;
-import org.apache.commons.lang3.StringUtils;
 import server.agents.AgentsFactory;
+import server.execution.GarbageCollector;
 import server.execution.StatsCollector;
 import server.execution.main.DBCommitterAgent;
 import server.execution.main.DBCommitter;
-import common.database.util.DatabaseMetadata;
-import common.database.field.DataField;
 import common.database.table.DatabaseTable;
 import common.nodes.AbstractNode;
 import common.nodes.NodeConfig;
@@ -22,8 +20,6 @@ import server.agents.dispatcher.DispatcherAgent;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import server.agents.coordination.IDsManager;
-import server.util.CompilePreparationException;
 import server.util.LogicalClock;
 import common.util.defaults.ReplicatorDefaults;
 import common.thrift.*;
@@ -33,8 +29,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +45,6 @@ public class Replicator extends AbstractNode
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Replicator.class);
 	private static final String SUBPREFIX = "r";
-	private static final DatabaseMetadata metadata = Environment.DB_METADATA;
 
 	private LogicalClock clock;
 	private final IReplicatorNetwork networkInterface;
@@ -60,8 +53,6 @@ public class Replicator extends AbstractNode
 	private final String prefix;
 	private final AtomicInteger txnCounter;
 	protected final StatsCollector statsCollector;
-
-	private final IDsManager idsManager;
 
 	private final GarbageCollector garbageCollector;
 	private final ScheduledExecutorService scheduleService;
@@ -72,6 +63,7 @@ public class Replicator extends AbstractNode
 	public Replicator(NodeConfig config) throws InitComponentFailureException, InvalidConfigurationException
 	{
 		super(config);
+
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
 		this.txnCounter = new AtomicInteger();
 		this.networkInterface = new ReplicatorNetwork(this.config);
@@ -84,8 +76,6 @@ public class Replicator extends AbstractNode
 		this.agentsPool = new ObjectPool<>();
 		this.clockLock = new ReentrantLock();
 		this.statsCollector = new StatsCollector();
-
-		this.idsManager = new IDsManager(getPrefix(), getConfig());
 
 		this.scheduleService = Executors.newScheduledThreadPool(2);
 		this.garbageCollector = new GarbageCollector(this);
@@ -113,17 +103,17 @@ public class Replicator extends AbstractNode
 	/**
 	 * Attempts to commit a transaction.
 	 *
-	 * @param shadowTransaction
+	 * @param txn
 	 *
 	 * @return true if it was sucessfully committed locally, false otherwise
 	 */
-	public Status commitOperation(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException
+	public Status commitOperation(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
 	{
 		DBCommitter pad = this.agentsPool.borrowObject();
 
 		if(pad == null)
 		{
-			LOG.warn("commitpad pool was empty. creating new one");
+			LOG.warn("commit pad pool was empty. creating new one");
 			try
 			{
 				pad = new DBCommitterAgent(this.config);
@@ -133,12 +123,12 @@ public class Replicator extends AbstractNode
 			}
 
 			if(pad == null)
-				pad = this.getCommitPadLoop();
+				pad = closedLoopGetPad();
 		}
 
-		LOG.trace("txn {} from replicator {} committing on main storage ", txn.getId(), txn.getReplicatorId());
+		LOG.trace("txn ({}) from replicator {} committing on main storage ", txn.getTxnClock(), txn.getReplicatorId());
 
-		Status status = pad.commitCrdtOperation(txn);
+		Status status = pad.commitTrx(txn);
 
 		if(!status.isSuccess())
 			LOG.error(status.getError());
@@ -165,45 +155,10 @@ public class Replicator extends AbstractNode
 		return newClock;
 	}
 
-	public void deliverTransaction(CRDTPreCompiledTransaction txn) throws TransactionCommitFailureException
+	public void deliverTransaction(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
 	{
 		mergeWithRemoteClock(new LogicalClock(txn.getTxnClock()));
 		commitOperation(txn);
-	}
-
-	public void prepareToCommit(CRDTPreCompiledTransaction transaction) throws CompilePreparationException
-	{
-		if(!transaction.isSetSymbolsMap())
-			return;
-
-		Map<String, SymbolEntry> symbols = transaction.getSymbolsMap();
-
-		//generate unique values locally
-		for(SymbolEntry symbolEntry : symbols.values())
-		{
-			// already got value from coordinator
-			if(symbolEntry.isSetRealValue())
-				continue;
-
-			// lets generate a unique value locally
-			DatabaseTable dbTable = metadata.getTable(symbolEntry.getTableName());
-			DataField dataField = dbTable.getField(symbolEntry.getFieldName());
-
-			if(dataField.isNumberField() && dataField.isAutoIncrement())
-				symbolEntry.setRealValue(String.valueOf(
-						this.idsManager.getNextId(symbolEntry.getTableName(), symbolEntry.getFieldName())));
-			else
-				throw new CompilePreparationException("unexpected datafield type");
-		}
-
-		Map<String, SymbolEntry> symbolsMap = transaction.getSymbolsMap();
-
-		for(CRDTPreCompiledOperation op : transaction.getOpsList())
-		{
-			replacePlaceHolders(op, symbolsMap, transaction);
-			appendPrefixs(op);
-			op.setIsCompiled(true);
-		}
 	}
 
 	public String getPrefix()
@@ -231,46 +186,6 @@ public class Replicator extends AbstractNode
 		return this.coordAgent;
 	}
 
-	private void appendPrefixs(CRDTPreCompiledOperation op)
-	{
-		/*
-		TODO later: implement
-		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
-
-		for(UniqueConstraint constraint : dbTable.getUniqueConstraints())
-		{
-
-		}
-		*/
-	}
-
-	private void replacePlaceHolders(CRDTPreCompiledOperation op, Map<String, SymbolEntry> symbolsMap,
-									 CRDTPreCompiledTransaction transaction) throws CompilePreparationException
-	{
-		String sqlOp = op.getSqlOp();
-		//StringBuilder builder = new StringBuilder("'").append(transaction.getTxnClock()).append("'");
-		String clockReplacer = transaction.getTxnClock();
-
-		String tempOp = StringUtils.replace(sqlOp, LogicalClock.CLOCK_PLACEHOLDER, clockReplacer);
-		op.setSqlOp(tempOp);
-
-		if(op.isSetSymbols())
-		{
-			Set<String> symbolsSet = op.getSymbols();
-
-			for(String symbol : symbolsSet)
-			{
-				String realValue = symbolsMap.get(symbol).getRealValue();
-
-				if(realValue == null)
-					throw new CompilePreparationException("failed to retrieve id from coordinator");
-
-				tempOp = StringUtils.replace(tempOp, symbol, realValue);
-				op.setSqlOp(tempOp);
-			}
-		}
-	}
-
 	private void mergeWithRemoteClock(LogicalClock clock)
 	{
 		LOG.trace("merging clocks {} with {}", this.clock.toString(), clock.toString());
@@ -280,7 +195,7 @@ public class Replicator extends AbstractNode
 		this.clockLock.unlock();
 	}
 
-	private DBCommitter getCommitPadLoop()
+	private DBCommitter closedLoopGetPad()
 	{
 		int counter = 0;
 		DBCommitter pad;
@@ -292,7 +207,7 @@ public class Replicator extends AbstractNode
 
 			if(counter % 150 == 0)
 			{
-				LOG.warn("already tried {} to get commitpad from pool", counter);
+				LOG.warn("already tried {} to get commit pad from pool", counter);
 				counter = 0;
 			}
 
@@ -373,13 +288,12 @@ public class Replicator extends AbstractNode
 
 	private class StateChecker implements Runnable
 	{
-
 		private int id = config.getId();
 
 		@Override
 		public void run()
 		{
-			LOG.info("<r{}> vector clock: {}", id, clock.toString());
+			LOG.info("<r{}> vector clock: ({})", id, clock.getClockValue());
 		}
 	}
 }

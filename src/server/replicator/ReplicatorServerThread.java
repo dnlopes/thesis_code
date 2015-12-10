@@ -1,6 +1,7 @@
 package server.replicator;
 
 
+import common.util.exception.InitComponentFailureException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
@@ -22,7 +23,7 @@ public class ReplicatorServerThread implements Runnable
 	private Replicator me;
 	private TServer server;
 
-	public ReplicatorServerThread(Replicator node) throws TTransportException
+	public ReplicatorServerThread(Replicator node) throws TTransportException, InitComponentFailureException
 	{
 		this.me = node;
 		ReplicatorService handler = new ReplicatorService(this.me);
@@ -34,8 +35,7 @@ public class ReplicatorServerThread implements Runnable
 	@Override
 	public void run()
 	{
-		if(LOG.isInfoEnabled())
-			LOG.info("starting replicator server on port {}", this.me.getSocketAddress().getPort());
+		LOG.info("starting replicator server thread on port {}", this.me.getSocketAddress().getPort());
 		this.server.serve();
 	}
 }
