@@ -95,6 +95,7 @@ database_map = dict()
 replicators_map = dict()
 coordinators_map = dict()
 emulators_map = dict()
+emulators_instances_count = dict()
 
 # maps between node_id and listening port
 # usefull for checking if the layer was correctly initialized
@@ -112,7 +113,7 @@ def parseTopologyFile(topologyFile):
 	distinctNodesSet = Set()
 
 	global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
-	global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes
+	global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes,emulators_instances_count
 
 	distinct_nodes = []
 	database_nodes = []
@@ -125,6 +126,7 @@ def parseTopologyFile(topologyFile):
 	emulators_map = dict()
 	replicatorsIdToPortMap = dict()
 	coordinatorsIdToPortMap = dict()
+	emulators_instances_count = dict()
 
 	for database in e.iter('database'):
 		dbId = database.get('id')
@@ -149,6 +151,10 @@ def parseTopologyFile(topologyFile):
 		emulators_nodes.append(host)
 		distinctNodesSet.add(host)
 		emulators_map[host] = proxyId
+		if not host in emulators_instances_count:
+				emulators_instances_count[host] = 1
+		else:
+				emulators_instances_count[host] += 1
 
 	for coordinator in e.iter('coordinator'):
 		coordinatorId = coordinator.get('id')
