@@ -106,8 +106,13 @@ public class TransactionStats
 
 		return buffer.toString();
 
-		/*
-		buffer.setLength(0);
+
+
+	}
+
+	public String getDistributionStatsString()
+	{
+		StringBuffer buffer = new StringBuffer();
 
 		int lowerBound = 0;
 		int higherBound = lowerBound + TpccConstants.LATENCY_INTERVAL - 1;
@@ -129,6 +134,6 @@ public class TransactionStats
 			index++;
 		}
 
-		System.out.println(buffer.toString());  */
+		return buffer.toString();
 	}
 }

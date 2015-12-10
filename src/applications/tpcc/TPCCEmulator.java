@@ -119,6 +119,7 @@ public class TPCCEmulator
 
 		globalStats.generateStatistics();
 		String statsString = globalStats.getStatsString();
+		String distributionStrings = globalStats.getDistributionStrings();
 
 		PrintWriter out;
 
@@ -131,7 +132,7 @@ public class TPCCEmulator
 		buffer.append("avgLatency").append(",");
 		buffer.append("avgExecLatency").append(",");
 		buffer.append("avgCommitLatency").append("\n");
-		buffer.append(statsString);
+		buffer.append(statsString).append("\n").append(distributionStrings);
 
 		String outputContent = buffer.toString();
 

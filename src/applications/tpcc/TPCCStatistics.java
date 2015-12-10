@@ -59,4 +59,14 @@ public class TPCCStatistics
 
 		return buffer.toString();
 	}
+
+	public String getDistributionStrings()
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		for(TransactionStats txnStat : this.txnStats)
+			buffer.append(txnStat.getDistributionStatsString());
+
+		return buffer.toString();
+	}
 }
