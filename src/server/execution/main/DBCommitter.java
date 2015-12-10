@@ -8,7 +8,7 @@ import server.util.TransactionCommitFailureException;
 
 /**
  * Created by dnlopes on 06/04/15.
- * Interface to execute shadow transactions on main storage
+ * Interface to execute transactions on main storage
  */
 public interface DBCommitter
 {
