@@ -191,13 +191,8 @@ def distributeCode():
 				put(config.JARS_DIR + '/*.jar', config.DEPLOY_DIR)
 				put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
 				put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')
-				# put(config.PROJECT_DIR + '/resources/configs', config.DEPLOY_DIR)
-				# put(config.PROJECT_DIR + '/experiments', config.DEPLOY_DIR)
-				# put(config.PROJECT_DIR + '/resources/*.sql', config.DEPLOY_DIR)
-				# put(config.PROJECT_DIR + '/resources/*.properties', config.DEPLOY_DIR)
-				# put(config.PROJECT_DIR + '/resources/*.cfg', config.DEPLOY_DIR)
 
-
+@parallel
 def downloadLogsTo(outputDir):
 		logger.info('downloading log files from %s', env.host_string)
 		with cd(config.DEPLOY_DIR), hide('warnings', 'output', 'running'), settings(warn_only=True):
@@ -225,8 +220,8 @@ def prepareTPCCDatabase():
 		logger.info('unpacking database at: %s', env.host_string)
 		with cd(config.BASE_DIR), hide('output', 'running'):
 				run('rm -rf mysql-5.6')
-        run('rm -rf mysql-5.6-galera')
-        run('tar zxvf ' + mysqlPackage)
+				run('rm -rf mysql-5.6-galera')
+				run('tar zxvf ' + mysqlPackage)
 				#run('cp ' + config.BACKUPS_DIR + '/' + mysqlPackage + " " + config.BASE_DIR)
 
 		time.sleep(3)

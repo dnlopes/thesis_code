@@ -343,7 +343,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 
 		while isRunning:
 				if attempts >= 10:
-						logger.error("checked 6 times if clients were running. Something is probably wrong")
+						logger.error("checked 10 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):
@@ -384,8 +384,8 @@ def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators
 		isRunning = True
 		attempts = 0
 		while isRunning:
-				if attempts >= 6:
-						logger.error("checked 6 times if clients were running. Something is probably wrong")
+				if attempts >= 10:
+						logger.error("checked 10 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):
@@ -476,8 +476,8 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 		isRunning = True
 		attempts = 0
 		while isRunning:
-				if attempts >= 6:
-						logger.error("checked 6 times if clients were running. Something is probably wrong")
+				if attempts >= 10:
+						logger.error("checked 10 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):
@@ -516,8 +516,8 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 		isRunning = True
 		attempts = 0
 		while isRunning:
-				if attempts >= 6:
-						logger.error("checked 6 times if clients were running. Something is probably wrong")
+				if attempts >= 10:
+						logger.error("checked 10 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):
@@ -606,7 +606,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 		attempts = 0
 		while isRunning:
 				if attempts >= 10:
-						logger.error("checked 6 times if clients were running. Something is probably wrong")
+						logger.error("checked 10 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):

@@ -163,6 +163,8 @@ public class CausalDeliverAgent implements DeliverAgent
 					}
 				}
 			} while(hasDelivered);
+
+			LOG.info("no more remote operations to apply. Go sleep");
 		}
 	}
 }
