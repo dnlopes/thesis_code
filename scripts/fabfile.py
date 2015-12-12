@@ -99,7 +99,7 @@ def startDatabases():
 		with cd(config.MYSQL_DIR), hide('running', 'output'):
 				run(command)
 
-		time.sleep(15)
+		time.sleep(20)
 
 		if not isPortOpen(config.MYSQL_PORT):
 				return '0'
@@ -126,7 +126,7 @@ def startCoordinators():
 				run('echo -e "' + config.ZOOKEEPER_SERVERS_STRING + '" >> zoo.cfg')
 				run(command)
 
-		time.sleep(15)
+		time.sleep(20)
 		if not isPortOpen(config.ZOOKEEPER_CLIENT_PORT):
 				return '0'
 		return '1'
