@@ -6,16 +6,16 @@
 			<database id="2" dbHost="10.0.0.52" dbPort="3306" dbUser="sa" dbPwd="101010" />
 		</databases>
 		<coordinators>
-			<coordinator id="1" host="10.0.0.51" port="50020" refDatabase="1" />
-      <coordinator id="2" host="10.0.0.52" port="50020" refDatabase="1" />
+      <coordinator id="1" host="10.0.0.51"/>
+      <coordinator id="2" host="10.0.0.52"/>
 		</coordinators>
 		<replicators>
 			<replicator id="1" host="10.0.0.51" port="50000" refDatabase="1" />
 			<replicator id="2" host="10.0.0.52" port="50001" refDatabase="2" />
 		</replicators>
 		<proxies>
-			<proxy id="1" host="10.0.0.56" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
-			<proxy id="2" host="10.0.0.223" port="50011" refDatabase="2" refReplicator="2" refCoordinator="1" />
+			<proxy id="1" host="10.0.0.56" port="50010" refDatabase="1" refReplicator="1"/>
+			<proxy id="2" host="10.0.0.223" port="50011" refDatabase="2" refReplicator="2"/>
 		</proxies>
 	</topology>
 </config>

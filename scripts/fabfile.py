@@ -165,7 +165,8 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 			jdbc = 'mysql'
 
 		currentId = config.emulators_map.get(env.host_string)
-		workloadFile = config.TPCC_WORKLOADS_DIR + "/" + config.emulators_workloads.get(currentId)
+		#workloadFile = config.TPCC_WORKLOADS_DIR + "/" + config.emulators_workloads.get(currentId)
+		workloadFile = config.TPCC_WORKLOAD_FILE
 		logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
 		command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
 							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'

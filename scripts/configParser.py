@@ -153,11 +153,11 @@ def parseTopologyFile(topologyFile):
 		emulators_nodes.append(host)
 		distinctNodesSet.add(host)
 		emulators_map[host] = proxyId
-		emulators_workloads[proxyId] = workload
-		if not host in emulators_instances_count:
-				emulators_instances_count[host] = 1
-		else:
-				emulators_instances_count[host] += 1
+		#emulators_workloads[proxyId] = workload
+		#if not host in emulators_instances_count:
+		#		emulators_instances_count[host] = 1
+		#else:
+		#		emulators_instances_count[host] += 1
 
 	for coordinator in e.iter('coordinator'):
 		coordinatorId = coordinator.get('id')
