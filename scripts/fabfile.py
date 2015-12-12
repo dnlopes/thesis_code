@@ -224,9 +224,10 @@ def prepareTPCCDatabase():
 
 		logger.info('unpacking database at: %s', env.host_string)
 		with cd(config.BASE_DIR), hide('output', 'running'):
-				run('rm -rf mysql*')
-				run('cp ' + config.BACKUPS_DIR + '/' + mysqlPackage + " " + config.BASE_DIR)
-				run('tar zxvf ' + mysqlPackage)
+				run('rm -rf mysql-5.6')
+        run('rm -rf mysql-5.6-galera')
+        run('tar zxvf ' + mysqlPackage)
+				#run('cp ' + config.BACKUPS_DIR + '/' + mysqlPackage + " " + config.BASE_DIR)
 
 		time.sleep(3)
 
@@ -240,8 +241,8 @@ def prepareCoordinatorLayer():
 		zookeeperPackage = 'zookeeper_data_ready.tar.gz'
 		logger.info('unpacking zookeeper data_dir at: %s', env.host_string)
 		with cd(config.BASE_DIR), hide('output', 'running'):
-				run('rm -rf zookeeper*')
-				run('cp ' + config.BACKUPS_DIR + '/' + zookeeperPackage + " " + config.BASE_DIR)
+				run('rm -rf zookeeper')
+				#run('cp ' + config.BACKUPS_DIR + '/' + zookeeperPackage + " " + config.BASE_DIR)
 				run('tar zxvf ' + zookeeperPackage)
 
 		time.sleep(3)
