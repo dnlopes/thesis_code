@@ -126,7 +126,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private void handleReceiveOperation(CRDTCompiledTransaction trx) throws TransactionCommitFailureException
 	{
 		LOG.trace("received txn from other replicator");
-		this.deliver.deliverTransaction(trx);
+		deliver.deliverTransaction(trx);
 	}
 
 	private void handleReceiveBatch(List<CRDTCompiledTransaction> trxBatch) throws TransactionCommitFailureException

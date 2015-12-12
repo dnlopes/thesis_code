@@ -14,8 +14,8 @@
 			<replicator id="2" host="node2" port="50001" refDatabase="2" />
 		</replicators>
 		<proxies>
-			<proxy id="1" host="node10" port="50010" refDatabase="1" refReplicator="1"/>
-			<proxy id="2" host="node10" port="50011" refDatabase="2" refReplicator="2"/>
+			<proxy id="1" host="node6" port="50010" refDatabase="1" refReplicator="1" workloadFile="workload1"/>
+      <proxy id="2" host="node7" port="50011" refDatabase="2" refReplicator="2" workloadFile="workload1"/>
 		</proxies>
 	</topology>
 </config>
