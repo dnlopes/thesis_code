@@ -19,7 +19,7 @@ import java.sql.SQLException;
 public class TPCCClientEmulator implements Runnable
 {
 
-	public static int MAX_RETRIES = 50;
+	public static int MAX_RETRIES = 1;
 	private static final Logger LOG = LoggerFactory.getLogger(TPCCClientEmulator.class);
 
 	private Connection connection;
@@ -53,6 +53,8 @@ public class TPCCClientEmulator implements Runnable
 	public void run()
 	{
 
+		int counter = 1;
+
 		while(TPCCEmulator.RUNNING)
 		{
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
@@ -61,8 +63,9 @@ public class TPCCClientEmulator implements Runnable
 			commitLatency = 0;
 			boolean success = false;
 
-			while(retries <= MAX_RETRIES)
+			while(retries < MAX_RETRIES)
 			{
+				counter++;
 				retries++;
 				success = tryTransaction(txn);
 
@@ -83,7 +86,9 @@ public class TPCCClientEmulator implements Runnable
 			if(!success)
 			{
 				this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
-				LOG.error("txn {} failed after {} attempts: {}", txn.getName(), retries, txn.getLastError());
+
+				if(counter % 1000 == 0)
+					LOG.error("txn {} failed after {} attempts: {}", txn.getName(), retries, txn.getLastError());
 			}
 		}
 	}

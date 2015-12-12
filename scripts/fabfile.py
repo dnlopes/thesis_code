@@ -45,7 +45,7 @@ def startDatabasesGalera(isMaster):
 		with cd(config.GALERA_MYSQL_DIR), hide('running', 'output'):
 				run(command)
 
-		time.sleep(30)
+		time.sleep(20)
 
 		if not isPortOpen(config.MYSQL_PORT):
 				return '0'
@@ -247,6 +247,7 @@ def prepareCoordinatorLayer():
 #   HELPER METHODS
 ################################################################################################
 
+@parallel
 def stopJava():
 		command = 'ps ax | grep java'
 		with settings(warn_only=True):
@@ -257,7 +258,7 @@ def stopJava():
 						with settings(warn_only=True):
 								run('kill -9 ' + str(pid))
 
-
+@parallel
 def stopMySQL():
 		with settings(warn_only=True), hide('output'), cd(config.MYSQL_DIR):
 				run(config.MYSQL_SHUTDOWN_COMMAND)
