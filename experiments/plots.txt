@@ -1,0 +1,22 @@
+# Generate Latency-Throughput (Galera vs WeakDB)
+
+gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; outputfile='./lt3.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+
+# Generate Latency-Throughput (WeakDB No Coordination vs WeakDB Coordation)
+
+gnuplot -e "data1='./crdt_no.csv'; data2='./crdt.csv'; outputfile='./coordination_overhead.eps'" ~/code/experiments/plots/crdt_vs_crdt_no_coord.gp
+
+
+# Generate Throughput-Clients graphic bar (Galera vs CRDT)
+
+gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; outputfile='./clients_throughput_bar.eps'" ~/code/experiments/plots/crdt_galera_throughput_bar.gp
+
+
+# Generate Scalbility Plot (Linear vs WeakDB vs Galera)
+
+gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; data3='./perfect_96max.csv' ; outputfile='./scalability.eps'" ~/code/experiments/plots/scalability_galera_crdt.gp
+
+
+# Generate Histogram Bar (clients/latency (new-order)) (WeakDB No Coordination vs WeakDB Coordation)
+
+gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; outputfile='./coordination_overhead_histogram.eps'" ~/code/experiments/plots/coordination_overhead_latency.gp

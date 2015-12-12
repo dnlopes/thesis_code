@@ -37,4 +37,4 @@ set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
 set datafile separator ','
 
-plot data1 every 6 using ($3/60):7 with linespoints ls 5 title 'WeakDB-3R', data2 every 6 using ($3/60):7 with linespoints ls 3 title 'Galera-3R'
+plot data1 every 6::::31 using ($3/60):7 with linespoints ls 5 title 'WeakDB No-Coordination', data2 every 6::::31 using ($3/60):7 with linespoints ls 3 title 'WeakDB Coordination'
