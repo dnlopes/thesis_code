@@ -18,11 +18,12 @@ IS_LOCALHOST = False
 #   CURRENT CONFIGURATION (the only variables needed to modify between benchmarks)
 ################################################################################################
 
-user='dp.lopes'
+user='ubuntu'
+#user='dp.lopes'
 #user='dnl'
 
-ENVIRONMENT='fct'
-#ENVIRONMENT='amazon'
+#ENVIRONMENT='fct'
+ENVIRONMENT='amazon'
 #ENVIRONMENT='localhost'
 
 if ENVIRONMENT == 'localhost':
