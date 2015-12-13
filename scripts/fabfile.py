@@ -322,6 +322,7 @@ def cleanOutputFiles():
 		with cd(config.BASE_DIR), hide('output', 'running'), settings(warn_only=True):
 				run('rm -rf ' + config.DEPLOY_DIR + '/*.log')
 				run('rm -rf ' + config.DEPLOY_DIR + '/*.temp')
+				run('rm -rf ' + config.DEPLOY_DIR + '/*.csv')
 
 
 def executeRemoteCommand(command):

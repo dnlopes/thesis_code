@@ -54,12 +54,14 @@ public class TPCCClientEmulator implements Runnable
 		while(TPCCEmulator.RUNNING)
 		{
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
+			execLatency = 0;
+			commitLatency = 0;
 			boolean success = false;
 
 			while(!success)
 			{
-				execLatency = 0;
-				commitLatency = 0;
+				//execLatency = 0;
+				//commitLatency = 0;
 				success = tryTransaction(txn);
 
 				if(success)

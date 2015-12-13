@@ -23,7 +23,7 @@ TO_DOWNLOAD_COMMANDS = []
 ################################################################################################
 #NUMBER_REPLICAS=[1]
 #JDCBs=['mysql_crdt', "default_jdbc"]
-JDCBs=['crdt']
+JDCBs=['galera']
 #JDCBs=['crdt','galera']
 #JDCBs=['cluster']
 
