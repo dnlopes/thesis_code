@@ -27,7 +27,7 @@ public class TpccConstants
 
 	// constants for NewOrder
 	public static int MAX_NUM_ITEMS = 15;
-	public static int MAX_ITEM_LEN = 24;
+	//public static int MAX_ITEM_LEN = 24;
 
 
 	public static String NEW_ORDER_TXN_NAME = "neworder";

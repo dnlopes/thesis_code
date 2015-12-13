@@ -25,22 +25,29 @@ public class TpccBenchmark
 
 	public static void main(String[] args) throws ConfigurationLoadException
 	{
-		if(args.length != 7)
+		if(args.length != 8)
 		{
 			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <emulatorId> " +
 					"<numberClients> " +
-					"<testDuration> <jdbc> [crdt || mysql]");
+					"<testDuration> <jdbc> [crdt || mysql] <numberWarehouses>");
 			System.exit(-1);
 		}
 
 		String topologyFile = args[0];
 		String envFile = args[1];
 		String workloadFile = args[2];
+		TpccConstants.WAREHOUSES_NUMBER = Integer.parseInt(args[7]);
+
+		if(TpccConstants.WAREHOUSES_NUMBER > 1)
+			TpccConstants.ALLOW_MULTI_WAREHOUSE_TX = true;
+		else
+			TpccConstants.ALLOW_MULTI_WAREHOUSE_TX = false;
 
 		Topology.setupTopology(topologyFile);
 		Environment.setupEnvironment(envFile);
 
 		loadWorkloadFile(workloadFile);
+
 
 		int proxyId = Integer.parseInt(args[3]);
 		int numberClients = Integer.parseInt(args[4]);
