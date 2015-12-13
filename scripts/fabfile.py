@@ -157,7 +157,6 @@ def startReplicators(configFile):
 
 
 def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
-		#emulatorsInstancesList = config.
 		jarFile = 'tpcc-client.jar'
 		jdbc = config.JDBC
 
@@ -168,7 +167,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 		#workloadFile = config.TPCC_WORKLOADS_DIR + "/" + config.emulators_workloads.get(currentId)
 		workloadFile = config.TPCC_WORKLOAD_FILE
 		logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
-		command = 'java -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
+		command = 'java ' + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
 							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \

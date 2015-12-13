@@ -52,9 +52,6 @@ public class TPCCClientEmulator implements Runnable
 	@Override
 	public void run()
 	{
-
-		int counter = 1;
-
 		while(TPCCEmulator.RUNNING)
 		{
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
@@ -65,7 +62,6 @@ public class TPCCClientEmulator implements Runnable
 
 			while(retries < MAX_RETRIES)
 			{
-				counter++;
 				retries++;
 				success = tryTransaction(txn);
 
@@ -75,20 +71,16 @@ public class TPCCClientEmulator implements Runnable
 						this.stats.addTxnRecord(txn.getName(),
 								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
 					break;
-				} else
-				{
-					//if error was NOT from dead lock, move on to the next txn
-					String error = txn.getLastError();
-					if(!error.contains("try restarting transaction"))
-						break;
 				}
 			}
+
 			if(!success)
 			{
 				this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
+				String error = txn.getLastError();
 
-				if(counter % 1000 == 0)
-					LOG.error("txn {} failed after {} attempts: {}", txn.getName(), retries, txn.getLastError());
+				if(!error.contains("try restarting transaction") && !error.contains("Duplicate entry"))
+					LOG.error(error);
 			}
 		}
 	}
