@@ -60,6 +60,16 @@ public class TPCCStatistics
 		return buffer.toString();
 	}
 
+	public String getStatsString(int iteration)
+	{
+		StringBuilder buffer = new StringBuilder();
+
+		for(TransactionStats txnStat : this.txnStats)
+			buffer.append(txnStat.getStatsString(iteration));
+
+		return buffer.toString();
+	}
+
 	public String getDistributionStrings()
 	{
 		StringBuilder buffer = new StringBuilder();

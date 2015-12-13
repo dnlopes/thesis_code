@@ -24,6 +24,7 @@ public class TPCCClientEmulator implements Runnable
 	private Connection connection;
 	private int id;
 	private final BaseBenchmarkOptions options;
+
 	private TPCCStatistics stats;
 	private long execLatency, commitLatency;
 
@@ -69,9 +70,7 @@ public class TPCCClientEmulator implements Runnable
 					if(TPCCEmulator.COUTING)
 						this.stats.addTxnRecord(txn.getName(),
 								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
-				}
-
-				else
+				} else
 				{
 					String error = txn.getLastError();
 
@@ -107,4 +106,10 @@ public class TPCCClientEmulator implements Runnable
 	{
 		return this.stats;
 	}
+
+	public void setStats(TPCCStatistics stats)
+	{
+		this.stats = stats;
+	}
+
 }

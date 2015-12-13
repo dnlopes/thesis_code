@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +29,7 @@ public class TPCCEmulator
 
 	private ExecutorService threadsService;
 	private List<TPCCClientEmulator> clients;
+	private Map<Integer, List<TPCCStatistics>> perSecondStats;
 	private int emulatorId;
 	private BaseBenchmarkOptions options;
 
@@ -41,6 +41,7 @@ public class TPCCEmulator
 		this.options = options;
 		this.clients = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
+		this.perSecondStats = new HashMap<>();
 	}
 
 	public boolean runBenchmark()
@@ -81,6 +82,7 @@ public class TPCCEmulator
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
+		int iteration = 1;
 
 		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
@@ -88,6 +90,16 @@ public class TPCCEmulator
 			try
 			{
 				Thread.sleep(1000);
+				LOG.info("collecting statistics");
+				List<TPCCStatistics> secondStats = new LinkedList<>();
+				perSecondStats.put(iteration++, secondStats);
+
+				for(TPCCClientEmulator client : clients)
+				{
+					secondStats.add(client.getStats());
+					client.setStats(new TPCCStatistics(1));
+				}
+
 			} catch(InterruptedException e)
 			{
 				LOG.error("Benchmark interrupted: {}", e.getMessage());
@@ -165,9 +177,56 @@ public class TPCCEmulator
 
 	}
 
-	public String getPrefix()
+
+	public void printStatistics3()
 	{
-		return "Em" + this.emulatorId + "_" + this.options.getClientsNumber() + "users.results.temp";
+		Map<Integer, TPCCStatistics> allSecondsStats = new HashMap<>();
+
+		for(Map.Entry<Integer,List<TPCCStatistics>> aSecondStats : perSecondStats.entrySet())
+		{
+			TPCCStatistics aSecondStat = new TPCCStatistics(0);
+
+			for(TPCCStatistics aStat : aSecondStats.getValue())
+				aSecondStat.mergeStatistics(aStat);
+
+			aSecondStat.generateStatistics();
+			allSecondsStats.put(aSecondStats.getKey(), aSecondStat);
+		}
+
+
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("iteration").append(",");
+		buffer.append("txn_name").append(",");
+		buffer.append("commits").append(",");
+		buffer.append("aborts").append(",");
+		buffer.append("maxLatency").append(",");
+		buffer.append("minLatency").append(",");
+		buffer.append("avgLatency").append(",");
+		buffer.append("avgExecLatency").append(",");
+		buffer.append("avgCommitLatency").append("\n");
+
+		for(Map.Entry<Integer, TPCCStatistics> aSecondStat : allSecondsStats.entrySet())
+		{
+			//buffer.append(aSecondStat.getKey()).append(",");
+			buffer.append(aSecondStat.getValue().getStatsString(aSecondStat.getKey()));
+			buffer.append("\n");
+		}
+
+		PrintWriter out;
+
+		try
+		{
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
+					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
+					+ this.emulatorId + ".csv";
+
+			out = new PrintWriter(fileName);
+			out.write(buffer.toString());
+			out.close();
+		} catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void shutdownEmulator()

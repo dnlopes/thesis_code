@@ -105,9 +105,23 @@ public class TransactionStats
 		buffer.append(avgCommitLatency).append("\n");
 
 		return buffer.toString();
+	}
 
+	public String getStatsString(int iteration)
+	{
+		StringBuffer buffer = new StringBuffer();
 
+		buffer.append(iteration).append(",");
+		buffer.append(txnName).append(",");
+		buffer.append(successCounter).append(",");
+		buffer.append(abortsCounter).append(",");
+		buffer.append(maxLatency).append(",");
+		buffer.append(minLatency).append(",");
+		buffer.append(avgLatency).append(",");
+		buffer.append(avgExecLatency).append(",");
+		buffer.append(avgCommitLatency).append("\n");
 
+		return buffer.toString();
 	}
 
 	public String getDistributionStatsString()
