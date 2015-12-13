@@ -35,20 +35,18 @@ public class DBCommitterAgent implements DBCommitter
 	@Override
 	public Status commitTrx(CRDTCompiledTransaction txn) throws TransactionCommitFailureException
 	{
-		int tries = 0;
+		int tries = 7;
 
 		while(true)
 		{
 			tries++;
-			if(tries == DBCommitter.MAX_RETRIES)
-				throw new TransactionCommitFailureException("transaction failed to commit after 50 attempts");
+			if(tries % DBCommitter.LOG_ERROR_FREQUENCY == 0)
+				LOG.warn("already tried {} to commit without success ({})", tries, lastError);
 
 			boolean commitDecision = tryCommit(txn);
 
 			if(commitDecision)
 				return SUCCESS_STATUS;
-			else
-				LOG.warn(lastError);
 		}
 	}
 
@@ -77,7 +75,7 @@ public class DBCommitterAgent implements DBCommitter
 				DbUtils.rollback(this.connection);
 			} catch(SQLException e1)
 			{
-				LOG.error("failed to rollback txn ({})", op.getTxnClock(), e1);
+				LOG.warn("failed to rollback txn ({})", op.getTxnClock(), e1);
 			}
 		} finally
 		{

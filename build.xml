@@ -144,7 +144,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<fileset dir="${classes.dir}">
 				<include name="util/**/*.class" />
@@ -153,7 +153,7 @@
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
-				<include name="commons-csv-1.2.jar"/>
+				<include name="commons-csv-1.2.jar" />
 			</zipgroupfileset>
 		</jar>
 	</target>
@@ -165,7 +165,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_zookeeper.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
@@ -188,7 +188,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
@@ -205,7 +205,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_zookeeper.properties" />
 			</fileset>
 			<zipgroupfileset dir="${ezk.libs.dir}">
 				<include name="slf4j-api-1.6.1.jar" />
@@ -227,7 +227,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
@@ -250,7 +250,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
@@ -263,7 +263,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
@@ -276,7 +276,7 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 			<zipgroupfileset dir="${weak.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
@@ -312,7 +312,7 @@
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<fileset dir="${resources.dir}">
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
 			</fileset>
 		</jar>
 	</target>
@@ -334,11 +334,12 @@
 			</fileset>
 			<fileset dir="${resources.dir}">
 				<include name="zoo.cfg" />
-				<include name="log4j.properties" />
+				<include name="log4j_weakdb.properties" />
+				<include name="log4j_zookeeper.properties" />
 			</fileset>
 		</copy>
-		<copy todir="${deploy.dir}/src" >
-			<fileset dir="${src.dir}" includes="**"/>
+		<copy todir="${deploy.dir}/src">
+			<fileset dir="${src.dir}" includes="**" />
 		</copy>
 		<copy todir="${deploy.dir}/topologies">
 			<fileset dir="${resources.dir}/topologies">

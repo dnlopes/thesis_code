@@ -111,9 +111,9 @@ def startCoordinators():
 		currentId = config.coordinators_map.get(env.host_string)
 
 		logFile = config.FILES_PREFIX + 'coordinator' + str(currentId) + '.log'
-		command = 'java -Xms1000m -Xmx2000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
+		command = 'java ' + + config.ZOOKEEPER_CFG_FILE + + " -Xms1000m -Xmx2000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_LOG4J_FILE + ' ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
-				command = 'java -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
+				command = 'java -jar zookeeper-server.jar' + ' > ' + logFile + ' &'
 
 		logger.info('starting zookeeper at %s', env.host_string)
 		logger.info('%s', command)
@@ -139,7 +139,7 @@ def startReplicators(configFile):
 		logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
 		jarFile = 'replicator.jar'
 
-		command = 'java -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
+		command = 'java ' +  + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
 				currentId) + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
@@ -247,9 +247,8 @@ def prepareCoordinatorLayer():
 #   HELPER METHODS
 ################################################################################################
 
-@parallel
 def stopJava():
-		command = 'ps ax | grep java'
+		command = 'ps ax | grep java | grep dp.lopes'
 		with settings(warn_only=True):
 				output = run(command)
 		for line in output.splitlines():

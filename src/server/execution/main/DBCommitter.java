@@ -14,6 +14,7 @@ public interface DBCommitter
 {
 
 	int MAX_RETRIES = 50;
+	int LOG_ERROR_FREQUENCY = 100;
 
 	/**
 	 * Attemps to commit a transaction in main storage

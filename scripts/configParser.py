@@ -32,6 +32,8 @@ if ENVIRONMENT == 'localhost':
 ################################################################################################
 #	COMMANDS AND BASE PATHS
 ################################################################################################
+WEAK_DB_LOG4J_FILE = "-Dlog4j.configuration=file:\"./log4j_weakdb.properties\""
+ZOOKEEPER_LOG4J_FILE = "-Dlog4j.configuration=file:\"./log4j_zookeeper.properties\""
 
 MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mysql.sock shutdown'
 MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500'
