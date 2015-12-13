@@ -34,7 +34,7 @@ def startDatabasesGalera(isMaster):
 		#http://galeracluster.com/documentation-webpages/mysqlwsrepoptions.html#wsrep-sync-wait
 		clusterAddress = utils.generateClusterAddress()
 
-		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep-slave-UK-checks=on --wsrep-sync-wait=3 --wsrep-slave-FK-checks=on --wsrep_retry_autocommit=50 --wsrep_log_conflicts=on --wsrep_debug=on --wsrep_cluster_address="' + clusterAddress + '"'
+		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep-slave-UK-checks=on --wsrep-slave-FK-checks=on --wsrep_cluster_address="' + clusterAddress + '"'
 		if isMaster:
 				mysqlCommand += " --wsrep-new-cluster"
 
@@ -139,8 +139,7 @@ def startReplicators(configFile):
 		logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
 		jarFile = 'replicator.jar'
 
-		command = 'java ' +  + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
-				currentId) + ' > ' + logFile + ' &'
+		command = 'java ' + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(currentId) + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
 				currentId) + ' > ' + logFile + ' &'
@@ -247,7 +246,7 @@ def prepareCoordinatorLayer():
 ################################################################################################
 
 def stopJava():
-		command = 'ps ax | grep java | grep dp.lopes'
+		command = 'ps ax | grep java'
 		with settings(warn_only=True):
 				output = run(command)
 		for line in output.splitlines():

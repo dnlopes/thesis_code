@@ -19,7 +19,6 @@ import java.sql.SQLException;
 public class TPCCClientEmulator implements Runnable
 {
 
-	public static int MAX_RETRIES = 1;
 	private static final Logger LOG = LoggerFactory.getLogger(TPCCClientEmulator.class);
 
 	private Connection connection;
@@ -55,27 +54,31 @@ public class TPCCClientEmulator implements Runnable
 		while(TPCCEmulator.RUNNING)
 		{
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
-			execLatency = 0;
-			commitLatency = 0;
 			boolean success = false;
 
-			success = tryTransaction(txn);
-
-			if(success)
+			while(!success)
 			{
-				if(TPCCEmulator.COUTING)
-					this.stats.addTxnRecord(txn.getName(),
-							new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
-			}
+				execLatency = 0;
+				commitLatency = 0;
+				success = tryTransaction(txn);
 
-			if(!success)
-			{
-				if(TPCCEmulator.COUTING)
-					this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
+				if(success)
+				{
+					if(TPCCEmulator.COUTING)
+						this.stats.addTxnRecord(txn.getName(),
+								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
+				}
 
-				String error = txn.getLastError();
-				if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
-					LOG.error(error);
+				else
+				{
+					String error = txn.getLastError();
+
+					if(!error.contains("try restarting transaction") && TPCCEmulator.COUTING)
+						this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
+
+					if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
+						LOG.error(error);
+				}
 			}
 		}
 	}
