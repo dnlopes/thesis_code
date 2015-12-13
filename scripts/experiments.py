@@ -83,6 +83,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 		# first cycle, iteration over the number of replicas
 		for numberOfReplicas in NUMBER_REPLICAS:
+				config.WAREHOUSES_NUMBER = numberOfReplicas
 				USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 				CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 				config.TOPOLOGY_FILE = CONFIG_FILE

@@ -170,7 +170,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
-							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' ' + config.WAREHOUSES_NUMBER + ' > ' + logFile + ' &'
+							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' ' + str(config.WAREHOUSES_NUMBER) + ' > ' + logFile + ' &'
 
 		logger.info('starting emulator %s with %s users', currentId, usersPerProxy)
 		logger.info('%s', command)
