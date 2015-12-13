@@ -111,7 +111,7 @@ def startCoordinators():
 		currentId = config.coordinators_map.get(env.host_string)
 
 		logFile = config.FILES_PREFIX + 'coordinator' + str(currentId) + '.log'
-		command = 'java ' + config.ZOOKEEPER_CFG_FILE + ' -Xms1000m -Xmx2000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
+		command = 'java ' + config.ZOOKEEPER_LOG4J_FILE + ' -Xms1000m -Xmx2000m -jar zookeeper-server.jar ' + config.ZOOKEEPER_CFG_FILE + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar zookeeper-server.jar' + ' > ' + logFile + ' &'
 

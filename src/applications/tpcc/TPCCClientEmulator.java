@@ -55,31 +55,26 @@ public class TPCCClientEmulator implements Runnable
 		while(TPCCEmulator.RUNNING)
 		{
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
-			int retries = 0;
 			execLatency = 0;
 			commitLatency = 0;
 			boolean success = false;
 
-			while(retries < MAX_RETRIES)
-			{
-				retries++;
-				success = tryTransaction(txn);
+			success = tryTransaction(txn);
 
-				if(success)
-				{
-					if(TPCCEmulator.COUTING)
-						this.stats.addTxnRecord(txn.getName(),
-								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
-					break;
-				}
+			if(success)
+			{
+				if(TPCCEmulator.COUTING)
+					this.stats.addTxnRecord(txn.getName(),
+							new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
 			}
 
 			if(!success)
 			{
-				this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
-				String error = txn.getLastError();
+				if(TPCCEmulator.COUTING)
+					this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
 
-				if(!error.contains("try restarting transaction") && !error.contains("Duplicate entry"))
+				String error = txn.getLastError();
+				if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
 					LOG.error(error);
 			}
 		}
