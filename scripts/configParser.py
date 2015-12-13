@@ -43,7 +43,7 @@ ENVIRONMENT_DIR = DEPLOY_DIR + '/environment'
 ANNOTATIONS_DIR = DEPLOY_DIR + '/annotations'
 TOPOLOGIES_DIR = DEPLOY_DIR + '/topologies'
 TPCC_WORKLOADS_DIR = DEPLOY_DIR + '/tpcc'
-
+WAREHOUSES_NUMBER=0
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
 GALERA_MYSQL_DIR = BASE_DIR + '/mysql-5.6-galera'
 CLUSTER_MYSQL_DIR = BASE_DIR + '/mysql-cluster'
