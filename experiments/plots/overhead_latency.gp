@@ -42,7 +42,7 @@ set style line 4 lc rgb '#dd181f' lt 1 lw 2 pt 4 ps 2
 set style line 5 lc rgb '#0060ad' lt 1 lw 2 pt 5 ps 2
 set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
-plot data1 every 24::4 using 7:xtic(1) with histogram ls 5 title 'Unique IDs', data2 every 24::4 using 7:xtic(1) with histogram ls 3 title 'Unique+Seq IDs'
+plot data1 every 18::4 using 7:xtic(1) with histogram ls 5 title 'Unique IDs', data2 every 18::4 using 7:xtic(1) with histogram ls 3 title 'Unique+Seq IDs'
 
 
 

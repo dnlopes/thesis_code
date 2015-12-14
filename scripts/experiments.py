@@ -83,7 +83,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 		# first cycle, iteration over the number of replicas
 		for numberOfReplicas in NUMBER_REPLICAS:
-				config.WAREHOUSES_NUMBER = numberOfReplicas
 				USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 				CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 				config.TOPOLOGY_FILE = CONFIG_FILE
@@ -343,8 +342,8 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		attempts = 0
 
 		while isRunning:
-				if attempts >= 10:
-						logger.error("checked 10 times if clients were running. Something is probably wrong")
+				if attempts >= 3:
+						logger.error("checked 3 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):

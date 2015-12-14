@@ -90,6 +90,7 @@ public class TPCCEmulator
 			try
 			{
 				Thread.sleep(1000);
+				/*
 				LOG.info("collecting statistics");
 				List<TPCCStatistics> secondStats = new LinkedList<>();
 				perSecondStats.put(iteration++, secondStats);
@@ -99,7 +100,7 @@ public class TPCCEmulator
 					secondStats.add(client.getStats());
 					client.setStats(new TPCCStatistics(1));
 				}
-
+                 */
 			} catch(InterruptedException e)
 			{
 				LOG.error("Benchmark interrupted: {}", e.getMessage());
@@ -134,7 +135,6 @@ public class TPCCEmulator
 		String distributionStrings = globalStats.getDistributionStrings();
 
 		PrintWriter out;
-		PrintWriter out2;
 
 		StringBuffer buffer = new StringBuffer();
 		StringBuffer distributionBuffer = new StringBuffer();
@@ -176,7 +176,6 @@ public class TPCCEmulator
 
 
 	}
-
 
 	public void printStatistics3()
 	{

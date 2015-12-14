@@ -75,8 +75,8 @@ public class TpccBenchmark
 			System.exit(-1);
 		}
 
-		//em.printStatistics();
-		em.printStatistics3();
+		em.printStatistics();
+		//em.printStatistics3();
 		em.shutdownEmulator();
 		LOG.info("Benchmark ended!");
 		System.out.println("CLIENT TERMINATED");

@@ -34,7 +34,7 @@ def startDatabasesGalera(isMaster):
 		#http://galeracluster.com/documentation-webpages/mysqlwsrepoptions.html#wsrep-sync-wait
 		clusterAddress = utils.generateClusterAddress()
 
-		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_cluster_address="' + clusterAddress + '"'
+		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep-sync-wait=3 --wsrep_cluster_address="' + clusterAddress + '"'
 		if isMaster:
 				mysqlCommand += " --wsrep-new-cluster"
 
@@ -50,7 +50,6 @@ def startDatabasesGalera(isMaster):
 		if not isPortOpen(config.MYSQL_PORT):
 				return '0'
 		return '1'
-
 
 @parallel
 def startClusterDatabases():
@@ -167,7 +166,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 		workloadFile = config.TPCC_WORKLOAD_FILE
 		logFile = config.FILES_PREFIX + 'emulator' + str(currentId) + '.log'
 		command = 'java ' + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
-							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' > ' + logFile + ' &'
+							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' ' + str(config.WAREHOUSES_NUMBER) + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + workloadFile + \
 							' ' + str(currentId) + ' ' + str(usersPerProxy) + ' ' + str(config.TPCC_TEST_TIME) + ' ' + jdbc + ' ' + str(config.WAREHOUSES_NUMBER) + ' > ' + logFile + ' &'

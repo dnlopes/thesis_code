@@ -61,8 +61,8 @@ public class TPCCClientEmulator implements Runnable
 
 			while(!success)
 			{
-				//execLatency = 0;
-				//commitLatency = 0;
+				execLatency = 0;
+				commitLatency = 0;
 				success = tryTransaction(txn);
 
 				if(success)

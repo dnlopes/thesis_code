@@ -60,7 +60,7 @@ set style fill pattern 1
 #E: The last line
 #F: The last data block
 
-plot data1 every 24::4 using ($3/60):xtic(1) with histogram ls 1 fs pattern 1 title 'Unique IDs', data2 every 24::4 using ($3/60):xtic(1) with histogram lt 7 title 'Unique+Seq IDs'
+plot data1 every 18::4 using ($3/60):xtic(1) with histogram ls 1 fs pattern 1 title 'Unique IDs', data2 every 18::4 using ($3/60):xtic(1) with histogram lt 7 title 'Unique+Seq IDs'
 
 
 
