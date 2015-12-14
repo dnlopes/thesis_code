@@ -323,14 +323,21 @@ public class TpccLoad implements TpccConstants {
 
     public static void main(String[] argv) {
 
-		if(argv.length != 2)
+		if(argv.length != 3)
 		{
-			System.out.println("usage: java -jar <jarfile> <database host> <database name>");
+			System.out.println("usage: java -jar <jarfile> <database host> <database name> <numberWarehouses>");
 			System.exit(1);
 		}
 
 		String dbHost = argv[0];
 		String dbName = argv[1];
+        num_ware = Integer.parseInt(argv[2]);
+
+        if (num_ware < 1)
+        {
+            System.out.println("invalid number of warehouses");
+            System.exit(1);
+        }
 
 		System.setProperty("dbhost", dbHost);
 		System.setProperty("dbname", dbName);
@@ -356,34 +363,7 @@ public class TpccLoad implements TpccConstants {
         System.out.println("maxMemory = " + df.format(Runtime.getRuntime().totalMemory() / (1024.0 * 1024.0)) + " MB");
         TpccLoad tpccLoad = new TpccLoad();
 
-        int ret = 0;
-        if (argv.length == 2) {
-            //System.out.println("Using the tpcc.properties file for the load configuration.");
-            //tpccLoad.init();
-            ret = tpccLoad.runLoad(true, argv);
-        } else {
-
-            if ((argv.length % 2) == 0) {
-                System.out.println("Using the command line arguments for the load configuration.");
-                ret = tpccLoad.runLoad(true, argv);
-            } else {
-                System.out.println("Invalid number of arguments.");
-                System.out.println("Incorrect Argument: " + argv[i]);
-                System.out.println("The possible arguments are as follows: ");
-                System.out.println("-h [database host]");
-                System.out.println("-d [database name]");
-                System.out.println("-u [database username]");
-                System.out.println("-p [database password]");
-                System.out.println("-w [number of warehouses]");
-                System.out.println("-j [java driver]");
-                System.out.println("-l [jdbc url]");
-                System.out.println("-s [shard count]");
-                System.out.println("-i [shard id]");
-                System.exit(-1);
-
-            }
-        }
-
+        int ret = tpccLoad.runLoad(true, argv);
         System.exit(ret);
     }
 
