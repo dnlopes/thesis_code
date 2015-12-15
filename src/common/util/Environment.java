@@ -31,6 +31,7 @@ public class Environment
 	public static String DDL_ANNOTATIONS_FILE;
 	public static int EZK_CLIENTS_POOL_SIZE;
 	public static int REPLICATORS_CONNECTIONS_POOL_SIZE;
+	public static int REMOTE_APPLIER_THREAD_COUNT;
 	public static int COMMIT_PAD_POOL_SIZE;
 	public static boolean OPTIMIZE_BATCH;
 	public static String EZK_EXTENSION_CODE;
@@ -78,6 +79,8 @@ public class Environment
 		LOG.info(
 				"environment:" + EnvironmentDefaults.DISPATCHER_NAME_VAR + "=" + AgentsFactory
 						.getDispatcherAgentClassAsString());
+		LOG.info(
+				"environment:" + EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_NAME_VAR + "=" + Environment.REMOTE_APPLIER_THREAD_COUNT);
 	}
 
 	public static synchronized void setupEnvironment(String envFile) throws ConfigurationLoadException
@@ -100,16 +103,24 @@ public class Environment
 		{
 			prop.load(new FileInputStream(ENVIRONMENT_FILE));
 
+			if(prop.containsKey(EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_NAME_VAR))
+				Environment.REMOTE_APPLIER_THREAD_COUNT = Integer.parseInt(
+						prop.getProperty(EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_NAME_VAR));
+			else
+				Environment.REMOTE_APPLIER_THREAD_COUNT = EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_DEFAULT;
+
 			if(prop.containsKey(Environment.EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR))
 				Environment.COMMIT_PAD_POOL_SIZE = Integer.parseInt(
 						prop.getProperty(Environment.EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_VAR));
 			else
 				Environment.COMMIT_PAD_POOL_SIZE = Environment.EnvironmentDefaults.COMMIT_PAD_POOL_SIZE_DEFAULT;
+
 			if(prop.containsKey(Environment.EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_VAR))
-				Environment.COMMIT_PAD_POOL_SIZE = Integer.parseInt(
+				Environment.REPLICATORS_CONNECTIONS_POOL_SIZE = Integer.parseInt(
 						prop.getProperty(Environment.EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_VAR));
 			else
-				Environment.REPLICATORS_CONNECTIONS_POOL_SIZE = EnvironmentDefaults.REPLICATORS_CONNECTIONS_POOL_SIZE_DEFAULT;
+				Environment.REPLICATORS_CONNECTIONS_POOL_SIZE = EnvironmentDefaults
+						.REPLICATORS_CONNECTIONS_POOL_SIZE_DEFAULT;
 
 			if(prop.containsKey(Environment.EnvironmentDefaults.EZK_CLIENTS_POOL_SIZE_VAR))
 				Environment.EZK_CLIENTS_POOL_SIZE = Integer.parseInt(
@@ -206,6 +217,7 @@ public class Environment
 	{
 
 		int EZK_CLIENTS_POOL_SIZE_DEFAULT = 20;
+		int REMOTE_APPLIER_THREADS_COUNT_DEFAULT = 1;
 		int REPLICATORS_CONNECTIONS_POOL_SIZE_DEFAULT = 50;
 		int COMMIT_PAD_POOL_SIZE_DEFAULT = 50;
 		boolean OPTIMIZE_BATCH_DEFAULT = false;
@@ -220,6 +232,7 @@ public class Environment
 		String EZK_EXTENSION_CODE_VAR = "ezk-extension-code-dir";
 		String DATABASE_NAME_VAR = "dbname";
 		String DISPATCHER_NAME_VAR = "dispatcher";
+		String REMOTE_APPLIER_THREADS_COUNT_NAME_VAR = "applierthread";
 		String DELIVER_NAME_VAR = "deliver";
 	}
 }

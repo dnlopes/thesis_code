@@ -82,7 +82,6 @@ public class TPCCEmulator
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
-		int iteration = 1;
 
 		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{

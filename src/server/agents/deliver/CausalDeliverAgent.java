@@ -2,6 +2,7 @@ package server.agents.deliver;
 
 
 import common.thrift.CRDTCompiledTransaction;
+import common.util.Environment;
 import common.util.Topology;
 import common.util.defaults.ReplicatorDefaults;
 import server.replicator.Replicator;
@@ -36,13 +37,16 @@ public class CausalDeliverAgent implements DeliverAgent
 
 		setup();
 
-		DeliveryThread deliveryThread = new DeliveryThread();
-
-		this.scheduleService = Executors.newScheduledThreadPool(2);
-		this.scheduleService.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
+		this.scheduleService = Executors.newScheduledThreadPool(1 + Environment.REMOTE_APPLIER_THREAD_COUNT);
 		this.scheduleService.scheduleAtFixedRate(new StateChecker(),
 				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
 				TimeUnit.MILLISECONDS);
+
+		for(int i = 0; i < Environment.REMOTE_APPLIER_THREAD_COUNT; i++)
+		{
+			DeliveryThread deliveryThread = new DeliveryThread();
+			this.scheduleService.scheduleAtFixedRate(deliveryThread, 0, THREAD_WAKEUP_INTERVAL, TimeUnit.MILLISECONDS);
+		}
 	}
 
 	private void setup()

@@ -107,9 +107,4 @@ public class TPCCClientEmulator implements Runnable
 		return this.stats;
 	}
 
-	public void setStats(TPCCStatistics stats)
-	{
-		this.stats = stats;
-	}
-
 }
