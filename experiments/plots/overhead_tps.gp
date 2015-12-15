@@ -4,53 +4,35 @@ set terminal postscript eps enhanced color solid font 'Helvetica,25'
 # Output
 set output outputfile
 set datafile separator ','
-#set boxwidth 2 relative
 
 # Axis
-#set yr [0:10]
 set ylabel "Throughput (txn/s)"
+set xlabel "Clients"
+set xtics nomirror
+set ytics nomirror
 #set xrange [0:100000]
 #set yrange [0:*]
-set xlabel "Clients"
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16"
 
 # Key
-#set key default
-#set key box
-#set key inside vert
-#set key bottom right
 set key top left
+
+# Grid
+set style line 12 lc rgb '#808080' lt 0 lw 1
+set grid ytics back ls 12
+
+#RGB Colors
+red = '#a2142f'
+yellow='#edb120'
+green='#77ac30' # green
+purple='#7e2f8e' # purple
+orange='#d95319' # orange
+blue = '#0056bd'
 
 # Plot type
 set style data histogram
 set style histogram cluster gap 1
-
-#set style fill pattern border
-#set xtic scale 0.5
-#set auto x
-
-# define grid
-#set style line 12 lc rgb '#808080' lt 0 lw 1
-#set grid back ls 12
-
-# Lines
-#set style line 1 linecolor rgb '#0060ad' linetype 1 linewidth 2 pointtype 1 pointsize 1.5   # --- blue
-
-#set style line 2 lc rgb '#0060ad' lt 1 lw 2 pt 2 ps 2
-#set style line 3 lc rgb '#dd181f' lt 1 lw 2 pt 3 ps 2
-#set style line 4 lc rgb '#dd181f' lt 1 lw 2 pt 4 ps 2
-#set style line 5 lc rgb '#0060ad' lt 1 lw 2 pt 5 ps 2
-#set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
-
-
-set style fill pattern 1
-
-#set style fill solid border rgb "black"
-
-#set style line 1 lc rgb '#DEB887' lt 1 lw 2 pt 1 ps 2
-#set style line 2 lc rgb '#9370DB' lt 1 lw 2 pt 2 ps 2
-
 
 #every A:B:C:D:E:F
 #A: line increment
@@ -60,7 +42,7 @@ set style fill pattern 1
 #E: The last line
 #F: The last data block
 
-plot data1 every 18::4 using ($3/60):xtic(1) with histogram ls 1 fs pattern 1 title 'Unique IDs', data2 every 18::4 using ($3/60):xtic(1) with histogram lt 7 title 'Unique+Seq IDs'
+plot data1 every 18::4 using ($3/60):xtic(1) lc rgb blue lw 3.5 fs pattern 1 title 'Unique IDs', data2 every 18::4 using ($3/60):xtic(1) lc rgb orange lw 3.5 fs pattern 6 title 'Unique+Seq IDs'
 
 
 

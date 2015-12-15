@@ -1,27 +1,42 @@
+##############################################################
+#################### LATENCY-THROUGHPUT #####################
+##############################################################
 # Generate Latency-Throughput (Galera vs WeakDB)
 
-gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./5r_galera_no_retry.csv'; outputfile='./lt5.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./3r_crdt_coord.csv'; data3='./5r_galera_no_sum.csv'; data4='./3r_galera_no_sum.csv' ;outputfile='./lt_3-5.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
 
-gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./4r_crdt_coord.csv'; data3='./3r_crdt_coord.csv'; data4='./2r_crdt_coord.csv' ; data5='./5r_galera_no_retry.csv'; data6='./4r_galera_no_sum.csv'; data7='./3r_galera_no_sum.csv' ; data8='./2r_galera_no_sum.csv'; outputfile='./lt.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+#gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./4r_crdt_coord.csv'; data3='./3r_crdt_coord.csv'; data4='./2r_crdt_coord.csv' ; data5='./5r_galera_no_retry.csv'; data6='./4r_galera_no_sum.csv'; data7='./3r_galera_no_sum.csv' ; data8='./2r_galera_no_sum.csv'; outputfile='./lt.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
 
 
-gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./3r_crdt_coord.csv'; data3='./5r_galera_no_retry.csv'; data4='./3r_galera_no_sum.csv' ; outputfile='./lt_3r_5r.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+#gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./3r_crdt_coord.csv'; data3='./5r_galera_no_retry.csv'; data4='./3r_galera_no_sum.csv' ; outputfile='./lt_3r_5r.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
 
-# Generate Latency-Throughput (WeakDB No Coordination vs WeakDB Coordation)
+##############################################################
+################ COORDINATION OVERHEAD PLOTS #################
+##############################################################
+#Generate Latency-Throughput (WeakDB No Coordination vs WeakDB Coordation)
+
+gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./lt_overhead.eps'" ~/code/experiments/plots/crdt_vs_crdt_no_coord.gp
 
 gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./coordination_tps_overhead.eps'" ~/code/experiments/plots/overhead_tps.gp
 
-gnuplot -e "data1='./3r_crdt_coord.csv'; data2='./3r_crdt_no_coord.csv'; outputfile='./coordination_latency_overhead.eps'" ~/code/experiments/plots/overhead_latency.gp
+gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./coordination_latency_overhead.eps'" ~/code/experiments/plots/overhead_latency.gp
 
+
+##############################################################
+############################ XXXXXX ##########################
+##############################################################
 
 # Generate Throughput-Clients graphic bar (Galera vs CRDT)
 
-gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; outputfile='./clients_throughput_bar.eps'" ~/code/experiments/plots/crdt_galera_throughput_bar.gp
+gnuplot -e "data1='./scalability_datafile.csv'; outputfile='./clients_throughput_bar.eps'" ~/code/experiments/plots/crdt_galera_throughput_bar.gp
 
 
+##############################################################
+############################ SCALABILITY ##########################
+##############################################################
 # Generate Scalbility Plot (Linear vs WeakDB vs Galera)
 
-gnuplot -e "data1='./crdt.csv'; data2='./galera.csv'; data3='./perfect_96max.csv' ; outputfile='./scalability.eps'" ~/code/experiments/plots/scalability_galera_crdt.gp
+gnuplot -e "data1='./scalability_datafile.csv'; outputfile='./scalability.eps'" ~/code/experiments/plots/scalability_galera_crdt.gp
 
 
 # Generate Histogram Bar (clients/latency (new-order)) (WeakDB No Coordination vs WeakDB Coordation)

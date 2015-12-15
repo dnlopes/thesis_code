@@ -1,0 +1,6 @@
+new_order=20
+payment=5
+delivery=5
+order_stat=35
+stock=35
+name=TPCC Read Intensive

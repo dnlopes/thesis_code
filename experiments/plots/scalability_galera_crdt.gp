@@ -7,24 +7,28 @@ set output outputfile
 # Axis
 #set yrange [0:400]
 set ylabel "Throughput (x1000 txn/s)"
-set xrange [0:50]
-set xlabel "Clients"
-set xtics nomirror rotate by -30 scale 0.5
-set xtics font "Helvetica,16"
+set xrange [0:5.5]
+set xlabel "Servers"
+#set xtics nomirror rotate by -30 scale 0.5
+#set xtics font "Helvetica,16"
 
 # Key
-#set key default
-#set key box
-#set key inside vert
-#set key bottom right
 set key top left
+
+# Grid
+set style line 12 lc rgb '#808080' lt 0 lw 1
+set grid back ls 12
+
+#RGB Colors
+red = '#a2142f'
+yellow='#edb120'
+green='#77ac30' # green
+purple='#7e2f8e' # purple
+orange='#d95319' # orange
+blue = '#0056bd'
 
 # Plot type
 set style data linespoints
-
-# define grid
-set style line 12 lc rgb '#808080' lt 0 lw 1
-set grid back ls 12
 
 # Lines
 #set style line 1 linecolor rgb '#0060ad' linetype 1 linewidth 2 pointtype 1 pointsize 1.5   # --- blue
@@ -47,7 +51,7 @@ set datafile separator ','
 #F: The last data block
 
 
-plot data3 every 1::::4 using 1:($3/1000) with linespoints ls 1 title 'Linear Scalability', data1 every 6::::25 using 1:($3/1000) with linespoints ls 5 title 'Weak-DB', data2 every 6::::25 using 1:($3/1000) with linespoints ls 3 title 'Galera'
+plot data1 every 1:::1::1 using 1:($4/1000) with linespoints ls 1 title 'Linear Scalability', data1 every 1:::2::2 using 1:($4/1000):xtic(1) with linespoints ls 3 title 'Galera', data1 every 1:::0::0 using 1:($4/1000) with linespoints ls 5 title 'WeakDB'
 
 
 
