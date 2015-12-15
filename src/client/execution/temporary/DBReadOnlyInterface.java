@@ -33,4 +33,10 @@ public class DBReadOnlyInterface implements ReadOnlyInterface
 
 		return this.sqlInterface.executeQuery(selectSQL.getSQLString());
 	}
+
+	@Override
+	public ResultSet executeQuery(String query) throws SQLException
+	{
+		return this.sqlInterface.executeQuery(query);
+	}
 }

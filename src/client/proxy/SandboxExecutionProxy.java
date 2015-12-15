@@ -82,38 +82,48 @@ public class SandboxExecutionProxy implements Proxy
 		if(!isRunning)
 			start();
 
-		SQLOperation[] preparedOps;
 		long start = System.nanoTime();
 
-		try
-		{
-			preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext, parserManager);
-			long estimated = System.nanoTime() - start;
-			this.txnContext.addToParsingTime(estimated);
-		} catch(JSQLParserException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-
-		if(preparedOps.length != 1)
-			throw new SQLException("unexpected number of select queries");
-
-		SQLSelect selectSQL = (SQLSelect) preparedOps[0];
-
-		if(selectSQL.getOpType() != SQLOperationType.SELECT)
-			throw new SQLException("expected query op but instead we got an update");
-
-		ResultSet rs;
-		long estimated;
 		if(readOnly)
 		{
-			rs = this.readOnlyInterface.executeQuery(selectSQL);
-			estimated = System.nanoTime() - start;
+			ResultSet rs = this.readOnlyInterface.executeQuery(op);
+			long estimated = System.nanoTime() - start;
 			this.txnContext.addSelectTime(estimated);
-		} else // we dont measure select times from non-read only txn here. we do it in the lower layers
-			rs = this.scratchpad.executeQuery(selectSQL);
+			return rs;
+		} else
+		{
+			SQLOperation[] preparedOps;
 
-		return rs;
+			try
+			{
+				preparedOps = SQLQueryHijacker.pepareOperation(op, txnContext, parserManager);
+				long estimated = System.nanoTime() - start;
+				this.txnContext.addToParsingTime(estimated);
+			} catch(JSQLParserException e)
+			{
+				throw new SQLException(e.getMessage());
+			}
+
+			if(preparedOps.length != 1)
+				throw new SQLException("unexpected number of select queries");
+
+			SQLSelect selectSQL = (SQLSelect) preparedOps[0];
+
+			if(selectSQL.getOpType() != SQLOperationType.SELECT)
+				throw new SQLException("expected query op but instead we got an update");
+
+			ResultSet rs;
+			long estimated;
+			if(readOnly)
+			{
+				rs = this.readOnlyInterface.executeQuery(selectSQL);
+				estimated = System.nanoTime() - start;
+				this.txnContext.addSelectTime(estimated);
+			} else // we dont measure select times from non-read only txn here. we do it in the lower layers
+				rs = this.scratchpad.executeQuery(selectSQL);
+
+			return rs;
+		}
 	}
 
 	@Override

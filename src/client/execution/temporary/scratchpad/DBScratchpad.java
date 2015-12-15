@@ -59,6 +59,12 @@ public class DBScratchpad implements IDBScratchpad
 	}
 
 	@Override
+	public ResultSet executeQuery(String query) throws SQLException
+	{
+		return this.sqlInterface.executeQuery(query);
+	}
+
+	@Override
 	public int executeUpdate(SQLWriteOperation sqlWriteOp) throws SQLException
 	{
 		if(sqlWriteOp.getOpType() == SQLOperationType.SELECT)

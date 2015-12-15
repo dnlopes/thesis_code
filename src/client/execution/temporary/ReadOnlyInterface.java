@@ -21,4 +21,5 @@ import java.sql.SQLException;
 public interface ReadOnlyInterface
 {
 	ResultSet executeQuery(SQLSelect query) throws SQLException;
+	ResultSet executeQuery(String query) throws SQLException;
 }
