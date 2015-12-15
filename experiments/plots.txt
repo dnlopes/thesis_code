@@ -5,11 +5,6 @@
 
 gnuplot -e "data1='./5R_CRDT_COORD_todo/avg.csv'; data2='./3R_CRDT_COORD_ready/avg.csv'; data3='./5R_GALERA_todo/avg.csv'; data4='./3R_GALERA_ready/avg.csv' ;outputfile='./lt_3-5.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
 
-#gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./4r_crdt_coord.csv'; data3='./3r_crdt_coord.csv'; data4='./2r_crdt_coord.csv' ; data5='./5r_galera_no_retry.csv'; data6='./4r_galera_no_sum.csv'; data7='./3r_galera_no_sum.csv' ; data8='./2r_galera_no_sum.csv'; outputfile='./lt.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
-
-
-#gnuplot -e "data1='./5r_crdt_coord.csv'; data2='./3r_crdt_coord.csv'; data3='./5r_galera_no_retry.csv'; data4='./3r_galera_no_sum.csv' ; outputfile='./lt_3r_5r.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
-
 ##############################################################
 ################ COORDINATION OVERHEAD PLOTS #################
 ##############################################################

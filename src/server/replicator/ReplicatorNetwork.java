@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNetwork
@@ -35,7 +36,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	private Map<Integer, NodeConfig> replicatorsConfigs;
 	private ObjectPool<EZKCoordinationClient> ezkClientsPool;
 	private Map<Integer, ObjectPool<ReplicatorRPC.Client>> replicatorsConnections;
-	private int clientsCount;
+	private AtomicInteger clientsCount;
+	private final int deltaIncrement;
 
 	public ReplicatorNetwork(NodeConfig node)
 	{
@@ -43,8 +45,9 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 
 		this.replicatorsConfigs = new HashMap<>();
 		this.replicatorsConnections = new HashMap<>();
-		this.clientsCount = me.getId();
+		this.clientsCount = new AtomicInteger(me.getId());
 		this.ezkClientsPool = new ObjectPool<>();
+		this.deltaIncrement = Topology.getInstance().getReplicatorsCount();
 
 		for(NodeConfig replicatorConfig : Topology.getInstance().getAllReplicatorsConfig().values())
 			if(replicatorConfig.getId() != me.getId())
@@ -211,8 +214,8 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 			return null;
 		}
 
-		this.clientsCount += Topology.getInstance().getReplicatorsCount();
-		EZKCoordinationClient client = new EZKCoordinationClient(zooKeeper, this.clientsCount);
+		int nextId = clientsCount.addAndGet(deltaIncrement);
+		EZKCoordinationClient client = new EZKCoordinationClient(zooKeeper, nextId);
 
 		try
 		{
