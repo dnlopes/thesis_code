@@ -104,6 +104,14 @@ def startDatabases():
 				return '0'
 		return '1'
 
+@parallel
+def preloadDatabase(dbName):
+    command = 'java -jar preload-tpcc.jar localhost ' + dbName
+    logger.info('preloading database at %s', env.host_string)
+    logger.info(command)
+    with cd(config.DEPLOY_DIR), hide('running', 'output'):
+        run(command)
+
 
 @parallel
 def startCoordinators():

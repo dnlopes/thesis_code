@@ -83,7 +83,7 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 		# first cycle, iteration over the number of replicas
 		for numberOfReplicas in NUMBER_REPLICAS:
-        ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
+				ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 				USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 				CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 				config.TOPOLOGY_FILE = CONFIG_FILE
@@ -273,11 +273,15 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		logger.info("starting database layer")
 
 		success = startDatabaseLayer()
+
 		if success:
 				logger.info("all databases instances are online")
 		else:
 				logger.error("database layer failed to start. Exiting")
 				return False
+
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
 
 		success = startCoordinatorsLayer()
 		if success:
@@ -329,12 +333,15 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		logger.info("starting database layer")
 
 		success = startDatabaseLayer()
+
 		if success:
 				logger.info("all databases instances are online")
 		else:
 				logger.error("database layer failed to start")
 				return False
 
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
 		time.sleep(config.TPCC_TEST_TIME+20)
@@ -378,6 +385,8 @@ def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators
 				logger.error("database layer failed to start")
 				return False
 
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
 		time.sleep(config.TPCC_TEST_TIME+20)
@@ -455,6 +464,9 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 				logger.error("database layer failed to start")
 				return False
 
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
+
 		success = startCoordinatorsLayer()
 		if success:
 				logger.info('all coordinators are online')
@@ -503,12 +515,15 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 		logger.info("starting database layer")
 
 		success = startDatabaseLayer()
+
 		if success:
 				logger.info("all databases instances are online")
 		else:
 				logger.error("database layer failed to start")
 				return False
 
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
 		time.sleep(config.TPCC_TEST_TIME+20)
@@ -585,6 +600,8 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 				logger.error("database layer failed to start")
 				return False
 
+		preloadDatabases()
+		logger.info("all databases are loaded into memory")
 		success = startCoordinatorsLayer()
 		if success:
 				logger.info('all coordinators are online')
@@ -746,7 +763,9 @@ def checkGaleraClusterStatus(masterReplicaHost):
 
 		return True
 
-
+def preloadDatabases():
+		with hide('running','output'):
+				execute(fab.preloadDatabase, hosts=config.database_nodes)
 
 
 
