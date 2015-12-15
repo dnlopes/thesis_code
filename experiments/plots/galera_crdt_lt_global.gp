@@ -49,6 +49,6 @@ set style line 6 lc rgb '#82CA4A' lt 1 lw 2 pt 6 ps 2
 
 set datafile separator ','
 
-plot data1 every 6::::85 using ($3/60):7 with linespoints ls 5 lc rgb blue lw 2.0 title 'WeakDB-5R', data2 every 6::::91 using ($3/60):7 with linespoints ls 2 lc rgb blue lw 1.0 title 'WeakDB-3R', data3 every 6::::48 using ($3/60):7 with linespoints ls 5 lc rgb orange lw 2.0 title 'Galera-5R', data4 every 6::::84 using ($3/60):7 with linespoints ls 2 lc rgb orange lw 1.0 title 'Galera-3R'
+plot data1 every 6::1 using ($3/60):7 with linespoints ls 5 lc rgb blue lw 2.0 title 'WeakDB-5R', data2 every 6::1 using ($3/60):7 with linespoints ls 2 lc rgb blue lw 1.0 title 'WeakDB-3R', data3 every 6::1 using ($3/60):7 with linespoints ls 5 lc rgb orange lw 2.0 title 'Galera-5R', data4 every 6::1 using ($3/60):7 with linespoints ls 2 lc rgb orange lw 1.0 title 'Galera-3R'
 
 #plot data1 every 6::::85 using ($3/60):7 with linespoints ls 5 title 'WeakDB-5R', data2 every 6 using ($3/60):7 with linespoints ls 3 title 'WeakDB-4R', data3 every 6 using ($3/60):7 with linespoints ls 7 title 'WeakDB-3R', data4 every 6 using ($3/60):7 with linespoints ls 9 title 'WeakDB-2R', data5 every 6 using ($3/60):7 with linespoints ls 13 title 'Galera-5R', data6 every 6 using ($3/60):7 with linespoints ls 12 title 'Galera-4R', data7 every 6 using ($3/60):7 with linespoints ls 12 title 'Galera-3R', data8 every 6 using ($3/60):7 with linespoints ls 12 title 'Galera-2R'

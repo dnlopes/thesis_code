@@ -280,7 +280,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 				logger.error("database layer failed to start. Exiting")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc_crdt')
 		logger.info("all databases are loaded into memory")
 
 		success = startCoordinatorsLayer()
@@ -340,7 +340,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 				logger.error("database layer failed to start")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc')
 		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
@@ -385,7 +385,7 @@ def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators
 				logger.error("database layer failed to start")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc')
 		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
@@ -464,7 +464,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 				logger.error("database layer failed to start")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc_crdt')
 		logger.info("all databases are loaded into memory")
 
 		success = startCoordinatorsLayer()
@@ -522,7 +522,7 @@ def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEm
 				logger.error("database layer failed to start")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc')
 		logger.info("all databases are loaded into memory")
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
@@ -600,7 +600,7 @@ def runScalabilityExperimentCRDT(outputDir, configFile, numberEmulators, usersPe
 				logger.error("database layer failed to start")
 				return False
 
-		preloadDatabases()
+		preloadDatabases('tpcc_crdt')
 		logger.info("all databases are loaded into memory")
 		success = startCoordinatorsLayer()
 		if success:
@@ -763,9 +763,9 @@ def checkGaleraClusterStatus(masterReplicaHost):
 
 		return True
 
-def preloadDatabases():
+def preloadDatabases(dbName):
 		with hide('running','output'):
-				execute(fab.preloadDatabase, hosts=config.database_nodes)
+				execute(fab.preloadDatabase, dbName, hosts=config.database_nodes)
 
 
 
