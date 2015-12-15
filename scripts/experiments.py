@@ -79,15 +79,15 @@ def runAllExperiments(configsFilesBaseDir):
 def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		config.ACTIVE_EXPERIMENT = config.prefix_latency_throughput_experiment
 		now = datetime.datetime.now()
-		ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
+		#ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 
 		# first cycle, iteration over the number of replicas
 		for numberOfReplicas in NUMBER_REPLICAS:
+        ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 				USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 				CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 				config.TOPOLOGY_FILE = CONFIG_FILE
 				REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR
-				#REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR + "/" + str(numberOfReplicas) + "replica"
 
 				config.parseTopologyFile(CONFIG_FILE)
 				fab.killRunningProcesses()

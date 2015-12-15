@@ -29,6 +29,7 @@
 
 	<!-- Generated JARs names -->
 	<property name="csv-parser-jar" value="csv-parser.jar" />
+	<property name="preload-tpcc-jar" value="preload-tpcc.jar" />
 	<property name="csv-merger-jar" value="csv-merger-jar" />
 	<property name="weakdb-common-jar" value="weakdb-common.jar" />
 	<property name="weakdb-util-jar" value="weakdb-util.jar" />
@@ -313,6 +314,23 @@
 				<include name="${weakdb-apps-jar}" />
 			</zipgroupfileset>
 		</jar>
+		<jar destfile="${jars.dir}/${preload-tpcc-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="util.preload.PreloadDatabase" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weakdb.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weak.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weakdb-common-jar}" />
+				<include name="${weakdb-util-jar}" />
+			</zipgroupfileset>
+		</jar>
+
 		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
 			   destdir="${tpcc.classes.dir}"
 			   debug="true" deprecation="false" nowarn="yes">
@@ -345,6 +363,7 @@
 		<copy todir="${deploy.dir}">
 			<fileset dir="${jars.dir}">
 				<include name="db-transform.jar" />
+				<include name="preload-tpcc.jar" />
 				<include name="replicator.jar" />
 				<include name="tpcc-client.jar" />
 				<include name="tpcc-gendb.jar" />
