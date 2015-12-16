@@ -27,6 +27,8 @@ JDCBs=['galera']
 #JDCBs=['crdt','galera']
 #JDCBs=['cluster']
 
+
+NUMBER_OF_USERS_LIST=[1,3,5,8,12,16,20,25,30,35]
 NUMBER_REPLICAS=[3]
 NUMBER_USERS_LIST_1REPLICA=[1,2,3,4,6,8,10,14,18,24,30,32,40,50]
 NUMBER_USERS_LIST_2REPLICA=[2,4,6,8,10,16,18,20,24,28,32,38,44,54,66,78,90,100,150]
@@ -103,8 +105,8 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 				for jdbc in JDCBs:
 						config.JDBC=jdbc
 						# third cycle, use different number of users per run
-						for numberOfUsers in USERS_LIST:
-								config.TOTAL_USERS = numberOfUsers
+						for numberOfUsers in NUMBER_OF_USERS_LIST:
+								config.TOTAL_USERS = numberOfUsers*5
 								OUTPUT_DIR = REPLICA_OUTPUT_DIR
 								with hide('output','running','warnings'),settings(warn_only=True):
 										local("mkdir -p " + OUTPUT_DIR + "/logs")
@@ -112,9 +114,9 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 										get(config.TOPOLOGY_FILE, OUTPUT_DIR)
 										get(config.TPCC_WORKLOAD_FILE, OUTPUT_DIR)
 
-								TOTAL_USERS = numberOfUsers
+								TOTAL_USERS = config.TOTAL_USERS
 								NUMBER_OF_EMULATORS = len(config.emulators_nodes)
-								USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
+								USERS_PER_EMULATOR = numberOfUsers
 								runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 								logger.info('moving to the next iteration!')
 
