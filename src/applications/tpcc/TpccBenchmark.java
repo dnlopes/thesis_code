@@ -27,7 +27,9 @@ public class TpccBenchmark
 	{
 		if(args.length != 7)
 		{
-			LOG.error("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> <emulatorId> " +
+			System.err.println("usage: java -jar <jarfile> <topologyFile> <environmentFile> <workloadFile> " +
+					"<emulatorId>" +
+					" " +
 					"<numberClients> " +
 					"<testDuration> <jdbc> [crdt || mysql]");
 			System.exit(-1);
@@ -41,7 +43,7 @@ public class TpccBenchmark
 
 		loadWorkloadFile(workloadFile);
 
-		TpccConstants.WAREHOUSES_NUMBER = Topology.getInstance().getReplicatorsCount();
+		TpccConstants.WAREHOUSES_NUMBER = 3;
 
 		int proxyId = Integer.parseInt(args[3]);
 		int numberClients = Integer.parseInt(args[4]);
@@ -70,7 +72,6 @@ public class TpccBenchmark
 		}
 
 		em.printStatistics();
-		//em.printStatistics3();
 		em.shutdownEmulator();
 		LOG.info("Benchmark ended!");
 		System.out.println("CLIENT TERMINATED");
