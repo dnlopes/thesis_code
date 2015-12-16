@@ -128,7 +128,10 @@ public class Replicator extends AbstractNode
 			}
 
 			if(pad == null)
+			{
+				LOG.warn("failed to create commitpad on the fly. will be looping until get one");
 				pad = closedLoopGetPad();
+			}
 		}
 
 		LOG.trace("txn ({}) from replicator {} committing on main storage ", txn.getTxnClock(), txn.getReplicatorId());
