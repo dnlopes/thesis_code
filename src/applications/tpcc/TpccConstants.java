@@ -19,7 +19,7 @@ public class TpccConstants
 	public static int STOCK_LEVEL_TXN_RATE = 0;	//4 is default ; read only
 
 	// general constants
-	public static int WAREHOUSES_NUMBER = 1;
+	public static int WAREHOUSES_NUMBER = 5;
 	public static int DISTRICTS_PER_WAREHOUSE = 10;
 	public static int CUSTOMER_PER_DISTRICT = 3000;
 	public static int MAXITEMS = 100000;

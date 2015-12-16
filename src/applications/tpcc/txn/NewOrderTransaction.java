@@ -606,7 +606,7 @@ public class NewOrderTransaction extends AbstractTransaction implements Transact
 		//int orderLinesNumber = 1;
 		int orderLinesNumber = GeneratorUtils.randomNumberIncludeBoundaries(5, 15);
 		int rbk = GeneratorUtils.randomNumberIncludeBoundaries(1, 100);
-		int all_local = 0;
+		int all_local = 1;
 
 		int[] itemsIds = new int[TpccConstants.MAX_NUM_ITEMS];
 		int[] supplierWarehouseIds = new int[TpccConstants.MAX_NUM_ITEMS];
@@ -623,13 +623,16 @@ public class NewOrderTransaction extends AbstractTransaction implements Transact
 			}
 			if(TpccConstants.ALLOW_MULTI_WAREHOUSE_TX)
 			{
-				if(GeneratorUtils.randomNumberIncludeBoundaries(1, 100) != 85)
+				if(GeneratorUtils.randomNumberIncludeBoundaries(1, 100) <= 85)
 				{
 					supplierWarehouseIds[i] = warehouseId;
 				} else
 				{
-					supplierWarehouseIds[i] = selectRemoteWarehouse(warehouseId);
-					all_local = 0;
+					int remote = selectRemoteWarehouse(warehouseId);
+					supplierWarehouseIds[i] = remote;
+
+					if(remote != warehouseId)
+						all_local = 0;
 				}
 			} else
 			{

@@ -41,6 +41,7 @@ public class TpccBenchmark
 
 		loadWorkloadFile(workloadFile);
 
+		TpccConstants.WAREHOUSES_NUMBER = Topology.getInstance().getReplicatorsCount();
 
 		int proxyId = Integer.parseInt(args[3]);
 		int numberClients = Integer.parseInt(args[4]);

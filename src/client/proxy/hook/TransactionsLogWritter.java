@@ -65,7 +65,7 @@ public class TransactionsLogWritter extends Thread
 					"_transactions.log";
 
 			out = new PrintWriter(fileName);
-			out.write(buffer.toString());
+			//out.write(buffer.toString());
 			out.close();
 		} catch(FileNotFoundException e)
 		{
