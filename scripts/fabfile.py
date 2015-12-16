@@ -106,11 +106,11 @@ def startDatabases():
 
 @parallel
 def preloadDatabase(dbName):
-    command = 'java -jar preload-tpcc.jar localhost ' + dbName
-    logger.info('preloading database at %s', env.host_string)
-    logger.info(command)
-    with cd(config.DEPLOY_DIR), hide('running', 'output'):
-        run(command)
+		command = 'java -jar preload-tpcc.jar localhost ' + dbName
+		logger.info('preloading database at %s', env.host_string)
+		logger.info(command)
+		with cd(config.DEPLOY_DIR), hide('running', 'output'):
+				run(command)
 
 
 @parallel
@@ -146,7 +146,7 @@ def startReplicators(configFile):
 		logFile = config.FILES_PREFIX + 'replicator' + str(currentId) + '.log'
 		jarFile = 'replicator.jar'
 
-		command = 'java ' + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx8000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(currentId) + ' > ' + logFile + ' &'
+		command = 'java ' + config.WEAK_DB_LOG4J_FILE + ' -Xms4000m -Xmx6000m -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(currentId) + ' > ' + logFile + ' &'
 		if config.IS_LOCALHOST:
 				command = 'java -jar ' + jarFile + ' ' + configFile + ' ' + config.ENVIRONMENT_FILE + ' ' + str(
 				currentId) + ' > ' + logFile + ' &'

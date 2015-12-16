@@ -83,6 +83,11 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 
 		# first cycle, iteration over the number of replicas
 		for numberOfReplicas in NUMBER_REPLICAS:
+				logger.info("###########################################################################################")
+				logger.info("########################## STARTING NEW EXPERIMENT WITH %d REPLICAS #######################", numberOfReplicas)
+				logger.info("###########################################################################################")
+				print "\n"
+				now = datetime.datetime.now()
 				ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
 				USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 				CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
@@ -101,7 +106,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 						for numberOfUsers in USERS_LIST:
 								config.TOTAL_USERS = numberOfUsers
 								OUTPUT_DIR = REPLICA_OUTPUT_DIR
-								#OUTPUT_DIR = REPLICA_OUTPUT_DIR + "/" + str(numberOfUsers) + "user"
 								with hide('output','running','warnings'),settings(warn_only=True):
 										local("mkdir -p " + OUTPUT_DIR + "/logs")
 										get(config.ENVIRONMENT_FILE, OUTPUT_DIR)
@@ -113,12 +117,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 								USERS_PER_EMULATOR = TOTAL_USERS / NUMBER_OF_EMULATORS
 								runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 								logger.info('moving to the next iteration!')
-
-						#logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-						#plots.generateLatencyThroughputDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
-
-				#logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
-				#plots.generateLatencyThroughputPlot(REPLICA_OUTPUT_DIR)
 
 		if not config.IS_LOCALHOST:
 				scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
@@ -323,7 +321,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		logger.info('the experiment has finished!')
 		fab.killRunningProcesses()
 		downloadLogs(outputDir)
-		plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
+		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
 		logger.info('logs can be found at %s', outputDir)
 
 		return True
@@ -369,7 +367,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		logger.info('the experiment has finished!')
 		fab.killRunningProcesses()
 		downloadLogs(outputDir)
-		plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
+		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
 		logger.info('logs can be found at %s', outputDir)
 
 		return True
@@ -413,7 +411,7 @@ def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators
 		logger.info('the experiment has finished!')
 		fab.killRunningProcesses()
 		downloadLogs(outputDir)
-		plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
+		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
 		logger.info('logs can be found at %s', outputDir)
 
 		return True
@@ -506,7 +504,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 		logger.info('the experiment has finished!')
 		fab.killRunningProcesses()
 		downloadLogs(outputDir)
-		plots.mergeTemporaryCSVfiles(outputDir, totalUsers, 1)
+		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, 1)
 		logger.info('logs can be found at %s', outputDir)
 
 		return True
@@ -741,7 +739,7 @@ def prepareCode():
 				execute(fab.distributeCode, hosts=config.distinct_nodes)
 
 def downloadLogs(outputDir):
-		logger.info('downloading log files')
+		#logger.info('downloading log files')
 		with hide('running', 'output'):
 				execute(fab.downloadLogsTo, outputDir, hosts=config.distinct_nodes)
 
