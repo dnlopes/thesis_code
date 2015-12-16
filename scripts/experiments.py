@@ -114,11 +114,11 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 								runLatencyThroughputExperiment(OUTPUT_DIR, CONFIG_FILE, NUMBER_OF_EMULATORS, USERS_PER_EMULATOR, TOTAL_USERS)
 								logger.info('moving to the next iteration!')
 
-						logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
-						plots.generateLatencyThroughputDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
+						#logger.info('generating plot data file for experiment with %s replicas and %s users', numberOfReplicas, USERS_LIST)
+						#plots.generateLatencyThroughputDataFile(REPLICA_OUTPUT_DIR, USERS_LIST)
 
-				logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
-				plots.generateLatencyThroughputPlot(REPLICA_OUTPUT_DIR)
+				#logger.info("generating plot graphic for experience with %s replicas", numberOfReplicas)
+				#plots.generateLatencyThroughputPlot(REPLICA_OUTPUT_DIR)
 
 		if not config.IS_LOCALHOST:
 				scpCommand = "scp -r -P 12034 dp.lopes@di110.di.fct.unl.pt:"
