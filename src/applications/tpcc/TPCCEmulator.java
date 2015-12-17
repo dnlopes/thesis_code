@@ -91,7 +91,9 @@ public class TPCCEmulator
 		long runTime;
 		COUTING = true;
 
-		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration()+5 * 1000)
+		int sleepDuration = options.getDuration() + 5;
+
+		while((runTime = System.currentTimeMillis() - startTime) < sleepDuration * 1000)
 		{
 			LOG.info("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try

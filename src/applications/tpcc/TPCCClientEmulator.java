@@ -59,6 +59,8 @@ public class TPCCClientEmulator implements Runnable
 		long startTime = System.currentTimeMillis();
 		long rampUpTime;
 
+		LOG.info("client {} started ramping up", id);
+
 		while((rampUpTime = System.currentTimeMillis() - startTime) < BenchmarkOptions.Defaults.RAMPUP_TIME * 1000)
 		{
 			// RAMP UP TIME
@@ -78,10 +80,12 @@ public class TPCCClientEmulator implements Runnable
 			}
 		}
 
+		LOG.info("client {} ended ramp up time and will start the actual experiment", id);
+
 		startTime = System.currentTimeMillis();
 		long benchmarkTime;
 
-		System.out.println("rampup time ended!");
+
 		System.out.println("starting actual experiment");
 
 		while((benchmarkTime = System.currentTimeMillis() - startTime) < benchmarkDuration * 1000)
@@ -117,7 +121,7 @@ public class TPCCClientEmulator implements Runnable
 			}
 		}
 
-		System.out.println("experiment ended!");
+		LOG.info("client {} finished the actual experiment", id);
 	}
 
 	private boolean tryTransaction(Transaction trx)
