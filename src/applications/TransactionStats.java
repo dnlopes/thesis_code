@@ -1,10 +1,12 @@
 package applications;
 
 
+import applications.tpcc.TPCCEmulator;
 import applications.tpcc.TpccConstants;
 import applications.util.TransactionRecord;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -20,11 +22,15 @@ public class TransactionStats
 	protected double totalLatencySum, execLatencySum, commitLatencySum;
 	protected double maxLatency, minLatency, avgLatency, avgExecLatency, avgCommitLatency;
 	private int[] latencyDistribution;
+	private Map<Integer,Integer> perSecondStats;
+	private double txnPerSecond;
 
-	public TransactionStats(String txnName, List<TransactionRecord> txnRecords)
+	public TransactionStats(String txnName, List<TransactionRecord> txnRecords, Map<Integer,Integer> perSecondStats)
 	{
 		this.txnName = txnName;
 		this.records = txnRecords;
+		this.perSecondStats = perSecondStats;
+		this.txnPerSecond = 0;
 
 		this.latencyDistribution = new int[TpccConstants.BUCKETS_NUMBER];
 		this.successCounter = 0;
@@ -89,6 +95,18 @@ public class TransactionStats
 			this.avgCommitLatency = (this.commitLatencySum) / this.successCounter * 1.0;
 			this.avgExecLatency = (this.execLatencySum) / this.successCounter * 1.0;
 		}
+
+		int total = 0;
+
+		for(Map.Entry<Integer, Integer> aSecond : perSecondStats.entrySet())
+		{
+			if(aSecond.getKey() > TPCCEmulator.DURATION)
+				continue;
+
+			total += aSecond.getValue();
+		}
+
+		txnPerSecond =  total / TPCCEmulator.DURATION;
 	}
 
 	public String getStatsString()
@@ -102,7 +120,8 @@ public class TransactionStats
 		buffer.append(minLatency).append(",");
 		buffer.append(avgLatency).append(",");
 		buffer.append(avgExecLatency).append(",");
-		buffer.append(avgCommitLatency).append("\n");
+		buffer.append(avgCommitLatency).append(",");
+		buffer.append(txnPerSecond).append("\n");
 
 		return buffer.toString();
 	}
@@ -151,4 +170,5 @@ public class TransactionStats
 
 		return buffer.append("\n").toString();
 	}
+
 }

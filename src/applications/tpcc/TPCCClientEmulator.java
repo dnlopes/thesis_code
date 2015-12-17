@@ -69,13 +69,14 @@ public class TPCCClientEmulator implements Runnable
 				{
 					if(TPCCEmulator.COUTING)
 						this.stats.addTxnRecord(txn.getName(),
-								new TransactionRecord(txn.getName(), execLatency, commitLatency, true));
+								new TransactionRecord(txn.getName(), execLatency, commitLatency, true, TPCCEmulator.ITERATION));
 				} else
 				{
 					String error = txn.getLastError();
 
 					if(!error.contains("try restarting transaction") && TPCCEmulator.COUTING)
-						this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false));
+						this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false,
+								TPCCEmulator.ITERATION));
 
 					if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
 						LOG.error(error);

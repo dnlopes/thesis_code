@@ -80,7 +80,8 @@ public class Environment
 				"environment:" + EnvironmentDefaults.DISPATCHER_NAME_VAR + "=" + AgentsFactory
 						.getDispatcherAgentClassAsString());
 		LOG.info(
-				"environment:" + EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_NAME_VAR + "=" + Environment.REMOTE_APPLIER_THREAD_COUNT);
+				"environment:" + EnvironmentDefaults.REMOTE_APPLIER_THREADS_COUNT_NAME_VAR + "=" + Environment
+						.REMOTE_APPLIER_THREAD_COUNT);
 	}
 
 	public static synchronized void setupEnvironment(String envFile) throws ConfigurationLoadException

@@ -48,8 +48,8 @@ public class TPCCEmulator
 		this.clients = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 		this.perSecondStats = new HashMap<>();
-		hook = new TpccHook(clients, options, emulatorId);
-		Runtime.getRuntime().addShutdownHook(hook);
+		//hook = new TpccHook(clients, options, emulatorId);
+		//Runtime.getRuntime().addShutdownHook(hook);
 	}
 
 	public boolean runBenchmark()
@@ -86,18 +86,13 @@ public class TPCCEmulator
 			LOG.info("Ramp up time ended!");
 		}
 
-		int seconds = this.options.getDuration();
-
-		COUTING = true;
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
-
-		int i = 0;
-
-		while(i < seconds)
+		long runTime;
+		COUTING = true;
+		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
 		{
-			i++;
-			System.out.println("Current execution time lapse: " + i + "seconds");
+			LOG.info("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try
 			{
 				Thread.sleep(1000);
