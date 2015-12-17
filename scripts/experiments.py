@@ -237,6 +237,7 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 		logger.info('>> TOPOLOGY FILE: %s', config.TOPOLOGY_FILE)
 		logger.info('>> DATABASES: %s', config.database_nodes)
 		logger.info('>> REPLICATORS: %s', config.replicators_nodes)
+		logger.info('>> EMULATORS: %s', config.emulators_nodes)
 		logger.info('>> NUMBER OF EMULATORS: %s', numberEmulators)
 		logger.info('>> CLIENTS PER EMULATOR: %s', usersPerEmulator)
 		logger.info('>> TOTAL USERS: %s', totalUsers)

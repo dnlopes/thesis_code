@@ -60,8 +60,8 @@ public class TransactionsLogWritter extends Thread
 		PrintWriter out;
 		try
 		{
-			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + proxies.size() * Topology
-					.getInstance().getReplicatorsCount() + "_users_" + jdbc + "_jdbc_emulator" + emulatorId +
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + proxies.size() * 5 +
+					"_users_" + jdbc + "_jdbc_emulator" + emulatorId +
 					"_transactions.log";
 
 			out = new PrintWriter(fileName);

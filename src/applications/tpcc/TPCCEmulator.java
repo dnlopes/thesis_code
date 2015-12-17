@@ -3,6 +3,7 @@ package applications.tpcc;
 
 import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
+import applications.util.TransactionRecord;
 import common.util.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,9 @@ public class TPCCEmulator
 
 	public static volatile boolean RUNNING;
 	public static volatile boolean COUTING;
+	public static volatile int ITERATION = 0;
 
+	public static int DURATION;
 	private ExecutorService threadsService;
 	private List<TPCCClientEmulator> clients;
 	private Map<Integer, List<TPCCStatistics>> perSecondStats;
@@ -39,6 +42,7 @@ public class TPCCEmulator
 		COUTING = false;
 		this.emulatorId = id;
 		this.options = options;
+		DURATION = options.getDuration();
 		this.clients = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 		this.perSecondStats = new HashMap<>();
@@ -89,17 +93,7 @@ public class TPCCEmulator
 			try
 			{
 				Thread.sleep(1000);
-				/*
-				LOG.info("collecting statistics");
-				List<TPCCStatistics> secondStats = new LinkedList<>();
-				perSecondStats.put(iteration++, secondStats);
-
-				for(TPCCClientEmulator client : clients)
-				{
-					secondStats.add(client.getStats());
-					client.setStats(new TPCCStatistics(1));
-				}
-                 */
+				ITERATION++;
 			} catch(InterruptedException e)
 			{
 				LOG.error("Benchmark interrupted: {}", e.getMessage());
@@ -144,7 +138,8 @@ public class TPCCEmulator
 		buffer.append("minLatency").append(",");
 		buffer.append("avgLatency").append(",");
 		buffer.append("avgExecLatency").append(",");
-		buffer.append("avgCommitLatency").append("\n");
+		buffer.append("avgCommitLatency").append(",");
+		buffer.append("txnPerSecond").append("\n");
 		buffer.append(statsString).append("\n");
 
 		distributionBuffer.append(distributionStrings).append("\n");
@@ -154,13 +149,11 @@ public class TPCCEmulator
 
 		try
 		{
-			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options.getClientsNumber()
-					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
-					+ this.emulatorId + ".csv";
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + 5 * options
+					.getClientsNumber() + "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId + ".csv";
 			String distributionFileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options
-					.getClientsNumber()
-					* Topology.getInstance().getReplicatorsCount() + "_users_" + options.getJdbc() + "_jdbc_emulator"
-					+ this.emulatorId + "_distribution.log";
+					.getClientsNumber() * 5 + "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId +
+					"_distribution.log";
 
 			out = new PrintWriter(fileName);
 			out.write(outputContent);
@@ -172,15 +165,13 @@ public class TPCCEmulator
 		{
 			e.printStackTrace();
 		}
-
-
 	}
 
 	public void printStatistics3()
 	{
 		Map<Integer, TPCCStatistics> allSecondsStats = new HashMap<>();
 
-		for(Map.Entry<Integer,List<TPCCStatistics>> aSecondStats : perSecondStats.entrySet())
+		for(Map.Entry<Integer, List<TPCCStatistics>> aSecondStats : perSecondStats.entrySet())
 		{
 			TPCCStatistics aSecondStat = new TPCCStatistics(0);
 
@@ -190,7 +181,6 @@ public class TPCCEmulator
 			aSecondStat.generateStatistics();
 			allSecondsStats.put(aSecondStats.getKey(), aSecondStat);
 		}
-
 
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("iteration").append(",");
