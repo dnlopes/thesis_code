@@ -258,9 +258,11 @@ def stopJava():
 				output = run(command)
 		for line in output.splitlines():
 				if 'java' in line:
-						pid = int(line.split(None, 1)[0])
-						with settings(warn_only=True):
-								run('kill -9 ' + str(pid))
+						pidString = line.split(None, 1)[0]
+						if(pidString.isdigit()):
+								pid = int(pidString)
+								with settings(warn_only=True):
+										run('kill -9 ' + str(pid))
 
 @parallel
 def stopMySQL():

@@ -2,6 +2,7 @@ package applications.tpcc;
 
 
 import applications.BaseBenchmarkOptions;
+import applications.BenchmarkOptions;
 import applications.Transaction;
 import applications.util.TransactionRecord;
 import client.jdbc.CRDTConnectionFactory;
@@ -27,6 +28,7 @@ public class TPCCClientEmulator implements Runnable
 
 	private TPCCStatistics stats;
 	private long execLatency, commitLatency;
+	private int benchmarkDuration;
 
 	public TPCCClientEmulator(int id, BaseBenchmarkOptions options)
 	{
@@ -47,13 +49,44 @@ public class TPCCClientEmulator implements Runnable
 			LOG.error("failed to create connection for client: {}", e.getMessage(), e);
 			System.exit(-1);
 		}
+
+		this.benchmarkDuration = this.options.getDuration();
 	}
 
 	@Override
 	public void run()
 	{
-		while(TPCCEmulator.RUNNING)
+		long startTime = System.currentTimeMillis();
+		long rampUpTime;
+
+		while((rampUpTime = System.currentTimeMillis() - startTime) < BenchmarkOptions.Defaults.RAMPUP_TIME * 1000)
 		{
+			// RAMP UP TIME
+			Transaction txn = this.options.getWorkload().getNextTransaction(options);
+			boolean success = false;
+
+			while(!success)
+			{
+				success = tryTransaction(txn);
+
+				if(!success)
+				{
+					String error = txn.getLastError();
+					if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
+						LOG.error(error);
+				}
+			}
+		}
+
+		startTime = System.currentTimeMillis();
+		long benchmarkTime;
+
+		System.out.println("rampup time ended!");
+		System.out.println("starting actual experiment");
+
+		while((benchmarkTime = System.currentTimeMillis() - startTime) < benchmarkDuration * 1000)
+		{
+			// benchmark time here
 			Transaction txn = this.options.getWorkload().getNextTransaction(options);
 			execLatency = 0;
 			commitLatency = 0;
@@ -67,22 +100,24 @@ public class TPCCClientEmulator implements Runnable
 
 				if(success)
 				{
-					if(TPCCEmulator.COUTING)
-						this.stats.addTxnRecord(txn.getName(),
-								new TransactionRecord(txn.getName(), execLatency, commitLatency, true, TPCCEmulator.ITERATION));
+					this.stats.addTxnRecord(txn.getName(),
+							new TransactionRecord(txn.getName(), execLatency, commitLatency, true,
+									TPCCEmulator.ITERATION));
 				} else
 				{
 					String error = txn.getLastError();
 
-					if(!error.contains("try restarting transaction") && TPCCEmulator.COUTING)
-						this.stats.addTxnRecord(txn.getName(), new TransactionRecord(txn.getName(), false,
-								TPCCEmulator.ITERATION));
+					if(!error.contains("try restarting transaction"))
+						this.stats.addTxnRecord(txn.getName(),
+								new TransactionRecord(txn.getName(), false, TPCCEmulator.ITERATION));
 
 					if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
 						LOG.error(error);
 				}
 			}
 		}
+
+		System.out.println("experiment ended!");
 	}
 
 	private boolean tryTransaction(Transaction trx)

@@ -90,7 +90,8 @@ public class TPCCEmulator
 		DecimalFormat df = new DecimalFormat("#,##0.0");
 		long runTime;
 		COUTING = true;
-		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
+
+		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration()+5 * 1000)
 		{
 			LOG.info("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
 			try

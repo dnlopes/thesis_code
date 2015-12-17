@@ -304,6 +304,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		time.sleep(config.TPCC_TEST_TIME+20)
 		isRunning = True
 		attempts = 0
+
 		while isRunning:
 				if attempts >= 10:
 						logger.error("checked 10 times if clients were running. Something is probably wrong")
@@ -325,8 +326,6 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 		logger.info('the experiment has finished!')
 		fab.killRunningProcesses()
 		downloadLogs(outputDir)
-		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, numberEmulators)
-		logger.info('logs can be found at %s', outputDir)
 
 		return True
 
