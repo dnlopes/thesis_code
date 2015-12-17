@@ -85,11 +85,13 @@ public class TPCCEmulator
 		COUTING = true;
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
-		long runTime;
+		int seconds = this.options.getDuration();
+		int i = 0;
 
-		while((runTime = System.currentTimeMillis() - startTime) < this.options.getDuration() * 1000)
+		while(i < seconds)
 		{
-			LOG.info("Current execution time lapse: " + df.format(runTime / 1000.0f) + " seconds");
+			i++;
+			LOG.info("Current execution time lapse: {} seconds", seconds);
 			try
 			{
 				Thread.sleep(1000);
