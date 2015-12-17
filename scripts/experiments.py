@@ -350,8 +350,8 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 		attempts = 0
 
 		while isRunning:
-				if attempts >= 3:
-						logger.error("checked 3 times if clients were running. Something is probably wrong")
+				if attempts >= 5:
+						logger.error("checked 5 times if clients were running. Something is probably wrong")
 						return False
 				logger.info('checking experiment status...')
 				with hide('running', 'output'):
@@ -363,7 +363,7 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 								isRunning = False
 				if isRunning:
 						attempts += 1
-						time.sleep(10)
+						time.sleep(15)
 				else:
 						break
 

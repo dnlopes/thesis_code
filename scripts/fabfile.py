@@ -34,7 +34,7 @@ def startDatabasesGalera(isMaster):
 		#http://galeracluster.com/documentation-webpages/mysqlwsrepoptions.html#wsrep-sync-wait
 		clusterAddress = utils.generateClusterAddress()
 
-		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep_cluster_address="' + clusterAddress + '"'
+		mysqlCommand = config.MYSQL_START_COMMAND + ' --wsrep-sync-wait=3 --wsrep_cluster_address="' + clusterAddress + '"'
 		if isMaster:
 				mysqlCommand += " --wsrep-new-cluster"
 
