@@ -484,7 +484,15 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 
 		startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
-		time.sleep(config.TPCC_TEST_TIME+20)
+		time.sleep(config.TPCC_TEST_TIME)
+
+		logger.info('the experiment has finished!')
+		fab.killRunningProcesses()
+		downloadLogs(outputDir)
+		#plots.mergeTemporaryCSVfiles(outputDir, totalUsers, 1)
+		logger.info('logs can be found at %s', outputDir)
+
+		return True
 
 		isRunning = True
 		attempts = 0

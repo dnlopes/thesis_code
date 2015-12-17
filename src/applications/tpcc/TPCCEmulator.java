@@ -4,6 +4,7 @@ package applications.tpcc;
 import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
 import applications.util.TransactionRecord;
+import client.proxy.hook.TransactionsLogWritter;
 import common.util.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class TPCCEmulator
 	private Map<Integer, List<TPCCStatistics>> perSecondStats;
 	private int emulatorId;
 	private BaseBenchmarkOptions options;
+	TpccHook hook;
 
 	public TPCCEmulator(int id, BaseBenchmarkOptions options)
 	{
@@ -46,6 +48,8 @@ public class TPCCEmulator
 		this.clients = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 		this.perSecondStats = new HashMap<>();
+		hook = new TpccHook(clients, options, emulatorId);
+		Runtime.getRuntime().addShutdownHook(hook);
 	}
 
 	public boolean runBenchmark()
@@ -82,16 +86,18 @@ public class TPCCEmulator
 			LOG.info("Ramp up time ended!");
 		}
 
+		int seconds = this.options.getDuration();
+
 		COUTING = true;
 		final long startTime = System.currentTimeMillis();
 		DecimalFormat df = new DecimalFormat("#,##0.0");
-		int seconds = this.options.getDuration();
+
 		int i = 0;
 
 		while(i < seconds)
 		{
 			i++;
-			LOG.info("Current execution time lapse: {} seconds", seconds);
+			System.out.println("Current execution time lapse: " + i + "seconds");
 			try
 			{
 				Thread.sleep(1000);
