@@ -6,6 +6,8 @@
 		</databases>
 		<coordinators>
 			<coordinator id="1" host="node1"/>
+      <coordinator id="2" host="node2"/>
+      <coordinator id="3" host="node3"/>
 		</coordinators>
 		<replicators>
 			<replicator id="1" host="node1" port="50000" refDatabase="1" />

@@ -16,7 +16,7 @@ import server.util.TransactionCommitFailureException;
 public interface DeliverAgent
 {
 
-	int THREAD_WAKEUP_INTERVAL = 300;
+	int THREAD_WAKEUP_INTERVAL = 500;
 
 	void deliverTransaction(CRDTCompiledTransaction op) throws TransactionCommitFailureException;
 }
