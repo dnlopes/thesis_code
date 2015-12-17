@@ -35,6 +35,8 @@ public class CausalDeliverAgent implements DeliverAgent
 		this.replicator = replicator;
 		this.queues = new HashMap<>();
 
+		Environment.REMOTE_APPLIER_THREAD_COUNT = Topology.getInstance().getReplicatorsCount();
+
 		setup();
 
 		this.scheduleService = Executors.newScheduledThreadPool(1 + Environment.REMOTE_APPLIER_THREAD_COUNT);
