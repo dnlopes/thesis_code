@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <config>
-  <topology databasesNum="3" replicatorNum="3" executorsNum="3">
+  <topology databasesNum="3" replicatorNum="3" executorsNum="5">
     <databases>
       <database id="1" dbHost="node1" dbPort="3306" dbUser="sa" dbPwd="101010" />
       <database id="2" dbHost="node2" dbPort="3306" dbUser="sa" dbPwd="101010" />
