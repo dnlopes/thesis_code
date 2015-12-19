@@ -8,7 +8,7 @@ set output outputfile
 #set yrange [0:400]
 set ylabel "Throughput (x1000 txn/s)"
 set xrange [0:5.5]
-set xlabel "Servers"
+set xlabel "# servers"
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16"
 
@@ -50,8 +50,12 @@ set datafile separator ','
 #E: The last line
 #F: The last data block
 
+#A:B:C:D:E:F -> 1 replica
 
-plot data1 every 1:::1::1 using 1:($4/1000) with linespoints ls 1 title 'Linear Scalability', data1 every 1:::2::2 using 1:($4/1000):xtic(1) with linespoints ls 3 title 'Galera', data1 every 1:::0::0 using 1:($4/1000) with linespoints ls 5 title 'WeakDB'
+plot \
+data1 every 1:::0::0 using 1:($3/60) with linespoints ls 1 title 'Linear Scalability', \
+data1 every 1:::1::1 using 1:($3/60) with linespoints ls 5 title 'WeaQL', \
+data1 every 1:::2::2 using 1:($3/60) with linespoints ls 3 title 'Galera'
 
 
 

@@ -3,18 +3,20 @@
 ##############################################################
 # Generate Latency-Throughput (Galera vs WeakDB)
 
-gnuplot -e "data1='./5R_CRDT_COORD_todo/avg.csv'; data2='./3R_CRDT_COORD_ready/avg.csv'; data3='./5R_GALERA_todo/avg.csv'; data4='./3R_GALERA_ready/avg.csv' ;outputfile='./lt_3-5.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+gnuplot -e "data1='./lt_data/5r_crdt.csv'; data2='./lt_data/3r_crdt.csv'; data3='./GALERA/5R_GALERA_ready/avg.csv'; data4='./GALERA/3R_GALERA_ready/avg.csv' ;outputfile='./lt_3-5.eps'" ~/code/experiments/plots/galera_crdt_lt_global.gp
+
+gnuplot -e "data1='./WeaQL/5R_CRDT_ready/read_intensive_run1.csv'; data2='./WeaQL/3R_CRDT_ready/read_intensive_run1.csv'; data3='./WeaQL/3R_CRDT_ready/read_intensive_run1.csv'; data4='./WeaQL/3R_CRDT_ready/read_intensive_run1.csv' ;outputfile='./lt_3-5_read.eps'" ~/code/experiments/plots/galera_crdt_lt_read.gp
 
 ##############################################################
 ################ COORDINATION OVERHEAD PLOTS #################
 ##############################################################
 #Generate Latency-Throughput (WeakDB No Coordination vs WeakDB Coordation)
 
-gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./lt_overhead.eps'" ~/code/experiments/plots/crdt_vs_crdt_no_coord.gp
+gnuplot -e "data1='./WeaQL/3R_CRDT_ready/no_coordination_run1.csv'; data2='./WeaQL/3R_CRDT_ready/coordination_run1.csv'; outputfile='./lt_overhead.eps'" ~/code/experiments/plots/crdt_vs_crdt_no_coord.gp
 
-gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./coordination_tps_overhead.eps'" ~/code/experiments/plots/overhead_tps.gp
+gnuplot -e "data1='./WeaQL/3R_CRDT_ready/no_coordination_run1.csv'; data2='./WeaQL/3R_CRDT_ready/coordination_run1.csv'; outputfile='./coordination_tps_overhead.eps'" ~/code/experiments/plots/coordination_overhead_lines_tps.gp
 
-gnuplot -e "data1='./3r_crdt_no_coord.csv'; data2='./3r_crdt_coord.csv'; outputfile='./coordination_latency_overhead.eps'" ~/code/experiments/plots/overhead_latency.gp
+gnuplot -e "data1='./WeaQL/3R_CRDT_ready/no_coordination_run1.csv'; data2='./WeaQL/3R_CRDT_ready/coordination_run1.csv'; outputfile='./coordination_latency_overhead.eps'" ~/code/experiments/plots/coordination_overhead_lines_latency.gp
 
 
 ##############################################################

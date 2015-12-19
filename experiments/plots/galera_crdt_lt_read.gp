@@ -5,7 +5,7 @@ set terminal postscript eps enhanced color solid font 'Helvetica,25'
 set output outputfile
 
 # Axis
-set yrange [0:400]
+#set yrange [0:400]
 set ylabel "Latency (ms)"
 #set xrange [0:100000]
 set xlabel "Throughput (txn/s)"
@@ -51,12 +51,7 @@ set style line 7 lc rgb '#dd181f' lt 1 lw 1 pt 7 ps 2
 
 set datafile separator ','
 
-plot data1 every 6::1 using ($3/60):7 with linespoints ls 5 lc rgb blue lw 2.0 title 'WeaQL 5R',\
-data2 every 6::1 using ($3/60):7 with linespoints ls 7 lc rgb blue lw 1.0 title 'WeaQL 3R',\
-data3 every 6::1::32 using ($3/60):7 with linespoints ls 4 lc rgb orange lw 2.0 title 'Galera 5R',\
-data4 every 6::1::45 using ($3/60):7 with linespoints ls 3 lc rgb orange lw 1.0 title 'Galera 3R'
-
-
-
-
-
+plot data1 every 6 using ($3/60):7 with linespoints ls 5 lc rgb blue lw 2.0 title 'WeaQL 5R',\
+data2 every 6 using ($3/60):7 with linespoints ls 7 lc rgb blue lw 1.0 title 'WeaQL 3R',\
+data3 every 6 using ($3/60):7 with linespoints ls 4 lc rgb orange lw 2.0 title 'Galera 5R',\
+data4 every 6 using ($3/60):7 with linespoints ls 3 lc rgb orange lw 1.0 title 'Galera 3R'
