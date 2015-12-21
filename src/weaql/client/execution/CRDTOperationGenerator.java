@@ -52,7 +52,6 @@ public class CRDTOperationGenerator
 		record.addData(DatabaseDefaults.DELETED_CLOCK_COLUMN, clock);
 
 		String insertOp = OperationsGenerator.generateInsertOperation(record, context);
-		//sqlInsert.prepareOperation();
 
 		String[] ops = new String[1];
 		ops[0] = insertOp;

@@ -305,7 +305,7 @@ public class SandboxExecutionProxy implements Proxy
 
 			Record cachedRecord = cache.get(updatedRecord.getPkValue().getUniqueValue());
 
-			// use cached record was baseline, then override the changed columns
+			// use cached record as baseline, then override the changed columns
 			// the columns that are present in the update record
 			for(Map.Entry<String, String> updatedEntry : updatedRecord.getRecordData().entrySet())
 			{

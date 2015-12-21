@@ -40,11 +40,6 @@ public class ProxyFactory
 		return proxy;
 	}
 
-	private static Proxy createWriteThroughProxy()
-	{
-		return new MainExecutionProxy(PROXY_CONFIG, assignProxyId());
-	}
-
 
 	private static Proxy createWSSandboxProxy() throws SQLException
 	{

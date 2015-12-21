@@ -42,11 +42,6 @@ public class WriteSet
 		return cachedRecords;
 	}
 
-	public Map<String, Record> getDeletedRecords()
-	{
-		return deletedRecords;
-	}
-
 	public void addToInserts(Record record) throws SQLException
 	{
 		String pkValue = record.getPkValue().getUniqueValue();
@@ -88,7 +83,7 @@ public class WriteSet
 	public void addToDeletes(Record record)
 	{
 		String pkValue = record.getPkValue().getUniqueValue();
-		this.deletedRecords.put(pkValue, record);
+		deletes.put(pkValue, record);
 
 		if(cachedRecords.containsKey(pkValue))
 			cachedRecords.remove(pkValue);

@@ -153,10 +153,12 @@ public class TPCCEmulator
 
 		try
 		{
-			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + 5 * options
-					.getClientsNumber() + "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId + ".csv";
+			String fileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + Topology.getInstance()
+					.getEmulatorsCount() * options.getClientsNumber() + "_users_" + options.getJdbc() +
+					"_jdbc_emulator" + this.emulatorId + ".csv";
 			String distributionFileName = Topology.getInstance().getReplicatorsCount() + "_replicas_" + options
-					.getClientsNumber() * 5 + "_users_" + options.getJdbc() + "_jdbc_emulator" + this.emulatorId +
+					.getClientsNumber() * Topology.getInstance().getEmulatorsCount() + "_users_" + options.getJdbc() +
+					"_jdbc_emulator" + this.emulatorId +
 					"_distribution.log";
 
 			out = new PrintWriter(fileName);

@@ -96,7 +96,7 @@ public class TransactionStats
 			this.avgExecLatency = (this.execLatencySum) / this.successCounter * 1.0;
 		}
 
-		int total = 0;
+		double total = 0;
 
 		for(Map.Entry<Integer, Integer> aSecond : perSecondStats.entrySet())
 		{

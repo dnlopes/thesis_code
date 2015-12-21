@@ -45,7 +45,6 @@ public class AgentsFactory
 		case 2:
 			return new BasicDispatcher(replicator);
 		case 3:
-			//TODO
 			throw new InvalidConfigurationException("specified dispatcher agent not yet implemented");
 		default:
 			throw new InvalidConfigurationException("unknown dispatcher agent class");
