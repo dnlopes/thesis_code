@@ -5,8 +5,8 @@ import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
 import applications.Transaction;
 import applications.util.TransactionRecord;
-import client.jdbc.CRDTConnectionFactory;
-import common.util.ConnectionFactory;
+import weaql.client.jdbc.CRDTConnectionFactory;
+import weaql.common.util.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

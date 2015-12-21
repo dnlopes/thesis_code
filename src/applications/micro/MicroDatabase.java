@@ -1,11 +1,10 @@
 package applications.micro;
 
 
-import client.jdbc.CRDTConnectionFactory;
-import common.util.ConnectionFactory;
+import weaql.common.util.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import common.util.DatabaseProperties;
+import weaql.common.util.DatabaseProperties;
 
 import java.sql.*;
 import java.util.Random;

@@ -1,7 +1,7 @@
 package applications;
 
 
-import common.util.DatabaseProperties;
+import weaql.common.util.DatabaseProperties;
 
 
 /**

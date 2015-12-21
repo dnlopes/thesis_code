@@ -1,7 +1,7 @@
 package util.csv;
 
 
-import common.util.ExitCode;
+import weaql.common.util.ExitCode;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 

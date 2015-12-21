@@ -2,7 +2,7 @@ package applications.tpcc;
 
 
 import applications.BaseBenchmarkOptions;
-import common.util.Topology;
+import weaql.common.util.Topology;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

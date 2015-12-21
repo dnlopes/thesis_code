@@ -18,11 +18,11 @@ import com.codefutures.tpcc.stats.PerSecondStatistics;
 import com.codefutures.tpcc.stats.PerformanceCounters;
 import com.codefutures.tpcc.stats.ThreadStatistics;
 
-import common.nodes.NodeConfig;
-import common.util.DatabaseProperties;
-import common.util.Topology;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import weaql.common.nodes.NodeConfig;
+import weaql.common.util.DatabaseProperties;
+import weaql.common.util.Topology;
 
 
 public class Tpcc implements TpccConstants

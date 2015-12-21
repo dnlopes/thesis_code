@@ -1,4 +1,4 @@
-<project name="WeakDB Project" default="compile" basedir=".">
+<project name="WeaQL Project" default="compile" basedir=".">
 
 	<!-- Edit the follow properties according to your system -->
 	<property environment="env" />
@@ -18,7 +18,7 @@
 	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
 	<property name="src.dir" value="${base.dir}/src" />
 	<property name="base.libs.dir" value="${base.dir}/libs" />
-	<property name="weak.libs.dir" value="${base.dir}/libs/weak" />
+	<property name="weaql.libs.dir" value="${base.dir}/libs/weak" />
 	<property name="ezk.libs.dir" value="${base.dir}/libs/ezk" />
 	<property name="dist.dir" value="${base.dir}/dist" />
 	<property name="classes.dir" value="${dist.dir}/classes" />
@@ -31,12 +31,12 @@
 	<property name="csv-parser-jar" value="csv-parser.jar" />
 	<property name="preload-tpcc-jar" value="preload-tpcc.jar" />
 	<property name="csv-merger-jar" value="csv-merger-jar" />
-	<property name="weakdb-common-jar" value="weakdb-common.jar" />
-	<property name="weakdb-util-jar" value="weakdb-util.jar" />
-	<property name="weakdb-server-jar" value="weakdb-server.jar" />
-	<property name="weakdb-client-jar" value="weakdb-client.jar" />
-	<property name="weakdb-apps-jar" value="weakdb-apps.jar" />
-	<property name="weakdb-thrift-bundled-jar" value="weakdb-thrift-bundled.jar" />
+	<property name="weaql-common-jar" value="weaql.common.jar" />
+	<property name="weaql-util-jar" value="weaql-util.jar" />
+	<property name="weaql-server-jar" value="weaql.server.jar" />
+	<property name="weaql-client-jar" value="weaql.client.jar" />
+	<property name="weaql-apps-jar" value="apps.jar" />
+	<property name="weaql-thrift-bundled-jar" value="weaql-thrift-bundled.jar" />
 
 	<!-- Custom ant tasks -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -51,12 +51,12 @@
 	<property name="tpcc.classes.dir" value="${tpcc.dist.dir}/classes" />
 
 	<!-- Path definitions -->
-	<path id="weakdb.classpath">
-		<fileset dir="${weak.libs.dir}">
+	<path id="weaql.classpath">
+		<fileset dir="${weaql.libs.dir}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
-	<path id="weakdb.runtime.classpath">
+	<path id="weaql.runtime.classpath">
 		<pathelement path="${classes.dir}" />
 	</path>
 
@@ -71,19 +71,19 @@
 			<include name="mysql-connector-java-5.1.17-bin.jar" />
 		</fileset>
 		<fileset dir="${jars.dir}">
-			<include name="weakdb-common.jar" />
-			<include name="weakdb-client.jar" />
+			<include name="weaql.common.jar" />
+			<include name="weaql.client.jar" />
 		</fileset>
 	</path>
 	<path id="tpcc.runtime.classpath">
 		<pathelement path="${tpcc.classes.dir}" />
 		<fileset dir="${dist.dir}/jars/">
-			<include name="${weakdb-common-jar}" />
-			<include name="${weakdb-client-jar}" />
+			<include name="${weaql-common-jar}" />
+			<include name="${weaql-client-jar}" />
 		</fileset>
 	</path>
 
-	<!-- WeakDB tasks -->
+	<!-- WeaQL tasks -->
 	<target name="purge" description="Purges everything">
 		<antcall target="clean" />
 		<antcall target="tpcc-clean" />
@@ -94,48 +94,48 @@
 		<mkdir dir="${classes.dir}" />
 		<mkdir dir="${jars.dir}" />
 	</target>
-	<target name="clean" description="Clean WeakDB distribution">
+	<target name="clean" description="Clean WeaQL distribution">
 		<delete dir="${dist.dir}" />
 	</target>
-	<target name="compile" depends="init" description="Compile WeakDB sources">
+	<target name="compile" depends="init" description="Compile WeaQL sources">
 		<touch>
 			<fileset dir="${src.dir}" />
 		</touch>
 		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
 			   includeantruntime="false">
-			<classpath refid="weakdb.classpath" />
+			<classpath refid="weaql.classpath" />
 		</javac>
 	</target>
 	<target name="minimal-jars" depends="compile">
-		<jar destfile="${jars.dir}/${weakdb-common-jar}">
+		<jar destfile="${jars.dir}/${weaql-common-jar}">
 			<fileset dir="${classes.dir}">
-				<include name="common/**/*.class" />
+				<include name="weaql/common/**/*.class" />
 			</fileset>
 		</jar>
-		<jar destfile="${jars.dir}/${weakdb-util-jar}">
+		<jar destfile="${jars.dir}/${weaql-util-jar}">
 			<fileset dir="${classes.dir}">
 				<include name="util/**/*.class" />
 			</fileset>
 		</jar>
-		<jar destfile="${jars.dir}/${weakdb-client-jar}">
+		<jar destfile="${jars.dir}/${weaql-client-jar}">
 			<fileset dir="${classes.dir}">
-				<include name="client/**/*.class" />
+				<include name="weaql/client/**/*.class" />
 			</fileset>
 		</jar>
-		<jar destfile="${jars.dir}/${weakdb-server-jar}">
+		<jar destfile="${jars.dir}/${weaql-server-jar}">
 			<fileset dir="${classes.dir}">
-				<include name="server/**/*.class" />
+				<include name="weaql/server/**/*.class" />
 			</fileset>
 		</jar>
-		<jar destfile="${jars.dir}/${weakdb-thrift-bundled-jar}">
+		<jar destfile="${jars.dir}/${weaql-thrift-bundled-jar}">
 			<fileset dir="${classes.dir}">
 				<include name="common/thrift/*.class" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="libthrift-0.9.2.jar" />
 			</zipgroupfileset>
 		</jar>
-		<jar destfile="${jars.dir}/${weakdb-apps-jar}">
+		<jar destfile="${jars.dir}/${weaql-apps-jar}">
 			<fileset dir="${classes.dir}">
 				<include name="applications/**/*.class" />
 			</fileset>
@@ -146,12 +146,12 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
 			<fileset dir="${classes.dir}">
 				<include name="util/**/*.class" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
@@ -164,12 +164,12 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
 			<fileset dir="${classes.dir}">
 				<include name="util/**/*.class" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
@@ -181,13 +181,13 @@
 			description="Generates Main Jars">
 		<jar destfile="${jars.dir}/zookeeper-bootstrap.jar">
 			<manifest>
-				<attribute name="Main-Class" value="server.agents.coordination.zookeeper.ZookeeperBootstrap" />
+				<attribute name="Main-Class" value="weaql.server.agents.coordination.zookeeper.ZookeeperBootstrap" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
 				<include name="log4j_zookeeper.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
@@ -197,26 +197,26 @@
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-thrift-bundled-jar}" />
-				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-server-jar}" />
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-server-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/db-transform.jar">
 			<manifest>
-				<attribute name="Main-Class" value="util.dbtransform.DatabaseTransformerMain" />
+				<attribute name="Main-Class" value="weaql.util.dbtransform.DatabaseTransformerMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-util-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/zookeeper-server.jar">
@@ -235,21 +235,21 @@
 				<include name="jline-0.9.94.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-thrift-bundled-jar}" />
+				<include name="${weaql-thrift-bundled-jar}" />
 			</zipgroupfileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="ezk-zookeeper.jar" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/replicator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="server.replicator.ReplicatorMain" />
+				<attribute name="Main-Class" value="weaql.server.replicator.ReplicatorMain" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
@@ -259,9 +259,9 @@
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-thrift-bundled-jar}" />
-				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-server-jar}" />
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-server-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/micro-gendb.jar">
@@ -270,9 +270,9 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
@@ -283,9 +283,9 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
@@ -296,9 +296,9 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 				<include name="commons-dbutils-1.6.jar" />
 				<include name="log4j-1.2.17.jar" />
@@ -308,10 +308,10 @@
 				<include name="jsqlparser-0.9.2.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-thrift-bundled-jar}" />
-				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-client-jar}" />
-				<include name="${weakdb-apps-jar}" />
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-client-jar}" />
+				<include name="${weaql-apps-jar}" />
 			</zipgroupfileset>
 		</jar>
 		<jar destfile="${jars.dir}/${preload-tpcc-jar}">
@@ -320,14 +320,14 @@
 				<attribute name="Class-Path" value="." />
 			</manifest>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="mysql-connector-java-5.1.17-bin.jar" />
 			</zipgroupfileset>
 			<zipgroupfileset dir="${jars.dir}">
-				<include name="${weakdb-common-jar}" />
-				<include name="${weakdb-util-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
 			</zipgroupfileset>
 		</jar>
 
@@ -341,7 +341,7 @@
 				<attribute name="Class-Path" value="." />
 				<attribute name="Main-Class" value="com.codefutures.tpcc.TpccLoad" />
 			</manifest>
-			<zipgroupfileset dir="${weak.libs.dir}">
+			<zipgroupfileset dir="${weaql.libs.dir}">
 				<include name="log4j-1.2.17.jar" />
 				<include name="slf4j-log4j12-1.7.10.jar" />
 				<include name="slf4j-api-1.7.10.jar" />
@@ -349,11 +349,11 @@
 				<include name="commons-dbutils-1.6.jar" />
 			</zipgroupfileset>
 			<fileset dir="${resources.dir}">
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 			</fileset>
 		</jar>
 	</target>
-	<target name="deploy" depends="dist" description="Deploy WeakDB Distribution">
+	<target name="deploy" depends="dist" description="Deploy WeaQL Distribution">
 		<delete dir="${deploy.dir}" />
 		<mkdir dir="${deploy.dir}/topologies" />
 		<mkdir dir="${deploy.dir}/annotations" />
@@ -365,14 +365,14 @@
 				<include name="db-transform.jar" />
 				<include name="preload-tpcc.jar" />
 				<include name="replicator.jar" />
-				<include name="tpcc-client.jar" />
+				<include name="tpcc-weaql.client.jar" />
 				<include name="tpcc-gendb.jar" />
 				<include name="zookeeper-bootstrap.jar" />
-				<include name="zookeeper-server.jar" />
+				<include name="zookeeper-weaql.server.jar" />
 			</fileset>
 			<fileset dir="${resources.dir}">
 				<include name="zoo.cfg" />
-				<include name="log4j_weakdb.properties" />
+				<include name="log4j_weaql.properties" />
 				<include name="log4j_zookeeper.properties" />
 			</fileset>
 		</copy>

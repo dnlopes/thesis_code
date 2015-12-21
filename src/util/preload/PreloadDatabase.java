@@ -1,9 +1,9 @@
 package util.preload;
 
 
-import common.util.ConnectionFactory;
-import common.util.DatabaseProperties;
-import common.util.defaults.DatabaseDefaults;
+import weaql.common.util.ConnectionFactory;
+import weaql.common.util.DatabaseProperties;
+import weaql.common.util.defaults.DatabaseDefaults;
 
 import java.sql.Connection;
 import java.sql.SQLException;

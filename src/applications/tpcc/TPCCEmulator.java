@@ -3,9 +3,7 @@ package applications.tpcc;
 
 import applications.BaseBenchmarkOptions;
 import applications.BenchmarkOptions;
-import applications.util.TransactionRecord;
-import client.proxy.hook.TransactionsLogWritter;
-import common.util.Topology;
+import weaql.common.util.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

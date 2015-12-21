@@ -2,12 +2,12 @@ package applications.tpcc;
 
 
 import applications.Workload;
-import common.nodes.NodeConfig;
-import common.util.Environment;
-import common.util.Topology;
-import common.util.exception.ConfigurationLoadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import weaql.common.nodes.NodeConfig;
+import weaql.common.util.Topology;
+import weaql.common.util.WeaQLEnvironment;
+import weaql.common.util.exception.ConfigurationLoadException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class TpccBenchmark
 		String envFile = args[1];
 		String workloadFile = args[2];
 		Topology.setupTopology(topologyFile);
-		Environment.setupEnvironment(envFile);
+		WeaQLEnvironment.setupEnvironment(envFile);
 
 		loadWorkloadFile(workloadFile);
 

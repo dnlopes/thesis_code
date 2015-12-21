@@ -1,6 +1,15 @@
 package com.codefutures.tpcc;
 
 
+import com.codefutures.tpcc.stats.PerformanceCounters;
+import com.codefutures.tpcc.stats.ThreadStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import weaql.client.jdbc.CRDTConnectionFactory;
+import weaql.common.util.ConnectionFactory;
+import weaql.common.util.DatabaseProperties;
+import weaql.common.util.WeaQLEnvironment;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,14 +18,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import client.jdbc.CRDTConnectionFactory;
-import com.codefutures.tpcc.stats.PerformanceCounters;
-import com.codefutures.tpcc.stats.ThreadStatistics;
-import common.util.ConnectionFactory;
-import common.util.DatabaseProperties;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 
 public class TpccThread extends Thread
@@ -171,7 +172,7 @@ public class TpccThread extends Thread
 			boolean isCustomJDBC = Boolean.parseBoolean(System.getProperty("customJDBC"));
 
 			if(isCustomJDBC)
-				conn = CRDTConnectionFactory.getCRDTConnection(dbProps, common.util.Environment.DATABASE_NAME);
+				conn = CRDTConnectionFactory.getCRDTConnection(dbProps, WeaQLEnvironment.DATABASE_NAME);
 			else
 				conn = ConnectionFactory.getDefaultConnection(dbProps, "tpcc");
 

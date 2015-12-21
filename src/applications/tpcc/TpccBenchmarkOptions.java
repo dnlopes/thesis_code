@@ -3,7 +3,7 @@ package applications.tpcc;
 
 import applications.BaseBenchmarkOptions;
 import applications.Workload;
-import common.util.DatabaseProperties;
+import weaql.common.util.DatabaseProperties;
 
 
 /**
@@ -30,10 +30,5 @@ public final class TpccBenchmarkOptions extends BaseBenchmarkOptions
 	public String getDatabaseName()
 	{
 		return this.databaseName;
-	}
-
-	public boolean useSequentialOrderIds()
-	{
-		return false;
 	}
 }
