@@ -1,6 +1,8 @@
 package weaql.server.replicator;
 
 
+import com.mysql.jdbc.*;
+import org.apache.commons.dbutils.DbUtils;
 import weaql.common.util.*;
 import weaql.common.util.defaults.ScratchpadDefaults;
 import weaql.common.util.exception.InitComponentFailureException;
@@ -25,8 +27,9 @@ import weaql.common.util.defaults.ReplicatorDefaults;
 import weaql.common.thrift.*;
 import weaql.server.util.TransactionCommitFailureException;
 
+import java.sql.*;
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.concurrent.Executors;
@@ -85,7 +88,7 @@ public class Replicator extends AbstractNode
 				ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL * 4, ReplicatorDefaults.STATE_CHECKER_THREAD_INTERVAL,
 				TimeUnit.MILLISECONDS);
 
-		//deleteScratchpads();
+		deleteScratchpads();
 		createCommiterAgents();
 
 		try
@@ -242,45 +245,36 @@ public class Replicator extends AbstractNode
 
 	private void deleteScratchpads()
 	{
-		int id = 1;
+		Connection con = null;
+		Statement stat = null;
+
 		try
 		{
-			boolean keepGoing = true;
-			Connection con = ConnectionFactory.getDefaultConnection(config);
-			do
+			con = ConnectionFactory.getDefaultConnection(config);
+			con.setAutoCommit(false);
+			DatabaseMetaData metadata = con.getMetaData();
+			stat = con.createStatement();
+			ResultSet rs = metadata.getTables(null, null, "%", null);
+
+			while(rs.next())
 			{
-				keepGoing = deleteSingleScratchpads(con, id++);
-			} while(keepGoing);
+				String tableName = rs.getString(3);
+
+				if(tableName.startsWith(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX))
+					stat.execute("DROP TABLE " + tableName);
+			}
+
+			con.commit();
 
 		} catch(SQLException e)
 		{
-			e.printStackTrace();
+			LOG.warn("failed to cleanup temporary tables: {}", e.getMessage());
 		}
-	}
-
-	private boolean deleteSingleScratchpads(Connection con, int id) throws SQLException
-	{
-		Statement stat = con.createStatement();
-		Collection<DatabaseTable> allTables = WeaQLEnvironment.DB_METADATA.getAllTables();
-
-		for(DatabaseTable table : allTables)
+		finally
 		{
-			try
-			{
-				StringBuilder buffer = new StringBuilder("DROP TABLE ");
-				buffer.append(ScratchpadDefaults.SCRATCHPAD_TABLE_ALIAS_PREFIX).append(table.getName());
-				buffer.append("_").append(id);
-				String sql = buffer.toString();
-				stat.execute(sql);
-				con.commit();
-			} catch(SQLException e)
-			{
-				LOG.debug("no more scratchpads to delete");
-				return false;
-			}
+			DbUtils.closeQuietly(stat);
+			DbUtils.closeQuietly(con);
 		}
-
-		return true;
 	}
 
 	public int assignNewTransactionId()
