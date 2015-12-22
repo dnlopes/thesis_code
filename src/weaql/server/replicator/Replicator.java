@@ -90,7 +90,7 @@ public class Replicator extends AbstractNode
 
 		try
 		{
-			new Thread(new ReplicatorServerThread(this)).start();
+			new Thread(new ReceiverThread(this)).start();
 		} catch(TTransportException e)
 		{
 			String error = "failed to create background thread for replicator: " + e.getMessage();

@@ -23,10 +23,10 @@ import java.util.List;
 /**
  * Created by dnlopes on 20/03/15.
  */
-public class ReplicatorService implements ReplicatorRPC.Iface
+public class RPCHandler implements ReplicatorRPC.Iface
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ReplicatorService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RPCHandler.class);
 
 	private final Replicator replicator;
 	private final DeliverAgent deliver;
@@ -35,7 +35,7 @@ public class ReplicatorService implements ReplicatorRPC.Iface
 	private final TrxCompiler compiler;
 	private final int replicatorId;
 
-	public ReplicatorService(Replicator replicator) throws InitComponentFailureException
+	public RPCHandler(Replicator replicator) throws InitComponentFailureException
 	{
 		this.replicator = replicator;
 		this.replicatorId = replicator.getConfig().getId();

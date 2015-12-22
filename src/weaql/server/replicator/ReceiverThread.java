@@ -15,18 +15,18 @@ import weaql.common.thrift.ReplicatorRPC;
 /**
  * Created by dnlopes on 20/03/15.
  */
-public class ReplicatorServerThread implements Runnable
+public class ReceiverThread implements Runnable
 {
 
-	static final Logger LOG = LoggerFactory.getLogger(ReplicatorServerThread.class);
+	static final Logger LOG = LoggerFactory.getLogger(ReceiverThread.class);
 
 	private Replicator me;
 	private TServer server;
 
-	public ReplicatorServerThread(Replicator node) throws TTransportException, InitComponentFailureException
+	public ReceiverThread(Replicator node) throws TTransportException, InitComponentFailureException
 	{
 		this.me = node;
-		ReplicatorService handler = new ReplicatorService(this.me);
+		RPCHandler handler = new RPCHandler(this.me);
 		ReplicatorRPC.Processor processor = new ReplicatorRPC.Processor(handler);
 		TServerTransport serverTransport = new TServerSocket(node.getSocketAddress().getPort());
 		this.server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
