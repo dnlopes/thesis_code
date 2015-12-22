@@ -16,8 +16,8 @@ import java.util.List;
  */
 public interface IReplicatorNetwork
 {
-	void sendOperationToRemote(CRDTCompiledTransaction transaction);
-	void sendBatchToRemote(List<CRDTCompiledTransaction> transactions);
+	void send(CRDTCompiledTransaction transaction);
+	void send(List<CRDTCompiledTransaction> transactions);
 	void openConnections();
 
 	CoordinatorResponse sendRequestToCoordinator(CoordinatorRequest req) throws SocketConnectionException;

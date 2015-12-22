@@ -1,4 +1,4 @@
-package weaql.server.execution.main;
+package weaql.server.execution;
 
 
 import weaql.common.thrift.CRDTCompiledTransaction;

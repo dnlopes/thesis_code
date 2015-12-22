@@ -23,6 +23,6 @@ public class BasicDispatcher implements DispatcherAgent
 	@Override
 	public void dispatchTransaction(CRDTCompiledTransaction transaction)
 	{
-		networkInterface.sendOperationToRemote(transaction);
+		networkInterface.send(transaction);
 	}
 }

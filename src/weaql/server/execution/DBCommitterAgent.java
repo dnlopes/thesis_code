@@ -1,4 +1,4 @@
-package weaql.server.execution.main;
+package weaql.server.execution;
 
 
 import weaql.common.nodes.NodeConfig;
@@ -40,7 +40,7 @@ public class DBCommitterAgent implements DBCommitter
 		while(true)
 		{
 			tries++;
-			if(tries % DBCommitter.LOG_ERROR_FREQUENCY == 0)
+			if(tries % LOG_ERROR_FREQUENCY == 0)
 				LOG.warn("already tried {} to commit without success ({})", tries, lastError);
 
 			boolean commitDecision = tryCommit(txn);

@@ -7,10 +7,9 @@ import weaql.common.util.defaults.ScratchpadDefaults;
 import weaql.common.util.exception.InitComponentFailureException;
 import weaql.common.util.exception.InvalidConfigurationException;
 import weaql.server.agents.AgentsFactory;
-import weaql.server.execution.GarbageCollector;
-import weaql.server.execution.StatsCollector;
-import weaql.server.execution.main.DBCommitterAgent;
-import weaql.server.execution.main.DBCommitter;
+import weaql.server.util.StatsCollector;
+import weaql.server.execution.DBCommitterAgent;
+import weaql.server.execution.DBCommitter;
 import weaql.common.nodes.AbstractNode;
 import weaql.common.nodes.NodeConfig;
 import weaql.server.agents.coordination.SimpleCoordinationAgent;
@@ -266,8 +265,7 @@ public class Replicator extends AbstractNode
 		} catch(SQLException e)
 		{
 			LOG.warn("failed to cleanup temporary tables: {}", e.getMessage());
-		}
-		finally
+		} finally
 		{
 			DbUtils.closeQuietly(stat);
 			DbUtils.closeQuietly(con);

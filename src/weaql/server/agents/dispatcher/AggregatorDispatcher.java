@@ -56,7 +56,7 @@ public class AggregatorDispatcher implements DispatcherAgent
 
 			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
 
-			networkInterface.sendBatchToRemote(batch);
+			networkInterface.send(batch);
 		}
 
 		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTCompiledTransaction> trxList)

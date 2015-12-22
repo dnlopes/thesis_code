@@ -58,7 +58,7 @@ public class BatchDispatcher implements DispatcherAgent
 			List<CRDTCompiledTransaction> batch = prepareBatch(snapshot);
 
 			LOG.debug("sending txn batch (size {}) to remote nodes", batch.size());
-			networkInterface.sendBatchToRemote(batch);
+			networkInterface.send(batch);
 		}
 
 		private List<CRDTCompiledTransaction> prepareBatch(Queue<CRDTCompiledTransaction> trxList)

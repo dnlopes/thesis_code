@@ -1,4 +1,4 @@
-package weaql.server.execution;
+package weaql.server.replicator;
 
 
 import weaql.common.database.SQLBasicInterface;
@@ -8,7 +8,6 @@ import weaql.common.database.table.DatabaseTable;
 import weaql.common.util.WeaQLEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import weaql.server.replicator.Replicator;
 import weaql.server.util.LogicalClock;
 import weaql.common.util.defaults.ReplicatorDefaults;
 

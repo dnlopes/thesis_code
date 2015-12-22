@@ -58,7 +58,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public void sendOperationToRemote(CRDTCompiledTransaction transaction)
+	public void send(CRDTCompiledTransaction transaction)
 	{
 		for(NodeConfig config : replicatorsConfigs.values())
 		{
@@ -89,7 +89,7 @@ public class ReplicatorNetwork extends AbstractNetwork implements IReplicatorNet
 	}
 
 	@Override
-	public void sendBatchToRemote(List<CRDTCompiledTransaction> transactions)
+	public void send(List<CRDTCompiledTransaction> transactions)
 	{
 		for(NodeConfig config : this.replicatorsConfigs.values())
 		{
