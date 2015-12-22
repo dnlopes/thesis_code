@@ -6,7 +6,7 @@ package applications.micro;
  */
 public interface MicroConstants
 {
-	public static final int NUMBER_OF_TABLES = 2;
-	public static final int RECORDS_PER_TABLE = 1000;
-	public static final int PER_TXN_ITEMS = 1;
+	int NUMBER_OF_TABLES = 5;
+	int RECORDS_PER_TABLE = 10000;
+	int PER_TXN_ITEMS = 1;
 }

@@ -18,6 +18,7 @@ import weaql.common.database.SQLBasicInterface;
 import weaql.common.database.SQLInterface;
 import weaql.common.database.field.DataField;
 import weaql.common.database.table.DatabaseTable;
+import weaql.common.database.util.DatabaseCommon;
 import weaql.common.nodes.NodeConfig;
 import weaql.common.thrift.CRDTPreCompiledTransaction;
 import weaql.common.thrift.Status;
@@ -280,8 +281,12 @@ public class SandboxExecutionProxy implements Proxy
 						insertedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
 					else if(field.isDeltaField())
 					{
-						//TODO
-						// calculate delta and merge
+						double initValue = Double.parseDouble(insertedRecord.getData(field.getFieldName()));
+						double diffValue = DatabaseCommon.extractDelta(updatedVersion.getData(field.getFieldName()),
+								field.getFieldName());
+
+						double finalValue = initValue + diffValue;
+						insertedRecord.addData(field.getFieldName(), String.valueOf(finalValue));
 					}
 				}
 
@@ -306,7 +311,7 @@ public class SandboxExecutionProxy implements Proxy
 			Record cachedRecord = cache.get(updatedRecord.getPkValue().getUniqueValue());
 
 			// use cached record as baseline, then override the changed columns
-			// the columns that are present in the update record
+			// that are present in the updated version of the record
 			for(Map.Entry<String, String> updatedEntry : updatedRecord.getRecordData().entrySet())
 			{
 				DataField field = table.getField(updatedEntry.getKey());
@@ -314,13 +319,7 @@ public class SandboxExecutionProxy implements Proxy
 				if(field.isPrimaryKey())
 					continue;
 
-				if(field.isLWWField())
-					cachedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
-				else if(field.isDeltaField())
-				{
-					//TODO
-					// calculate delta and merge
-				}
+				cachedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
 			}
 
 			if(table.isChildTable())

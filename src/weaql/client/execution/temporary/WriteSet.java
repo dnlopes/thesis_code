@@ -1,9 +1,12 @@
 package weaql.client.execution.temporary;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import weaql.common.database.Record;
 import weaql.common.database.field.DataField;
 import weaql.common.database.table.DatabaseTable;
+import weaql.common.database.util.DatabaseCommon;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -15,6 +18,8 @@ import java.util.Map;
  */
 public class WriteSet
 {
+
+	private static final Logger LOG = LoggerFactory.getLogger(WriteSet.class);
 
 	private Map<String, Record> inserts;
 	private Map<String, Record> updates;
@@ -57,9 +62,9 @@ public class WriteSet
 
 		if(updates.containsKey(pkValue))
 		{
+			// record was updated twice, lets merge the values
 			DatabaseTable table = record.getDatabaseTable();
 
-			// record was updated twice, lets merge the values
 			Record oldRecord = updates.get(pkValue);
 
 			for(Map.Entry<String, String> dataEntry : record.getRecordData().entrySet())
@@ -72,8 +77,24 @@ public class WriteSet
 					oldRecord.addData(dataEntry.getKey(), dataEntry.getValue());
 				else if(field.isDeltaField())
 				{
-					//TODO
-					// calculate delta and merge
+					try
+					{
+						String oldDeltaString = oldRecord.getData(field.getFieldName());
+						String newDeltaString = record.getData(field.getFieldName());
+						double oldDelta = DatabaseCommon.extractDelta(oldDeltaString, field.getFieldName());
+						double newDelta = DatabaseCommon.extractDelta(newDeltaString, field.getFieldName());
+
+						double updatedDelta = oldDelta + newDelta;
+
+						if(updatedDelta > 0)
+							oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "+" + updatedDelta);
+						else
+							oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "-" + updatedDelta);
+
+					} catch(SQLException e)
+					{
+						LOG.warn("could not merge delta values", e.getMessage());
+					}
 				}
 			}
 		} else

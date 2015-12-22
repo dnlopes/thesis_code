@@ -1,7 +1,6 @@
 package weaql.server.replicator;
 
 
-import com.mysql.jdbc.*;
 import org.apache.commons.dbutils.DbUtils;
 import weaql.common.util.*;
 import weaql.common.util.defaults.ScratchpadDefaults;
@@ -12,7 +11,6 @@ import weaql.server.execution.GarbageCollector;
 import weaql.server.execution.StatsCollector;
 import weaql.server.execution.main.DBCommitterAgent;
 import weaql.server.execution.main.DBCommitter;
-import weaql.common.database.table.DatabaseTable;
 import weaql.common.nodes.AbstractNode;
 import weaql.common.nodes.NodeConfig;
 import weaql.server.agents.coordination.SimpleCoordinationAgent;
@@ -31,7 +29,6 @@ import java.sql.*;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

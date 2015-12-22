@@ -18,7 +18,7 @@ import java.sql.SQLException;
 public class CRDTConnectionFactory
 {
 
-	public static final String CRDT_DRIVER = "client.jdbc.CRDTDriver";
+	public static final String CRDT_DRIVER = "weaql.client.jdbc.CRDTDriver";
 
 	static
 	{

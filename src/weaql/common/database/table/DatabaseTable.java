@@ -35,6 +35,7 @@ public class DatabaseTable
 	private boolean isParentTable;
 	private String name;
 	private CRDTTableType tag;
+	private boolean hasDeletableParents;
 	private boolean containsAutoIncrementField;
 	private String primaryKeyString;
 	private List<CheckConstraint> checkConstraints;
@@ -66,6 +67,7 @@ public class DatabaseTable
 		this.mandatoryFields = 0;
 		this.executionPolicy = policy;
 		this.freeToInsert = true;
+		this.hasDeletableParents = false;
 		this.fieldsMap = fieldsMap;
 		this.name = name;
 		this.tag = tableType;
@@ -139,8 +141,14 @@ public class DatabaseTable
 			if(c.requiresCoordination())
 				freeToInsert = false;
 		}
+
 		for(Constraint c : this.fkConstraints)
+		{
+			if(((ForeignKeyConstraint) c).getParentTable().getTablePolicy().allowDeletes())
+				this.hasDeletableParents = true;
+
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
+		}
 		for(Constraint c : this.checkConstraints)
 			this.constraintsMap.put(c.getConstraintIdentifier(), c);
 	}
@@ -492,6 +500,11 @@ public class DatabaseTable
 
 	}
 
+	public boolean hasDeletableParents()
+	{
+		return hasDeletableParents;
+	}
+
 	public String toString()
 	{
 		String myString = "TableName: " + this.name + " \n";
@@ -517,7 +530,7 @@ public class DatabaseTable
 
 	public boolean isChildTable()
 	{
-		return this.fkConstraints.size() == 0;
+		return this.fkConstraints.size() != 0;
 	}
 
 	public int getMandatoryFields()

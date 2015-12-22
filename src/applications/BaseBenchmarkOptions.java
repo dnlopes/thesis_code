@@ -31,7 +31,7 @@ public abstract class BaseBenchmarkOptions implements BenchmarkOptions
 		this.workload = workload;
 		this.dbProps = dbProps;
 
-		if(!this.isValidJdbc(this.jdbc))
+		if(!isValidJdbc(this.jdbc))
 		{
 			LOG.error("invalid jdbc");
 			System.exit(-1);

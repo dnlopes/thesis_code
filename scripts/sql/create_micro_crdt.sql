@@ -2,9 +2,9 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 
 
-drop database if exists micro;
-create database micro;
-use micro;
+drop database if exists micro_crdt;
+create database micro_crdt;
+use micro_crdt;
 
 commit;
 

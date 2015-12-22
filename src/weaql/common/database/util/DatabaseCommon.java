@@ -42,27 +42,6 @@ public class DatabaseCommon
 		return pkValue;
 	}
 
-	public static Row getFullRow(ResultSet rs, DatabaseTable dbTable) throws SQLException
-	{
-		PrimaryKeyValue pkValue = getPrimaryKeyValue(rs, dbTable);
-		Row row = new Row(dbTable, pkValue);
-
-		for(DataField field : dbTable.getNormalFields().values())
-		{
-			Object fieldValue = rs.getObject(field.getFieldName());
-			String objString;
-			if(fieldValue == null)
-				objString = "NULL";
-			else
-				objString = fieldValue.toString();
-
-			FieldValue fValue = new FieldValue(field, objString);
-			row.addFieldValue(fValue);
-		}
-
-		return row;
-	}
-
 	public static Date NOW()
 	{
 		return new Date();
@@ -114,5 +93,45 @@ public class DatabaseCommon
 		}
 
 		return record;
+	}
+
+	public static double extractDelta(String stringValue, String fieldName) throws SQLException
+	{
+		double delta = 0;
+
+		if(stringValue.contains("+"))
+		{
+			String[] splitted = stringValue.split("\\+");
+
+			for(int i = 0; i < splitted.length; i++)
+				splitted[i] = splitted[i].trim();
+
+			if(splitted.length != 2)
+				throw new SQLException("malformed delta update field");
+
+			if(fieldName.compareTo(splitted[0]) == 0) //[0] is the fieldName
+				delta = Double.parseDouble(splitted[1]);
+			else //[1] is the fieldName
+				delta = Double.parseDouble(splitted[0]);
+
+		} else if(stringValue.contains("-"))
+		{
+			String[] splitted = stringValue.split("-");
+
+			for(int i = 0; i < splitted.length; i++)
+				splitted[i] = splitted[i].trim();
+
+			if(splitted.length != 2)
+				throw new SQLException("malformed delta update field");
+
+			if(fieldName.compareTo(splitted[0]) == 0) //[0] is the fieldName
+				delta = Double.parseDouble(splitted[1]);
+			else //[1] is the fieldName
+				delta = Double.parseDouble(splitted[0]);
+
+			delta *= -1;
+		}
+
+		return delta;
 	}
 }

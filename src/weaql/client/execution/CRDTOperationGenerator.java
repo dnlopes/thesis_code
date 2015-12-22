@@ -4,6 +4,7 @@ package weaql.client.execution;
 import weaql.client.execution.operation.*;
 import weaql.common.database.Record;
 import weaql.common.database.constraints.fk.ForeignKeyConstraint;
+import weaql.common.database.constraints.fk.ParentChildRelation;
 import weaql.common.database.field.DataField;
 import weaql.common.database.table.DatabaseTable;
 import weaql.common.database.util.ExecutionPolicy;
@@ -61,32 +62,65 @@ public class CRDTOperationGenerator
 
 	public static String[] insertChildRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO implement
-		return insertRow(record, clock, context);
-		/*
-		op.putToNewFieldValues(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.DELETED_VALUE);
-		op.putToNewFieldValues(DatabaseDefaults.CONTENT_CLOCK_COLUMN, clock);
-		op.putToNewFieldValues(DatabaseDefaults.DELETED_CLOCK_COLUMN, clock);
+		DatabaseTable dbTable = record.getDatabaseTable();
 
-		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
-		Map<String, String> parentsMap = op.getParentsMap();
-
-		String[] ops = new String[2 + parentsMap.size() * 2];
-		String[] parentOps = OperationsGenerator.generateParentsVisibilityOperations(parentsMap, dbTable, clock);
-		String insertOp = OperationsGenerator.generateInsertOperation(dbTable.getName(), op.getNewFieldValues());
-
-		int opIndex = 0;
-		for(String opString : parentOps)
-			ops[opIndex++] = opString;
-
-		ops[opIndex++] = insertOp;
-
-		if(op.isSetParentsMap())
+		if(!dbTable.hasDeletableParents())
+			return insertRow(record, clock, context);
+		else
 		{
-			//TODO later: generate setConditionalVisibleChild
-		}
+			List<String> ops = new LinkedList<>();
 
-		return ops;            */
+			List<ForeignKeyConstraint> fkConstraints = dbTable.getFkConstraints();
+
+			for(ForeignKeyConstraint fkConstraint : fkConstraints)
+			{
+				if(!fkConstraint.getParentTable().getTablePolicy().allowDeletes())
+					continue;
+
+				if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+				{
+					List<ParentChildRelation> fieldsRelations = fkConstraint.getFieldsRelations();
+
+					StringBuilder buffer = new StringBuilder();
+
+					Iterator<ParentChildRelation> it = fieldsRelations.iterator();
+
+					while(it.hasNext())
+					{
+						ParentChildRelation aRelation = it.next();
+
+						buffer.append(aRelation.getParent().getFieldName());
+						buffer.append("=");
+						buffer.append(record.getData(aRelation.getChild().getFieldName()));
+
+						if(it.hasNext())
+							buffer.append(" AND ");
+					}
+
+					String whereClause = buffer.toString();
+
+					String parentVisible = OperationsGenerator.generateSetParentVisible(fkConstraint, whereClause,
+							clock, context);
+					ops.add(parentVisible);
+
+					String mergedClockOp = OperationsGenerator.mergeDeletedClock(whereClause,
+							fkConstraint.getParentTable().getName(), clock, context);
+					ops.add(mergedClockOp);
+				}
+			}
+
+			record.addData(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.DELETED_VALUE);
+			record.addData(DatabaseDefaults.CONTENT_CLOCK_COLUMN, clock);
+			record.addData(DatabaseDefaults.DELETED_CLOCK_COLUMN, clock);
+			String insertOp = OperationsGenerator.generateInsertOperation(record, context);
+			ops.add(insertOp);
+			//TODO set visible
+
+			String[] statementsArray = new String[ops.size()];
+			statementsArray = ops.toArray(statementsArray);
+
+			return statementsArray;
+		}
 	}
 
 	public static String[] updateRow(Record record, String clock, TransactionContext context)
@@ -530,5 +564,5 @@ public class CRDTOperationGenerator
 		}
 
 	}
-	
+
 }
