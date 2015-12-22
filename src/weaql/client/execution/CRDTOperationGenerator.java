@@ -137,7 +137,7 @@ public class CRDTOperationGenerator
 		{
 			DataField field = dbTable.getField(newField.getKey());
 
-			if(field.isPrimaryKey())
+			if(field.isPrimaryKey() || field.isImmutableField())
 				continue;
 
 			if(field.isDeltaField())
@@ -313,7 +313,7 @@ public class CRDTOperationGenerator
 				else
 				{
 					DataField dataField = record.getDatabaseTable().getField(entry.getKey());
-					valuesBuffer.append(dataField.get_Value_In_Correct_Format(entry.getValue()));
+					valuesBuffer.append(dataField.formatValue(entry.getValue()));
 				}
 				valuesBuffer.append(",");
 			}
@@ -429,7 +429,7 @@ public class CRDTOperationGenerator
 
 				buffer.append(entry.getKey());
 				buffer.append("=");
-				buffer.append(dataField.get_Value_In_Correct_Format(entry.getValue()));
+				buffer.append(dataField.formatValue(entry.getValue()));
 				buffer.append(",");
 			}
 

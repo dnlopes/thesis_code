@@ -277,7 +277,7 @@ public class SandboxExecutionProxy implements Proxy
 					if(field.isPrimaryKey())
 						continue;
 
-					if(field.isLWWField())
+					if(field.isLwwField())
 						insertedRecord.addData(updatedEntry.getKey(), updatedEntry.getValue());
 					else if(field.isDeltaField())
 					{

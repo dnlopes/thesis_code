@@ -73,7 +73,7 @@ public class WriteSet
 
 				if(field.isPrimaryKey())
 					continue;
-				if(field.isLWWField())
+				if(field.isLwwField())
 					oldRecord.addData(dataEntry.getKey(), dataEntry.getValue());
 				else if(field.isDeltaField())
 				{

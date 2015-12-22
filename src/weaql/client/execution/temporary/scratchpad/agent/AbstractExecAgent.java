@@ -79,14 +79,14 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 
 		for(DataField field : this.databaseTable.getFieldsMap().values())
 		{
-			if(field.isHiddenField())
+			if(field.isMetadataField())
 				continue;
 			this.fields.put(field.getFieldName(), field);
 		}
 
 		for(DataField field : this.fields.values())
 		{
-			if(field.isHiddenField())
+			if(field.isMetadataField())
 				continue;
 
 			Column column = new Column(field.getFieldName());
@@ -165,7 +165,7 @@ public abstract class AbstractExecAgent implements IExecutorAgent
 
 			while(colSet.next())
 			{
-				if(this.databaseTable.getField(colSet.getString(4)).isHiddenField())
+				if(this.databaseTable.getField(colSet.getString(4)).isMetadataField())
 					continue;
 
 				if(!first)

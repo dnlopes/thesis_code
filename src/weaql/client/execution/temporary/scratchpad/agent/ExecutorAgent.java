@@ -252,7 +252,7 @@ public class ExecutorAgent extends AbstractExecAgent implements IExecutorAgent
 							cachedContent = "NULL";
 
 						cachedRecord.addData(field.getFieldName(), cachedContent);
-						valuesBuffer.append(field.get_Value_In_Correct_Format(cachedContent));
+						valuesBuffer.append(field.formatValue(cachedContent));
 
 						if(fieldsIt.hasNext())
 							valuesBuffer.append(",");

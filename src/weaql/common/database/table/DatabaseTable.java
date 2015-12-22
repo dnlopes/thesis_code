@@ -12,8 +12,8 @@ import weaql.common.database.constraints.unique.UniqueConstraint;
 import weaql.common.database.field.DataField;
 import weaql.common.database.util.ExecutionPolicy;
 import weaql.common.database.util.PrimaryKey;
-import weaql.common.database.field.hidden.DeletedField;
-import weaql.common.database.field.hidden.LogicalClockField;
+import weaql.common.database.field.metadata.DeletedField;
+import weaql.common.database.field.metadata.LogicalClockField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weaql.common.util.RuntimeUtils;
@@ -100,7 +100,7 @@ public class DatabaseTable
 			this.fkConstraints.addAll(aDataField.getFkConstraints());
 			this.checkConstraints.addAll(aDataField.getCheckConstraints());
 
-			if(aDataField.isHiddenField())
+			if(aDataField.isMetadataField())
 				this.hiddenFields.put(aDataField.getFieldName(), aDataField);
 			else
 			{

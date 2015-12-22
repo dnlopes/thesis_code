@@ -6,7 +6,8 @@ package weaql.common.database.field;
 /**
  * The Enum CrdtDataFieldType.
  */
-public enum CrdtDataFieldType {
+public enum CRDTFieldType
+{
 
 	// data fields
 	/** The noncrdtfield. */

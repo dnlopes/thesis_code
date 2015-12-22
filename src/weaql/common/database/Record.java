@@ -70,7 +70,7 @@ public class Record
 
 		data.put(key, value);
 
-		if(normalFields.containsKey(key) && normalFields.get(key).isLWWField())
+		if(normalFields.containsKey(key) && normalFields.get(key).isLwwField())
 			touchedLWWField = true;
 	}
 
@@ -109,7 +109,7 @@ public class Record
 			{
 				if(this.data.containsKey(fieldName)) // this field was updated
 				{
-					if(aField.isLWWField())
+					if(aField.isLwwField())
 						this.touchedLWWField = true;
 
 				} else // this field was not updated

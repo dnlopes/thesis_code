@@ -1,7 +1,6 @@
 package weaql.common.database.field;
 
 
-import java.sql.ResultSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +31,7 @@ public abstract class DataField
 	private AutoIncrementConstraint autoIncrementConstraint;
 	private Set<DataField> childFields;
 	private Set<DataField> parentsFields;
-	private CrdtDataFieldType crdtDataType;
+	private CRDTFieldType crdtDataType;
 	private SemanticPolicy semantic;
 	private String fieldName;
 	private String tableName;
@@ -47,8 +46,8 @@ public abstract class DataField
 	private FieldValue defaultFieldValue;
 	private boolean internallyChanged;
 
-	protected DataField(CrdtDataFieldType fieldTag, String name, String tableName, String fieldType,
-						boolean isPrimaryKey, boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
+	protected DataField(CRDTFieldType fieldTag, String name, String tableName, String fieldType, boolean isPrimaryKey,
+						boolean isAutoIncremental, int pos, SemanticPolicy semanticPolicy)
 	{
 
 		this.isAllowedNULL = false;
@@ -85,7 +84,7 @@ public abstract class DataField
 		}
 	}
 
-	public CrdtDataFieldType getCrdtType()
+	public CRDTFieldType getCrdtType()
 	{
 		return this.crdtDataType;
 	}
@@ -156,15 +155,6 @@ public abstract class DataField
 		this.invariants.add(inv);
 	}
 
-	public boolean isImmutableField()
-	{
-		return this.crdtDataType == CrdtDataFieldType.IMMUTABLE_FIELD || this.crdtDataType == CrdtDataFieldType
-				.NORMALBOOLEAN || this.crdtDataType == CrdtDataFieldType.NORMALDATETIME || this.crdtDataType ==
-				CrdtDataFieldType.NORMALDOUBLE || this.crdtDataType == CrdtDataFieldType.NORMALFLOAT || this
-				.crdtDataType == CrdtDataFieldType.NORMALINTEGER || this.crdtDataType == CrdtDataFieldType
-				.NORMALSTRING;
-	}
-
 	public void setDatabaseTable(DatabaseTable table)
 	{
 		this.dbTable = table;
@@ -225,11 +215,6 @@ public abstract class DataField
 		return this.autoIncrementConstraint;
 	}
 
-	public boolean isInternallyChanged()
-	{
-		return this.internallyChanged;
-	}
-
 	public void setInternallyChanged(boolean internallyChanged)
 	{
 		this.internallyChanged = internallyChanged;
@@ -259,50 +244,32 @@ public abstract class DataField
 		return this.fieldName;
 	}
 
-	public boolean isStringField()
-	{
-		return false;
-	}
-
-	public boolean isLWWField()
-	{
-		return false;
-	}
-
 	public String getDefaultValue()
 	{
 		return this.defaultValue;
 	}
 
-	public boolean isDeletedFlagField()
+	public boolean isStringField()
 	{
 		return false;
 	}
 
-	public boolean isDeltaField()
-	{
-		return false;
-	}
+	public abstract boolean isLwwField();
 
-	public boolean isHiddenField()
-	{
-		return false;
-	}
+	public abstract boolean isDeltaField();
 
-	public boolean isDateField()
-	{
-		return false;
-	}
+	public abstract boolean isMetadataField();
 
 	public boolean isNumberField()
 	{
 		return false;
 	}
 
-	public abstract String get_Crdt_Form(ResultSet rs, String Value);
+	public boolean isImmutableField()
+	{
+		return false;
+	}
 
-	public abstract String get_Crdt_Form(String Value);
-
-	public abstract String get_Value_In_Correct_Format(String Value);
+	public abstract String formatValue(String Value);
 
 }

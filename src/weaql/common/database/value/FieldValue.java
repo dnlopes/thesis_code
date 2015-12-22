@@ -1,7 +1,7 @@
 package weaql.common.database.value;
 
 
-import weaql.common.database.field.CrdtDataFieldType;
+import weaql.common.database.field.CRDTFieldType;
 import weaql.common.database.field.DataField;
 
 
@@ -13,7 +13,6 @@ public class FieldValue
 
 	protected final DataField dataField;
 	protected String value;
-	private static final String NULL_VALUE = "NULL";
 
 	public FieldValue(DataField field, String value)
 	{
@@ -28,15 +27,13 @@ public class FieldValue
 
 	public String getFormattedValue()
 	{
-		if(this.value.compareTo(NULL_VALUE) == 0)
-			return this.value;
 
-		CrdtDataFieldType fieldType = this.dataField.getCrdtType();
+		CRDTFieldType fieldType = this.dataField.getCrdtType();
 
-		if(fieldType == CrdtDataFieldType.LWWDATETIME || fieldType == CrdtDataFieldType.NORMALDATETIME || fieldType ==
-				CrdtDataFieldType.NUMDELTADATETIME || fieldType == CrdtDataFieldType.LWWSTRING || fieldType ==
-				CrdtDataFieldType.NORMALSTRING ||
-				fieldType == CrdtDataFieldType.LWWLOGICALTIMESTAMP)
+		if(fieldType == CRDTFieldType.LWWDATETIME || fieldType == CRDTFieldType.NORMALDATETIME || fieldType ==
+				CRDTFieldType.NUMDELTADATETIME || fieldType == CRDTFieldType.LWWSTRING || fieldType ==
+				CRDTFieldType.NORMALSTRING ||
+				fieldType == CRDTFieldType.LWWLOGICALTIMESTAMP)
 			return "'" + this.value + "'";
 		else
 			return this.value;
