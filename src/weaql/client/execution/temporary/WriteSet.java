@@ -77,23 +77,28 @@ public class WriteSet
 					oldRecord.addData(dataEntry.getKey(), dataEntry.getValue());
 				else if(field.isDeltaField())
 				{
-					try
+					if(!oldRecord.getRecordData().containsKey(field.getFieldName()))
+						oldRecord.addData(dataEntry.getKey(), dataEntry.getValue());
+					else
 					{
-						String oldDeltaString = oldRecord.getData(field.getFieldName());
-						String newDeltaString = record.getData(field.getFieldName());
-						double oldDelta = DatabaseCommon.extractDelta(oldDeltaString, field.getFieldName());
-						double newDelta = DatabaseCommon.extractDelta(newDeltaString, field.getFieldName());
+						try
+						{
+							String oldDeltaString = oldRecord.getData(field.getFieldName());
+							String newDeltaString = record.getData(field.getFieldName());
+							double oldDelta = DatabaseCommon.extractDelta(oldDeltaString, field.getFieldName());
+							double newDelta = DatabaseCommon.extractDelta(newDeltaString, field.getFieldName());
 
-						double updatedDelta = oldDelta + newDelta;
+							double updatedDelta = oldDelta + newDelta;
 
-						if(updatedDelta > 0)
-							oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "+" + updatedDelta);
-						else
-							oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "-" + updatedDelta);
+							if(updatedDelta > 0)
+								oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "+" + updatedDelta);
+							else
+								oldRecord.addData(dataEntry.getKey(), field.getFieldName() + "-" + updatedDelta);
 
-					} catch(SQLException e)
-					{
-						LOG.warn("could not merge delta values", e.getMessage());
+						} catch(SQLException e)
+						{
+							LOG.warn("could not merge delta values", e.getMessage());
+						}
 					}
 				}
 			}

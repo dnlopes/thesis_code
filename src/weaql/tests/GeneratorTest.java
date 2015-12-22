@@ -41,7 +41,10 @@ public class GeneratorTest
 		Connection con = CRDTConnectionFactory.getCRDTConnection(props, "micro_crdt");
 		Statement stat = con.createStatement();
 		String op4 = "INSERT INTO t2 (a,b,c,d,e) values (12001,5555,6000,7777,'coco')";
-		stat.executeUpdate(op4);
+		String op = "UPDATE t4 set b=100 where a=2";
+		String op2 = "UPDATE t4 set c=c+2 where a=2";
+		stat.executeUpdate(op);
+		stat.executeUpdate(op2);
 		con.commit();
 	}
 	

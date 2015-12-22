@@ -137,6 +137,9 @@ public class CRDTOperationGenerator
 		{
 			DataField field = dbTable.getField(newField.getKey());
 
+			if(field.isPrimaryKey())
+				continue;
+
 			if(field.isDeltaField())
 				deltaFieldsMap.put(newField.getKey(), newField.getValue());
 			else
@@ -184,64 +187,63 @@ public class CRDTOperationGenerator
 
 	public static String[] updateChildRow(Record record, String clock, TransactionContext context)
 	{
-		//TODO implement
-		return updateRow(record, clock, context);
-		/*
-		DatabaseTable dbTable = METADATA.getTable(op.getTableName());
-		List<String> statements = new ArrayList<>();
+		DatabaseTable dbTable = record.getDatabaseTable();
 
-		String[] parentOps = OperationsGenerator.generateParentsVisibilityOperations(op.getParentsMap(), dbTable,
-				clock);
-
-		Collections.addAll(statements, parentOps);
-
-		Map<String, String> lwwFieldsMap = op.getOldFieldValues();
-		Map<String, String> deltaFieldsMap = new HashMap<>();
-
-		for(Map.Entry<String, String> newField : op.getNewFieldValues().entrySet())
+		if(!dbTable.hasDeletableParents())
+			return updateRow(record, clock, context);
+		else
 		{
-			DataField field = dbTable.getField(newField.getKey());
+			List<String> ops = new LinkedList<>();
 
-			if(field.isDeltaField())
-				deltaFieldsMap.put(newField.getKey(), newField.getValue());
-			else
-				lwwFieldsMap.put(newField.getKey(), newField.getValue());
+			List<ForeignKeyConstraint> fkConstraints = dbTable.getFkConstraints();
+
+			for(ForeignKeyConstraint fkConstraint : fkConstraints)
+			{
+				if(!fkConstraint.getParentTable().getTablePolicy().allowDeletes())
+					continue;
+
+				if(fkConstraint.getPolicy().getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
+				{
+					List<ParentChildRelation> fieldsRelations = fkConstraint.getFieldsRelations();
+
+					StringBuilder buffer = new StringBuilder();
+
+					Iterator<ParentChildRelation> it = fieldsRelations.iterator();
+
+					while(it.hasNext())
+					{
+						ParentChildRelation aRelation = it.next();
+
+						buffer.append(aRelation.getParent().getFieldName());
+						buffer.append("=");
+						buffer.append(record.getData(aRelation.getChild().getFieldName()));
+
+						if(it.hasNext())
+							buffer.append(" AND ");
+					}
+
+					String whereClause = buffer.toString();
+
+					String parentVisible = OperationsGenerator.generateSetParentVisible(fkConstraint, whereClause,
+							clock, context);
+					ops.add(parentVisible);
+
+					String mergedClockOp = OperationsGenerator.mergeDeletedClock(whereClause,
+							fkConstraint.getParentTable().getName(), clock, context);
+					ops.add(mergedClockOp);
+				}
+			}
+
+			record.addData(DatabaseDefaults.DELETED_COLUMN, DatabaseDefaults.DELETED_VALUE);
+
+			ops.addAll(Arrays.asList(updateRow(record, clock, context)));
+
+			//TODO generate conditional set visible
+			String[] statementsArray = new String[ops.size()];
+			statementsArray = ops.toArray(statementsArray);
+
+			return statementsArray;
 		}
-
-		if(deltaFieldsMap.size() > 0)
-		{
-			String deltasOp = OperationsGenerator.generateUpdateStatement(dbTable, op.getPkWhereClause(),
-					deltaFieldsMap, false, clock);
-			statements.add(deltasOp);
-		}
-
-		if(lwwFieldsMap.size() > 0)
-		{
-			String lwwOp = OperationsGenerator.generateUpdateStatement(dbTable, op.getPkWhereClause(), lwwFieldsMap,
-					true, clock);
-			statements.add(lwwOp);
-		}
-
-		String mergeCClockStatement = OperationsGenerator.mergeContentClock(op.getPkWhereClause(), dbTable.getName(),
-				clock);
-		statements.add(mergeCClockStatement);
-
-		// if @UPDATEWINS, make sure that this row is visible in case some concurrent operation deleted it
-		if(dbTable.getExecutionPolicy() == ExecutionPolicy.UPDATEWINS)
-		{
-			String insertRowBack = OperationsGenerator.generateInsertRowBack(op.getPkWhereClause(), op.getTableName(),
-					clock);
-			String mergeClockStatement = OperationsGenerator.mergeDeletedClock(op.getPkWhereClause(), op
-							.getTableName(),
-					clock);
-			statements.add(insertRowBack);
-			statements.add(mergeClockStatement);
-		}
-
-		String[] statementsArray = new String[statements.size()];
-		statementsArray = statements.toArray(statementsArray);
-
-		return statementsArray;   */
 	}
 
 	public static String[] deleteRow(Record record, String clock, TransactionContext context)
