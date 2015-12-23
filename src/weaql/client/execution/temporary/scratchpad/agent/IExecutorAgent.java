@@ -1,8 +1,8 @@
 package weaql.client.execution.temporary.scratchpad.agent;
 
 
-import weaql.client.execution.operation.SQLSelect;
-import weaql.client.execution.operation.SQLWriteOperation;
+import weaql.client.operation.SQLSelect;
+import weaql.client.operation.SQLWriteOperation;
 import weaql.client.execution.temporary.scratchpad.ScratchpadException;
 import weaql.common.database.Record;
 

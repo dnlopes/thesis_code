@@ -1,8 +1,8 @@
 package weaql.client.execution.temporary;
 
 
-import weaql.client.execution.operation.SQLOperationType;
-import weaql.client.execution.operation.SQLSelect;
+import weaql.client.operation.SQLOperationType;
+import weaql.client.operation.SQLSelect;
 import weaql.common.database.SQLInterface;
 
 import java.sql.ResultSet;

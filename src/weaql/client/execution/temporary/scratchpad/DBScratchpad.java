@@ -2,9 +2,9 @@ package weaql.client.execution.temporary.scratchpad;
 
 
 import weaql.client.execution.TransactionContext;
-import weaql.client.execution.operation.SQLOperationType;
-import weaql.client.execution.operation.SQLSelect;
-import weaql.client.execution.operation.SQLWriteOperation;
+import weaql.client.operation.SQLOperationType;
+import weaql.client.operation.SQLSelect;
+import weaql.client.operation.SQLWriteOperation;
 import weaql.client.execution.temporary.WriteSet;
 import weaql.client.execution.temporary.scratchpad.agent.IExecutorAgent;
 import weaql.client.execution.temporary.scratchpad.agent.ExecutorAgent;

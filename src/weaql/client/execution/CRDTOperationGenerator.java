@@ -1,7 +1,7 @@
 package weaql.client.execution;
 
 
-import weaql.client.execution.operation.*;
+import weaql.client.operation.*;
 import weaql.common.database.Record;
 import weaql.common.database.constraints.fk.ForeignKeyConstraint;
 import weaql.common.database.constraints.fk.ParentChildRelation;
@@ -128,7 +128,7 @@ public class CRDTOperationGenerator
 		DatabaseTable dbTable = record.getDatabaseTable();
 		List<String> statements = new ArrayList<>();
 		String recordPrimaryKeyClause = record.getPkValue().getPrimaryKeyWhereClause();
-		boolean shouldWriteLWWFields = record.touchedLWWField();
+		boolean shouldWriteLWWFields = record.touchedLwwField();
 
 		Map<String, String> lwwFieldsMap = new HashMap<>();
 		Map<String, String> deltaFieldsMap = new HashMap<>();

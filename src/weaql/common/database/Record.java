@@ -25,7 +25,7 @@ public class Record
 	private Map<String, String> symbolsToFieldMapping;
 	private Map<String, String> fieldToSymbolsMapping;
 
-	private boolean touchedLWWField;
+	private boolean touchedLwwField;
 
 	public Record(DatabaseTable table)
 	{
@@ -38,7 +38,7 @@ public class Record
 		this.data = new HashMap<>();
 
 		this.pkValue = new PrimaryKeyValue(this.databaseTable);
-		this.touchedLWWField = false;
+		this.touchedLwwField = false;
 	}
 
 	public Record(DatabaseTable table, Map<String, String> data, Map<String, String> symbolToField,
@@ -50,7 +50,7 @@ public class Record
 
 		this.data = data;
 		this.pkValue = pkValue;
-		this.touchedLWWField = touchedLWWField;
+		this.touchedLwwField = touchedLWWField;
 		this.symbolsToFieldMapping = symbolToField;
 		this.fieldToSymbolsMapping = fieldToSymbol;
 	}
@@ -71,7 +71,7 @@ public class Record
 		data.put(key, value);
 
 		if(normalFields.containsKey(key) && normalFields.get(key).isLwwField())
-			touchedLWWField = true;
+			touchedLwwField = true;
 	}
 
 	public String getData(String key)
@@ -110,7 +110,7 @@ public class Record
 				if(this.data.containsKey(fieldName)) // this field was updated
 				{
 					if(aField.isLwwField())
-						this.touchedLWWField = true;
+						this.touchedLwwField = true;
 
 				} else // this field was not updated
 					this.data.put(fieldName, oldRecord.getData(fieldName));
@@ -138,9 +138,9 @@ public class Record
 		this.pkValue = pkValue;
 	}
 
-	public boolean touchedLWWField()
+	public boolean touchedLwwField()
 	{
-		return touchedLWWField;
+		return touchedLwwField;
 	}
 
 	public boolean isFullyCached()
@@ -177,6 +177,6 @@ public class Record
 	public Record duplicate()
 	{
 		return new Record(databaseTable, new HashMap<>(this.data), new HashMap<>(symbolsToFieldMapping),
-				new HashMap<>(fieldToSymbolsMapping), pkValue.duplicate(), touchedLWWField);
+				new HashMap<>(fieldToSymbolsMapping), pkValue.duplicate(), touchedLwwField);
 	}
 }

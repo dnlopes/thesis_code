@@ -1,7 +1,7 @@
 package weaql.client.execution.temporary;
 
 
-import weaql.client.execution.operation.SQLSelect;
+import weaql.client.operation.SQLSelect;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

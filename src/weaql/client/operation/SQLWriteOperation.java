@@ -1,4 +1,4 @@
-package weaql.client.execution.operation;
+package weaql.client.operation;
 
 
 import weaql.common.database.Record;

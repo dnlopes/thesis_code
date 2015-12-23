@@ -3,7 +3,7 @@ package weaql.client.execution.temporary.scratchpad.agent;
 
 import weaql.client.execution.QueryCreator;
 import weaql.client.execution.TransactionContext;
-import weaql.client.execution.operation.*;
+import weaql.client.operation.*;
 import weaql.client.execution.temporary.scratchpad.IDBScratchpad;
 import weaql.client.execution.temporary.scratchpad.ScratchpadException;
 import weaql.common.database.Record;

@@ -1,7 +1,7 @@
 package weaql.client.execution.temporary.scratchpad;
 
 
-import weaql.client.execution.operation.SQLWriteOperation;
+import weaql.client.operation.SQLWriteOperation;
 import weaql.client.execution.temporary.ReadOnlyInterface;
 import weaql.client.execution.temporary.WriteSet;
 import weaql.common.database.Record;

@@ -3,7 +3,7 @@ package weaql.client.proxy;
 
 import weaql.client.execution.CRDTOperationGenerator;
 import weaql.client.execution.TransactionContext;
-import weaql.client.execution.operation.*;
+import weaql.client.operation.*;
 import weaql.client.execution.temporary.DBReadOnlyInterface;
 import weaql.client.execution.temporary.ReadOnlyInterface;
 import weaql.client.execution.temporary.SQLQueryHijacker;

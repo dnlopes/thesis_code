@@ -3,7 +3,7 @@ package weaql.client.execution.temporary;
 
 import applications.util.SymbolsManager;
 import weaql.client.execution.TransactionContext;
-import weaql.client.execution.operation.*;
+import weaql.client.operation.*;
 import weaql.common.database.Record;
 import weaql.common.database.constraints.unique.UniqueConstraint;
 import weaql.common.database.field.DataField;
