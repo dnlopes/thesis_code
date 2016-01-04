@@ -34,9 +34,8 @@ public final class SQLQueryHijacker
 
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-	public static SQLOperation[] pepareOperation(String sqlOpString, TransactionContext context, CCJSqlParserManager
-			parser)
-			throws JSQLParserException, SQLException
+	public static SQLOperation[] pepareOperation(String sqlOpString, TransactionContext context,
+												 CCJSqlParserManager parser) throws JSQLParserException, SQLException
 	{
 		SQLOperation sqlOp = SQLOperation.parseSQLOperation(sqlOpString, parser);
 

@@ -40,15 +40,6 @@ public class SQLInsert extends SQLWriteOperation
 		this.sqlString = sqlBuffer.toString();
 	}
 
-	public void prepareOperation()
-	{
-		StringBuilder sqlBuffer = new StringBuilder("INSERT INTO ").append(dbTable.getName());
-		sqlBuffer.append(columnsBuffer);
-		sqlBuffer.append(") VALUES ").append(valuesBuffer).append(")");
-
-		this.sqlString = sqlBuffer.toString();
-	}
-
 	@Override
 	public void prepareOperation(String tempTableName)
 	{

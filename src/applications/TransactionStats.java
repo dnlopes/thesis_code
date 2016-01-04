@@ -106,7 +106,9 @@ public class TransactionStats
 			total += aSecond.getValue();
 		}
 
-		txnPerSecond =  total / TPCCEmulator.DURATION;
+		double duration = TPCCEmulator.DURATION;
+
+		txnPerSecond =  total / duration;
 	}
 
 	public String getStatsString()
