@@ -28,7 +28,7 @@ ENVIRONMENT='fct'
 WAREHOUSES_NUMBER=1
 
 if ENVIRONMENT == 'localhost':
-	IS_LOCALHOST = True
+    IS_LOCALHOST = True
 
 ################################################################################################
 #	COMMANDS AND BASE PATHS
@@ -45,6 +45,7 @@ ANNOTATIONS_DIR = DEPLOY_DIR + '/annotations'
 TOPOLOGIES_DIR = DEPLOY_DIR + '/topologies'
 TPCC_WORKLOADS_DIR = DEPLOY_DIR + '/tpcc'
 MYSQL_DIR = BASE_DIR + '/mysql-5.6'
+MYSQL_CLUSTER_DIR = BASE_DIR + '/mysql-cluster-7.0'
 GALERA_MYSQL_DIR = BASE_DIR + '/mysql-5.6-galera'
 CLUSTER_MYSQL_DIR = BASE_DIR + '/mysql-cluster'
 HOME_DIR = '/home/' + user
@@ -64,6 +65,15 @@ TOPOLOGY_FILE=''
 TPCC_TEST_TIME=60
 FILES_PREFIX=''
 
+
+
+################################################################################################
+#	MYSQL CLUSTER COMMANDS
+################################################################################################
+MYSQL_CLUSTER_CONNECTION_STRING='node1'
+CLUSTER_START_MGMG_COMMAND='bin/ndb_mgmd --initial --config-dir=' + MYSQL_CLUSTER_DIR + '/conf -f '
+CLUSTER_START_DATA_NODE_COMMAND='bin/ndbd -c ' + MYSQL_CLUSTER_CONNECTION_STRING
+CLUSTER_MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500 --innodb_buffer_pool_size=8G --ndbcluster --ndb-connectstring=' + MYSQL_CLUSTER_CONNECTION_STRING
 ################################################################################################
 #   PREFIXS AND GLOBAL VARIABLES
 ################################################################################################
@@ -75,6 +85,8 @@ ZOOKEEPER_CONNECTION_STRING = ''
 ZOOKEEPER_SERVERS_STRING = ''
 
 MYSQL_PORT='3306'
+MYSQL_CLUSTER_MGMT_NODE_PORT='1186'
+MYSQL_CLUSTER_DATA_NODE_PORT='3406'
 TOTAL_USERS=0
 JDBC=''
 
@@ -111,77 +123,77 @@ coordinatorsIdToPortMap = dict()
 
 # receives full path for config file
 def parseTopologyFile(topologyFile):
-	logger.info('parsing topology file: %s', topologyFile)
-	e = ET.parse(topologyFile).getroot()
-	distinctNodesSet = Set()
+    logger.info('parsing topology file: %s', topologyFile)
+    e = ET.parse(topologyFile).getroot()
+    distinctNodesSet = Set()
 
-	global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
-	global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes,emulators_instances_count,emulators_workloads
+    global database_map, emulators_map, coordinators_map, replicators_map, replicatorsIdToPortMap, coordinatorsIdToPortMap
+    global database_nodes, replicators_nodes, distinct_nodes, coordinators_nodes, emulators_nodes,emulators_instances_count,emulators_workloads
 
-	distinct_nodes = []
-	database_nodes = []
-	replicators_nodes = []
-	coordinators_nodes = []
-	emulators_nodes = []
-	database_map = dict()
-	replicators_map = dict()
-	coordinators_map = dict()
-	emulators_map = dict()
-	replicatorsIdToPortMap = dict()
-	coordinatorsIdToPortMap = dict()
-	emulators_instances_count = dict()
-	emulators_workloads = dict()
+    distinct_nodes = []
+    database_nodes = []
+    replicators_nodes = []
+    coordinators_nodes = []
+    emulators_nodes = []
+    database_map = dict()
+    replicators_map = dict()
+    coordinators_map = dict()
+    emulators_map = dict()
+    replicatorsIdToPortMap = dict()
+    coordinatorsIdToPortMap = dict()
+    emulators_instances_count = dict()
+    emulators_workloads = dict()
 
-	for database in e.iter('database'):
-		dbId = database.get('id')
-		dbHost = database.get('dbHost')
-		database_nodes.append(dbHost)
-		distinctNodesSet.add(dbHost)
-		database_map[dbHost] = dbId
+    for database in e.iter('database'):
+        dbId = database.get('id')
+        dbHost = database.get('dbHost')
+        database_nodes.append(dbHost)
+        distinctNodesSet.add(dbHost)
+        database_map[dbHost] = dbId
 
-	for replicator in e.iter('replicator'):
-		replicatorId = replicator.get('id')
-		host = replicator.get('host')
-		port = replicator.get('port')
-		replicators_nodes.append(host)
-		distinctNodesSet.add(host)
-		replicatorsIdToPortMap[replicatorId] = port
-		replicators_map[host] = replicatorId
+    for replicator in e.iter('replicator'):
+        replicatorId = replicator.get('id')
+        host = replicator.get('host')
+        port = replicator.get('port')
+        replicators_nodes.append(host)
+        distinctNodesSet.add(host)
+        replicatorsIdToPortMap[replicatorId] = port
+        replicators_map[host] = replicatorId
 
-	for proxy in e.iter('proxy'):
-		proxyId = proxy.get('id')
-		host = proxy.get('host')
-		port = proxy.get('port')
-		workload = proxy.get('workloadFile')
-		emulators_nodes.append(host)
-		distinctNodesSet.add(host)
-		emulators_map[host] = proxyId
-		#emulators_workloads[proxyId] = workload
-		#if not host in emulators_instances_count:
-		#		emulators_instances_count[host] = 1
-		#else:
-		#		emulators_instances_count[host] += 1
+    for proxy in e.iter('proxy'):
+        proxyId = proxy.get('id')
+        host = proxy.get('host')
+        port = proxy.get('port')
+        workload = proxy.get('workloadFile')
+        emulators_nodes.append(host)
+        distinctNodesSet.add(host)
+        emulators_map[host] = proxyId
+    #emulators_workloads[proxyId] = workload
+    #if not host in emulators_instances_count:
+    #		emulators_instances_count[host] = 1
+    #else:
+    #		emulators_instances_count[host] += 1
 
-	for coordinator in e.iter('coordinator'):
-		coordinatorId = coordinator.get('id')
-		port = coordinator.get('port')
-		host = coordinator.get('host')
-		coordinators_nodes.append(host)
-		distinctNodesSet.add(host)
-		coordinators_map[host] = coordinatorId
-		coordinatorsIdToPortMap[coordinatorId] = port
+    for coordinator in e.iter('coordinator'):
+        coordinatorId = coordinator.get('id')
+        port = coordinator.get('port')
+        host = coordinator.get('host')
+        coordinators_nodes.append(host)
+        distinctNodesSet.add(host)
+        coordinators_map[host] = coordinatorId
+        coordinatorsIdToPortMap[coordinatorId] = port
 
-	distinct_nodes = list(distinctNodesSet)
+    distinct_nodes = list(distinctNodesSet)
 
-	logger.info('Databases: %s', database_nodes)
-	logger.info('Coordinators: %s', coordinators_nodes)
-	logger.info('Replicators: %s', replicators_nodes)
-	logger.info('Emulators: %s', emulators_nodes)
-	logger.info('Distinct nodes: %s', distinct_nodes)
+    logger.info('Databases: %s', database_nodes)
+    logger.info('Coordinators: %s', coordinators_nodes)
+    logger.info('Replicators: %s', replicators_nodes)
+    logger.info('Emulators: %s', emulators_nodes)
+    logger.info('Distinct nodes: %s', distinct_nodes)
 
-	utils.generateZookeeperConnectionString()
-	global IS_LOADED
-	IS_LOADED = True
+    utils.generateZookeeperConnectionString()
+    global IS_LOADED
+    IS_LOADED = True
 
 
 
