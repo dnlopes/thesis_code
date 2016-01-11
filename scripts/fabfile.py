@@ -101,7 +101,7 @@ def startMgmtNode():
 @parallel
 def startClusterDataNode(initialFlag):
 	logger.info('starting data_node at %s', env.host_string)
-	command = 'rm -rf cluster_data'
+	command = 'rm -rf cluster-data'
 	logger.info(command)
 	with cd(config.BASE_DIR), hide('running', 'output'):
 		run(command)
@@ -278,7 +278,7 @@ def downloadLogsTo(outputDir):
 
 @parallel
 def compressDataNodeFolder():
-	command = 'tar zcvf cluster_data.tar.gz cluster_data/'
+	command = 'tar zcvf cluster_data.tar.gz cluster-data/'
 	logger.info(command)
 	with cd(config.BASE_DIR), hide('running', 'output'):
 		run(command)

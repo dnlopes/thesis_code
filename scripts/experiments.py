@@ -101,6 +101,7 @@ def runExperiment(configsFilesBaseDir):
 		# second cycle, use different jdbc to run experiment
 		for jdbc in JDCBs:
 			config.JDBC=jdbc
+			fab.killRunningProcesses()
 			if config.JDBC == 'cluster':
 				success = False
 				for attempt in range(10):
