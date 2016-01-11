@@ -100,15 +100,32 @@ def startMgmtNode():
 
 @parallel
 def startClusterDataNode(initialFlag):
-	command = config.CLUSTER_START_DATA_NODE_COMMAND
+	logger.info('starting data_node at %s', env.host_string)
+	command = 'rm -rf cluster_data'
+	logger.info(command)
+	with cd(config.BASE_DIR), hide('running', 'output'):
+		run(command)
 
 	if initialFlag:
-		command = config.CLUSTER_START_DATA_NODE_COMMAND + ' --initial'
+		command = 'mkdir -p ' + config.MYSQL_CLUSTER_DATA_DIR
+		logger.info(command)
+		with cd(config.BASE_DIR), hide('running', 'output'):
+			run(command)
 
-	logger.info('starting data_node at %s', env.host_string)
-	logger.info(command)
-	with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
-		run(command)
+		command = config.CLUSTER_START_DATA_NODE_COMMAND + ' --initial'
+		logger.info(command)
+		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+			run(command)
+	else:
+		command = 'tar zxvf cluster_data.tar.gz'
+		logger.info(command)
+		with cd(config.BASE_DIR), hide('running', 'output'):
+			run(command)
+
+		command = config.CLUSTER_START_DATA_NODE_COMMAND
+		logger.info(command)
+		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+			run(command)
 
 	time.sleep(10)
 
@@ -244,6 +261,7 @@ def populateTpccDatabase():
 	logger.info(command)
 	with cd(config.DEPLOY_DIR), hide('running', 'output'):
 		run(command)
+		return '1'
 
 @parallel
 def downloadLogsTo(outputDir):
@@ -252,10 +270,16 @@ def downloadLogsTo(outputDir):
 		get(config.DEPLOY_DIR + "/*.csv", outputDir)
 		get(config.DEPLOY_DIR + "/*.log", outputDir + "/logs")
 
+@parallel
+def compressDataNodeFolder():
+	command = 'tar zcvf cluster_data.tar.gz cluster_data/'
+	logger.info(command)
+	with cd(config.BASE_DIR), hide('running', 'output'):
+		run(command)
+		return '1'
 
 @parallel
 def prepareDatabase():
-
 	if config.JDBC == 'crdt':
 		mysqlPackage = 'mysql-5.6_ready.tar.gz'
 	elif config.JDBC == 'galera':
@@ -314,11 +338,12 @@ def stopMySQL():
 	with settings(warn_only=True), hide('output'), cd(config.CLUSTER_MYSQL_DIR):
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
-	with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
-		run("killall mysqld_safe ; killall mysqld ; killall ndbd ; killall ndb_mgmd")
-		time.sleep(10)
-		run("killall mysqld_safe ; killall mysqld ; killall ndbd ; killall ndb_mgmd")
-		time.sleep(5)
+	if config.JDBC == 'cluster':
+		with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+			run("bin/ndb_mgm -e shutdown")
+			time.sleep(10)
+			run("bin/ndb_mgm -e shutdown")
+			time.sleep(5)
 
 
 def isPortOpen(port):

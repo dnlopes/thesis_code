@@ -78,11 +78,8 @@ def runAllExperiments(configsFilesBaseDir):
 	logger.info("Goodbye.")
 
 @task
-def runFullLatencyThroughputExperiment(configsFilesBaseDir):
+def runExperiment(configsFilesBaseDir):
 	config.ACTIVE_EXPERIMENT = config.prefix_latency_throughput_experiment
-	now = datetime.datetime.now()
-	#ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
-
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:
 		logger.info("###########################################################################################")
@@ -91,7 +88,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		print "\n"
 		now = datetime.datetime.now()
 		ROOT_OUTPUT_DIR = config.LOGS_DIR + "/" + now.strftime("%d-%m_%Hh%Mm%Ss_") + config.prefix_latency_throughput_experiment
-		USERS_LIST = userListToReplicasNumber.get(numberOfReplicas)
 		CONFIG_FILE_SUFFIX = str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 		CONFIG_FILE = configsFilesBaseDir + '/' + str(config.ENVIRONMENT) + '_tpcc_' + str(numberOfReplicas) + 'node.xml'
 		config.TOPOLOGY_FILE = config.TOPOLOGIES_DIR + '/' + CONFIG_FILE_SUFFIX
@@ -105,6 +101,21 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		# second cycle, use different jdbc to run experiment
 		for jdbc in JDCBs:
 			config.JDBC=jdbc
+			if config.JDBC == 'cluster':
+				success = False
+				for attempt in range(10):
+					success = populateClusterDatabase()
+					if success:
+						logger.info("mysql cluster database successfully populated")
+						fab.killRunningProcesses()
+						break
+					else:
+						logger.error("failed to populate mysql cluster database. Retrying...")
+						fab.killRunningProcesses()
+				if not success:
+					logger.error("failed to populate mysql cluster database after 10 retries. Exiting.")
+					sys.exit()
+
 			# third cycle, use different number of users per run
 			for numberOfUsers in NUMBER_OF_USERS_LIST:
 				config.TOTAL_USERS = numberOfUsers*5
@@ -134,7 +145,6 @@ def runFullLatencyThroughputExperiment(configsFilesBaseDir):
 		logger.info("###########################################################################################")
 	print "\n"
 
-@task
 def runFullScalabilityExperiment(configsFilesBaseDir):
 	config.ACTIVE_EXPERIMENT = config.prefix_scalability_experiment
 	now = datetime.datetime.now()
@@ -182,7 +192,6 @@ def runFullScalabilityExperiment(configsFilesBaseDir):
 		logger.info("###########################################################################################")
 	print "\n"
 
-@task
 def runFullOverheadExperiment(configsFilesBaseDir):
 	config.ACTIVE_EXPERIMENT = config.prefix_overhead_experiment
 	now = datetime.datetime.now()
@@ -442,7 +451,7 @@ def runOverheadExperiment(outputDir, configFile, numberEmulators, usersPerEmulat
 		if jdbc == 'crdt':
 			success = runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 		else:
-			success = runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
+			success = runOverheadExperimentMySQLCluster(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 
 		if success:
 			break
@@ -520,7 +529,7 @@ def runOverheadExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEm
 
 	return True
 
-def runOverheadExperimentOrig(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
+def runOverheadExperimentMySQLCluster(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers):
 	logger.info("starting database layer")
 
 	success = startDatabaseLayer()
@@ -714,7 +723,6 @@ def startDatabaseLayer():
 def startCoordinatorsLayer():
 
 	with hide('running','output'):
-		#extract
 		execute(fab.prepareCoordinatorLayer, hosts=config.coordinators_nodes)
 		output = execute(fab.startCoordinators, hosts=config.coordinators_nodes)
 		for key, value in output.iteritems():
@@ -775,11 +783,20 @@ def preloadDatabases(dbName):
 	with hide('running','output'):
 		execute(fab.preloadDatabase, dbName, hosts=config.database_nodes)
 
+def populateClusterDatabase():
+	logger.info("populating mysql cluster database")
+	with hide('running','output'):
+		execute(fab.prepareDatabase, hosts=config.database_nodes)
+		output = fab.startClusterDatabases(True)
+		if output == '0':
+			logger.warn('mysql cluster failed to start')
+			return False
 
-
-
-
-
-
-
-
+	logger.info("populating now")
+	success = execute(fab.populateTpccDatabase(), hosts=config.MYSQL_CLUSTER_MGMT_NODES_LIST)
+	for key, value in success.iteritems():
+		if value == '0':
+			return False
+	fab.killRunningProcesses()
+	execute(fab.compressDataNodeFolder(), hosts=config.database_nodes)
+	return True

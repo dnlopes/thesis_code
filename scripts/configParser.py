@@ -40,6 +40,7 @@ MYSQL_SHUTDOWN_COMMAND='bin/mysqladmin -u sa --password=101010 --socket=/tmp/mys
 MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500 --innodb_buffer_pool_size=8G'
 BASE_DIR = '/local/' + user
 DEPLOY_DIR = BASE_DIR + '/deploy'
+MYSQL_CLUSTER_DATA_DIR = DEPLOY_DIR + '/cluster_data'
 ENVIRONMENT_DIR = DEPLOY_DIR + '/environment'
 ANNOTATIONS_DIR = DEPLOY_DIR + '/annotations'
 TOPOLOGIES_DIR = DEPLOY_DIR + '/topologies'
@@ -71,6 +72,7 @@ FILES_PREFIX=''
 #	MYSQL CLUSTER COMMANDS
 ################################################################################################
 MYSQL_CLUSTER_CONNECTION_STRING='node1'
+MYSQL_CLUSTER_MGMT_NODES_LIST = ['node1']
 CLUSTER_START_MGMG_COMMAND='bin/ndb_mgmd --initial --config-dir=' + MYSQL_CLUSTER_DIR + '/conf -f '
 CLUSTER_START_DATA_NODE_COMMAND='bin/ndbd -c ' + MYSQL_CLUSTER_CONNECTION_STRING
 CLUSTER_MYSQL_START_COMMAND='bin/mysqld_safe --defaults-file=my.cnf --open_files_limit=8192 --max-connections=1500 --innodb_buffer_pool_size=8G --ndbcluster --ndb-connectstring=' + MYSQL_CLUSTER_CONNECTION_STRING
