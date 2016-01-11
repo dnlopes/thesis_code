@@ -112,6 +112,7 @@ def startClusterDataNode(initialFlag):
 		with cd(config.BASE_DIR), hide('running', 'output'):
 			run(command)
 
+		sys.exit(1)
 		command = config.CLUSTER_START_DATA_NODE_COMMAND + ' --initial'
 		logger.info(command)
 		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
@@ -260,7 +261,7 @@ def populateTpccDatabase():
 
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 < /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql'
 	logger.info(command)
-	with cd(config.DEPLOY_DIR), hide('running', 'output'):
+	with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
 		run(command)
 
 	command = 'java -jar tpcc-gendb.jar localhost tpcc 3'
