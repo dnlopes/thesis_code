@@ -351,8 +351,7 @@ def stopMySQL():
 		logger.error("unkown jdbc")
 		sys.exit()
 
-	#with settings(warn_only=True), hide('output'), cd(mysqlDir):
-	with cd(mysqlDir):
+	with settings(warn_only=True), hide('output'), cd(mysqlDir):
 		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
@@ -376,7 +375,7 @@ def stopMySQL():
 
 	if env.host_string == config.MYSQL_CLUSTER_CONNECTION_STRING:
 		if config.JDBC == 'cluster':
-			with settings(warn_only=True), cd(config.MYSQL_CLUSTER_DIR):
+			with settings(warn_only=True), hide('output'), cd(config.MYSQL_CLUSTER_DIR):
 				command = "bin/ndb_mgm -e shutdown"
 				logger.info(command)
 				run(command)
@@ -391,7 +390,7 @@ def stopMySQL():
 				break
 			else:
 				logger.info("ndb_mgmt still running at %s", env.host_string)
-				with settings(warn_only=True), cd(config.MYSQL_CLUSTER_DIR):
+				with settings(warn_only=True), hide('output'), cd(config.MYSQL_CLUSTER_DIR):
 					command = "bin/ndb_mgm -e shutdown"
 					logger.info(command)
 					run(command)
