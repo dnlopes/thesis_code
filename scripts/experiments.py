@@ -46,22 +46,6 @@ NUMBER_USERS_LIST_5REPLICA=[5,10,15,20,25,30,35,45,55,70,90,110,140,170,210,250,
 ################################################################################################
 # MAIN METHODS
 ################################################################################################
-def runAllExperiments(configsFilesBaseDir):
-	runFullScalabilityExperiment(configsFilesBaseDir)
-	runFullLatencyThroughputExperiment(configsFilesBaseDir)
-
-	print "\n"
-	logger.info("###########################################################################################")
-	logger.info("all experiments have finished!")
-	logger.info("here are the scp commands to download all log files:")
-
-	for command in TO_DOWNLOAD_COMMANDS:
-		print command
-		print "\n"
-
-	logger.info("###########################################################################################")
-	print "\n"
-	logger.info("Goodbye.")
 
 @task
 def runExperiment(configsFilesBaseDir):
@@ -80,7 +64,6 @@ def runExperiment(configsFilesBaseDir):
 		REPLICA_OUTPUT_DIR = ROOT_OUTPUT_DIR
 
 		config.parseTopologyFile(CONFIG_FILE)
-		fab.killRunningProcesses()
 		prepareCode()
 		logger.info("starting tests with %d replicas", numberOfReplicas)
 
