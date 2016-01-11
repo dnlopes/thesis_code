@@ -258,7 +258,7 @@ def distributeCode():
 def populateTpccDatabase():
 	logger.info('populating database from %s', env.host_string)
 
-	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e \"source /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql\"'
+	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "source /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql"'
 	logger.info(command)
 	with cd(config.DEPLOY_DIR), hide('running', 'output'):
 		run(command)
@@ -339,13 +339,19 @@ def stopJava():
 def stopMySQL():
 	logger.info('killing mysqld at %s', env.host_string)
 
-	with settings(warn_only=True), hide('output'), cd(config.MYSQL_DIR):
-		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
-		run(config.MYSQL_SHUTDOWN_COMMAND)
-	with settings(warn_only=True), hide('output'), cd(config.GALERA_MYSQL_DIR):
-		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
-		run(config.MYSQL_SHUTDOWN_COMMAND)
-	with settings(warn_only=True), hide('output'), cd(config.CLUSTER_MYSQL_DIR):
+	mysqlDir=''
+
+	if config.JDBC == 'crdt':
+		mysqlDir=config.MYSQL_DIR
+	elif config.JDBC == 'galera':
+		mysqlDir=config.GALERA_MYSQL_DIR
+	elif config.JDBC == 'cluster':
+		mysqlDir=config.CLUSTER_MYSQL_DIR
+	else:
+		logger.error("unkown jdbc")
+		sys.exit()
+
+	with settings(warn_only=True), hide('output'), cd(mysqlDir):
 		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
@@ -359,15 +365,10 @@ def stopMySQL():
 			break
 		else:
 			logger.info("mysqld still running at %s", env.host_string)
-			with settings(warn_only=True), hide('output'), cd(config.MYSQL_DIR):
+			with settings(warn_only=True), hide('output'), cd(mysqlDir):
 				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 				run(config.MYSQL_SHUTDOWN_COMMAND)
-			with settings(warn_only=True), hide('output'), cd(config.GALERA_MYSQL_DIR):
-				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
-				run(config.MYSQL_SHUTDOWN_COMMAND)
-			with settings(warn_only=True), hide('output'), cd(config.CLUSTER_MYSQL_DIR):
-				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
-				run(config.MYSQL_SHUTDOWN_COMMAND)
+				time.sleep(5)
 
 	if not success:
 		logger.warn("failed to kill mysqld at %s", env.host_string)

@@ -53,7 +53,7 @@ def runExperiment(configsFilesBaseDir):
 	# first cycle, iteration over the number of replicas
 	for numberOfReplicas in NUMBER_REPLICAS:
 		logger.info("###########################################################################################")
-		logger.info("########################## STARTING NEW EXPERIMENT WITH %d REPLICAS #######################", numberOfReplicas)
+		logger.info("########################## STARTING NEW EXPERIMENT WITH %d REPLICAS ########################", numberOfReplicas)
 		logger.info("###########################################################################################")
 		print "\n"
 		now = datetime.datetime.now()
