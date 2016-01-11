@@ -112,7 +112,6 @@ def startClusterDataNode(initialFlag):
 		with cd(config.BASE_DIR), hide('running', 'output'):
 			run(command)
 
-		sys.exit(1)
 		command = config.CLUSTER_START_DATA_NODE_COMMAND + ' --initial'
 		logger.info(command)
 		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
