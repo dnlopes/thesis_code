@@ -337,19 +337,65 @@ def stopJava():
 
 @parallel
 def stopMySQL():
+	logger.info('killing mysqld at %s', env.host_string)
+
 	with settings(warn_only=True), hide('output'), cd(config.MYSQL_DIR):
+		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 	with settings(warn_only=True), hide('output'), cd(config.GALERA_MYSQL_DIR):
+		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 	with settings(warn_only=True), hide('output'), cd(config.CLUSTER_MYSQL_DIR):
+		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
-	if config.JDBC == 'cluster':
-		with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
-			run("bin/ndb_mgm -e shutdown")
-			time.sleep(10)
-			run("bin/ndb_mgm -e shutdown")
-			time.sleep(5)
+	time.sleep(5)
+
+	success = False
+	for attempt in range(5):
+		success = isPortOpen(config.MYSQL_PORT)
+		success = not success
+		if success:
+			break
+		else:
+			logger.info("mysqld still running at %s", env.host_string)
+			with settings(warn_only=True), hide('output'), cd(config.MYSQL_DIR):
+				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
+				run(config.MYSQL_SHUTDOWN_COMMAND)
+			with settings(warn_only=True), hide('output'), cd(config.GALERA_MYSQL_DIR):
+				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
+				run(config.MYSQL_SHUTDOWN_COMMAND)
+			with settings(warn_only=True), hide('output'), cd(config.CLUSTER_MYSQL_DIR):
+				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
+				run(config.MYSQL_SHUTDOWN_COMMAND)
+
+	if not success:
+		logger.warn("failed to kill mysqld at %s", env.host_string)
+
+	if env.host_string == config.MYSQL_CLUSTER_CONNECTION_STRING:
+		if config.JDBC == 'cluster':
+			with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+				command = "bin/ndb_mgm -e shutdown"
+				logger.info(command)
+				run(command)
+
+		time.sleep(10)
+
+		success = False
+		for attempt in range(5):
+			success = isPortOpen(config.MYSQL_CLUSTER_MGMT_NODE_PORT)
+			success = not success
+			if success:
+				break
+			else:
+				logger.info("ndb_mgmt still running at %s", env.host_string)
+				with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+					command = "bin/ndb_mgm -e shutdown"
+					logger.info(command)
+					run(command)
+
+		if not success:
+			logger.warn("failed to kill ndb_mgmt at %s", env.host_string)
 
 
 def isPortOpen(port):
