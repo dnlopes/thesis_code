@@ -258,7 +258,7 @@ def distributeCode():
 def populateTpccDatabase():
 	logger.info('populating database from %s', env.host_string)
 
-	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e "source /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql"'
+	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 < /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql'
 	logger.info(command)
 	with cd(config.DEPLOY_DIR), hide('running', 'output'):
 		run(command)
@@ -346,12 +346,13 @@ def stopMySQL():
 	elif config.JDBC == 'galera':
 		mysqlDir=config.GALERA_MYSQL_DIR
 	elif config.JDBC == 'cluster':
-		mysqlDir=config.CLUSTER_MYSQL_DIR
+		mysqlDir=config.MYSQL_CLUSTER_DIR
 	else:
 		logger.error("unkown jdbc")
 		sys.exit()
 
-	with settings(warn_only=True), hide('output'), cd(mysqlDir):
+	#with settings(warn_only=True), hide('output'), cd(mysqlDir):
+	with cd(mysqlDir):
 		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
@@ -375,7 +376,7 @@ def stopMySQL():
 
 	if env.host_string == config.MYSQL_CLUSTER_CONNECTION_STRING:
 		if config.JDBC == 'cluster':
-			with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+			with settings(warn_only=True), cd(config.MYSQL_CLUSTER_DIR):
 				command = "bin/ndb_mgm -e shutdown"
 				logger.info(command)
 				run(command)
@@ -390,10 +391,11 @@ def stopMySQL():
 				break
 			else:
 				logger.info("ndb_mgmt still running at %s", env.host_string)
-				with settings(warn_only=True), cd(config.CLUSTER_MYSQL_DIR):
+				with settings(warn_only=True), cd(config.MYSQL_CLUSTER_DIR):
 					command = "bin/ndb_mgm -e shutdown"
 					logger.info(command)
 					run(command)
+					time.sleep(10)
 
 		if not success:
 			logger.warn("failed to kill ndb_mgmt at %s", env.host_string)
