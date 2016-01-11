@@ -256,8 +256,14 @@ def distributeCode():
 		put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')
 
 def populateTpccDatabase():
-	command = 'java -jar tpcc-gendb.jar localhost tpcc 3'
 	logger.info('populating database from %s', env.host_string)
+
+	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 -e \"source /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql\"'
+	logger.info(command)
+	with cd(config.DEPLOY_DIR), hide('running', 'output'):
+		run(command)
+
+	command = 'java -jar tpcc-gendb.jar localhost tpcc 3'
 	logger.info(command)
 	with cd(config.DEPLOY_DIR), hide('running', 'output'):
 		run(command)
