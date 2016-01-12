@@ -256,7 +256,6 @@ def distributeCode():
 		put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
 		put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')
 
-@task
 def populateTpccDatabase():
 	logger.info('populating database from %s', env.host_string)
 
@@ -324,6 +323,13 @@ def prepareCoordinatorLayer():
 ################################################################################################
 #   HELPER METHODS
 ################################################################################################
+
+@parallel
+@hosts('node1', 'node2', 'node3', 'node4','node5', 'node6', 'node7','node8', 'node9', 'node10')
+def killAll(driver):
+	config.JDBC=driver
+	stopJava()
+	stopMySQL()
 
 def stopJava():
 	command = 'ps ax | grep java'

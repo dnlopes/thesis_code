@@ -115,6 +115,12 @@ def runExperiment(configsFilesBaseDir):
 		logger.info("###########################################################################################")
 	print "\n"
 
+@task
+def killAll(driver,configFile):
+	config.parseTopologyFile(configFile)
+	config.JDBC=driver
+	fab.killRunningProcesses()
+
 ################################################################################################
 # LATENCY-THROUGHPUT METHODS
 ################################################################################################
