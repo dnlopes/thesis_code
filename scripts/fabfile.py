@@ -247,9 +247,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 #   SETUP METHODS
 ################################################################################################
 
-@task
 @parallel
-@hosts(config.distinct_nodes)
 def distributeCode():
 	with cd(config.BASE_DIR), hide('output', 'running'), settings(warn_only=True):
 		run('rm -rf ' + config.DEPLOY_DIR + '/*')

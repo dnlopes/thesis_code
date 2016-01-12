@@ -138,7 +138,7 @@
 		</jar>
 		<jar destfile="${jars.dir}/${weaql-apps-jar}">
 			<fileset dir="${classes.dir}">
-				<include name="weaql/applications/**/*.class" />
+				<include name="applications/**/*.class" />
 			</fileset>
 		</jar>
 		<jar destfile="${jars.dir}/${csv-parser-jar}">

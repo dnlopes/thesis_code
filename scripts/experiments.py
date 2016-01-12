@@ -387,12 +387,13 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 ################################################################################################
 def prepareCode():
 	logger.info('compiling source code')
-	command = 'ant purge dist'
+	command = 'ant purge deploy'
 	fab.printExecution(command, env.host_string)
 	fab.executeTerminalCommandAtDir(command, config.PROJECT_DIR)
 	logger.info('uploading distribution to nodes: %s', config.distinct_nodes)
 	logger.info('deploying jars, resources and config files')
-	fab.distributeCode()
+	with hide('output','running'):
+		execute(fab.distributeCode, hosts=config.distinct_nodes)
 
 def downloadLogs(outputDir):
 	#logger.info('downloading log files')
