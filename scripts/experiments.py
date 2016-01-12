@@ -387,12 +387,12 @@ def startClientEmulators(configFile, emulatorsNumber, clientsPerEmulator, custom
 ################################################################################################
 def prepareCode():
 	logger.info('compiling source code')
-	with lcd(config.PROJECT_DIR), hide('output','running'):
-		local('ant purge dist')
+	command = 'ant purge dist'
+	fab.printExecution(command, env.host_string)
+	fab.executeTerminalCommandAtDir(command, config.PROJECT_DIR)
 	logger.info('uploading distribution to nodes: %s', config.distinct_nodes)
 	logger.info('deploying jars, resources and config files')
-	with hide('output','running'):
-		execute(fab.distributeCode, hosts=config.distinct_nodes)
+	fab.distributeCode()
 
 def downloadLogs(outputDir):
 	#logger.info('downloading log files')
@@ -422,7 +422,7 @@ def preloadDatabases(dbName):
 		execute(fab.preloadDatabase, dbName, hosts=config.database_nodes)
 
 def populateClusterDatabase():
-	logger.info("populating mysql cluster database")
+	logger.info("preparing mysql cluster database")
 	with hide('running','output'):
 		execute(fab.prepareDatabase, hosts=config.database_nodes)
 		output = fab.startClusterDatabases(True)
@@ -431,10 +431,13 @@ def populateClusterDatabase():
 			return False
 
 	logger.info("populating now")
-	success = execute(fab.populateTpccDatabase(), hosts=config.MYSQL_CLUSTER_MGMT_NODES_LIST)
+	success = execute(fab.populateTpccDatabase, hosts=config.MYSQL_CLUSTER_MGMT_NODES_LIST)
 	for key, value in success.iteritems():
 		if value == '0':
 			return False
-	fab.killRunningProcesses()
-	execute(fab.compressDataNodeFolder(), hosts=config.database_nodes)
+
+	logger.info("populating process done")
+	with hide('running','output'):
+		fab.killRunningProcesses()
+		execute(fab.compressDataNodeFolder, hosts=config.database_nodes)
 	return True

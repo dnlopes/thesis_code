@@ -115,6 +115,7 @@
 		<jar destfile="${jars.dir}/${weaql-util-jar}">
 			<fileset dir="${classes.dir}">
 				<include name="weaql/util/**/*.class" />
+				<include name="util/**/*.class" />
 			</fileset>
 		</jar>
 		<jar destfile="${jars.dir}/${weaql-client-jar}">

@@ -1,5 +1,5 @@
 from fabric.api import env, local, lcd, roles, parallel, cd, put, get, execute, settings, abort, hide, task, sudo, run, \
-	warn_only
+	warn_only,hosts
 import time
 import sys
 import logging
@@ -88,8 +88,8 @@ def startMgmtNode():
 	configFile = 'config' + str(numberNodes) + '.ini'
 	command = config.CLUSTER_START_MGMG_COMMAND + configFile
 	logger.info('starting mgmt_node at %s', env.host_string)
-	logger.info(command)
-	with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.MYSQL_CLUSTER_DIR):
 		run(command)
 
 	time.sleep(5)
@@ -102,29 +102,29 @@ def startMgmtNode():
 def startClusterDataNode(initialFlag):
 	logger.info('starting data_node at %s', env.host_string)
 	command = 'rm -rf cluster-data'
-	logger.info(command)
-	with cd(config.BASE_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.BASE_DIR):
 		run(command)
 
 	if initialFlag:
 		command = 'mkdir -p ' + config.MYSQL_CLUSTER_DATA_DIR
-		logger.info(command)
-		with cd(config.BASE_DIR), hide('running', 'output'):
+		printExecution(command, env.host_string)
+		with cd(config.BASE_DIR):
 			run(command)
 
 		command = config.CLUSTER_START_DATA_NODE_COMMAND + ' --initial'
-		logger.info(command)
-		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+		printExecution(command, env.host_string)
+		with cd(config.MYSQL_CLUSTER_DIR):
 			run(command)
 	else:
 		command = 'tar zxvf cluster_data.tar.gz'
-		logger.info(command)
-		with cd(config.BASE_DIR), hide('running', 'output'):
+		printExecution(command, env.host_string)
+		with cd(config.BASE_DIR), hide('output'):
 			run(command)
 
 		command = config.CLUSTER_START_DATA_NODE_COMMAND
-		logger.info(command)
-		with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+		printExecution(command, env.host_string)
+		with cd(config.MYSQL_CLUSTER_DIR):
 			run(command)
 
 	time.sleep(10)
@@ -138,8 +138,8 @@ def startDatabases():
 	command = 'nohup ' + config.MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'
 
 	logger.info('starting database at %s', env.host_string)
-	logger.info(command)
-	with cd(config.MYSQL_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.MYSQL_DIR):
 		run(command)
 
 	time.sleep(25)
@@ -152,8 +152,8 @@ def startDatabases():
 def startClusterMySQLInstances():
 	command = 'nohup ' + config.CLUSTER_MYSQL_START_COMMAND + ' >& /dev/null < /dev/null &'
 	logger.info('starting database at %s', env.host_string)
-	logger.info(command)
-	with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.MYSQL_CLUSTER_DIR):
 		run(command)
 
 	time.sleep(25)
@@ -166,8 +166,8 @@ def startClusterMySQLInstances():
 def preloadDatabase(dbName):
 	command = 'java -jar preload-tpcc.jar localhost ' + dbName
 	logger.info('preloading database at %s', env.host_string)
-	logger.info(command)
-	with cd(config.DEPLOY_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.DEPLOY_DIR), hide('output'):
 		run(command)
 
 
@@ -224,7 +224,7 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 	jarFile = 'tpcc-client.jar'
 	jdbc = config.JDBC
 
-	if(jdbc == 'galera'):
+	if jdbc == 'galera':
 		jdbc = 'mysql'
 
 	currentId = config.emulators_map.get(env.host_string)
@@ -247,6 +247,9 @@ def startTPCCclients(configFile, proxiesNumber, usersPerProxy, useCustomJDBC):
 #   SETUP METHODS
 ################################################################################################
 
+@task
+@parallel
+@hosts(config.distinct_nodes)
 def distributeCode():
 	with cd(config.BASE_DIR), hide('output', 'running'), settings(warn_only=True):
 		run('rm -rf ' + config.DEPLOY_DIR + '/*')
@@ -255,17 +258,18 @@ def distributeCode():
 		put(config.PROJECT_DIR + '/resources/*', config.DEPLOY_DIR)
 		put(config.PROJECT_DIR + '/src/*', config.DEPLOY_DIR + '/src')
 
+@task
 def populateTpccDatabase():
 	logger.info('populating database from %s', env.host_string)
 
 	command = 'bin/mysql --defaults-file=my.cnf -u sa -p101010 < /home/dp.lopes/code/scripts/sql/create_tpcc_ndb.sql'
-	logger.info(command)
-	with cd(config.MYSQL_CLUSTER_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.MYSQL_CLUSTER_DIR), hide('output','running'):
 		run(command)
 
 	command = 'java -jar tpcc-gendb.jar localhost tpcc 3'
-	logger.info(command)
-	with cd(config.DEPLOY_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.DEPLOY_DIR), hide('output','running'):
 		run(command)
 		return '1'
 
@@ -279,8 +283,8 @@ def downloadLogsTo(outputDir):
 @parallel
 def compressDataNodeFolder():
 	command = 'tar zcvf cluster_data.tar.gz cluster-data/'
-	logger.info(command)
-	with cd(config.BASE_DIR), hide('running', 'output'):
+	printExecution(command, env.host_string)
+	with cd(config.BASE_DIR), hide('output','running'):
 		run(command)
 		return '1'
 
@@ -330,7 +334,7 @@ def stopJava():
 	for line in output.splitlines():
 		if 'java' in line:
 			pidString = line.split(None, 1)[0]
-			if(pidString.isdigit()):
+			if pidString.isdigit():
 				pid = int(pidString)
 				with settings(warn_only=True):
 					run('kill -9 ' + str(pid))
@@ -352,7 +356,7 @@ def stopMySQL():
 		sys.exit()
 
 	with settings(warn_only=True), hide('output'), cd(mysqlDir):
-		logger.info(config.MYSQL_SHUTDOWN_COMMAND)
+		printExecution(config.MYSQL_SHUTDOWN_COMMAND, env.host_string)
 		run(config.MYSQL_SHUTDOWN_COMMAND)
 
 	time.sleep(5)
@@ -366,7 +370,7 @@ def stopMySQL():
 		else:
 			logger.info("mysqld still running at %s", env.host_string)
 			with settings(warn_only=True), hide('output'), cd(mysqlDir):
-				logger.info(config.MYSQL_SHUTDOWN_COMMAND)
+				printExecution(config.MYSQL_SHUTDOWN_COMMAND, env.host_string)
 				run(config.MYSQL_SHUTDOWN_COMMAND)
 				time.sleep(5)
 
@@ -377,7 +381,7 @@ def stopMySQL():
 		if config.JDBC == 'cluster':
 			with settings(warn_only=True), hide('output'), cd(config.MYSQL_CLUSTER_DIR):
 				command = "bin/ndb_mgm -e shutdown"
-				logger.info(command)
+				printExecution(command, env.host_string)
 				run(command)
 
 		time.sleep(10)
@@ -392,7 +396,7 @@ def stopMySQL():
 				logger.info("ndb_mgmt still running at %s", env.host_string)
 				with settings(warn_only=True), hide('output'), cd(config.MYSQL_CLUSTER_DIR):
 					command = "bin/ndb_mgm -e shutdown"
-					logger.info(command)
+					printExecution(command, env.host_string)
 					run(command)
 					time.sleep(10)
 
@@ -422,7 +426,7 @@ def executeTerminalCommand(command):
 
 
 def executeTerminalCommandAtDir(command, atDir):
-	with lcd(atDir):
+	with lcd(atDir), hide('output','running'):
 		return executeTerminalCommand(command)
 
 
@@ -457,3 +461,7 @@ def cleanOutputFiles():
 def executeRemoteCommand(command):
 	output = run(command)
 	return output
+
+
+def printExecution(string, host):
+	print "[{}] {}".format(host, string)
