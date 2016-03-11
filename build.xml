@@ -352,6 +352,22 @@
 				<include name="log4j_weaql.properties" />
 			</fileset>
 		</jar>
+		<jar destfile="${jars.dir}/tpcc-sqlite-gendb.jar">
+			<manifest>
+				<attribute name="Main-Class" value="util.TPCCSqlite" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="sqlite-jdbc-3.7.2.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
+			</zipgroupfileset>
+		</jar>
 	</target>
 	<target name="deploy" depends="dist" description="Deploy WeaQL Distribution">
 		<delete dir="${deploy.dir}" />

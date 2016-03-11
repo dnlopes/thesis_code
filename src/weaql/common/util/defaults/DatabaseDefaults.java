@@ -11,6 +11,7 @@ public interface DatabaseDefaults
 	String NOT_DELETED_VALUE = "0";
 	String DELETED_VALUE = "1";
 	String DEFAULT_URL_PREFIX = "jdbc:mysql://";
+	String SQLITE_URL_PREFIX = "jdbc:sqlite://";
 	String DEFAULT_PASSWORD= "101010";
 	String DEFAULT_USER = "sa";
 	int DEFAULT_MYSQL_PORT = 3306;

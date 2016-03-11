@@ -58,4 +58,20 @@ public class ConnectionFactory
 
 		return c;
 	}
+
+	public static Connection getDefaultConnection(String prefix, DatabaseProperties props, String databaseName)
+			throws SQLException
+	{
+		StringBuffer buffer = new StringBuffer(prefix);
+		buffer.append(props.getDbHost());
+		buffer.append(":");
+		buffer.append(props.getDbPort());
+		buffer.append("/");
+		buffer.append(databaseName);
+
+		Connection c = DriverManager.getConnection(buffer.toString(), props.getDbUser(), props.getDbPwd());
+		c.setAutoCommit(false);
+
+		return c;
+	}
 }
