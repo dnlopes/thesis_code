@@ -32,7 +32,13 @@ JDCBs=['cluster']
 #for 2~5 replica
 NUMBER_OF_USERS_LIST=[1,3,4,5,8,12,16,20,25,30,35]
 #NUMBER_OF_USERS_LIST=[1,3,4,5,8,12,16,20,25,30,35]
-NUMBER_REPLICAS=[2]
+NUMBER_OF_USERS_LIST=[1,8]
+#for 2 replicas
+#NUMBER_OF_USERS_LIST=[1,3,4,5,8,12,16,20,25,30]
+#for 3~5 replica
+#NUMBER_OF_USERS_LIST=[1,3,4,5,8,12,16,20,25,30,35,45]
+#NUMBER_OF_USERS_LIST=[45]
+NUMBER_REPLICAS=[1]
 NUMBER_USERS_LIST_1REPLICA=[1,2,3,4,6,8,10,14,18,24,30,32,40,50]
 NUMBER_USERS_LIST_2REPLICA=[2,4,6,8,10,16,18,20,24,28,32,38,44,54,66,78,90,100,150]
 NUMBER_USERS_LIST_3REPLICA=[3,6,9,12,15,18,21,24,27,30,36,45,54,66,81,102,120,144,162,180]
@@ -148,7 +154,7 @@ def runLatencyThroughputExperiment(outputDir, configFile, numberEmulators, users
 	config.FILES_PREFIX = '{}_replicas_{}_users_{}_jdbc_'.format(len(config.replicators_nodes),totalUsers,config.JDBC)
 
 	success = False
-	for attempt in range(4):
+	for attempt in range(10):
 		if config.JDBC == 'crdt':
 			success = runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, usersPerEmulator, totalUsers)
 		elif config.JDBC == 'galera':
@@ -197,7 +203,7 @@ def runLatencyThroughputExperimentCRDT(outputDir, configFile, numberEmulators, u
 
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "true")
 
-	time.sleep(config.TPCC_TEST_TIME+20)
+	time.sleep(config.TPCC_TEST_TIME+config.TPCC_RAMP_UP_TIME+20)
 	isRunning = True
 	attempts = 0
 
@@ -241,13 +247,13 @@ def runLatencyThroughputExperimentBaseline(outputDir, configFile, numberEmulator
 	logger.info("all databases are loaded into memory")
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
-	time.sleep(config.TPCC_TEST_TIME+20)
+	time.sleep(config.TPCC_TEST_TIME+config.TPCC_RAMP_UP_TIME+20)
 	isRunning = True
 	attempts = 0
 
 	while isRunning:
-		if attempts >= 5:
-			logger.error("checked 5 times if clients were running. Something is probably wrong")
+		if attempts >= 10:
+			logger.error("checked 10 times if clients were running. Something is probably wrong")
 			return False
 		logger.info('checking experiment status...')
 		with hide('running', 'output'):
@@ -286,7 +292,7 @@ def runLatencyThroughputExperimentCluster(outputDir, configFile, numberEmulators
 	logger.info("all databases are loaded into memory")
 	startClientEmulators(configFile, numberEmulators, usersPerEmulator, "false")
 
-	time.sleep(config.TPCC_TEST_TIME+20)
+	time.sleep(config.TPCC_TEST_TIME+config.TPCC_RAMP_UP_TIME+20)
 	isRunning = True
 	attempts = 0
 	while isRunning:

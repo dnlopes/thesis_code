@@ -45,7 +45,7 @@ def startDatabasesGalera(isMaster):
 	with cd(config.GALERA_MYSQL_DIR), hide('running', 'output'):
 		run(command)
 
-	time.sleep(20)
+	time.sleep(30)
 
 	if not isPortOpen(config.MYSQL_PORT):
 		return '0'

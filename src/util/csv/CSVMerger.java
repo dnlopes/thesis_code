@@ -107,6 +107,10 @@ public class CSVMerger
 		{
 			String trxName = record.get("txn_name");
 			int commits = Integer.parseInt(record.get("commits"));
+
+			if(commits == 0)
+				continue;
+
 			int aborts = Integer.parseInt(record.get("aborts"));
 			double maxLatency = Double.parseDouble(record.get("maxLatency"));
 			double minLatency = Double.parseDouble(record.get("minLatency"));

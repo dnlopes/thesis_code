@@ -25,7 +25,7 @@ user='dp.lopes'
 ENVIRONMENT='fct'
 #ENVIRONMENT='amazon'
 #ENVIRONMENT='localhost'
-WAREHOUSES_NUMBER=1
+WAREHOUSES_NUMBER=3
 
 if ENVIRONMENT == 'localhost':
     IS_LOCALHOST = True
@@ -64,6 +64,7 @@ ENVIRONMENT_FILE= ENVIRONMENT_DIR + '/env_localhost_tpcc_default_coord.env'
 
 TOPOLOGY_FILE=''
 TPCC_TEST_TIME=60
+TPCC_RAMP_UP_TIME=10
 FILES_PREFIX=''
 
 

@@ -51,8 +51,8 @@ set style line 7 lc rgb '#dd181f' lt 1 lw 1 pt 7 ps 2
 
 set datafile separator ','
 
-plot data1 every 6::4 using 1:($3/60) with linespoints ls 5 lc rgb blue lw 2.0 title 'Unique IDs',\
-data2 every 6::4 using 1:($3/60) with linespoints ls 2 lc rgb red lw 1.0 title 'Unique+Seq IDs'
+plot data1 every 6::3 using 1:($3/60) with linespoints ls 5 lc rgb blue lw 2.0 title 'Unique IDs',\
+data2 every 6::3 using 1:($3/60) with linespoints ls 2 lc rgb red lw 1.0 title 'Unique+Seq IDs'
 
 
 
