@@ -53,7 +53,7 @@ set datafile separator ','
 #A:B:C:D:E:F -> 1 replica
 
 plot \
-data1 every 1:::0::0 using 1:($3/60) with linespoints ls 5 lc rgb green lw 2.0 ps 1.5 title 'WeaQL', \
+data1 every 1:::0::0 using 1:($3/60) with linespoints ls 5 lc rgb '#006400' lw 2.0 ps 1.5 title 'WeaQL', \
 data1 every 1:::1::1 using 1:($3/60) with linespoints ls 7 lc rgb purple lw 2.0 ps 1.6 title 'Galera-Cluster', \
 data1 every 1:::2::2 using 1:($3/60) with linespoints ls 9 lc rgb orange lw 2.0 ps 1.9 title 'MySQL-Cluster'
 

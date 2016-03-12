@@ -35,7 +35,6 @@ gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/scalability_datafile_w2
 ################### MIDDLEWARE OVERHEAD ######################
 ##############################################################
 
-
 gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W1/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W1/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_tps_w1.eps'" ~/code/experiments/plots/middleware_overhead_tps_w1.gp
 
 gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W1/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CLUSTER_W1/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W1/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_latency_w1.eps'" ~/code/experiments/plots/middleware_overhead_latency_w1.gp
