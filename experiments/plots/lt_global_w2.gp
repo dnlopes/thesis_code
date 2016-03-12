@@ -8,7 +8,7 @@ set output outputfile
 #set yrange [0:400]
 set ylabel "Latency (ms)"
 #set xrange [0:100000]
-set xlabel "Throughput (txn/s)"
+set xlabel "Throughput (ops/s)"
 set xtics nomirror rotate by -30 scale 0.5
 set xtics font "Helvetica,16"
 
@@ -51,7 +51,7 @@ blue = '#0056bd'
 
 set datafile separator ','
 
-plot data1 every 4::1 using ($3/60):7 with linespoints ls 5 lc rgb green lw 2.0 ps 1.5 title 'WeaQL',\
+plot data1 every 4::1 using ($3/60):7 with linespoints ls 5 lc rgb '#006400' lw 2.0 ps 1.5 title 'WeaQL',\
 data2 every 4::1 using ($3/60):7 with linespoints ls 7 lc rgb purple lw 2.0 ps 1.6 title 'Galera-Cluster',\
 data3 every 4::1 using ($3/60):7 with linespoints ls 9 lc rgb orange lw 2.0 ps 1.9 title 'MySQL-Cluster'
 
