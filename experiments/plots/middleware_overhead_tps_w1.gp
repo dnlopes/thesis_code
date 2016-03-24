@@ -43,6 +43,8 @@ set style histogram cluster gap 1
 #F: The last data block
 
 
-plot data1 every 6::1 using ($4/120):xtic(2) lc rgb '#006400' fs pattern 1 title 'WeaQL',\
-data3 every 6::1 using ($4/120):xtic(2) lc rgb purple fs pattern 2 title 'Galera-Cluster'
+plot data1 every 6::1 using ($3/120):xtic(1) lc rgb '#006400' fs pattern 1 title 'WeaQL',\
+data3 every 6::1 using ($3/120):xtic(1) lc rgb purple fs pattern 2 title 'Galera-Cluster',\
+data2 every 6::1 using ($3/120):xtic(1) lc rgb orange fs pattern 4 title 'MySQL-Cluster'
+
 

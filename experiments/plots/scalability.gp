@@ -8,7 +8,7 @@ set output outputfile
 set yrange [0:2500]
 set ylabel "Throughput (ops/s)"
 set xrange [0:5.5]
-set xlabel "# Servers"
+set xlabel "Servers"
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16"
 

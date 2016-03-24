@@ -7,7 +7,7 @@ set output outputfile
 # Axis
 #set yrange [0:400]
 set ylabel "Latency (ms)"
-#set xrange [0:100000]
+set xrange [0:*]
 set xlabel "Throughput (ops/s)"
 set xtics nomirror rotate by -30 scale 0.5
 set xtics font "Helvetica,16"

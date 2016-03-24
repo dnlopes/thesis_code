@@ -10,7 +10,6 @@ set ylabel "Latency (ms)"
 set xlabel "Clients"
 set xtics nomirror
 set ytics nomirror
-#set xrange [0:100000]
 #set yrange [0:120]
 #set xtics nomirror rotate by -30 scale 0.5
 #set xtics font "Helvetica,16"
