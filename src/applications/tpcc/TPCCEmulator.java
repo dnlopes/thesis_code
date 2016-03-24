@@ -34,7 +34,6 @@ public class TPCCEmulator
 	private Map<Integer, List<TPCCStatistics>> perSecondStats;
 	private int emulatorId;
 	private BaseBenchmarkOptions options;
-	TpccHook hook;
 
 	public TPCCEmulator(int id, BaseBenchmarkOptions options)
 	{
@@ -46,8 +45,6 @@ public class TPCCEmulator
 		this.clients = new ArrayList<>();
 		this.threadsService = Executors.newFixedThreadPool(this.options.getClientsNumber());
 		this.perSecondStats = new HashMap<>();
-		//hook = new TpccHook(clients, options, emulatorId);
-		//Runtime.getRuntime().addShutdownHook(hook);
 	}
 
 	public boolean runBenchmark()

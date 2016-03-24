@@ -35,7 +35,7 @@ public class CausalDeliverAgent implements DeliverAgent
 		this.replicator = replicator;
 		this.queues = new HashMap<>();
 
-		WeaQLEnvironment.REMOTE_APPLIER_THREAD_COUNT = Topology.getInstance().getReplicatorsCount();
+		//WeaQLEnvironment.REMOTE_APPLIER_THREAD_COUNT = Topology.getInstance().getReplicatorsCount();
 
 		setup();
 

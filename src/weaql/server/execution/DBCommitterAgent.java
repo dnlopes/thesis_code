@@ -8,6 +8,7 @@ import weaql.common.util.ConnectionFactory;
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import weaql.server.replicator.Replicator;
 import weaql.server.util.TransactionCommitFailureException;
 
 import java.sql.Connection;
@@ -47,6 +48,8 @@ public class DBCommitterAgent implements DBCommitter
 
 			if(commitDecision)
 				return SUCCESS_STATUS;
+			else
+				Replicator.abortCounter.incrementAndGet();
 		}
 	}
 
@@ -58,6 +61,7 @@ public class DBCommitterAgent implements DBCommitter
 		try
 		{
 			stat = this.connection.createStatement();
+
 			for(String sqlOp : op.getOps())
 				stat.addBatch(sqlOp);
 

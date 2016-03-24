@@ -51,6 +51,7 @@ public class Replicator extends AbstractNode
 	private final Lock clockLock;
 	private final String prefix;
 	private final AtomicInteger txnCounter;
+	public static AtomicInteger abortCounter;
 	protected final StatsCollector statsCollector;
 
 	private final GarbageCollector garbageCollector;
@@ -65,6 +66,7 @@ public class Replicator extends AbstractNode
 
 		this.prefix = SUBPREFIX + this.config.getId() + "_";
 		this.txnCounter = new AtomicInteger();
+		abortCounter = new AtomicInteger();
 		this.networkInterface = new ReplicatorNetwork(config);
 
 		this.deliver = AgentsFactory.createDeliverAgent(this);
@@ -285,7 +287,15 @@ public class Replicator extends AbstractNode
 		@Override
 		public void run()
 		{
+			long[] entries = clock.getDcEntries();
+			long opsSum = 0;
+			for(int i = 0; i < entries.length; i++)
+				opsSum += entries[i];
+
+			int percentage = (int) (abortCounter.get() * 100.0 / opsSum + 0.5);
+
 			LOG.info("<r{}> vector clock: ({})", id, clock.getClockValue());
+			LOG.info("Total ops: {} ; Total aborts: {} ; Abort rate: {}%", opsSum, abortCounter.get(), percentage);
 		}
 	}
 }

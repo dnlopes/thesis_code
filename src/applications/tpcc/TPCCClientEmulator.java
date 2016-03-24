@@ -85,7 +85,6 @@ public class TPCCClientEmulator implements Runnable
 		startTime = System.currentTimeMillis();
 		long benchmarkTime;
 
-
 		System.out.println("starting actual experiment");
 
 		while((benchmarkTime = System.currentTimeMillis() - startTime) < benchmarkDuration * 1000)
@@ -110,10 +109,8 @@ public class TPCCClientEmulator implements Runnable
 				} else
 				{
 					String error = txn.getLastError();
-
-					if(!error.contains("try restarting transaction"))
-						this.stats.addTxnRecord(txn.getName(),
-								new TransactionRecord(txn.getName(), false, TPCCEmulator.ITERATION));
+					this.stats.addTxnRecord(txn.getName(),
+							new TransactionRecord(txn.getName(), false, TPCCEmulator.ITERATION));
 
 					if((!error.contains("try restarting transaction")) && (!error.contains("Duplicate entry")))
 						LOG.error(error);

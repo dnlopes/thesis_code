@@ -87,6 +87,7 @@ public class SandboxExecutionProxy implements Proxy
 
 		if(readOnly)
 		{
+			//TODO filter deleted records in this case
 			ResultSet rs = this.readOnlyInterface.executeQuery(op);
 			long estimated = System.nanoTime() - start;
 			this.txnContext.addSelectTime(estimated);
