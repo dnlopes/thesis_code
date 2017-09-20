@@ -13,7 +13,7 @@
 
 	<!-- Main properties for this build -->
 	<property name="base.dir" value="." />
-	<property name="ezk.base.dir" value="${base.dir}/../ezk" />
+	<property name="ezk.base.dir" value="${base.dir}/ezk" />
 	<property name="ezk-build.file" value="${ezk.base.dir}/build.xml" />
 	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
 	<property name="src.dir" value="${base.dir}/src" />
